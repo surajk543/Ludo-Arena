@@ -128,7 +128,7 @@ func TestTurnTimeoutsForfeitAbsentPlayer(t *testing.T) {
 	cs := startPublic(t, e, "ludo", "classic", 2)
 	a, b := cs[0], cs[1]
 	b.close()
-	// a keeps playing; b times out 3 times and is forfeited -> a wins.
+	// a keeps playing; b times out MAX_STRIKES (5) times and is forfeited -> a wins.
 	a.playUntilFinished(60 * time.Second)
 	s := a.snapshot()
 	if s.Result == nil || s.Result.WinnerSeat != a.seat() {

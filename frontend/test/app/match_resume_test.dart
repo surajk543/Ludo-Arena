@@ -154,6 +154,30 @@ void main() {
       await _end(tester);
     });
 
+    testWidgets('removed for missed turns while closed: notice on Home, '
+        'the room is left', (tester) async {
+      final connector = await _boot(tester);
+      final room = ludoRoomJson();
+      ((room['players'] as List).first as Map<String, dynamic>)
+        ..['forfeited'] = true
+        ..['forfeitWhy'] = 'timeouts'
+        ..['strikes'] = 5;
+      await _serverHasRoom(tester, connector.last, room);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(LudoGameScreen), findsNothing);
+      expect(
+        find.text(
+          'You were removed from the match because you missed 5 turns in '
+          'a row.',
+        ),
+        findsOneWidget,
+      );
+      final leaves = connector.last.sentOfType('room.leave');
+      expect(leaves, hasLength(1));
+      expect(leaves.single['p'], {'roomId': 'r_1'});
+      await _end(tester);
+    });
+
     testWidgets('only the first connection after launch navigates', (
       tester,
     ) async {

@@ -2466,8 +2466,26 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return '3 باریاں چھوٹنے پر $name کو ہٹا دیا گیا';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لگاتار $count باریاں چھوٹنے پر $name کو ہٹا دیا گیا',
+      one: 'باری چھوٹنے پر $name کو ہٹا دیا گیا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'آپ کو میچ سے ہٹا دیا گیا کیونکہ آپ کی لگاتار $count باریاں چھوٹ گئیں۔',
+      one: 'آپ کو میچ سے ہٹا دیا گیا کیونکہ آپ کی باری چھوٹ گئی۔',
+    );
+    return '$_temp0';
   }
 
   @override

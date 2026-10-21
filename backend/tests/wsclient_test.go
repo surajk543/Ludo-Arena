@@ -46,10 +46,11 @@ type roomState struct {
 		Picture *struct {
 			ID string `json:"id"`
 		} `json:"picture"`
-		Bot       bool `json:"bot"`
-		Connected bool `json:"connected"`
-		Forfeited bool `json:"forfeited"`
-		Strikes   int  `json:"strikes"`
+		Bot        bool   `json:"bot"`
+		Connected  bool   `json:"connected"`
+		Forfeited  bool   `json:"forfeited"`
+		ForfeitWhy string `json:"forfeitWhy"`
+		Strikes    int    `json:"strikes"`
 	} `json:"players"`
 	HostSeat int `json:"hostSeat"`
 	Turn     struct {
@@ -314,9 +315,13 @@ func (c *client) apply(m msg) {
 		_ = json.Unmarshal(m.P, &p)
 		r.Players[p.Seat].Connected = m.T == "player.connected"
 	case "player.forfeited":
-		var p struct{ Seat int }
+		var p struct {
+			Seat, Strikes int
+			Reason        string
+		}
 		_ = json.Unmarshal(m.P, &p)
 		r.Players[p.Seat].Forfeited = true
+		r.Players[p.Seat].ForfeitWhy, r.Players[p.Seat].Strikes = p.Reason, p.Strikes
 		if r.Game == "ludo" {
 			for i := range r.Board.Tokens[p.Seat] {
 				r.Board.Tokens[p.Seat][i] = -1

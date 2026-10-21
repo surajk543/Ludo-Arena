@@ -560,7 +560,12 @@ func (s *Service) Leave(ctx context.Context, c Caller, roomID string) error {
 			}
 		case StatusPlaying:
 			m.extraTo = append(m.extraTo, c.UserID)
-			if err := s.forfeit(m, seat, "left"); err != nil {
+			if p := &r.Players[seat]; p.Forfeited {
+				// Already out (missed turns): leaving now only stops the
+				// room's events for this user (MemberIDs skips "left").
+				p.ForfeitWhy = "left"
+				m.write = true
+			} else if err := s.forfeit(m, seat, "left"); err != nil {
 				return err
 			}
 			m.clearPointer(c.UserID)
