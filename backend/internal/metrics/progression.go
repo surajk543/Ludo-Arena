@@ -24,6 +24,11 @@ var (
 	FriendRequests = counter("friend_requests_total", "Friend request events.", "event")
 	// InvitesSent counts private-room invites: sent | not_friends | rate_limited | error.
 	InvitesSent = counter("invites_sent_total", "Private-room invites to friends.", "result")
+	// PlayerReports counts POST /reports outcomes. reason is one of the five
+	// report reasons or "invalid"; result is created | already_reported |
+	// report_limit | cannot_report_self | cannot_report_bot | not_in_room |
+	// not_found | room_not_found | bad_request | error.
+	PlayerReports = counter("player_reports_total", "Player reports by reason and result.", "reason", "result")
 	// ReturningUsers is the approximate number of humans active yesterday who
 	// are also active today (HyperLogLog inclusion-exclusion).
 	ReturningUsers = gauge("returning_users_estimate", "Approximate humans active in the previous window who are active again.", "window")

@@ -9,7 +9,7 @@ network only, AUTH/TLS.
 
 | Key | Type | TTL | Written by | Purpose |
 |---|---|---|---|---|
-| `room:{roomId}` | hash `{rev, s}` | lobby 30 min · playing 3 h · finished 10 min + rematch window · closed 2 min (refreshed on every commit) | rooms | Full authoritative room state (JSON) + optimistic revision |
+| `room:{roomId}` | hash `{rev, s}` | lobby 30 min · playing 3 h · finished 10 min + rematch window · closed 2 min (refreshed on every commit) | rooms | Full authoritative room state (JSON) + optimistic revision. Also read (never written) by player reports to verify that reporter and reported player hold a seat |
 | `user:{userId}:room` | string | 6 h | rooms (atomic with room commits, guarded) | One active room per user |
 | `roomcode:{CODE}` | string | room TTL | rooms | Private room code → room id |
 | `mm:open:{pool}:{game}:{variant}:{capacity}` | zset (score = created ms) | — (members removed on start/close) | rooms | Open public lobbies; `pool` = `live` or `loadtest` |
@@ -29,7 +29,7 @@ network only, AUTH/TLS.
 | `dedup:{userId}:{msgId}` | string | 2 min | gateway | WebSocket command de-duplication |
 | `rl:{rule}:{key}:{window}` | counter | window | ratelimit | Fixed-window rate limits |
 | `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify / gateway | Cross-instance event fan-out. `ev:user:*` also carries gateway control messages (`{"ctl":"kick","conn":…}`, `{"ctl":"revoke","sid":…}`) that are never forwarded to clients |
-| progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents, weekly leaderboard, idempotency replays, active-user sketches |
+| progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents, weekly leaderboard, idempotency replays, active-user sketches. Player reports and the friend cap keep no Redis state of their own (only `rl:report_user:*`, `rl:report_read_user:*`, `rl:admin_ip:*` rate-limit counters); reports are stored in PostgreSQL |
 
 ## Atomic commits
 

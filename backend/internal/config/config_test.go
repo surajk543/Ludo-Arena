@@ -98,3 +98,45 @@ func TestWelcomeFallbacks(t *testing.T) {
 		t.Fatalf("built-in welcome defaults changed: %d / %d", DefaultWelcomeCoins, DefaultWelcomeDiamonds)
 	}
 }
+
+func TestSocialAndAdminSettings(t *testing.T) {
+	hash := strings.Repeat("ab", 32)
+	cases := []struct {
+		name                     string
+		friends, reports, admin  string
+		wantFriends, wantReports int
+		wantAdmin                bool
+		wantErr                  string
+	}{
+		{"defaults", "", "", "", 20, 2, false, ""},
+		{"overrides", "35", "5", hash, 35, 5, true, ""},
+		{"minimums", "1", "1", "", 1, 1, false, ""},
+		{"zero friends", "0", "", "", 0, 0, false, "FRIENDS_MAX must be >= 1"},
+		{"negative reports", "", "-2", "", 0, 0, false, "REPORTS_PER_DAY must be >= 1"},
+		{"friends not an integer", "twenty", "", "", 0, 0, false, "FRIENDS_MAX: not an integer"},
+		{"admin hash not hex", "", "", strings.Repeat("zz", 32), 0, 0, false, "ADMIN_API_KEY_SHA256 must be 64 hex characters"},
+		{"admin hash too short", "", "", "abcd", 0, 0, false, "ADMIN_API_KEY_SHA256 must be 64 hex characters"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			t.Setenv("FRIENDS_MAX", c.friends)
+			t.Setenv("REPORTS_PER_DAY", c.reports)
+			t.Setenv("ADMIN_API_KEY_SHA256", c.admin)
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Social.FriendsMax != c.wantFriends || cfg.Social.ReportsPerDay != c.wantReports ||
+				(len(cfg.AdminKeySHA256) == 32) != c.wantAdmin {
+				t.Fatalf("social = %+v admin = %x", cfg.Social, cfg.AdminKeySHA256)
+			}
+		})
+	}
+}

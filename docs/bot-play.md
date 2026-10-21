@@ -262,7 +262,7 @@ changes it is rejected and the previous config stays active).
 | `behavior.random_seed` | 0 | int64 | 0 = random; else per-bot seed `seed + id·φ` (reproducible) |
 | `behavior.disconnect_simulation_enabled` | false | | |
 | `behavior.disconnect_probability` | 0 | 0–0.2 | per own action |
-| `identity.display_name_prefix` | `Bot` | ≤ 12 chars | requested name `"<prefix> <name>"`; the backend enforces a `Bot` prefix and 20 runes |
+| `identity.display_name_prefix` | `Bot` | ≤ 12 chars | requested name `"<prefix> <name>"`; the backend strips a leading `Bot` word from the seat name (so `Bot Asha` is shown as `Asha`) and limits it to 20 runes |
 | `identity.names_pool` | built-in 16 names | 1–16 chars each | |
 | `shutdown.graceful_timeout_seconds` | 60 | 1–3600 | |
 | `shutdown.policy` | `finish_games` | finish_games, leave_now | leave_now forfeits running games |
@@ -495,8 +495,16 @@ any attribute named `*token`, `*key`, `*authorization`, `*secret`, …).
   rematch). Bots cannot touch wallets, progression, collection, social or
   account APIs, chat, or join by code.
 * **Labelling.** Bots never send a bot flag; the backend derives
-  `players[].bot` and `actorType: "bot"` from the session. bot-play counts
+  `players[].bot` and `actorType: "bot"` from the session, and the protocol
+  always marks bot seats `bot: true`. bot-play counts
   `bot_label_missing_total` if a snapshot ever shows its own seat as non-bot.
+  Display names carry **no** bot label: the backend strips a leading `Bot`
+  word (any case, followed by a space, `-`, `_`, `:` or `.`) from the
+  requested name and falls back to a neutral first name (never "Bot") when
+  nothing is left. The app shows no bot tag or badge — a UI choice; the
+  server still treats bots as bots everywhere (no wallets, fees or payouts,
+  no XP or analytics, cannot be friended or reported: `cannot_report_bot`),
+  and the app simply does not offer those actions on `bot: true` seats.
 * **Integrity.** All game logic is server-side. The evaluator is advisory;
   a wrong estimate only produces a weaker move.
 * **Limitations.** Bots cannot follow a public rematch into a new private
