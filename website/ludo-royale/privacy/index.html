@@ -1,0 +1,267 @@
+<!-- DRAFT: review before publishing -->
+<!doctype html>
+<html lang="en">
+<head>
+<!--
+  Ludo Royale privacy policy, written from the app's code and docs in the Ludo Royale repository
+  (docs/authentication.md, docs/progression.md, docs/rest-api.md, backend/migrations,
+  frontend/lib/core/analytics, frontend/lib/core/device). Before publishing, confirm the points
+  listed in website/README.md ("Privacy policy: points to confirm"), set the effective date,
+  and remove the DRAFT comments.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Ludo Royale</title>
+<meta name="description" content="Privacy policy of Ludo Royale, an online Ludo and Snakes &amp; Ladders game by Sun Game Studio.">
+<meta name="theme-color" content="#070c16">
+<link rel="canonical" href="https://sungamestudio.com/ludo-royale/privacy/">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css?v=20261020a">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="/"><img src="/logo-mark.png" alt="" width="36" height="36"><span>Sun Game Studio</span></a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">Menu</span><span class="menu-icon" aria-hidden="true"></span></button>
+    <nav class="site-nav" id="site-nav" aria-label="Main"><a href="/#games">Games</a><a href="/#about">About</a><a href="/#contact">Contact</a><a href="/privacy">Privacy</a></nav>
+  </div>
+</header>
+<main id="main" class="doc"><div class="wrap">
+<header class="doc-head">
+  <h1>Privacy Policy</h1>
+  <!-- DRAFT: set "Effective" to the day this page is published. -->
+  <p class="meta">Ludo Royale &middot; Sun Game Studio<br>
+  Effective 21 October 2026 &middot; Last updated 21 October 2026</p>
+</header>
+<div class="prose">
+
+<p>This policy explains what Ludo Royale collects, why, and what it does not collect. It describes the app as it
+actually behaves. If we change what the app collects, we change this page and the date above with it.</p>
+
+<div class="card">
+  <p><strong>In short:</strong> You can play as a guest with no sign-up, and the app never asks for your email
+  address, phone number or a password. Your account, progress and virtual coins are kept on our game servers. If
+  you save your progress with Google, Facebook or Apple, we keep the account identifier that company gives us and
+  the first name it shares, never your email address. Usage statistics go to Google Analytics only if you say yes,
+  and you can change that at any time. There are no ads, no in-app purchases and no free-text chat.</p>
+</div>
+
+<h2>1. Who we are</h2>
+<p>Ludo Royale is an online Ludo and Snakes &amp; Ladders game published by Sun Game Studio, Bengaluru, India. For
+anything in this policy, write to <a href="mailto:contact@sungamestudio.com">contact@sungamestudio.com</a>.</p>
+
+<h2>2. What we collect</h2>
+<div class="table-wrap"><table>
+  <tr><th>What</th><th>Why</th><th>Kept</th></tr>
+  <tr>
+    <td><strong>An account number</strong> our server creates when you first play, and for guest play a secret
+        key that stays in your phone's secure storage</td>
+    <td>To keep your coins, progress and friends with your account</td>
+    <td>Until your account is deleted. The guest key is never stored as given: our server keeps only a one-way
+        hash of it (<code>SHA&#8209;256</code>).</td>
+  </tr>
+  <tr>
+    <td><strong>A device identifier</strong>: on Android 8 or later, the Android ID that the system gives this
+        app; on an iPhone or iPad, a random identifier the app creates and keeps in the device's keychain</td>
+    <td>Only to bring your account back on the same device after an update or a reinstall. It is never used for
+        analytics or ads and never shown to other players.</td>
+    <td>Never stored as given. It is hashed with a secret key (<code>HMAC&#8209;SHA&#8209;256</code>) the moment
+        it arrives, and only the hash is written down; we cannot recover the original from it. Kept until your
+        account is deleted, or until you choose to forget a guest account when you sign out of it.</td>
+  </tr>
+  <tr>
+    <td><strong>If, and only if, you save your progress with Google, Facebook or Apple</strong>: the account
+        identifier that company issues, and the first name on that account (with Apple, only if you choose to
+        share your name)</td>
+    <td>So the same account finds you on a new phone. The first name becomes your display name until you choose
+        your own.</td>
+    <td>Until your account is deleted. We never see your password, and we do not store your email address or
+        profile picture. The sign-in token is verified and then discarded.</td>
+  </tr>
+  <tr>
+    <td><strong>Your display name</strong>: a name you choose, the first name from Google, Facebook or Apple, or a
+        generated name such as &ldquo;Player 7K2Q&rdquo;</td>
+    <td>So other players can see who is playing: at the table, in friend lists, invitations, the weekly ranking
+        and recent players. Names you choose are checked against a list of offensive words.</td>
+    <td>Until your account is deleted</td>
+  </tr>
+  <tr>
+    <td><strong>Game data</strong>: your coins and diamonds, XP and level, mission progress and the rewards you
+        claimed, the items in your collection and what you have equipped, and your friends and friend
+        requests</td>
+    <td>To run the game, give rewards exactly once, and show your progress and friends</td>
+    <td>For the life of your account. Mission progress and claims are deleted 60 days after their last update;
+        the record that a finished match was counted is deleted after 14 days. We do not keep a history of your
+        matches.</td>
+  </tr>
+  <tr>
+    <td><strong>Live game data</strong>: the match you are playing, quick-chat phrases and emotes you send,
+        invitations, whether you are online, the players you recently played with, and your weekly ranking
+        score</td>
+    <td>To run matches and show your friends when you can play</td>
+    <td>Held briefly in our servers' memory store, not in our database. A match is removed minutes after it
+        ends; quick chat is passed to the table and not stored; invitations last up to 30 minutes, online status
+        60 seconds, recent players 14 days and weekly ranking scores 21 days.</td>
+  </tr>
+  <tr>
+    <td><strong>Reports you file</strong>: who you reported, in which match and game, the reason you picked
+        (cheating, offensive name, abusive behaviour, leaving or stalling, or other), when, and our team's review
+        status and notes. There is no free-text field.</td>
+    <td>To review reports and keep games fair. Only our team sees reports, and the reported player is never told
+        who reported them. If someone reports you, the same kind of record is kept about you.</td>
+    <td>Until the account of either player is deleted</td>
+  </tr>
+  <tr>
+    <td><strong>Usage statistics, only if you say yes</strong>: which features you use (for example the game and
+        mode you play, how a match ends and roughly how long it took, missions, items, level-ups, sign-in method
+        and language), together with what Google Analytics collects by itself: an identifier for this installation
+        of the app, your device model, operating system, app version, language and an approximate location such
+        as your country</td>
+    <td>To understand how the game is played and improve it. These statistics never include your name, account
+        number, friend code, room codes or chat. Section 3 says who processes them.</td>
+    <td>Kept by Google Analytics for at most 14 months. Off until you agree; you can change it at any time in
+        <strong>Settings &rarr; Privacy &rarr; Share anonymous usage stats</strong>.</td>
+  </tr>
+  <tr>
+    <td><strong>Service counts</strong>: how many players were active on a day or in a month, counted with a keyed
+        one-way hash of the account number, and totals of app errors and reconnections with no identifier at
+        all</td>
+    <td>To keep the service running and size it. These counts contain no name or account number.</td>
+    <td>Active-player counts for 40 days; error and reconnection totals are kept only as totals</td>
+  </tr>
+  <tr>
+    <td><strong>Connection data</strong>: your IP address and basic request details, as with any internet
+        service</td>
+    <td>To connect you to the game and to limit how often requests can be made, which protects the service from
+        abuse</td>
+    <td>Our game server does not write your IP address to its logs or database. Short-lived counters used to
+        limit requests expire within an hour.</td>
+  </tr>
+</table></div>
+
+<h3>What stays on your phone</h3>
+<p>The app keeps your sign-in tokens, the guest key and, on an iPhone or iPad, the device identifier in the
+phone's secure storage (the Keychain on iOS, the Android Keystore on Android), and your settings, such as sound,
+language and your usage-statistics choice, in the app's own storage. On Android the app's data is excluded from
+phone backups, and on iOS its keychain items stay on this device only.</p>
+
+<h2>3. Who we share it with</h2>
+<p>We do not sell your data, and we do not share it with advertisers. There are no ads in the app.</p>
+<ul>
+  <li><strong>Other players</strong> see your display name, avatar, level, title and the cosmetic items you have
+  equipped, at the table and in friend lists, invitations and the weekly ranking. Other players never see your
+  account number, sign-in details or device identifier.</li>
+  <li><strong>Google, Facebook (Meta) and Apple</strong>, only if you sign in with them. They handle the sign-in
+  under the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>, the
+  <a href="https://www.facebook.com/privacy/policy/" rel="noopener">Meta Privacy Policy</a> and the
+  <a href="https://www.apple.com/legal/privacy/" rel="noopener">Apple Privacy Policy</a>. The Facebook sign-in
+  library in the app is set not to send app events or advertising identifiers to Facebook.</li>
+  <li><strong>Google Analytics for Firebase</strong>, only if you agree to share usage statistics. Advertising
+  features are switched off: the app does not let Google Analytics collect the advertising ID, and ad storage and
+  ad personalisation are always denied. Google processes the statistics under the
+  <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>; see also
+  <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">how Google uses information
+  from apps that use its services</a>.</li>
+</ul>
+<!-- DRAFT: name the hosting provider and the country of the servers here once confirmed. -->
+<p>Your account and game data are stored in our own databases on servers operated by Sun Game Studio.</p>
+
+<h2>4. What we do not collect</h2>
+<ul>
+  <li>No email address, phone number or password, and no real name beyond the first name a sign-in service
+  shares.</li>
+  <li>No location permission, contacts, photos, camera or microphone. The app needs only network access.</li>
+  <li>No advertising ID, no ads and no tracking across other apps or websites.</li>
+  <li>No in-app purchases and no payment details. Coins and diamonds are virtual and cannot be bought, cashed out
+  or exchanged for money.</li>
+  <li>No free-text chat: players talk with ready-made phrases and emotes, which are not stored.</li>
+  <li>No crash-reporting service and no history of your matches.</li>
+</ul>
+
+<h2>5. How we protect it</h2>
+<p>The app talks to our servers over encrypted connections (HTTPS). Guest keys, sign-in refresh tokens and device
+identifiers are stored on our side only as one-way hashes. Dice rolls, moves, results, coins and rewards are
+decided on our servers, so they cannot be changed from a phone.</p>
+
+<h2 id="delete">6. Deleting your account</h2>
+<!-- DRAFT: the app has no in-app "Delete account" button yet. Add one before release (App Store and Google
+     Play both require it), then describe it here, or extend /delete-account with a Ludo Royale section. -->
+<p>To delete your account and the data attached to it, write to
+<a href="mailto:support@sungamestudio.com?subject=Delete%20my%20Ludo%20Royale%20account">support@sungamestudio.com</a>
+with the subject <strong>Delete my Ludo Royale account</strong>. Tell us your <strong>friend code</strong> (shown
+on your Profile, starting with <code>u_</code>) and your display name; the app never asks for an email address,
+so that is how we find the account. We complete deletion requests within <strong>30 days</strong>.</p>
+<p>Deleting removes your account, your linked sign-ins and device link, your display name, coins and diamonds,
+progress, collection, friends, and reports filed by you or about you. Deletion is permanent and cannot be
+undone.</p>
+<p>Uninstalling the app or signing out does not delete your account, because it lives on our servers. If you sign
+out of a guest account without saving your progress, you can no longer reach it, but it still exists until you ask
+us to delete it.</p>
+
+<h2>7. Children</h2>
+<p>Ludo Royale is intended for players aged 13 and over. It is not directed at children under 13, and we do not
+knowingly collect personal information from them. If you believe a child under 13 is using the game, write to
+<a href="mailto:contact@sungamestudio.com">contact@sungamestudio.com</a> and we will delete the account.</p>
+
+<h2>8. Your rights and choices</h2>
+<p>You can change your display name in the app, turn usage statistics on or off in
+<strong>Settings &rarr; Privacy</strong>, and ask us for a copy of your data, a correction, or deletion of your
+account (section 6). For data that Google, Facebook or Apple process for sign-in, or Google for analytics, see
+their privacy policies. You can write to us with any request; we answer within 30 days. These rights apply
+wherever you live, including under India's Digital Personal Data Protection Act, 2023 and the EU and UK GDPR.</p>
+
+<h2>9. Changes</h2>
+<p>When the app starts collecting something new, or stops, we update this page and the dates at the top.</p>
+
+</div>
+<footer class="doc-foot">
+  Ludo Royale &middot; Sun Game Studio &middot;
+  <a href="mailto:contact@sungamestudio.com">contact@sungamestudio.com</a>
+</footer>
+</div></main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/"><img src="/logo-mark.png" alt="" width="36" height="36" loading="lazy"><span>Sun Game Studio</span></a>
+        <p>An independent mobile game studio from Bengaluru, India.</p>
+      </div>
+      <nav class="footer-col" aria-label="Games">
+        <h2 class="footer-title">Games</h2>
+        <ul>
+          <li><a href="/king-teen-patti">King Teen Patti</a></li>
+          <li><a href="/brain-train">Brain Train</a></li>
+          <li><a href="/ludo-royale">Ludo Royale</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-col" aria-label="Legal">
+        <h2 class="footer-title">Legal</h2>
+        <ul>
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/brain-train/privacy/">Brain Train Privacy Policy</a></li>
+          <li><a href="/ludo-royale/privacy/" aria-current="page">Ludo Royale Privacy Policy</a></li>
+          <li><a href="/ludo-royale/legal/">Ludo Royale Open-Source Notices</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/refund">Refund Policy</a></li>
+          <li><a href="/delete-account">Delete Account</a></li>
+        </ul>
+      </nav>
+      <div class="footer-col">
+        <h2 class="footer-title">Contact</h2>
+        <ul>
+          <li><a href="mailto:contact@sungamestudio.com">contact@sungamestudio.com</a></li>
+          <li><a href="mailto:support@sungamestudio.com?subject=Support">support@sungamestudio.com</a></li>
+          <li>Bengaluru, Karnataka, India</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Sun Game Studio. All rights reserved.</div>
+  </div>
+</footer>
+<script src="/site.js?v=20261016a" defer></script>
+</body>
+</html>

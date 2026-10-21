@@ -12,6 +12,11 @@ Four independent projects — never mix their code or dependencies:
 | `bot-play/` | Go 1.27 (separate module) | `ludoroyale/botplay` |
 | `monitoring/` | Prometheus 3, Alertmanager, node_exporter + Telegram ops bot in Go 1.27 (`monitoring/ops-bot`, separate module; gonum/plot charts, go-pdf/fpdf PDFs) | `ludoroyale/opsbot` |
 
+`website/` — Ludo Royale pages for sungamestudio.com (static, deployed by hand; not
+part of the app or backend). See `website/README.md`; regenerate
+`website/ludo-royale/legal/index.html` with `website/build_legal_page.py` whenever
+`backend/config/legal/open-source-notices.html` changes.
+
 Start with `README.md` and `docs/architecture.html`. Contracts are the source
 of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
 `docs/app-version-policy.md`, `docs/cosmetics-catalog.md`,
