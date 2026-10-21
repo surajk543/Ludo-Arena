@@ -35,6 +35,24 @@ Authentication is not used**, and Firebase is in the app for consent-gated
 Analytics only. A separate Go service, **bot-play**, plays as server-labelled
 bots through the same protocol with room-scoped bot tokens.
 
+## Monitoring and alerting
+
+The fourth project, [`monitoring/`](../monitoring/README.md), runs Prometheus
+(scraping every backend instance's `METRICS_ADDR`, bot-play and node_exporter
+on each host), Alertmanager and a Telegram **ops bot** (separate Go module
+`ludoroyale/opsbot`). The bot reads only the Prometheus API (plus, optionally,
+the Play Console bulk reports in Cloud Storage and the GA4 Data API) and sends:
+an hourly PDF status (real players vs bots in game and online, rooms, lobby,
+matches, new accounts, DAU, CPU / RAM / disk per host, process memory, firing
+alerts, 24-hour charts), a daily KPI PDF for yesterday (accounts, DAU/WAU,
+matches by game and mode, human-only vs bot-filled, peaks, matchmaking wait,
+5xx, settlement failures, Play installs/uninstalls, GA4 first_open/app_remove,
+30-day trends), and every alert enriched with the current CPU, RAM and player
+counts. Alert thresholds live in one file
+(`monitoring/prometheus/rules/thresholds.yml`); the bot token and Google keys
+come only from the environment. Cluster-wide gauges are combined with `max`
+(every instance reports the same value); per-instance gauges are summed.
+
 ## Sections of the HTML page
 
 | # | Section | What it covers |
@@ -48,7 +66,7 @@ bots through the same protocol with room-scoped bot tokens.
 | 7 | [Private rooms](architecture.html#private-rooms) | 6-character codes from a 32-symbol alphabet, preview, join, host start, bots, lifecycle and expiry |
 | 8 | [Reconnection](architecture.html#reconnection) | Backoff with jitter, `connection.ready.activeRoomId`, `game.state`, version/hash reconciliation, close codes incl. `4409` |
 | 9 | [Light / dark theme](architecture.html#theme) | Selection → SharedPreferences → restore before first frame → ThemeExtensions |
-| 10 | [Deployment and configuration](architecture.html#deployment) | Target topology (pending), local dev, [environment variables by name](architecture.html#env-vars), identifiers |
+| 10 | [Deployment and configuration](architecture.html#deployment) | Target topology (pending), local dev, [monitoring and alerting](architecture.html#monitoring) (Prometheus, Alertmanager, Telegram ops bot), [environment variables by name](architecture.html#env-vars), identifiers |
 | 11 | [App version management](architecture.html#app-version) | Startup policy check, force/optional update, maintenance lifecycle, enforcement (426/503, 4426/4503), reload |
 | 12 | [WebSocket performance](architecture.html#websocket-performance) | permessage-deflate boundaries, deltas vs snapshots, slow-consumer handling, metrics, [measured results](architecture.html#measured-load-test-results) |
 | 13 | [Progression and engagement](architecture.html#progression) | Rematch, match records → missions/XP, levels, cosmetics, exactly-once claims, engagement principles |
@@ -138,5 +156,6 @@ devices is still pending. See
 [bot-play.md](bot-play.md) ·
 [deployment.md](deployment.md) ·
 [performance.md](performance.md) ·
+[../monitoring/README.md](../monitoring/README.md) ·
 [../backend/docs/game-rules.md](../backend/docs/game-rules.md) ·
 [../backend/docs/redis-keys.md](../backend/docs/redis-keys.md)

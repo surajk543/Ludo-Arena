@@ -3,13 +3,14 @@
 Guidance for Claude Code (and engineers) working in this repository.
 
 Ludo Royale: online multiplayer Ludo (classic + quick) and Snakes & Ladders.
-Three independent projects — never mix their code or dependencies:
+Four independent projects — never mix their code or dependencies:
 
 | Dir | Stack | Module / package |
 |---|---|---|
 | `frontend/` | Flutter 3.44 / Dart 3.12, Riverpod 3, go_router 18 | `ludo_royale` |
 | `backend/` | Go 1.27, PostgreSQL 16, Redis 7 | `ludoroyale` |
 | `bot-play/` | Go 1.27 (separate module) | `ludoroyale/botplay` |
+| `monitoring/` | Prometheus 3, Alertmanager, node_exporter + Telegram ops bot in Go 1.27 (`monitoring/ops-bot`, separate module; gonum/plot charts, go-pdf/fpdf PDFs) | `ludoroyale/opsbot` |
 
 Start with `README.md` and `docs/architecture.html`. Contracts are the source
 of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
@@ -67,6 +68,12 @@ flutter run --dart-define=API_BASE_URL=http://localhost:8080 \
 # Load / compression matrix (development only)
 cd bot-play && BACKEND_BIN=… BOTPLAY_BIN=… BACKEND_ENV_FILE=… BOT_SERVICE_KEY=… \
   python3 scripts/loadtest_matrix.py --bots 1000
+
+# Monitoring + Telegram ops bot (secrets only in the gitignored monitoring/.env)
+cd monitoring/ops-bot && gofmt -l . && go vet ./... && go test -race ./...
+cd monitoring && promtool test rules prometheus/tests/alerts_test.yml
+cd monitoring && cp .env.example .env && docker compose up -d --build   # Prometheus :9095, Alertmanager :9093, bot :9097
+TELEGRAM_DRY_RUN=true DRY_RUN_DIR=./dry-run go run ./cmd/ops-bot --run-status-now   # in monitoring/ops-bot, no token needed
 ```
 
 Integration tests flush Redis logical DB 13 (backend e2e) and use DB 14
@@ -83,6 +90,7 @@ real data.
 - `frontend/lib/core/` — config, network (Dio + refresh), protocol (models, reducer, FNV hash), realtime (socket, `ActiveRoomController`), analytics, theme, localization.
 - `frontend/lib/features/` — feature folders; routes are registered in `lib/app/feature_routes.dart` via `play_routes.dart` and `meta_routes.dart`.
 - `frontend/lib/shared/game_visuals/`, `features/{ludo,snakes_ladders}/presentation/board/` — board, dice, token and cosmetic renderers.
+- `monitoring/` — Prometheus scrape targets (`prometheus/targets/`), alert thresholds in one file (`prometheus/rules/thresholds.yml`), alert rules + promtool tests, Alertmanager routing to the ops bot. `monitoring/ops-bot/internal/` — `report` (PromQL + text), `pdfreport` + `charts` (PDF/PNG), `telegram` (429 retry, token redaction), `alertmanager` (webhook + dedupe), `google` (Play CSV in GCS, GA4 Data API), `schedule`. See `monitoring/README.md`.
 
 ## Gotchas (learned the hard way)
 
@@ -113,6 +121,12 @@ real data.
 - iOS uses CocoaPods (not SwiftPM), deployment target 15.0, arm64-only
   simulator builds. Google Sign-In on Android needs each machine's debug SHA-1
   registered in Google Cloud project `ludo-royale-63887`.
+
+- Monitoring: cluster-wide gauges (`players_in_game`, `rooms_in_game`,
+  `players_in_lobby`, `active_users_estimate`) are reported identically by
+  every backend instance — aggregate them with `max`, never `sum`;
+  `ws_connections_active` is per instance (sum). The Telegram bot token lives
+  only in `monitoring/.env` / the secret store and is redacted from errors.
 
 ## Conventions
 
