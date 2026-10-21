@@ -71,20 +71,22 @@ type Deps struct {
 	Wallets     *wallet.Store
 	Profiles    *profile.Service
 	Progression playerinfo.Provider
-	Recorder    gameevents.Recorder
-	Inviter     gameevents.Inviter
-	Inventory   gameevents.Inventory
-	Policy      *apppolicy.Store
-	BotAuth     *auth.BotAuth
-	Limiter     *ratelimit.Limiter
-	Notifier    *notify.Publisher
-	Log         *slog.Logger
-	Game        config.GameConfig
-	Bots        config.BotConfig
-	Env         string
-	FullSnaps   bool // benchmark: attach a full snapshot to every delta event
-	Dice        Dice
-	Now         func() time.Time
+	// Pictures picks profile pictures for bot seats (nil: bots wear none).
+	Pictures  playerinfo.PictureSource
+	Recorder  gameevents.Recorder
+	Inviter   gameevents.Inviter
+	Inventory gameevents.Inventory
+	Policy    *apppolicy.Store
+	BotAuth   *auth.BotAuth
+	Limiter   *ratelimit.Limiter
+	Notifier  *notify.Publisher
+	Log       *slog.Logger
+	Game      config.GameConfig
+	Bots      config.BotConfig
+	Env       string
+	FullSnaps bool // benchmark: attach a full snapshot to every delta event
+	Dice      Dice
+	Now       func() time.Time
 	// StatsInterval is how often the live-game gauges are refreshed
 	// (GAME_STATS_INTERVAL; default 15 s). See stats.go.
 	StatsInterval time.Duration

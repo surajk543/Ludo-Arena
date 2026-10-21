@@ -88,7 +88,7 @@ func (s *Service) playerFor(ctx context.Context, userID string) Player {
 		cos[slot] = sum.Loadout[slot]
 	}
 	return Player{UserID: userID, UID: prof.UID, Name: prof.Name, Avatar: prof.Avatar, Level: sum.Level,
-		Title: sum.Title, Cosmetics: cos, JoinedAt: s.nowMs()}
+		Title: sum.Title, Cosmetics: cos, Picture: sum.Picture, JoinedAt: s.nowMs()}
 }
 
 // ensureFree makes sure the user is not seated in another active room. A
@@ -272,7 +272,7 @@ func (s *Service) newSeat(ctx context.Context, c Caller) Player {
 	var p Player
 	if c.Bot {
 		p = Player{UserID: c.UserID, UID: "b_" + strings.ReplaceAll(c.UserID, "-", "")[:10], Name: botName(c.BotName, c.UserID), Bot: true,
-			Level: 1, Cosmetics: map[string]string{}, JoinedAt: s.nowMs()}
+			Level: 1, Cosmetics: map[string]string{}, Picture: s.botPicture(), JoinedAt: s.nowMs()}
 	} else {
 		p = s.playerFor(ctx, c.UserID)
 	}

@@ -6,11 +6,12 @@ package progression
 // emote.
 //
 // Seat summary — seat:{userId}, string (JSON), TTL SeatCacheTTL. What a room
-// seat shows of an account: its level and the loadout slots that differ from
-// the starter loadout (the title is the loadout's title slot). Matchmaking,
+// seat shows of an account: its level, the loadout slots that differ from
+// the starter loadout (the title is the loadout's title slot) and the
+// equipped profile picture id. Matchmaking,
 // private joins and practice starts read it instead of PostgreSQL. Every
 // committed change to level or loadout deletes it (InvalidateSeat): level-ups
-// in RecordMatch and Claim, and Equip. A miss takes a fill lease
+// in RecordMatch and Claim, Equip and ApplyPicture. A miss takes a fill lease
 // (seat:{userId}:lease) atomically with the read, reads PostgreSQL and stores
 // the entry only while the lease is still its own; InvalidateSeat deletes the
 // entry and the lease, so a fill that read PostgreSQL before a concurrent
@@ -57,10 +58,13 @@ func EmotesKey(userID uuid.UUID) string { return "emotes:" + userID.String() }
 
 var _ playerinfo.SeatProvider = (*Service)(nil)
 
-// seatEntry is the cached JSON: level and non-starter loadout slots only.
+// seatEntry is the cached JSON: level, non-starter loadout slots and the
+// equipped profile picture id (resolved against the in-memory picture
+// catalogue when read).
 type seatEntry struct {
 	Level   int               `json:"l"`
 	Loadout map[string]string `json:"lo,omitempty"`
+	Picture string            `json:"p,omitempty"`
 }
 
 // seatGet returns the cached entry, or takes the fill lease (1) or reports
@@ -145,6 +149,9 @@ func seatEntryOf(sum playerinfo.Summary) seatEntry {
 	if e.Level < 1 {
 		e.Level = 1
 	}
+	if sum.Picture != nil {
+		e.Picture = sum.Picture.ID
+	}
 	starter := playerinfo.StarterLoadout()
 	for slot, item := range sum.Loadout {
 		if item != "" && item != starter[slot] {
@@ -169,7 +176,7 @@ func (s *Service) seatView(e seatEntry) playerinfo.Summary {
 		}
 	}
 	return playerinfo.Summary{Level: e.Level, LevelXP: LevelStartXP(e.Level), NextLevelXP: XPToNext(e.Level),
-		Title: lo["title"], Loadout: lo}
+		Title: lo["title"], Loadout: lo, Picture: s.pictureRef(e.Picture)}
 }
 
 // emoteCheck: -1 = no cached set, 1 = member, 0 = set without the member.

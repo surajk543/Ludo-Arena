@@ -52,6 +52,8 @@ type User struct {
 	NextLevelXP     int64             `json:"nextLevelXp"`
 	Title           string            `json:"title"`
 	Loadout         map[string]string `json:"loadout"`
+	// Picture is the equipped profile picture (null: the built-in avatar).
+	Picture *playerinfo.Picture `json:"picture"`
 }
 
 type authResponse struct {
@@ -383,7 +385,7 @@ func (a *Account) user(ctx context.Context, uid uuid.UUID) (User, error) {
 		ID: uid.String(), UID: prof.UID, ActorType: auth.ActorHuman, DisplayName: prof.Name,
 		Avatar: prof.Avatar, IsGuest: isGuest, LinkedProviders: providers,
 		Level: sum.Level, XP: sum.XP, LevelXP: sum.LevelXP, NextLevelXP: sum.NextLevelXP,
-		Title: sum.Title, Loadout: sum.Loadout,
+		Title: sum.Title, Loadout: sum.Loadout, Picture: sum.Picture,
 	}, nil
 }
 
