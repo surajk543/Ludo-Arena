@@ -5,7 +5,9 @@
 //
 // The app restores (or creates) a guest session; the test then signs in to
 // the same account as a second device (`POST /auth/guest/resume` with this
-// device's guest secret). The server must end this device's session at once:
+// device's guest secret, or `POST /auth/device/resume` when the account was
+// restored through the device id and has no secret on this install). The
+// server must end this device's session at once:
 // the app lands on the login screen with the "Signed in on another device"
 // popup and does not sign back in by itself. Prints SCREENSHOT_WINDOW_OPEN
 // while the popup is shown so it can be captured from the host.
@@ -18,6 +20,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ludo_royale/core/config/app_config.dart';
 import 'package:ludo_royale/core/config/app_info.dart';
+import 'package:ludo_royale/core/device/device_identity.dart';
 import 'package:ludo_royale/core/storage/secure_session_store.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/authentication/presentation/login_screen.dart';
@@ -47,20 +50,20 @@ Future<void> tapIfPresent(WidgetTester tester, Finder finder) async {
   }
 }
 
-/// Signs in to the account of [guestSecret] as another device would.
+/// Signs in to this device's account as another device would
+/// (`POST [path]` with [body]).
 Future<int> signInElsewhere(
   AppConfig config,
   AppInfo info,
-  String guestSecret,
+  String path,
+  Map<String, String> body,
 ) async {
   final client = HttpClient();
   try {
-    final req = await client.postUrl(
-      Uri.parse('${config.apiV1}/auth/guest/resume'),
-    );
+    final req = await client.postUrl(Uri.parse('${config.apiV1}$path'));
     req.headers.contentType = ContentType.json;
     info.headers.forEach(req.headers.set);
-    req.write(jsonEncode({'guestSecret': guestSecret}));
+    req.write(jsonEncode(body));
     final res = await req.close();
     await res.drain<void>();
     return res.statusCode;
@@ -110,11 +113,17 @@ void main() {
     final secret = await container
         .read(secureSessionStoreProvider)
         .readGuestSecret();
-    expect(secret, isNotNull, reason: 'this check needs a guest account');
+    final deviceId = await container.read(deviceIdentityProvider).deviceId();
+    expect(
+      secret ?? deviceId,
+      isNotNull,
+      reason: 'this check needs a guest secret or a device id',
+    );
     final status = await signInElsewhere(
       container.read(appConfigProvider),
       container.read(appInfoProvider),
-      secret!,
+      secret != null ? '/auth/guest/resume' : '/auth/device/resume',
+      secret != null ? {'guestSecret': secret} : {'deviceId': deviceId!},
     );
     expect(status, 200);
 
