@@ -4,7 +4,7 @@ Four independent projects, each with its own dependencies:
 
 | Directory | Stack | Build | Config |
 |---|---|---|---|
-| `frontend/` | Flutter 3.44 / Dart 3.12 | `flutter build apk` / `flutter build ipa` | `--dart-define`s (public ids only) + gitignored `config/firebase.json` |
+| `frontend/` | Flutter 3.44 / Dart 3.12 | `tool/build_android_release.sh apk\|appbundle` (obfuscated, R8) / `flutter build ipa --obfuscate …` | `--dart-define`s (public ids only) + gitignored `config/firebase.json` |
 | `backend/` | Go 1.27 | `go build ./cmd/server` or `backend/Dockerfile` | environment variables (`backend/.env.example`), policy files in `backend/config/` |
 | `bot-play/` | Go 1.27 (separate module) | `go build ./cmd/bot-play` or `bot-play/Dockerfile` | YAML in `bot-play/configs/` + env for the service key |
 | `monitoring/` | Prometheus 3, Alertmanager, node_exporter; ops bot in Go 1.27 (separate module) | `monitoring/docker-compose.yml`; `go build ./cmd/ops-bot` or `monitoring/ops-bot/Dockerfile` | env (`monitoring/.env.example`), targets and thresholds in `monitoring/prometheus/` |
@@ -113,15 +113,44 @@ Before each release:
    `--dart-define=LEGAL_NOTICES_URL=https://<api-host>/legal/open-source`
    only to point the app at that fallback (or any other host) instead of
    the website.
-2. **Build obfuscated** and keep the symbols privately (needed to symbolicate
-   crash stack traces; never ship or commit them):
+2. **Build obfuscated.** Android release builds are always obfuscated
+   (owner's rule, 22 Oct 2026): Dart with `--obfuscate --split-debug-info`,
+   Java/Kotlin with R8 (minify + resource shrinking).
+   `frontend/android/app/build.gradle.kts` refuses any other release build,
+   including a plain `flutter build apk --release` or
+   `flutter run --release` without those flags. Bump `version:` in
+   `pubspec.yaml`, then:
 
    ```bash
-   flutter build appbundle --release --obfuscate --split-debug-info=build/symbols \
-     --dart-define=API_BASE_URL=https://… --dart-define=APP_ENV=production …
-   flutter build ipa --release --obfuscate --split-debug-info=build/symbols …
-   # archive build/symbols/ per version (e.g. in the release's private storage)
+   cd frontend
+   tool/build_android_release.sh appbundle \
+     --dart-define=API_BASE_URL=https://… --dart-define=APP_ENV=production \
+     --dart-define-from-file=config/firebase.json     # or: … apk …
+   flutter build ipa --release --obfuscate --split-debug-info=build/symbols/ios …
    ```
+
+   **Every Android release PR carries its symbols** (owner's rule, 22 Oct
+   2026, for a private repository: never push them while the repository is
+   public, since they would stay in its history and forks). The script gzips them into
+   `frontend/release-symbols/android/<version>/` and stages them in git:
+   - `mapping.txt.gz`: the R8 mapping.
+   - `app.android-*.symbols.gz`: the Dart symbols per ABI.
+   - `BUILD_INFO`: version, commit, Flutter version and the artifact's SHA-256.
+   - `SHA256SUMS`.
+
+   The dart-defines are not recorded. Anyone with these files can read the
+   original names, so keep them out of public places. Play Console also reads
+   the R8 mapping embedded in the AAB. To decode a crash:
+
+   ```bash
+   gunzip -k release-symbols/android/<version>/*.gz
+   flutter symbolize -i dart_trace.txt -d release-symbols/android/<version>/app.android-arm64.symbols
+   $ANDROID_HOME/cmdline-tools/latest/bin/retrace \
+     release-symbols/android/<version>/mapping.txt java_trace.txt
+   ```
+
+   iOS has no R8; keep `build/symbols/ios` for each version to decode Dart
+   traces.
 
 What users can and cannot see: no screen, string, icon, splash or error
 state names the UI toolkit (branded icons and launch screens, a branded

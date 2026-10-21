@@ -150,6 +150,17 @@ real data.
 - Compression: deltas (~150 B) are sent uncompressed below
   `WS_COMPRESSION_THRESHOLD` (1024); no-context-takeover is the default because
   context takeover costs ~1 MB per connection (see `docs/performance.md`).
+- **Android releases are always obfuscated** (Dart `--obfuscate
+  --split-debug-info` + R8); `android/app/build.gradle.kts` refuses any other
+  release build. Build with `frontend/tool/build_android_release.sh`; every
+  release PR commits `frontend/release-symbols/android/<version>/` (R8 mapping +
+  Dart symbols, gzipped; only while the repository is private: check
+  `gh repo view --json visibility` before pushing them). R8 cannot see Dart→Java calls made through JNI
+  (jnigen/pigeon-JNI plugins such as `shared_preferences_android` 2.5): such
+  classes need `-keep` rules in `android/app/proguard-rules.pro`, or the
+  release hangs on the splash screen. After a plugin upgrade, smoke-test an
+  obfuscated release APK on a device and check logcat for `NoSuchMethodError`
+  or `ClassNotFoundException`.
 - iOS uses CocoaPods (not SwiftPM), deployment target 15.0, arm64-only
   simulator builds. Google Sign-In on Android needs each machine's debug SHA-1
   registered in Google Cloud project `ludo-royale-63887`.
