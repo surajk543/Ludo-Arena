@@ -17,7 +17,7 @@ RoomSnapshot _busyRoom({String phase = TurnPhases.awaitingRoll}) => ludoRoom(
   dice: phase == TurnPhases.awaitingMove ? 6 : 0,
   players: [
     player(0, name: 'Asha Kumari Sharma', frame: 'frame_gold'),
-    player(1, name: 'Bolt', bot: true),
+    player(1, name: 'Bolt'),
     player(2, name: 'محمد عبد الله', connected: false, strikes: 2),
     player(3, name: 'राहुल', frame: 'frame_royal'),
   ],

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -297,7 +298,10 @@ class _Joining extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final c = context.colors;
     final players = room?.players ?? const <RoomPlayer>[];
-    final seatedBots = players.where((p) => p.bot).length;
+    // Practice: everyone seated besides the player is a computer player.
+    final seatedBots = selfUid == null
+        ? math.max(0, players.length - 1)
+        : players.where((p) => p.uid != selfUid).length;
     final capacity = room?.capacity ?? (totalBots + 1);
     final text = starting || room == null
         ? l10n.playPracticeSettingUp

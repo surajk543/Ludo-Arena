@@ -43,7 +43,7 @@ void main() {
     expect(find.text('Bots joining… 0/2'), findsOneWidget);
 
     h.controller.pushSnapshot(
-      _practice([player(0), player(1, name: 'Bolt', bot: true)]),
+      _practice([player(0), player(1, name: 'Bolt')]),
       reason: 'joined',
     );
     await tester.pump(const Duration(milliseconds: 500));
@@ -53,8 +53,8 @@ void main() {
     h.controller.pushSnapshot(
       _practice([
         player(0),
-        player(1, bot: true),
-        player(2, bot: true),
+        player(1),
+        player(2),
       ], status: RoomStatuses.playing),
       game: true,
     );

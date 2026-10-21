@@ -33,21 +33,22 @@ class MatchResultView {
     required this.winner,
     required this.payout,
     required this.byForfeit,
-    required this.botMatch,
+    required this.noCoinMatch,
   });
 
   final List<PlacementRow> rows;
   final MatchOutcome outcome;
   final RoomPlayer? winner;
 
-  /// Coins paid to the winner by the server (0 with bots / practice).
+  /// Coins paid to the winner by the server (0 when the match pays none).
   final int payout;
 
   /// The game ended because the others forfeited.
   final bool byForfeit;
 
-  /// A bot was seated: no entry fee and no coin payout (server rule).
-  final bool botMatch;
+  /// The match pays no coins at all (practice, a computer seat in a private
+  /// room, or an empty pot): nobody wins coins, not only the losers.
+  final bool noCoinMatch;
 
   bool get selfWon => outcome == MatchOutcome.won;
 
@@ -95,7 +96,7 @@ class MatchResultView {
       winner: room.playerAtSeat(winnerSeat),
       payout: result?.payout ?? 0,
       byForfeit: result?.reason == 'forfeit',
-      botMatch: room.hasBots || room.isPractice,
+      noCoinMatch: room.isPractice || room.hasComputerPlayers || room.pot <= 0,
     );
   }
 }
@@ -148,8 +149,11 @@ AnalyticsGameContext matchAnalyticsContext(
   gameType: AnalyticsGameType.parse(room.game),
   matchType: AnalyticsMatchType.parse(room.mode),
   seatCount: room.players.length,
-  opponentMix: OpponentMix.from(
-    room.players.where((p) => p.uid != selfUid).map((p) => p.bot),
+  opponentMix: OpponentMix.forRoom(
+    mode: room.mode,
+    opponentIsComputer: room.players
+        .where((p) => p.uid != selfUid)
+        .map((p) => room.isComputerSeat(p.seat)),
   ),
   variant: room.isLudo ? room.variant : null,
   dedupeKey: '${room.id}#${room.round}',

@@ -31,23 +31,39 @@ enum AnalyticsMatchType {
   };
 }
 
-/// `opponent_mix` parameter, derived from server room metadata
-/// (`players[].bot`) for the user's opponents.
+/// `opponent_mix` parameter, derived from the room's mode and its
+/// `computerSeats` (practice and private rooms only). Seats carry no bot
+/// flag, so public matches report [unknown]: the app cannot tell, and the
+/// server metric `matches_started_total{mix}` is the source of truth.
 enum OpponentMix {
   humanOnly('human_only'),
   mixed('mixed'),
-  botOnly('bot_only');
+  botOnly('bot_only'),
+  unknown('unknown');
 
   const OpponentMix(this.param);
   final String param;
 
-  /// [opponentIsBot] lists `bot` for every seat except the user's own.
-  static OpponentMix from(Iterable<bool> opponentIsBot) {
-    final list = opponentIsBot.toList();
+  /// [opponentIsComputer] lists, for every seat except the user's own,
+  /// whether it is a known computer seat.
+  static OpponentMix from(Iterable<bool> opponentIsComputer) {
+    final list = opponentIsComputer.toList();
     if (list.isEmpty || list.every((b) => !b)) return humanOnly;
     if (list.every((b) => b)) return botOnly;
     return mixed;
   }
+
+  /// The mix of a room of [mode] (`public` | `private` | `practice`):
+  /// practice opponents are all computer players, private rooms list their
+  /// computer seats ([opponentIsComputer]), public rooms are [unknown].
+  static OpponentMix forRoom({
+    required String mode,
+    required Iterable<bool> opponentIsComputer,
+  }) => switch (mode) {
+    'practice' => botOnly,
+    'private' => from(opponentIsComputer),
+    _ => unknown,
+  };
 }
 
 /// `outcome` parameter.

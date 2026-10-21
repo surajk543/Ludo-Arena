@@ -13,7 +13,7 @@ RoomSnapshot _room({int turnSeat = 1}) => snakesRoom(
   turnSeat: turnSeat,
   players: [
     player(0, name: 'Asha Kumari Sharma'),
-    player(1, name: 'Bolt', bot: true),
+    player(1, name: 'Bolt'),
     player(2, name: 'محمد', connected: false),
     player(3, name: 'राहुल', strikes: 1),
   ],

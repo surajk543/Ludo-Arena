@@ -10,6 +10,7 @@ RoomSnapshot _lobby({
   List<RoomPlayer>? players,
   bool allowBots = false,
   int capacity = 4,
+  List<int>? computerSeats,
 }) => ludoRoom(
   id: 'r_p',
   status: RoomStatuses.lobby,
@@ -18,12 +19,15 @@ RoomSnapshot _lobby({
   code: 'K7Q2MX',
   allowBots: allowBots,
   capacity: capacity,
+  // Seat 2 is the computer player the host added (only practice and private
+  // rooms list computer seats; seats themselves carry no bot flag).
+  computerSeats: computerSeats ?? (players == null ? const [2] : const []),
   players:
       players ??
       [
         player(0, name: 'Asha', frame: 'frame_gold'),
         player(1, name: 'Ravi'),
-        player(2, name: 'Robo', bot: true),
+        player(2, name: 'Robo'),
       ],
 );
 
@@ -74,6 +78,27 @@ void main() {
     expect(h.controller.calls, contains('room.remove_bot:2'));
   });
 
+  testWidgets('remove is offered only on computerSeats seats', (tester) async {
+    await _pump(
+      tester,
+      selfUid: 'u_0',
+      room: _lobby(
+        allowBots: true,
+        players: [
+          player(0, name: 'Asha'),
+          player(1, name: 'Ravi'),
+          player(2, name: 'Robo'),
+          player(3, name: 'Meera'),
+        ],
+        computerSeats: const [1, 3],
+      ),
+    );
+    expect(find.byTooltip('Remove Ravi'), findsOneWidget);
+    expect(find.byTooltip('Remove Meera'), findsOneWidget);
+    expect(find.byTooltip('Remove Robo'), findsNothing);
+    expect(find.byTooltip('Remove Asha'), findsNothing);
+  });
+
   testWidgets('guest sees "waiting for host" and no host controls', (
     tester,
   ) async {
@@ -121,7 +146,8 @@ void main() {
     h.controller.pushSnapshot(
       _lobby(
         allowBots: true,
-        players: [player(0), player(1), player(2, bot: true)],
+        players: [player(0), player(1), player(2)],
+        computerSeats: const [2],
       ),
       reason: 'joined',
     );
