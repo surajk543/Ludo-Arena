@@ -95,8 +95,8 @@ fee and pay no coins**. Coins and diamonds are virtual and non-redeemable.
   `turnSeq` checks, de-duplicated message ids.
 - **Network and secrets**: TLS at the load balancer; PostgreSQL and Redis on a
   private network only; secrets only via environment or a secret manager;
-  production startup refuses `RATE_LIMIT_DISABLED`, `BOT_LOADTEST_ENABLED` and
-  provider endpoint overrides. Version headers are a compatibility policy, not
+  production startup refuses `RATE_LIMIT_DISABLED`, `BOT_LOADTEST_ENABLED`,
+  provider endpoint overrides and any dice source other than `crypto/rand`. Version headers are a compatibility policy, not
   proof of a genuine binary.
 
 Details and diagrams: [architecture.html#security-testing](architecture.html#security-testing).
