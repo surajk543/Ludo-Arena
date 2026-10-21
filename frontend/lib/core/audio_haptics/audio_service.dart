@@ -198,6 +198,7 @@ class AudioService {
   double _musicLevel = 0;
   Timer? _fade;
   final Set<MusicTrack> _missingTracks = {};
+  final Set<MusicTrack> _loggedTracks = {};
   bool _reconciling = false;
   bool _dirty = false;
 
@@ -280,8 +281,12 @@ class AudioService {
       try {
         await _backend.musicLoad(want);
       } catch (e) {
-        _missingTracks.add(want);
-        _log('audio: music ${want.assetPath} unavailable ($e)');
+        // Not bundled: never asked again. Other failures are retried on the
+        // next change (e.g. the next return to the lobby).
+        if (e is AudioAssetMissingException) _missingTracks.add(want);
+        if (_loggedTracks.add(want)) {
+          _log('audio: music ${want.assetPath} unavailable ($e)');
+        }
         return;
       }
       _loaded = want;

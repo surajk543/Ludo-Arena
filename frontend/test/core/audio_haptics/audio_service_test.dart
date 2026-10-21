@@ -33,6 +33,17 @@ class _Rig {
   void advance(int ms) => now += Duration(milliseconds: ms);
 }
 
+/// Fails the first music load with a transient (non-missing) error.
+class _FlakyMusicBackend extends RecordingAudioBackend {
+  var _failures = 1;
+
+  @override
+  Future<void> musicLoad(MusicTrack track) async {
+    if (_failures-- > 0) throw StateError('player busy');
+    return super.musicLoad(track);
+  }
+}
+
 void main() {
   group('audio contexts', () {
     test('effects: a valid iOS context (no assertion) that respects the silent '
@@ -411,6 +422,28 @@ void main() {
         expect(rig.backend.musicCalls, isEmpty);
         expect(rig.logs.where((l) => l.contains('lobby_loop')), hasLength(1));
         expect(rig.audio.isMusicPlaying, isFalse);
+      });
+    });
+
+    test('a transient load failure is retried on the next lobby visit', () {
+      fakeAsync((async) {
+        final backend = _FlakyMusicBackend();
+        final logs = <String>[];
+        final audio = AudioService(
+          backend: backend,
+          clock: () => Duration.zero,
+          musicFade: Duration.zero,
+          log: logs.add,
+        );
+        audio.playMusic(MusicTrack.lobby);
+        async.flushMicrotasks();
+        expect(backend.musicCalls, isEmpty);
+        expect(logs, hasLength(1));
+        audio.stopMusic();
+        audio.playMusic(MusicTrack.lobby);
+        async.flushMicrotasks();
+        expect(backend.musicCalls, ['load:lobby', 'resume']);
+        expect(audio.isMusicPlaying, isTrue);
       });
     });
 
