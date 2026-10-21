@@ -223,6 +223,12 @@ void main() {
       env.backend.json('GET', '/reports', reportsJson());
       await pumpMeta(tester, env, fakes, const SizedBox(), router: router);
       expect(find.text('No reports'), findsOneWidget);
+      // The selected pill is scrolled into view, not left past the edge.
+      await tester.pump();
+      final screen = tester.getRect(find.byType(FriendsScreen));
+      final pill = tester.getRect(find.text('Reported').first);
+      expect(pill.left, greaterThanOrEqualTo(screen.left));
+      expect(pill.right, lessThanOrEqualTo(screen.right));
       router.go('/friends?tab=requests');
       await settleRoute(tester);
       expect(find.text('Received'), findsOneWidget);
