@@ -122,7 +122,7 @@ func (s *Service) ResumeDevice(ctx context.Context, deviceSubject string) (Resul
 
 // newGuest finishes a guest sign-in: profile, session, new-account hook.
 func (s *Service) newGuest(ctx context.Context, acct identity.Account, secret string) (Result, error) {
-	if _, err := s.profiles.Save(ctx, acct.UserID, ""); err != nil {
+	if _, err := s.saveProfile(ctx, acct.UserID, acct.Created, ""); err != nil {
 		return Result{}, err
 	}
 	toks, err := s.issue(ctx, acct.UserID)
@@ -164,7 +164,9 @@ func (s *Service) SignInWithProvider(ctx context.Context, ident Identity) (Resul
 }
 
 func (s *Service) signIn(ctx context.Context, userID uuid.UUID, created bool, name string) (Result, error) {
-	if _, err := s.profiles.Save(ctx, userID, name); err != nil {
+	// name is the provider's name ("" for guest/device sign-ins); a name the
+	// player chose (PATCH /me) always wins over it (profile.Save).
+	if _, err := s.saveProfile(ctx, userID, created, name); err != nil {
 		return Result{}, err
 	}
 	toks, err := s.issue(ctx, userID)
@@ -236,7 +238,17 @@ func (s *Service) Link(ctx context.Context, userID uuid.UUID, ident Identity) er
 		return err
 	}
 	if ident.Name != "" {
+		// Adopts the provider's name unless the player chose one.
 		_, _ = s.profiles.Save(ctx, userID, ident.Name)
 	}
 	return nil
+}
+
+// saveProfile refreshes the display profile at sign-in; a brand-new account
+// has no chosen name, so it skips the PostgreSQL lookup.
+func (s *Service) saveProfile(ctx context.Context, userID uuid.UUID, created bool, name string) (profile.Profile, error) {
+	if created {
+		return s.profiles.SaveNew(ctx, userID, name)
+	}
+	return s.profiles.Save(ctx, userID, name)
 }

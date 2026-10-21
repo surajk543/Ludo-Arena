@@ -225,9 +225,11 @@ schema identity:  auth_identities(provider, subject, user_id → wallet.wallets,
                   provider ∈ guest | google | facebook | apple | device (internal, migration 004)
 ```
 
-No profile, email or provider-profile columns are stored. Display names and
+No profile, email or provider-profile columns are stored. Provider names and
 avatars are presentation data cached in Redis (`profile:{userId}`) and
-regenerated if lost.
+regenerated if lost. A name the player chose (`PATCH /me`) is stored in
+`progression.player_progress.display_name` and always wins: provider
+sign-ins and linking never overwrite it ([rest-api.md](rest-api.md#changing-the-display-name)).
 
 ## Rate limits (Redis fixed windows, per IP or per account)
 

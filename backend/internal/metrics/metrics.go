@@ -86,6 +86,11 @@ var (
 	AuthLinks    = counter("auth_links_total", "Account linking attempts by provider and result.", "provider", "result")
 	AuthRefresh  = counter("auth_refresh_total", "Refresh-token rotations by result.", "result")
 	PolicyBlocks = counter("app_policy_blocks_total", "Requests blocked by the app policy.", "mode", "surface")
+	// ProfileNameChanges counts PATCH /me display-name requests by result:
+	// changed | unchanged (same name, not counted toward the limit) |
+	// too_short | too_long | invalid_characters | reserved | inappropriate |
+	// rate_limited | error.
+	ProfileNameChanges = counter("profile_name_changes_total", "Display-name change requests by result.", "result")
 )
 
 // Gameplay and product metrics (humans; bot-only games are labelled mix=bot_only).

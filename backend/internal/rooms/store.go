@@ -124,6 +124,19 @@ func (st *store) load(ctx context.Context, id string) (*Room, string, error) {
 	return &r, rev, nil
 }
 
+// ErrRoomGone is returned by LoadRoom when the room no longer exists
+// (finished rooms are kept for FINISHED_ROOM_TTL + the rematch window,
+// closed rooms for 2 minutes).
+var ErrRoomGone = errNoRoom
+
+// LoadRoom reads a room's current state from Redis without a Service. It is
+// read-only (player reports use it to verify seats) and returns ErrRoomGone
+// when the room no longer exists.
+func LoadRoom(ctx context.Context, rdb *redis.Client, roomID string) (*Room, error) {
+	r, _, err := (&store{rdb: rdb}).load(ctx, roomID)
+	return r, err
+}
+
 func (st *store) commit(ctx context.Context, r *Room, rev string, ttl time.Duration,
 	guards []guard, ops []sideOp, b *Batch) error {
 	raw, err := json.Marshal(r)

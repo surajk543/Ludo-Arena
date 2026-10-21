@@ -475,7 +475,7 @@
   "@playPracticeStart": {
     "description": "Button: start a practice game."
   },
-  "playPracticeNote": "Practice is free and pays no coins. Bots are computer players and always carry a bot badge.",
+  "playPracticeNote": "Practice is free and pays no coins. You play against computer players.",
   "@playPracticeNote": {
     "description": "Practice explanation."
   },
@@ -522,15 +522,6 @@
   "playTurnOther": "{name}'s turn",
   "@playTurnOther": {
     "description": "Status: another human player's turn.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "playTurnBot": "{name} (bot) is playing…",
-  "@playTurnBot": {
-    "description": "Status: a bot player's turn.",
     "placeholders": {
       "name": {
         "type": "String"
@@ -798,9 +789,9 @@
       }
     }
   },
-  "playRewardNoCoinsBots": "Matches with bots don't pay coins.",
-  "@playRewardNoCoinsBots": {
-    "description": "No coins because a bot was seated."
+  "playRewardNoCoinsMatch": "This match doesn't pay coins.",
+  "@playRewardNoCoinsMatch": {
+    "description": "No coins from this match (a computer player was seated, or practice)."
   },
   "playRewardNoCoins": "No coins this time — the winner takes the pot.",
   "@playRewardNoCoins": {

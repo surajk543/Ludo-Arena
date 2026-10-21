@@ -39,6 +39,9 @@ class NoopAnalyticsService implements AnalyticsService {
   void accountLinkSucceeded(LoginMethod method) {}
 
   @override
+  void displayNameChanged() {}
+
+  @override
   void matchmakingStarted(AnalyticsGameType game, int seatCount) {}
 
   @override
@@ -101,4 +104,10 @@ class NoopAnalyticsService implements AnalyticsService {
 
   @override
   void appUpdatePromptShown(String mode) {}
+
+  @override
+  void playerReported(String reason) {}
+
+  @override
+  void friendRequestSent(String source) {}
 }

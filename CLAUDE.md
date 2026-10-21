@@ -29,9 +29,11 @@ of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
   results.
 - **PostgreSQL boundaries (user-approved):** `wallet.wallets` holds balances
   only; `identity.auth_identities` maps providers → accounts;
-  `progression.*` holds XP, missions/claims, inventory, loadout, friendships
-  and idempotency receipts. **Do not add tables** (no match history, ledger or
-  profile tables) without asking. Live game state lives in Redis only.
+  `progression.*` holds XP, missions/claims, inventory, loadout, friendships,
+  player reports (metadata only) and idempotency receipts. **Do not add
+  tables** (no match history, ledger or profile tables) without asking. Live
+  game state lives in Redis only — enforced by
+  `backend/tests/schema_guard_test.go` (table allowlist + no gameplay-state columns).
 - **Protocol changes must update both sides and the docs** in the same
   change: Go (`backend/internal/protocol`, `internal/rooms`), Flutter
   (`frontend/lib/core/protocol`, `core/realtime`), bot-play

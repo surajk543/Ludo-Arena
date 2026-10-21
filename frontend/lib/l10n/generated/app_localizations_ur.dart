@@ -307,12 +307,6 @@ class AppLocalizationsUr extends AppLocalizations {
   String get commonNothingHereYet => 'یہاں ابھی کچھ نہیں ہے';
 
   @override
-  String get commonBotBadge => 'بوٹ';
-
-  @override
-  String get commonBotPlayerLabel => 'کمپیوٹر کھلاڑی';
-
-  @override
   String get commonYou => 'آپ';
 
   @override
@@ -730,6 +724,29 @@ class AppLocalizationsUr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get errorInvalidName =>
+      'یہ نام استعمال نہیں کیا جا سکتا۔ براہِ کرم کوئی اور نام چنیں۔';
+
+  @override
+  String get errorInvalidNameTooShort => 'نام میں کم از کم 3 حروف ہونے چاہییں۔';
+
+  @override
+  String get errorInvalidNameTooLong =>
+      'نام میں زیادہ سے زیادہ 16 حروف ہو سکتے ہیں۔';
+
+  @override
+  String get errorInvalidNameCharacters =>
+      'صرف حروف، اعداد، اسپیس، _ . یا - استعمال کریں (کم از کم ایک حرف)۔ ایموجی یا علامات نہیں۔';
+
+  @override
+  String get errorInvalidNameReserved =>
+      'یہ نام مخصوص ہے۔ براہِ کرم کوئی اور نام چنیں۔';
+
+  @override
+  String get errorInvalidNameInappropriate =>
+      'اس نام کی اجازت نہیں ہے۔ براہِ کرم کوئی مناسب نام چنیں۔';
 
   @override
   String get gateSplashTagline => 'پانسہ پھینکو۔ دوڑ لگاؤ۔ راج کرو۔';
@@ -1890,8 +1907,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get metaErrorCannotFriendSelf => 'یہ آپ کا اپنا فرینڈ کوڈ ہے۔';
 
   @override
-  String get metaErrorFriendLimit =>
-      'دوستوں یا درخواستوں کی حد پوری ہو گئی ہے۔ کسی دوست یا درخواست کو ہٹا کر دوبارہ کوشش کریں۔';
+  String metaErrorFriendLimit(int max) {
+    return 'آپ کے زیادہ سے زیادہ $max دوست ہو سکتے ہیں۔ کسی نئے کو شامل کرنے کے لیے ایک دوست ہٹائیں۔';
+  }
 
   @override
   String get metaErrorUnknownFriendCode =>
@@ -2301,7 +2319,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get playPracticeNote =>
-      'پریکٹس مفت ہے اور اس میں سکے نہیں ملتے۔ بوٹس کمپیوٹر کھلاڑی ہیں اور ان پر ہمیشہ بوٹ بیج ہوتا ہے۔';
+      'پریکٹس مفت ہے اور اس میں سکے نہیں ملتے۔ آپ کمپیوٹر کھلاڑیوں کے خلاف کھیلتے ہیں۔';
 
   @override
   String get playPracticeSettingUp => 'آپ کی پریکٹس ٹیبل تیار ہو رہی ہے…';
@@ -2332,11 +2350,6 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String playTurnOther(String name) {
     return '$name کی باری';
-  }
-
-  @override
-  String playTurnBot(String name) {
-    return '$name (بوٹ) کھیل رہا ہے…';
   }
 
   @override
@@ -2517,7 +2530,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get playRewardNoCoinsBots => 'بوٹس والے میچ میں سکے نہیں ملتے۔';
+  String get playRewardNoCoinsMatch => 'اس میچ میں سکے نہیں ملتے۔';
 
   @override
   String get playRewardNoCoins =>
@@ -2663,6 +2676,42 @@ class AppLocalizationsUr extends AppLocalizations {
   String get profileStatsSection => 'پیش رفت';
 
   @override
+  String get profileEditNameTooltip => 'نام بدلیں';
+
+  @override
+  String get profileEditNameTitle => 'اپنا نام بدلیں';
+
+  @override
+  String get profileNameLabel => 'ظاہری نام';
+
+  @override
+  String get profileNameRules =>
+      '3 سے 16 حروف۔ حروف، اعداد، اسپیس، _ . اور - کی اجازت ہے۔';
+
+  @override
+  String get profileNameNote =>
+      'دوستوں، لیڈر بورڈ اور نئے گیمز میں آپ کا نیا نام دکھے گا۔ جاری گیم میں پرانا نام ہی رہے گا۔';
+
+  @override
+  String profileNameCounterSemantics(int count, int max) {
+    return '$max میں سے $count حروف';
+  }
+
+  @override
+  String profileNameSaved(String name) {
+    return 'اب آپ کا نام $name ہے';
+  }
+
+  @override
+  String get profileNameChangeLimit =>
+      'آپ نے بہت بار نام بدلا ہے۔ براہِ کرم بعد میں دوبارہ کوشش کریں۔';
+
+  @override
+  String profileNameChangeLimitRetry(String wait) {
+    return 'آپ نے بہت بار نام بدلا ہے۔ $wait بعد دوبارہ کوشش کریں۔';
+  }
+
+  @override
   String get settingsTitle => 'سیٹنگز';
 
   @override
@@ -2775,6 +2824,167 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get settingsConsentDeny => 'نہیں، شکریہ';
+
+  @override
+  String get socialPodOptionsHint => 'کھلاڑی کے اختیارات دیکھیں';
+
+  @override
+  String get socialRequestSent => 'درخواست بھیج دی گئی';
+
+  @override
+  String get socialAcceptRequest => 'درخواست قبول کریں';
+
+  @override
+  String get socialReportPlayer => 'کھلاڑی کی رپورٹ کریں';
+
+  @override
+  String get socialReported => 'رپورٹ کی گئی';
+
+  @override
+  String get socialAlreadyReported =>
+      'آپ نے پچھلے 24 گھنٹوں میں اس کھلاڑی کی رپورٹ کی ہے۔';
+
+  @override
+  String socialReportsLeft(int remaining, int total) {
+    return 'آج باقی رپورٹس: $total میں سے $remaining';
+  }
+
+  @override
+  String socialReportLimitAt(int total, String time) {
+    return 'آپ نے آج کی $total رپورٹس استعمال کر لی ہیں۔ آپ $time پر دوبارہ رپورٹ کر سکتے ہیں۔';
+  }
+
+  @override
+  String socialReportLimitLater(int total) {
+    return 'آپ نے آج کی $total رپورٹس استعمال کر لی ہیں۔ بعد میں دوبارہ کوشش کریں۔';
+  }
+
+  @override
+  String socialReportTitle(String name) {
+    return '$name کی رپورٹ کریں';
+  }
+
+  @override
+  String get socialReportWhy => 'کیا ہوا؟';
+
+  @override
+  String get socialReasonCheating => 'دھوکا دہی';
+
+  @override
+  String get socialReasonOffensiveName => 'نامناسب نام';
+
+  @override
+  String get socialReasonAbusiveBehavior => 'بدسلوکی';
+
+  @override
+  String get socialReasonLeavingOrStalling =>
+      'گیم چھوڑنا یا جان بوجھ کر دیر کرنا';
+
+  @override
+  String get socialReasonOther => 'کچھ اور';
+
+  @override
+  String get socialReportReviewNote =>
+      'ہماری ٹیم ہر رپورٹ کا جائزہ لیتی ہے۔ اس کی صورتحال دوستوں کی اسکرین کے رپورٹ ٹیب میں دیکھیں۔';
+
+  @override
+  String get socialSendReport => 'رپورٹ بھیجیں';
+
+  @override
+  String socialReportSent(int remaining, int total) {
+    return 'رپورٹ بھیج دی گئی۔ آج $total میں سے $remaining رپورٹس باقی ہیں۔';
+  }
+
+  @override
+  String socialFriendLimitNote(int max) {
+    return 'آپ کے زیادہ سے زیادہ $max دوست ہو سکتے ہیں — نیا شامل کرنے کے لیے کسی ایک کو ہٹائیں۔';
+  }
+
+  @override
+  String get socialErrorCannotReportSelf => 'آپ اپنی رپورٹ نہیں کر سکتے۔';
+
+  @override
+  String get socialErrorCannotReportBot =>
+      'اس کھلاڑی کی رپورٹ نہیں کی جا سکتی۔';
+
+  @override
+  String get socialErrorNotInRoom =>
+      'آپ صرف اسی میچ کے کھلاڑیوں کی رپورٹ کر سکتے ہیں جس میں آپ ہیں۔';
+
+  @override
+  String get socialErrorRoomNotFound =>
+      'یہ میچ اب نہیں مل رہا، اس لیے رپورٹ نہیں بھیجی جا سکی۔';
+
+  @override
+  String get socialErrorPlayerNotFound => 'یہ کھلاڑی نہیں ملا۔';
+
+  @override
+  String get socialTabReported => 'رپورٹ کی گئی';
+
+  @override
+  String socialOnlineNow(int count) {
+    return 'ابھی آن لائن ($count)';
+  }
+
+  @override
+  String socialOfflineCount(int count) {
+    return 'آف لائن ($count)';
+  }
+
+  @override
+  String socialFriendsCount(int count, int max) {
+    return 'دوست $count/$max';
+  }
+
+  @override
+  String socialReportsResetAt(String time) {
+    return 'آپ $time پر دوبارہ رپورٹ کر سکتے ہیں۔';
+  }
+
+  @override
+  String socialReportsInfo(int total) {
+    return 'آپ ایک دن میں زیادہ سے زیادہ $total کھلاڑیوں کی رپورٹ کر سکتے ہیں۔ ہماری ٹیم ہر رپورٹ کا جائزہ لیتی ہے۔';
+  }
+
+  @override
+  String get socialNoReportsTitle => 'کوئی رپورٹ نہیں';
+
+  @override
+  String get socialNoReportsMessage =>
+      'میچ سے جن کھلاڑیوں کی آپ رپورٹ کریں گے، وہ یہاں ہر رپورٹ کی صورتحال کے ساتھ نظر آئیں گے۔';
+
+  @override
+  String get socialStatusSubmitted => 'بھیجی گئی';
+
+  @override
+  String get socialStatusReviewing => 'زیرِ جائزہ';
+
+  @override
+  String get socialStatusActionTaken => 'کارروائی ہوئی';
+
+  @override
+  String get socialStatusDismissed => 'مسترد';
+
+  @override
+  String get socialJustNow => 'ابھی ابھی';
+
+  @override
+  String socialMinutesAgo(int minutes) {
+    return '$minutes منٹ پہلے';
+  }
+
+  @override
+  String socialHoursAgo(int hours) {
+    return '$hours گھنٹے پہلے';
+  }
+
+  @override
+  String get socialYesterday => 'کل';
+
+  @override
+  String socialReportStatusA11y(String status) {
+    return 'صورتحال: $status';
+  }
 
   @override
   String get walletTitle => 'آپ کا والٹ';

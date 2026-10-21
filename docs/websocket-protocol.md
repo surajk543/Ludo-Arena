@@ -198,7 +198,7 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
                     "trail": "trail_none", "victory": "victory_confetti"},
       "color": "red",
       "connected": true,
-      "bot": false,               // server-determined from the session; UI must show a BOT badge
+      "bot": false,               // server-determined from the session; the app shows no bot badge (names carry no label) but hides friend/report actions on bots
       "forfeited": false,
       "strikes": 0
     }

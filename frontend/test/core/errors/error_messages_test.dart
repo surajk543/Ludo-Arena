@@ -54,6 +54,7 @@ void main() {
     'not_completed',
     'insufficient_funds',
     'item_locked',
+    'invalid_name',
     'update_required',
     'rate_limited',
     'maintenance',
@@ -91,6 +92,35 @@ void main() {
         );
       });
 
+      test('invalid_name reasons have distinct, specific messages', () {
+        const reasons = [
+          'too_short',
+          'too_long',
+          'invalid_characters',
+          'reserved',
+          'inappropriate',
+        ];
+        final generic = l10n.errorInvalidName;
+        final texts = {
+          for (final r in reasons) r: localizedInvalidNameMessage(l10n, r),
+        };
+        for (final MapEntry(key: r, value: text) in texts.entries) {
+          expect(text, isNotEmpty, reason: r);
+          expect(text, isNot(generic), reason: r);
+          expect(text, isNot(l10n.errorGeneric), reason: r);
+          // Through the general mapper with ApiException.details.
+          expect(
+            localizedErrorMessage(l10n, 'invalid_name', details: {'reason': r}),
+            text,
+            reason: r,
+          );
+        }
+        expect(texts.values.toSet(), hasLength(reasons.length));
+        expect(localizedInvalidNameMessage(l10n, 'brand_new'), generic);
+        expect(localizedInvalidNameMessage(l10n, null), generic);
+        expect(localizedErrorMessage(l10n, 'invalid_name'), generic);
+      });
+
       test('rate limit with Retry-After mentions the wait', () {
         final text = localizedErrorMessage(
           l10n,
@@ -108,7 +138,55 @@ void main() {
       'not_your_turn',
       'identity_conflict',
       'network_error',
+      'invalid_name',
     ]) {
+      for (final lang in ['hi', 'ur', 'ar', 'id']) {
+        final other = lookupAppLocalizations(Locale(lang));
+        expect(
+          localizedErrorMessage(other, code),
+          isNot(localizedErrorMessage(en, code)),
+          reason: '$lang/$code',
+        );
+      }
+    }
+  });
+
+  test('invalid_name reason translations are real', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    for (final reason in [
+      'too_short',
+      'too_long',
+      'invalid_characters',
+      'reserved',
+      'inappropriate',
+    ]) {
+      for (final lang in ['hi', 'ur', 'ar', 'id']) {
+        final other = lookupAppLocalizations(Locale(lang));
+        expect(
+          localizedInvalidNameMessage(other, reason),
+          isNot(localizedInvalidNameMessage(en, reason)),
+          reason: '$lang/$reason',
+        );
+      }
+    }
+  });
+
+  test('report codes have specific, translated messages', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    const codes = [
+      'already_reported',
+      'report_limit',
+      'cannot_report_self',
+      'cannot_report_bot',
+    ];
+    for (final code in codes) {
+      expect(isKnownErrorCode(code), isTrue, reason: code);
+      expect(localizedErrorMessage(en, code), isNot(en.errorGeneric));
+      // Players are never labelled as bots, not even in errors.
+      expect(
+        localizedErrorMessage(en, code).toLowerCase(),
+        isNot(contains('bot')),
+      );
       for (final lang in ['hi', 'ur', 'ar', 'id']) {
         final other = lookupAppLocalizations(Locale(lang));
         expect(

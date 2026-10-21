@@ -186,21 +186,32 @@ func TestFriendLimits(t *testing.T) {
 	for i := 0; i < 6; i++ {
 		others = append(others, f.env.NewAccount(t))
 	}
-	for _, o := range others[:3] {
-		f.befriend(t, a, o)
-	}
-	if _, err := f.soc.Request(ctx, a, f.code(others[3])); !errors.Is(err, ErrFriendLimit) {
-		t.Fatalf("4th friend: %v", err)
-	}
-	// Someone else's request to a full account can be sent but not accepted.
+	// A request sent while a still had room...
 	if _, err := f.soc.Request(ctx, others[4], f.code(a)); err != nil {
 		t.Fatal(err)
 	}
+	for _, o := range others[:3] {
+		f.befriend(t, a, o)
+	}
+	// ...but once a is full, new requests fail in both directions...
+	if _, err := f.soc.Request(ctx, a, f.code(others[3])); !errors.Is(err, ErrFriendLimit) {
+		t.Fatalf("4th friend: %v", err)
+	}
+	if _, err := f.soc.Request(ctx, others[3], f.code(a)); !errors.Is(err, ErrFriendLimit) {
+		t.Fatalf("request to a full account: %v", err)
+	}
+	// ...and the earlier request can be neither accepted nor auto-accepted.
 	if _, err := f.soc.Accept(ctx, a, f.code(others[4])); !errors.Is(err, ErrFriendLimit) {
 		t.Fatalf("accept beyond limit: %v", err)
 	}
+	if _, err := f.soc.Request(ctx, a, f.code(others[4])); !errors.Is(err, ErrFriendLimit) {
+		t.Fatalf("auto-accept beyond limit: %v", err)
+	}
 	if ids, _ := f.soc.FriendIDs(ctx, a); len(ids) != 3 {
 		t.Fatalf("friends = %d", len(ids))
+	}
+	if v, err := f.soc.Friends(ctx, a); err != nil || v.FriendCount != 3 || v.MaxFriends != 3 || v.OnlineCount != 0 {
+		t.Fatalf("counts: %+v %v", v, err)
 	}
 	// Pending limits.
 	b := f.env.NewAccount(t)
@@ -352,9 +363,19 @@ func TestPresenceOnlyForFriends(t *testing.T) {
 	if err := f.prog.RecordMatch(ctx, match(testNow, human(a, false), human(b, true), human(c, false))); err != nil {
 		t.Fatal(err)
 	}
+	// An offline friend sorts after the online one; an online pending
+	// requester is not counted.
+	d := f.env.NewAccount(t)
+	f.befriend(t, a, d)
+	if _, err := f.soc.Request(ctx, c, f.code(a)); err != nil {
+		t.Fatal(err)
+	}
 	v, _ := f.soc.Friends(ctx, a)
-	if len(v.Friends) != 1 || !v.Friends[0].Online {
-		t.Fatalf("friend should be online: %+v", v.Friends)
+	if len(v.Friends) != 2 || !v.Friends[0].Online || v.Friends[0].UID != f.code(b) || v.Friends[1].Online {
+		t.Fatalf("online friend first: %+v", v.Friends)
+	}
+	if v.OnlineCount != 1 || v.FriendCount != 2 || v.MaxFriends != DefaultMaxFriends || len(v.Incoming) != 1 || v.Incoming[0].Online {
+		t.Fatalf("counts: online %d friends %d max %d incoming %+v", v.OnlineCount, v.FriendCount, v.MaxFriends, v.Incoming)
 	}
 	rs, _ := f.soc.Recent(ctx, a)
 	for _, r := range rs {

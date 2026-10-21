@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 
 	"ludoroyale/internal/config"
@@ -108,6 +109,9 @@ type envOpts struct {
 	// proxyHops sets TRUSTED_PROXY_HOPS so a test can present distinct
 	// client IPs (X-Forwarded-For) to the per-IP rate limits.
 	proxyHops int
+	// pgTracer, when set, traces every PostgreSQL query of the app's pool
+	// (query counting in hotpath_test.go).
+	pgTracer pgx.QueryTracer
 }
 
 func newEnv(t *testing.T, o envOpts) *env {
@@ -161,7 +165,7 @@ func newEnv(t *testing.T, o envOpts) *env {
 	}
 	cfg.WS.MsgRatePerSec, cfg.WS.MsgBurst = 200, 400 // tests drive games quickly
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
-	pg, err := postgres.Open(ctx, dbURL, 10)
+	pg, err := openPG(ctx, dbURL, o.pgTracer)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,6 +226,7 @@ type resp struct {
 	Status int
 	Body   map[string]any
 	Raw    []byte
+	Header http.Header
 }
 
 func (e *env) do(method, path, token string, body any, headers ...string) resp {
@@ -248,7 +253,7 @@ func (e *env) do(method, path, token string, body any, headers ...string) resp {
 	}
 	defer res.Body.Close()
 	raw, _ := io.ReadAll(res.Body)
-	out := resp{Status: res.StatusCode, Raw: raw}
+	out := resp{Status: res.StatusCode, Raw: raw, Header: res.Header}
 	_ = json.Unmarshal(raw, &out.Body)
 	return out
 }
