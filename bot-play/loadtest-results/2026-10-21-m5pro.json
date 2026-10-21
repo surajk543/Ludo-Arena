@@ -1,0 +1,1017 @@
+{
+ "machine": "Apple M5 Pro (single machine: backend + Redis 7.4 + bot-play clients)",
+ "date": "2026-10-21",
+ "results": [
+  {
+   "scenario": "no-compression",
+   "settings": {
+    "WS_COMPRESSION": "disabled"
+   },
+   "bots": 1000,
+   "window_s": 60.3,
+   "connections_at_end": 1000.0,
+   "server_msgs_sent_per_s": 4325.9,
+   "server_cmds_recv_per_s": 710.1,
+   "payload_sent_KBps": 616.7,
+   "wire_sent_KBps": 632.2,
+   "wire_over_payload": 1.025,
+   "avg_payload_bytes_per_msg": 146.0,
+   "avg_wire_bytes_per_msg": 149.7,
+   "server_cpu_cores_avg": 0.323,
+   "server_cpu_pct_ps_max": 36.3,
+   "server_rss_MB_max": 133.8,
+   "server_goroutines_end": 3036.0,
+   "redis_cpu_pct_avg": 23.7,
+   "redis_rss_MB_max": 21.0,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.001,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 70.0,
+   "client": {
+    "peakConnections": 1000,
+    "successfulSessions": 1000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 717,
+     "ludo_quick": 423,
+     "snakes_ladders": 262
+    },
+    "gamesFinished": {
+     "ludo": 359,
+     "ludo_quick": 288,
+     "snakes_ladders": 244
+    },
+    "actionsPerSecond": 677.02,
+    "latencyMs": {
+     "join": {
+      "count": 1410,
+      "p50": 0.95,
+      "p95": 1.953,
+      "p99": 251.243,
+      "max": 753.253
+     },
+     "move": {
+      "count": 24079,
+      "p50": 0.628,
+      "p95": 0.967,
+      "p99": 251.357,
+      "max": 747.006
+     },
+     "roll": {
+      "count": 45629,
+      "p50": 0.626,
+      "p95": 1.008,
+      "p99": 500.655,
+      "max": 738.318
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 34,
+     "unknown_type": 45
+    },
+    "resyncs": 1,
+    "resyncsByReason": {
+     "gap": 1,
+     "reconnect": 53
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 56,
+    "reconnectSuccesses": 56,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "none": 1056
+    },
+    "bytesReceived": 68329855,
+    "malformedSent": {
+     "bad_payload": 17,
+     "invalid_json": 17,
+     "missing_id": 17,
+     "unknown_type": 28
+    }
+   },
+   "run": "lt-1000"
+  },
+  {
+   "scenario": "deflate-nocontext-1024",
+   "settings": {
+    "WS_COMPRESSION": "no_context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "1024"
+   },
+   "bots": 1000,
+   "window_s": 60.3,
+   "connections_at_end": 1000.0,
+   "server_msgs_sent_per_s": 4335.8,
+   "server_cmds_recv_per_s": 699.4,
+   "payload_sent_KBps": 621.1,
+   "wire_sent_KBps": 633.9,
+   "wire_over_payload": 1.021,
+   "avg_payload_bytes_per_msg": 146.7,
+   "avg_wire_bytes_per_msg": 149.7,
+   "server_cpu_cores_avg": 0.328,
+   "server_cpu_pct_ps_max": 51.4,
+   "server_rss_MB_max": 143.9,
+   "server_goroutines_end": 3037.0,
+   "redis_cpu_pct_avg": 23.6,
+   "redis_rss_MB_max": 26.0,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.001,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 59.0,
+   "client": {
+    "peakConnections": 1000,
+    "successfulSessions": 1000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 725,
+     "ludo_quick": 433,
+     "snakes_ladders": 286
+    },
+    "gamesFinished": {
+     "ludo": 339,
+     "ludo_quick": 289,
+     "snakes_ladders": 268
+    },
+    "actionsPerSecond": 667.53,
+    "latencyMs": {
+     "join": {
+      "count": 1449,
+      "p50": 1.274,
+      "p95": 2.504,
+      "p99": 251.802,
+      "max": 502.501
+     },
+     "move": {
+      "count": 23346,
+      "p50": 0.653,
+      "p95": 1.022,
+      "p99": 500.826,
+      "max": 751.508
+     },
+     "roll": {
+      "count": 45300,
+      "p50": 0.67,
+      "p95": 1.105,
+      "p99": 500.924,
+      "max": 742.831
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 36,
+     "unknown_type": 31
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 49
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 50,
+    "reconnectSuccesses": 50,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 1050
+    },
+    "bytesReceived": 68498893,
+    "malformedSent": {
+     "bad_payload": 18,
+     "invalid_json": 18,
+     "missing_id": 15,
+     "unknown_type": 16
+    }
+   },
+   "run": "lt-1000"
+  },
+  {
+   "scenario": "deflate-nocontext-128",
+   "settings": {
+    "WS_COMPRESSION": "no_context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "128"
+   },
+   "bots": 1000,
+   "window_s": 60.3,
+   "connections_at_end": 1000.0,
+   "server_msgs_sent_per_s": 4290.9,
+   "server_cmds_recv_per_s": 702.3,
+   "payload_sent_KBps": 612.4,
+   "wire_sent_KBps": 632.9,
+   "wire_over_payload": 1.033,
+   "avg_payload_bytes_per_msg": 146.2,
+   "avg_wire_bytes_per_msg": 151.0,
+   "server_cpu_cores_avg": 0.331,
+   "server_cpu_pct_ps_max": 49.0,
+   "server_rss_MB_max": 152.5,
+   "server_goroutines_end": 3036.0,
+   "redis_cpu_pct_avg": 22.3,
+   "redis_rss_MB_max": 26.0,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.0005,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 56.0,
+   "client": {
+    "peakConnections": 1000,
+    "successfulSessions": 1000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 723,
+     "ludo_quick": 412,
+     "snakes_ladders": 267
+    },
+    "gamesFinished": {
+     "ludo": 343,
+     "ludo_quick": 267,
+     "snakes_ladders": 251
+    },
+    "actionsPerSecond": 671.06,
+    "latencyMs": {
+     "join": {
+      "count": 1410,
+      "p50": 1.315,
+      "p95": 2.642,
+      "p99": 252.003,
+      "max": 752.41
+     },
+     "move": {
+      "count": 24205,
+      "p50": 0.633,
+      "p95": 0.995,
+      "p99": 500.796,
+      "max": 721.549
+     },
+     "roll": {
+      "count": 44762,
+      "p50": 0.644,
+      "p95": 1.055,
+      "p99": 500.899,
+      "max": 740.841
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 37,
+     "unknown_type": 32
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 43
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 44,
+    "reconnectSuccesses": 44,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 1044
+    },
+    "bytesReceived": 67578312,
+    "malformedSent": {
+     "bad_payload": 21,
+     "invalid_json": 16,
+     "missing_id": 15,
+     "unknown_type": 17
+    }
+   },
+   "run": "lt-1000"
+  },
+  {
+   "scenario": "deflate-context-128",
+   "settings": {
+    "WS_COMPRESSION": "context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "128"
+   },
+   "bots": 1000,
+   "window_s": 60.3,
+   "connections_at_end": 999.0,
+   "server_msgs_sent_per_s": 4361.7,
+   "server_cmds_recv_per_s": 711.8,
+   "payload_sent_KBps": 621.4,
+   "wire_sent_KBps": 643.4,
+   "wire_over_payload": 1.035,
+   "avg_payload_bytes_per_msg": 145.9,
+   "avg_wire_bytes_per_msg": 151.0,
+   "server_cpu_cores_avg": 0.339,
+   "server_cpu_pct_ps_max": 37.8,
+   "server_rss_MB_max": 149.2,
+   "server_goroutines_end": 3034.0,
+   "redis_cpu_pct_avg": 23.0,
+   "redis_rss_MB_max": 26.5,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.0005,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 68.0,
+   "client": {
+    "peakConnections": 1000,
+    "successfulSessions": 1000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 732,
+     "ludo_quick": 401,
+     "snakes_ladders": 273
+    },
+    "gamesFinished": {
+     "ludo": 345,
+     "ludo_quick": 256,
+     "snakes_ladders": 259
+    },
+    "actionsPerSecond": 674.17,
+    "latencyMs": {
+     "join": {
+      "count": 1415,
+      "p50": 1.289,
+      "p95": 2.541,
+      "p99": 251.525,
+      "max": 754.475
+     },
+     "move": {
+      "count": 23725,
+      "p50": 0.634,
+      "p95": 1.009,
+      "p99": 500.712,
+      "max": 712.399
+     },
+     "roll": {
+      "count": 46217,
+      "p50": 0.655,
+      "p95": 1.071,
+      "p99": 500.748,
+      "max": 750.42
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 46,
+     "unknown_type": 39
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 45
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 46,
+    "reconnectSuccesses": 46,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 1046
+    },
+    "bytesReceived": 68954775,
+    "malformedSent": {
+     "bad_payload": 20,
+     "invalid_json": 26,
+     "missing_id": 15,
+     "unknown_type": 24
+    }
+   },
+   "run": "lt-1000",
+   "invalid": "Superseded by run lt-ctx: bot-play offered server_no_context_takeover, so the server could not keep context (effectively no-context). Fixed by connection.compression_mode."
+  },
+  {
+   "scenario": "snapshots-no-compression",
+   "settings": {
+    "WS_COMPRESSION": "disabled",
+    "WS_FULL_SNAPSHOTS": "true"
+   },
+   "bots": 1000,
+   "window_s": 60.3,
+   "connections_at_end": 1000.0,
+   "server_msgs_sent_per_s": 4393.5,
+   "server_cmds_recv_per_s": 711.4,
+   "payload_sent_KBps": 3832.6,
+   "wire_sent_KBps": 3848.4,
+   "wire_over_payload": 1.004,
+   "avg_payload_bytes_per_msg": 893.3,
+   "avg_wire_bytes_per_msg": 897.0,
+   "server_cpu_cores_avg": 0.302,
+   "server_cpu_pct_ps_max": 38.2,
+   "server_rss_MB_max": 134.0,
+   "server_goroutines_end": 3036.0,
+   "redis_cpu_pct_avg": 20.7,
+   "redis_rss_MB_max": 26.9,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.0005,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 66.0,
+   "client": {
+    "peakConnections": 1000,
+    "successfulSessions": 1000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 701,
+     "ludo_quick": 458,
+     "snakes_ladders": 291
+    },
+    "gamesFinished": {
+     "ludo": 327,
+     "ludo_quick": 295,
+     "snakes_ladders": 273
+    },
+    "actionsPerSecond": 680.57,
+    "latencyMs": {
+     "join": {
+      "count": 1458,
+      "p50": 1.21,
+      "p95": 2.439,
+      "p99": 501.243,
+      "max": 752.085
+     },
+     "move": {
+      "count": 23500,
+      "p50": 0.597,
+      "p95": 0.986,
+      "p99": 500.719,
+      "max": 727.785
+     },
+     "roll": {
+      "count": 46353,
+      "p50": 0.618,
+      "p95": 1.084,
+      "p99": 500.871,
+      "max": 850.73
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 40,
+     "unknown_type": 40
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 49
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 49,
+    "reconnectSuccesses": 49,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "none": 1049
+    },
+    "bytesReceived": 408639598,
+    "malformedSent": {
+     "bad_payload": 22,
+     "invalid_json": 18,
+     "missing_id": 18,
+     "unknown_type": 22
+    }
+   },
+   "run": "lt-1000"
+  },
+  {
+   "scenario": "snapshots-deflate-nocontext-1024",
+   "settings": {
+    "WS_COMPRESSION": "no_context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "1024",
+    "WS_FULL_SNAPSHOTS": "true"
+   },
+   "bots": 1000,
+   "window_s": 60.3,
+   "connections_at_end": 999.0,
+   "server_msgs_sent_per_s": 4357.6,
+   "server_cmds_recv_per_s": 701.5,
+   "payload_sent_KBps": 3842.6,
+   "wire_sent_KBps": 2294.0,
+   "wire_over_payload": 0.597,
+   "avg_payload_bytes_per_msg": 903.0,
+   "avg_wire_bytes_per_msg": 539.1,
+   "server_cpu_cores_avg": 0.352,
+   "server_cpu_pct_ps_max": 43.6,
+   "server_rss_MB_max": 147.2,
+   "server_goroutines_end": 3033.0,
+   "redis_cpu_pct_avg": 21.0,
+   "redis_rss_MB_max": 25.3,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.001,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 74.0,
+   "client": {
+    "peakConnections": 1000,
+    "successfulSessions": 1000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 722,
+     "ludo_quick": 405,
+     "snakes_ladders": 290
+    },
+    "gamesFinished": {
+     "ludo": 325,
+     "ludo_quick": 266,
+     "snakes_ladders": 274
+    },
+    "actionsPerSecond": 670.02,
+    "latencyMs": {
+     "join": {
+      "count": 1426,
+      "p50": 0.946,
+      "p95": 1.771,
+      "p99": 251.781,
+      "max": 754.394
+     },
+     "move": {
+      "count": 23163,
+      "p50": 0.626,
+      "p95": 1.014,
+      "p99": 500.763,
+      "max": 794.591
+     },
+     "roll": {
+      "count": 45724,
+      "p50": 0.631,
+      "p95": 1.057,
+      "p99": 500.817,
+      "max": 729.643
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 40,
+     "unknown_type": 43
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 53
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 54,
+    "reconnectSuccesses": 54,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 1054
+    },
+    "bytesReceived": 411329687,
+    "malformedSent": {
+     "bad_payload": 22,
+     "invalid_json": 18,
+     "missing_id": 21,
+     "unknown_type": 22
+    }
+   },
+   "run": "lt-1000"
+  },
+  {
+   "scenario": "deflate-context-128",
+   "settings": {
+    "WS_COMPRESSION": "context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "128",
+    "_client": "context_takeover"
+   },
+   "bots": 1000,
+   "window_s": 60.3,
+   "connections_at_end": 1000.0,
+   "server_msgs_sent_per_s": 4371.2,
+   "server_cmds_recv_per_s": 712.1,
+   "payload_sent_KBps": 624.7,
+   "wire_sent_KBps": 156.6,
+   "wire_over_payload": 0.251,
+   "avg_payload_bytes_per_msg": 146.3,
+   "avg_wire_bytes_per_msg": 36.7,
+   "server_cpu_cores_avg": 0.318,
+   "server_cpu_pct_ps_max": 39.3,
+   "server_rss_MB_max": 1216.2,
+   "server_goroutines_end": 3036.0,
+   "redis_cpu_pct_avg": 21.0,
+   "redis_rss_MB_max": 26.3,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.0005,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 60.0,
+   "client": {
+    "peakConnections": 1000,
+    "successfulSessions": 1000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 744,
+     "ludo_quick": 395,
+     "snakes_ladders": 296
+    },
+    "gamesFinished": {
+     "ludo": 362,
+     "ludo_quick": 257,
+     "snakes_ladders": 283
+    },
+    "actionsPerSecond": 684.27,
+    "latencyMs": {
+     "join": {
+      "count": 1448,
+      "p50": 1.171,
+      "p95": 2.361,
+      "p99": 251.778,
+      "max": 505.542
+     },
+     "move": {
+      "count": 23793,
+      "p50": 0.616,
+      "p95": 0.941,
+      "p99": 1.49,
+      "max": 671.417
+     },
+     "roll": {
+      "count": 46433,
+      "p50": 0.621,
+      "p95": 0.976,
+      "p99": 250.651,
+      "max": 750.897
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 35,
+     "unknown_type": 31
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 51
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 53,
+    "reconnectSuccesses": 53,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 1053
+    },
+    "bytesReceived": 68903344,
+    "malformedSent": {
+     "bad_payload": 16,
+     "invalid_json": 19,
+     "missing_id": 16,
+     "unknown_type": 15
+    }
+   },
+   "run": "lt-ctx"
+  },
+  {
+   "scenario": "deflate-nocontext-1024",
+   "settings": {
+    "WS_COMPRESSION": "no_context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "1024"
+   },
+   "bots": 2000,
+   "window_s": 60.3,
+   "connections_at_end": 2000.0,
+   "server_msgs_sent_per_s": 8673.5,
+   "server_cmds_recv_per_s": 1423.3,
+   "payload_sent_KBps": 1235.8,
+   "wire_sent_KBps": 1262.2,
+   "wire_over_payload": 1.021,
+   "avg_payload_bytes_per_msg": 145.9,
+   "avg_wire_bytes_per_msg": 149.0,
+   "server_cpu_cores_avg": 0.473,
+   "server_cpu_pct_ps_max": 57.6,
+   "server_rss_MB_max": 245.8,
+   "server_goroutines_end": 6037.0,
+   "redis_cpu_pct_avg": 33.9,
+   "redis_rss_MB_max": 35.6,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.0005,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 88.0,
+   "client": {
+    "peakConnections": 2000,
+    "successfulSessions": 2000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 1457,
+     "ludo_quick": 869,
+     "snakes_ladders": 570
+    },
+    "gamesFinished": {
+     "ludo": 679,
+     "ludo_quick": 590,
+     "snakes_ladders": 530
+    },
+    "actionsPerSecond": 1362.59,
+    "latencyMs": {
+     "join": {
+      "count": 2906,
+      "p50": 0.928,
+      "p95": 1.912,
+      "p99": 250.954,
+      "max": 752.506
+     },
+     "move": {
+      "count": 50809,
+      "p50": 0.452,
+      "p95": 0.726,
+      "p99": 250.663,
+      "max": 761.335
+     },
+     "roll": {
+      "count": 96551,
+      "p50": 0.461,
+      "p95": 0.764,
+      "p99": 250.92,
+      "max": 744.129
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 69,
+     "room_in_progress": 2,
+     "unknown_type": 74
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 44
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 44,
+    "reconnectSuccesses": 44,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 2044
+    },
+    "bytesReceived": 144054212,
+    "malformedSent": {
+     "bad_payload": 37,
+     "invalid_json": 32,
+     "missing_id": 35,
+     "unknown_type": 39
+    }
+   },
+   "run": "lt-2000"
+  },
+  {
+   "scenario": "deflate-nocontext-1024",
+   "settings": {
+    "WS_COMPRESSION": "no_context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "1024"
+   },
+   "bots": 4000,
+   "window_s": 60.2,
+   "connections_at_end": 4000.0,
+   "server_msgs_sent_per_s": 17416.8,
+   "server_cmds_recv_per_s": 2837.1,
+   "payload_sent_KBps": 2488.5,
+   "wire_sent_KBps": 2540.6,
+   "wire_over_payload": 1.021,
+   "avg_payload_bytes_per_msg": 146.3,
+   "avg_wire_bytes_per_msg": 149.4,
+   "server_cpu_cores_avg": 0.802,
+   "server_cpu_pct_ps_max": 114.3,
+   "server_rss_MB_max": 441.5,
+   "server_goroutines_end": 12039.0,
+   "redis_cpu_pct_avg": 51.3,
+   "redis_rss_MB_max": 70.5,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.0005,
+   "server_cmd_processing_p99_le_s": 0.001,
+   "slow_client_events": 0,
+   "rejected_msgs": 174.0,
+   "client": {
+    "peakConnections": 4000,
+    "successfulSessions": 4000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 3015,
+     "ludo_quick": 1784,
+     "snakes_ladders": 1186
+    },
+    "gamesFinished": {
+     "ludo": 1516,
+     "ludo_quick": 1241,
+     "snakes_ladders": 1128
+    },
+    "actionsPerSecond": 2619.91,
+    "latencyMs": {
+     "join": {
+      "count": 5998,
+      "p50": 0.806,
+      "p95": 1.826,
+      "p99": 251.362,
+      "max": 751.585
+     },
+     "move": {
+      "count": 106120,
+      "p50": 0.387,
+      "p95": 0.834,
+      "p99": 250.353,
+      "max": 783.544
+     },
+     "roll": {
+      "count": 202141,
+      "p50": 0.397,
+      "p95": 0.894,
+      "p99": 250.53,
+      "max": 757.898
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 183,
+     "room_in_progress": 5,
+     "unknown_type": 168
+    },
+    "resyncs": 0,
+    "resyncsByReason": {
+     "reconnect": 54
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 54,
+    "reconnectSuccesses": 54,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 4054
+    },
+    "bytesReceived": 302839009,
+    "malformedSent": {
+     "bad_payload": 92,
+     "invalid_json": 91,
+     "missing_id": 90,
+     "unknown_type": 78
+    }
+   },
+   "run": "lt-4000"
+  },
+  {
+   "scenario": "deflate-nocontext-1024",
+   "settings": {
+    "WS_COMPRESSION": "no_context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "1024"
+   },
+   "bots": 6000,
+   "window_s": 60.2,
+   "connections_at_end": 6000.0,
+   "server_msgs_sent_per_s": 26076.8,
+   "server_cmds_recv_per_s": 4225.8,
+   "payload_sent_KBps": 3729.3,
+   "wire_sent_KBps": 3806.8,
+   "wire_over_payload": 1.021,
+   "avg_payload_bytes_per_msg": 146.4,
+   "avg_wire_bytes_per_msg": 149.5,
+   "server_cpu_cores_avg": 1.176,
+   "server_cpu_pct_ps_max": 148.1,
+   "server_rss_MB_max": 627.0,
+   "server_goroutines_end": 18036.0,
+   "redis_cpu_pct_avg": 64.1,
+   "redis_rss_MB_max": 105.1,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.0005,
+   "server_cmd_processing_p99_le_s": 0.0025,
+   "slow_client_events": 0,
+   "rejected_msgs": 188.0,
+   "client": {
+    "peakConnections": 6000,
+    "successfulSessions": 6000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 4584,
+     "ludo_quick": 2753,
+     "snakes_ladders": 1883
+    },
+    "gamesFinished": {
+     "ludo": 2180,
+     "ludo_quick": 1945,
+     "snakes_ladders": 1781
+    },
+    "actionsPerSecond": 3759.96,
+    "latencyMs": {
+     "join": {
+      "count": 9227,
+      "p50": 0.907,
+      "p95": 2.533,
+      "p99": 251.253,
+      "max": 752.195
+     },
+     "move": {
+      "count": 164500,
+      "p50": 0.455,
+      "p95": 1.508,
+      "p99": 250.41,
+      "max": 761.505
+     },
+     "roll": {
+      "count": 316305,
+      "p50": 0.473,
+      "p95": 1.598,
+      "p99": 250.798,
+      "max": 750.612
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 229,
+     "invalid_phase": 1,
+     "room_in_progress": 2,
+     "unknown_type": 233
+    },
+    "resyncs": 2,
+    "resyncsByReason": {
+     "gap": 1,
+     "invalid_phase": 1,
+     "reconnect": 69
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 73,
+    "reconnectSuccesses": 73,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 6073
+    },
+    "bytesReceived": 474778633,
+    "malformedSent": {
+     "bad_payload": 134,
+     "invalid_json": 95,
+     "missing_id": 116,
+     "unknown_type": 117
+    }
+   },
+   "run": "lt-6000"
+  },
+  {
+   "scenario": "deflate-nocontext-1024",
+   "settings": {
+    "WS_COMPRESSION": "no_context_takeover",
+    "WS_COMPRESSION_THRESHOLD": "1024"
+   },
+   "bots": 9000,
+   "window_s": 60.4,
+   "connections_at_end": 9000.0,
+   "server_msgs_sent_per_s": 38812.3,
+   "server_cmds_recv_per_s": 6294.1,
+   "payload_sent_KBps": 5550.5,
+   "wire_sent_KBps": 5665.9,
+   "wire_over_payload": 1.021,
+   "avg_payload_bytes_per_msg": 146.4,
+   "avg_wire_bytes_per_msg": 149.5,
+   "server_cpu_cores_avg": 1.81,
+   "server_cpu_pct_ps_max": 220.1,
+   "server_rss_MB_max": 921.7,
+   "server_goroutines_end": 27035.0,
+   "redis_cpu_pct_avg": 73.5,
+   "redis_rss_MB_max": 157.6,
+   "server_write_p99_le_s": 0.0005,
+   "server_cmd_processing_p95_le_s": 0.005,
+   "server_cmd_processing_p99_le_s": 0.25,
+   "slow_client_events": 0,
+   "rejected_msgs": 319.0,
+   "client": {
+    "peakConnections": 9000,
+    "successfulSessions": 9000,
+    "failedSessions": 0,
+    "gamesStarted": {
+     "ludo": 6858,
+     "ludo_quick": 4217,
+     "snakes_ladders": 2850
+    },
+    "gamesFinished": {
+     "ludo": 3372,
+     "ludo_quick": 3046,
+     "snakes_ladders": 2689
+    },
+    "actionsPerSecond": 5619.26,
+    "latencyMs": {
+     "join": {
+      "count": 13934,
+      "p50": 0.99,
+      "p95": 4.4,
+      "p99": 500.636,
+      "max": 826.889
+     },
+     "move": {
+      "count": 246426,
+      "p50": 0.596,
+      "p95": 3.89,
+      "p99": 383.171,
+      "max": 878.413
+     },
+     "roll": {
+      "count": 471912,
+      "p50": 0.589,
+      "p95": 3.773,
+      "p99": 500.397,
+      "max": 1029.471
+     },
+     "sync": {
+      "count": 1,
+      "p50": 0.546,
+      "p95": 0.546,
+      "p99": 0.546,
+      "max": 0.546
+     }
+    },
+    "errorsByCode": {
+     "bad_request": 364,
+     "invalid_phase": 1,
+     "room_in_progress": 3,
+     "unknown_type": 375
+    },
+    "resyncs": 3,
+    "resyncsByReason": {
+     "invalid_phase": 1,
+     "no_state": 1,
+     "reconnect": 82,
+     "sync_timeout": 1
+    },
+    "hashMismatches": 0,
+    "reconnectAttempts": 82,
+    "reconnectSuccesses": 82,
+    "reconnectSuccessRate": 1,
+    "compression": {
+     "negotiated": 9082
+    },
+    "bytesReceived": 707560786,
+    "malformedSent": {
+     "bad_payload": 194,
+     "invalid_json": 170,
+     "missing_id": 194,
+     "unknown_type": 181
+    }
+   },
+   "run": "lt-9000"
+  }
+ ]
+}
