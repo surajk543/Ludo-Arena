@@ -419,12 +419,15 @@ class PlayHarness {
 
   /// Pumps [screen] at '/' inside a GoRouter with stub destinations, in the
   /// real theme + localizations, with reduced motion (deterministic).
+  /// [safeArea] is the device's system insets (status bar, home indicator),
+  /// e.g. top 62 / bottom 34 on an iPhone 17 Pro.
   Future<void> pump(
     WidgetTester tester,
     Widget screen, {
     Locale locale = const Locale('en'),
     ThemeMode themeMode = ThemeMode.light,
     Size size = const Size(360, 740),
+    EdgeInsets safeArea = EdgeInsets.zero,
     bool connected = true,
     double textScale = 1.0,
     List<Override> extra = const [],
@@ -433,6 +436,16 @@ class PlayHarness {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    final insets = FakeViewPadding(
+      left: safeArea.left,
+      top: safeArea.top,
+      right: safeArea.right,
+      bottom: safeArea.bottom,
+    );
+    tester.view.padding = insets;
+    tester.view.viewPadding = insets;
+    addTearDown(tester.view.resetPadding);
+    addTearDown(tester.view.resetViewPadding);
 
     final o = await overrides();
     addTearDown(() async {
