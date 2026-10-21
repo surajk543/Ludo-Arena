@@ -351,7 +351,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonConnectionOffline => 'Offline';
 
   @override
-  String get commonConnectionReplaced => 'Signed in on another device';
+  String get commonConnectionReplaced => 'This game is open somewhere else';
 
   @override
   String get commonReconnect => 'Reconnect';

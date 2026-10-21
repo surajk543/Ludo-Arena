@@ -98,7 +98,7 @@
   "commonConnectionConnecting": "جارٍ الاتصال…",
   "commonConnectionReconnecting": "جارٍ إعادة الاتصال…",
   "commonConnectionOffline": "غير متصل",
-  "commonConnectionReplaced": "تم تسجيل الدخول من جهاز آخر",
+  "commonConnectionReplaced": "هذه اللعبة مفتوحة في مكان آخر",
   "commonReconnect": "إعادة الاتصال",
   "commonSecondsShort": "{seconds} ث",
   "commonGameLudo": "لودو",

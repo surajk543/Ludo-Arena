@@ -350,7 +350,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonConnectionOffline => 'Offline';
 
   @override
-  String get commonConnectionReplaced => 'Masuk di perangkat lain';
+  String get commonConnectionReplaced => 'Game ini terbuka di tempat lain';
 
   @override
   String get commonReconnect => 'Sambungkan lagi';

@@ -577,7 +577,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Turn deadlines, auto-moves, forfeits, fill/rematch windows</td><td>Go scheduler (any instance)</td><td>Redis ZSET <code>sched</code>; whoever <code>ZREM</code>s an entry first runs it</td></tr>
           <tr><td>Coin and diamond balances</td><td>PostgreSQL</td><td><code>wallet.wallets</code></td></tr>
           <tr><td>Provider identity → account</td><td>PostgreSQL</td><td><code>identity.auth_identities</code></td></tr>
-          <tr><td>Sessions, refresh rotation, revocation</td><td>Go <code>auth</code> + Redis</td><td><code>sess:{sid}</code>, <code>rt:{sha256}</code></td></tr>
+          <tr><td>Sessions, refresh rotation, revocation, one active device per account</td><td>Go <code>auth</code> + Redis</td><td><code>sess:{sid}</code>, <code>rt:{sha256}</code>, <code>usess:{userId}</code>, <code>sessrep:{sid}</code></td></tr>
           <tr><td>XP, levels, missions, claims, inventory, loadout, friendships</td><td>PostgreSQL</td><td><code>progression.*</code></td></tr>
           <tr><td>Display name / avatar</td><td>Redis cache (non-authoritative, regenerated)</td><td><code>profile:{userId}</code>; public id <code>u_…</code> = HMAC of the account id with <code>PUBLIC_ID_KEY</code></td></tr>
           <tr><td>Online presence</td><td>WebSocket gateway</td><td><code>presence:{userId}</code> (60 s, refreshed)</td></tr>
@@ -677,7 +677,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Matchmaking</td><td><code>mm:open:{pool}:{game}:{variant}:{capacity}</code> (pool = <code>live</code> or <code>loadtest</code>)</td></tr>
           <tr><td>Timers</td><td><code>sched</code> (turn, fill, lobbykick, rematch, practice, botexp, payout, record)</td></tr>
           <tr><td>Settlement guards</td><td><code>settle:fee:{room}:{round}</code> (24 h), <code>settle:pay:{room}:{round}</code> (7 d), <code>settle:retry:*</code>, <code>record:retry:*</code></td></tr>
-          <tr><td>Sessions</td><td><code>sess:{sid}</code> (session family), <code>rt:{sha256}</code> (refresh-token hashes, reuse tombstones)</td></tr>
+          <tr><td>Sessions</td><td><code>sess:{sid}</code> (session family), <code>rt:{sha256}</code> (refresh-token hashes, reuse tombstones), <code>usess:{userId}</code> (the account's one live human session), <code>sessrep:{sid}</code> (replaced-by-newer-sign-in tombstone)</td></tr>
           <tr><td>Presence, dedup, limits</td><td><code>presence:{userId}</code>, <code>dedup:{userId}:{msgId}</code> (2 min), <code>rl:{rule}:{key}:{window}</code></td></tr>
           <tr><td>Pub/sub</td><td><code>ev:room:{roomId}</code>, <code>ev:user:{userId}</code></td></tr>
           <tr><td>Bots</td><td><code>bot:assignments</code>, <code>botasg:{id}</code>, <code>botsess:{uid}</code></td></tr>
@@ -692,14 +692,14 @@ td code { font-size: 0.8rem; }
       <table>
         <thead><tr><th>Item</th><th>Storage</th><th>Behaviour</th></tr></thead>
         <tbody>
-          <tr><td>Access token</td><td>Client only (<code>flutter_secure_storage</code>)</td><td>HS256 JWT, 15 min (<code>ACCESS_TOKEN_TTL</code>); claims <code>sub</code> (account), <code>sid</code> (session family), <code>knd</code>, <code>act</code> (actor type). Verified on every request <em>and</em> checked against the live <code>sess:{sid}</code>, so logout and revocation are immediate.</td></tr>
+          <tr><td>Access token</td><td>Client only (<code>flutter_secure_storage</code>)</td><td>HS256 JWT, 15 min (<code>ACCESS_TOKEN_TTL</code>); claims <code>sub</code> (account), <code>sid</code> (session family), <code>knd</code>, <code>act</code> (actor type). Verified on every request <em>and</em> checked against the live <code>sess:{sid}</code>, so logout, revocation and replacement by a sign-in on another device are immediate.</td></tr>
           <tr><td>Refresh token</td><td>Client secure storage; server keeps only SHA-256</td><td>Opaque, 30 days (<code>REFRESH_TOKEN_TTL</code>), rotated on every <code>POST /auth/refresh</code>; presenting a rotated token revokes the whole family (<code>refresh_reused</code>).</td></tr>
           <tr><td>Guest secret</td><td>Client secure storage; server keeps SHA-256 as the guest identity subject</td><td>256-bit, returned once by <code>POST /auth/guest</code>; recovers the guest via <code>POST /auth/guest/resume</code>.</td></tr>
           <tr><td>Bot tokens</td><td>bot-play memory only</td><td>Controller JWT (15 min) and per-bot session JWTs scoped to one room or the load-test pool (≤ 2 h).</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="small">Long-lived WebSockets re-check their session every 60 s and close with <code>4401</code> once revoked.</p>
+    <p class="small"><strong>One active device per account (last sign-in wins).</strong> Every human sign-in (guest, guest resume, Google/Facebook/Apple) atomically points <code>usess:{userId}</code> at the new session and deletes the previous one, leaving a <code>sessrep:{oldSid}</code> tombstone. The old device then gets <code>401 session_replaced</code> from refresh, REST and the WebSocket upgrade, and its live WebSocket is closed at once with <code>4401</code> via a <code>{"ctl":"revoke","sid":…}</code> control message on <code>ev:user:{userId}</code> (never forwarded to clients). Bot sessions are exempt. Logout (bearer access token, or the current refresh token when the access token has expired) never writes a tombstone. Long-lived WebSockets also re-check their session every 60 s and close with <code>4401</code> once revoked.</p>
   </section>
 
   <!-- ============================================================ 2 -->
@@ -1105,8 +1105,8 @@ td code { font-size: 0.8rem; }
         <thead><tr><th>Signal</th><th>Meaning</th><th>Client behaviour</th></tr></thead>
         <tbody>
           <tr><td><code>1001</code>, <code>1008</code>, <code>4400</code>, <code>4508</code>, heartbeat timeout, abnormal close</td><td>Shutdown / policy / protocol / slow consumer / dead link</td><td>Reconnect with full-jitter backoff; snapshot follows</td></tr>
-          <tr><td><code>4401</code></td><td>Session revoked or expired</td><td>Refresh token, then reconnect; refresh fails → sign-in</td></tr>
-          <tr><td><code>4409</code></td><td>Replaced by a newer connection (one live socket per user, across instances)</td><td><strong>No auto-reconnect</strong>; “Signed in on another device” with a Reconnect button</td></tr>
+          <tr><td><code>4401</code></td><td>Session revoked or expired, or the account signed in on another device (sent immediately)</td><td>Refresh token, then reconnect; refresh fails → sign-in; refresh fails with <code>session_replaced</code> → “Signed in on another device” popup, sign-in without automatic re-login</td></tr>
+          <tr><td><code>4409</code></td><td>Replaced by a newer connection of the same session (one live socket per user, across instances)</td><td><strong>No auto-reconnect</strong>; Reconnect button</td></tr>
           <tr><td><code>4426</code> / <code>4503</code></td><td>Version unsupported / maintenance</td><td>Policy re-check → force-update or maintenance screen</td></tr>
           <tr><td><code>4429</code></td><td>Rate-limit abuse</td><td>Reconnect after ≥ 10 s</td></tr>
         </tbody>
@@ -1913,7 +1913,7 @@ td code { font-size: 0.8rem; }
       <table>
         <thead><tr><th>Area</th><th>Controls in place</th></tr></thead>
         <tbody>
-          <tr><td>Rate limits (Redis fixed windows)</td><td>Sign-in 30/min/IP · guest creation 10/h/IP · refresh 60/min/IP · app config 120/min/IP · telemetry 60/min/IP · linking 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account · matchmaking 20/min/account · wallet operations 30/min/account · social writes 30/min/account · bot service 600/min/IP · per-socket commands 10/s (burst 20) · quick chat 1 per 3 s and 10/min · invites 10/min · friend requests 60/h</td></tr>
+          <tr><td>Rate limits (Redis fixed windows)</td><td>Sign-in 30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config 120/min/IP · telemetry 60/min/IP · linking 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account · matchmaking 20/min/account · wallet operations 30/min/account · social writes 30/min/account · bot service 600/min/IP · per-socket commands 10/s (burst 20) · quick chat 1 per 3 s and 10/min · invites 10/min · friend requests 60/h</td></tr>
           <tr><td>Token handling</td><td>Provider tokens verified server-side (go-oidc JWKS, Apple nonce, Facebook <code>debug_token</code>); emails never used to match or merge; HS256 access JWT 15 min checked against the live session; refresh rotation with reuse detection; only SHA-256 of refresh tokens, guest secrets and the bot service key is stored; client tokens in <code>flutter_secure_storage</code>; sessions re-checked on live sockets every 60 s</td></tr>
           <tr><td>Validation</td><td>Strict JSON decoding (unknown fields rejected); WebSocket text frames only, ≤ 4096 bytes after decompression, ids 1–64 chars, known message types, phase/seat/<code>turnSeq</code> checks, repeated invalid messages close with <code>4400</code>; server-side rules for everything; <code>Idempotency-Key</code> format checks</td></tr>
           <tr><td>Transport</td><td>TLS at the load balancer; bot-play requires https/wss in production; <code>TRUSTED_PROXY_HOPS</code> controls which <code>X-Forwarded-For</code> hop is trusted</td></tr>

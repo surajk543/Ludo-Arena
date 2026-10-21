@@ -351,7 +351,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonConnectionOffline => 'غير متصل';
 
   @override
-  String get commonConnectionReplaced => 'تم تسجيل الدخول من جهاز آخر';
+  String get commonConnectionReplaced => 'هذه اللعبة مفتوحة في مكان آخر';
 
   @override
   String get commonReconnect => 'إعادة الاتصال';

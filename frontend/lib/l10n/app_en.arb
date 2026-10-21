@@ -491,13 +491,13 @@
   "@commonConnectionOffline": {
     "description": "Realtime connection status: offline."
   },
-  "commonConnectionReplaced": "Signed in on another device",
+  "commonConnectionReplaced": "This game is open somewhere else",
   "@commonConnectionReplaced": {
-    "description": "Realtime connection was replaced by a newer session on another device."
+    "description": "Close code 4409: a newer connection of the same signed-in session took over (e.g. the app opened twice). A sign-in on another device is shown separately (authSignedInElsewhere*)."
   },
   "commonReconnect": "Reconnect",
   "@commonReconnect": {
-    "description": "Button to reconnect after being signed in elsewhere."
+    "description": "Button to reconnect (play here) after the connection was taken over or lost."
   },
   "commonSecondsShort": "{seconds}s",
   "@commonSecondsShort": {

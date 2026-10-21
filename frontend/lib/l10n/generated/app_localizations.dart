@@ -692,13 +692,13 @@ abstract class AppLocalizations {
   /// **'Offline'**
   String get commonConnectionOffline;
 
-  /// Realtime connection was replaced by a newer session on another device.
+  /// Close code 4409: a newer connection of the same signed-in session took over (e.g. the app opened twice). A sign-in on another device is shown separately (authSignedInElsewhere*).
   ///
   /// In en, this message translates to:
-  /// **'Signed in on another device'**
+  /// **'This game is open somewhere else'**
   String get commonConnectionReplaced;
 
-  /// Button to reconnect after being signed in elsewhere.
+  /// Button to reconnect (play here) after the connection was taken over or lost.
   ///
   /// In en, this message translates to:
   /// **'Reconnect'**

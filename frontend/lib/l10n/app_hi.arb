@@ -98,7 +98,7 @@
   "commonConnectionConnecting": "कनेक्ट हो रहा है…",
   "commonConnectionReconnecting": "फिर से कनेक्ट हो रहा है…",
   "commonConnectionOffline": "ऑफ़लाइन",
-  "commonConnectionReplaced": "किसी दूसरे डिवाइस पर साइन इन है",
+  "commonConnectionReplaced": "यह गेम कहीं और खुला है",
   "commonReconnect": "फिर से कनेक्ट करें",
   "commonSecondsShort": "{seconds} से.",
   "commonGameLudo": "लूडो",

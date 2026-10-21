@@ -66,13 +66,54 @@ account id and wallet.
 
 | Item | Storage | Notes |
 |---|---|---|
-| Access token | client only | HS256, 15 min, verified on every request **and** checked against the live session family (`sess:{sid}`), so logout/revocation is immediate |
+| Access token | client only | HS256, 15 min, verified on every request **and** checked against the live session family (`sess:{sid}`), so logout/revocation (including replacement by a sign-in on another device) is immediate |
 | Refresh token | client (secure storage); server keeps `sha256` | Rotated on every use (`POST /auth/refresh`). Presenting an already-rotated token revokes the whole family (`refresh_reused`) |
 | Guest secret | client (secure storage); server keeps `sha256` in `identity.auth_identities` | Durable guest recovery |
 | Bot sessions | server-issued, room-scoped, ≤ 2 h | See `docs/bot-play.md`; bot status comes only from these tokens |
 
-Logout (`POST /auth/logout`) deletes the session family. Long-lived WebSockets
-re-check their session every 60 s and close with `4401` once revoked.
+### One active device per account (last sign-in wins)
+
+An account has **at most one live human session**. Every sign-in that issues
+a session (`/auth/guest`, `/auth/guest/resume`, `/auth/{google,facebook,apple}`)
+runs one Redis Lua script that creates the new family, points
+`usess:{userId}` at it and **deletes the previous family** (if it was still
+live), leaving a tombstone `sessrep:{oldSid}` (TTL = refresh TTL). Refresh
+rotation keeps the same `sid` and slides the pointer. Linking does not create a
+session and replaces nothing. Bot and bot-controller sessions never touch the
+pointer; any number of them coexist.
+
+The replaced device then sees, everywhere, the distinct error code
+**`session_replaced`** (HTTP 401) instead of the generic one:
+
+| Where | Replaced session | Other dead session (logout, reuse, expiry) |
+|---|---|---|
+| `POST /auth/refresh` | 401 `session_replaced` | 401 `invalid_credential` / `refresh_reused` |
+| Authenticated REST (bearer) | 401 `session_replaced` | 401 `unauthorized` |
+| WebSocket upgrade | 401 `session_replaced` | 401 `unauthorized` |
+| Live WebSocket | closed **immediately** with `4401` ("session replaced") on whichever instance holds it | closed with `4401` by the 60 s re-check |
+
+The live socket is kicked through a control message on the user's pub/sub
+channel (`ev:user:{userId}`, `{"ctl":"revoke","sid":"<oldSid>"}`, never
+forwarded to clients); each gateway instance closes only the connection
+authenticated with that `sid`. Clients already refresh on `4401`; a
+`session_replaced` refresh result means: show "Your account was signed in on
+another device", clear the local session and go to the sign-in screen
+**without** automatically signing in again (a guest resume would take the
+account back and kick the other device).
+
+### Logout
+
+`POST /auth/logout` ends the session with **either** credential: a valid
+`Authorization: Bearer <access>` identifies it; otherwise (no, expired or
+invalid bearer) the body `{"refreshToken"}` does — but only the family's
+**current** refresh token revokes (an old, rotated one is ignored and is not
+treated as reuse). The answer is `204` whether or not a session was found;
+`400` for a malformed body; `401` only when neither credential is present.
+Logout clears `usess:{userId}` only if it still names that session and never
+writes a `sessrep:` tombstone, so a logged-out session reads as plainly
+revoked (`invalid_credential` / `unauthorized`), never `session_replaced`.
+Long-lived WebSockets re-check their session every 60 s and close with `4401`
+once revoked.
 
 ## Exactly-once welcome grant
 
@@ -105,7 +146,7 @@ regenerated if lost.
 
 ## Rate limits (Redis fixed windows, per IP or per account)
 
-Sign-in 30/min/IP · guest creation 10/h/IP · refresh 60/min/IP · linking
+Sign-in 30/min/IP · guest creation 10/h/IP · refresh and logout 60/min/IP · linking
 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account
 · matchmaking 20/min/account · app config 120/min/IP.
 

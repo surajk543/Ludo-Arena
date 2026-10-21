@@ -45,6 +45,9 @@ var (
 	ErrForbidden    = Errf(http.StatusForbidden, "forbidden", "Not allowed.")
 	ErrNotFound     = Errf(http.StatusNotFound, "not_found", "Not found.")
 	ErrInternal     = Errf(http.StatusInternalServerError, "internal", "Something went wrong. Please try again.")
+	// ErrSessionReplaced: the account signed in on another device, which
+	// ended this session (one live human session per account).
+	ErrSessionReplaced = Errf(http.StatusUnauthorized, "session_replaced", "Your account was signed in on another device.")
 )
 
 // Auth requirement for a route.
@@ -157,7 +160,11 @@ func (rt *Router) Handle(pattern string, opts Route, h HandlerFunc) {
 		if opts.Auth != AuthNone {
 			p, err := rt.authenticate(ctx, r)
 			if err != nil {
-				rt.writeError(sw, r, ErrUnauthorized)
+				if errors.Is(err, auth.ErrSessionReplaced) {
+					rt.writeError(sw, r, ErrSessionReplaced)
+				} else {
+					rt.writeError(sw, r, ErrUnauthorized)
+				}
 				return
 			}
 			switch {

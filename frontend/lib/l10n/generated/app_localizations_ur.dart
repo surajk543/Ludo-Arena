@@ -352,7 +352,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get commonConnectionOffline => 'آف لائن';
 
   @override
-  String get commonConnectionReplaced => 'کسی دوسرے ڈیوائس پر سائن اِن ہے';
+  String get commonConnectionReplaced => 'یہ گیم کہیں اور کھلا ہے';
 
   @override
   String get commonReconnect => 'دوبارہ کنیکٹ کریں';

@@ -79,7 +79,7 @@ fee and pay no coins**. Coins and diamonds are virtual and non-redeemable.
 ## Security
 
 - **Rate limits** (`backend/internal/ratelimit`, Redis fixed windows): sign-in
-  30/min/IP · guest creation 10/h/IP · refresh 60/min/IP · app config
+  30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config
   120/min/IP · telemetry 60/min/IP · account linking 10/min/account ·
   WebSocket connects 30/min/account · room codes 10/min/account · matchmaking
   20/min/account · wallet operations 30/min/account · social 30/min/account ·
@@ -88,7 +88,11 @@ fee and pay no coins**. Coins and diamonds are virtual and non-redeemable.
 - **Tokens**: provider credentials are verified server-side (OIDC JWKS,
   Apple nonce, Facebook `debug_token`); emails never match or merge accounts.
   App access tokens are 15-minute HS256 JWTs checked against the live session;
-  refresh tokens rotate with reuse detection. Only SHA-256 hashes of refresh
+  refresh tokens rotate with reuse detection. **One active device per
+  account**: each sign-in atomically revokes the account's previous human
+  session (`usess:{userId}` pointer, `sessrep:{sid}` tombstone), whose device
+  gets `401 session_replaced` and has its WebSocket closed at once with
+  `4401`; bot sessions are exempt. Only SHA-256 hashes of refresh
   tokens, guest secrets and the bot service key are stored.
 - **Validation**: strict JSON (unknown fields rejected); WebSocket text frames
   only, ≤ 4096 bytes after decompression, known message types, seat / phase /

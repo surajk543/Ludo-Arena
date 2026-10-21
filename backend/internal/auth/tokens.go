@@ -60,6 +60,10 @@ func (p Principal) IsBot() bool { return p.Kind == KindBot }
 var (
 	ErrInvalidToken = errors.New("invalid token")
 	ErrRevoked      = errors.New("session revoked")
+	// ErrSessionReplaced: the session was revoked because the same account
+	// signed in again (normally on another device). Clients surface it as
+	// "signed in on another device" and do not silently re-authenticate.
+	ErrSessionReplaced = errors.New("session replaced by a newer sign-in")
 )
 
 // Signer issues and verifies HS256 application tokens.

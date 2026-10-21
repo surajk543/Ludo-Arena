@@ -352,7 +352,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get commonConnectionOffline => 'ऑफ़लाइन';
 
   @override
-  String get commonConnectionReplaced => 'किसी दूसरे डिवाइस पर साइन इन है';
+  String get commonConnectionReplaced => 'यह गेम कहीं और खुला है';
 
   @override
   String get commonReconnect => 'फिर से कनेक्ट करें';
