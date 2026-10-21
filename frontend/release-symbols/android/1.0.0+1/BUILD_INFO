@@ -1,0 +1,6 @@
+version: 1.0.0+1
+target: apk
+commit: 8fe48b81511684571aa657301e377a8b81dbdae3
+built: 2026-10-21T20:15:36Z
+flutter: Flutter 3.44.7 • channel stable • https://github.com/flutter/flutter.git
+artifact: app-release.apk sha256=9eb87f97590e815feb2082626cc0de47ec4f849e55314c49b60bae5a1bb4b18b
