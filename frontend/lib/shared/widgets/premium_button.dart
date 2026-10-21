@@ -33,7 +33,7 @@ class PremiumButton extends ConsumerStatefulWidget {
     this.leading,
     this.loading = false,
     this.expand = true,
-    this.sound = Sfx.click,
+    this.sound = Sfx.uiTap,
     this.semanticLabel,
   });
 

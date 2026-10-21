@@ -84,7 +84,7 @@ class _MissionCardState extends ConsumerState<MissionCard>
     final l10n = AppLocalizations.of(context);
     switch (outcome) {
       case ClaimSucceeded(:final result):
-        ref.read(audioServiceProvider).play(Sfx.coin);
+        ref.read(audioServiceProvider).play(Sfx.rewardClaim);
         ref.read(hapticsServiceProvider).success();
         setState(() {
           _collected = outcome;

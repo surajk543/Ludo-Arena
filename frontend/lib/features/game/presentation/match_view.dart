@@ -61,9 +61,10 @@ class MatchView extends ConsumerStatefulWidget {
 
 /// One room round's board binding + sequencer.
 class _Stage {
-  _Stage(this.key, this.binding, this.sequencer, this.turns);
+  _Stage(this.key, this.round, this.binding, this.sequencer, this.turns);
 
   final String key;
+  final int round;
   final MatchBoardBinding binding;
   final MatchEventSequencer sequencer;
 
@@ -101,6 +102,9 @@ class _MatchViewState extends ConsumerState<MatchView> {
   final Map<int, int> _turnTotals = {};
   final Set<String> _resultsLogged = {};
 
+  /// Stages whose room was already finished when the screen opened.
+  final Set<String> _finishedOnOpen = {};
+
   bool _localMute = false;
   bool _playerSheetOpen = false;
   bool _commandInFlight = false;
@@ -128,7 +132,10 @@ class _MatchViewState extends ConsumerState<MatchView> {
     final room = live.room;
     if (room != null && room.id == widget.roomId) {
       _stage = _createStage(room, live.selfSeat);
-      if (room.isFinished) _armProgressionTimeout();
+      if (room.isFinished) {
+        _finishedOnOpen.add(_stageKey(room));
+        _armProgressionTimeout();
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) => _onPresented());
     }
     _sub = ref
@@ -174,6 +181,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
     sequencer.busy.addListener(_onBusy);
     return _Stage(
       _stageKey(room),
+      room.round,
       binding,
       sequencer,
       boardTurnsFor(room, selfSeat),
@@ -272,7 +280,14 @@ class _MatchViewState extends ConsumerState<MatchView> {
       }
       return;
     }
+    final previous = _stage;
+    final newRound = previous != null && room.round != previous.round;
+    if (previous == null && room.isFinished) {
+      _finishedOnOpen.add(_stageKey(room));
+    }
     _replaceStage(room);
+    // A rematch / next round the server just started.
+    if (newRound && room.isPlaying) _feedback.matchStart();
   }
 
   void _onPresented() {
@@ -283,10 +298,17 @@ class _MatchViewState extends ConsumerState<MatchView> {
       _finishedKey = stage.key;
       final selfUid = ref.read(activeRoomControllerProvider).selfUid;
       final result = MatchResultView.from(room, selfUid);
-      if (result.selfWon) {
-        _feedback.win();
-      } else {
-        _feedback.lose();
+      // Only a finish seen live gets a cue (not a finished room re-opened),
+      // and spectators hear nothing.
+      if (!_finishedOnOpen.contains(stage.key)) {
+        switch (result.outcome) {
+          case MatchOutcome.won:
+            _feedback.win();
+          case MatchOutcome.lost || MatchOutcome.forfeited:
+            _feedback.lose();
+          case MatchOutcome.spectator:
+            break;
+        }
       }
       _showVictory = result.winner != null;
       if (!_showVictory) _revealResults();
@@ -462,7 +484,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
     final seq = room.turn.turnSeq;
     final l10n = AppLocalizations.of(context);
     _guard.markRollSent(seq);
-    _feedback.tap();
+    _feedback.rollTapped();
     stage.binding.dice.beginRoll();
     setState(() => _commandInFlight = true);
     try {
@@ -506,7 +528,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
     final seq = room.turn.turnSeq;
     final l10n = AppLocalizations.of(context);
     _guard.markMoveSent(seq);
-    _feedback.tap();
+    _feedback.tokenTapped();
     stage.binding.clearLegalMoves();
     setState(() => _commandInFlight = true);
     try {

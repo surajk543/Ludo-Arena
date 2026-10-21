@@ -71,7 +71,10 @@ flutter:
     - assets/board/
     - assets/icons/
     - assets/animations/
-    - assets/audio/
+    # Kenney CC0 sound effects + CC0 lobby music (credits:
+    # assets/audio/ASSET_LICENSES.md, not bundled).
+    - assets/audio/sfx/
+    - assets/audio/music/
     # OFL license texts of the bundled fonts (shown on the licenses page).
     - assets/fonts/OFL-Fredoka.txt
     - assets/fonts/OFL-Nunito.txt

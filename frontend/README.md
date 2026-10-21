@@ -130,7 +130,7 @@ lib/
     analytics/              AnalyticsService + gated Firebase implementation + consent
     audio_haptics/          AudioService (Sfx), HapticsService, ReducedMotion
     localization/           LanguageController, SupportedLocales, number/date formatting
-    settings/               AppSettings (sound, haptics, reduced motion, quick-chat mute)
+    settings/               AppSettings (sound, volumes, haptics, reduced motion, quick-chat mute)
     theme/                  tokens, AppColors (light/dark), typography, seat colors, ThemeModeController
     telemetry/, time/, lifecycle/, state/ (inMatchProvider)
   shared/widgets/           premium component library (import widgets.dart)
@@ -256,10 +256,24 @@ page.
 - **Release error fallback**: in release/profile builds a widget whose build
   fails renders a small branded "Something went wrong" (`lib/app/error_fallback.dart`).
 
-## Sounds
+## Sounds and music
 
-`dart run tool/generate_sfx.dart` regenerates the procedural WAVs in
-`assets/audio/` (`Sfx` enum in `lib/core/audio_haptics/audio_service.dart`).
+- **Effects** (`assets/audio/sfx/*.wav`, 16-bit PCM mono — iOS cannot play
+  Ogg) come from Kenney's CC0 packs. `tool/import_kenney_audio.sh
+  <kenney-dir>` re-creates them from the unzipped packs (source file → name,
+  trim, loudness and fades are in the script). The `Sfx` enum
+  (`lib/core/audio_haptics/sfx.dart`) maps names to files, per-sound gain,
+  cooldown and voice limit.
+- **Lobby music** (`assets/audio/music/lobby_loop.m4a`, CC0, Freesound) loops
+  on lobby / meta screens only (`lib/app/lobby_music.dart`): it fades out
+  when a match screen opens, pauses in the background and never takes audio
+  focus.
+- `AudioService` (`lib/core/audio_haptics/audio_service.dart`) is the only
+  audio entry point: Settings → Sound (master switch) plus effects / music
+  volumes; one UI sound per tap (gesture coalescing); missing assets are
+  logged once and skipped.
+- Sources, licenses and processing of every shipped file:
+  `assets/audio/ASSET_LICENSES.md` (not bundled in the app).
 
 ## Testing
 

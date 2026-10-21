@@ -48,7 +48,7 @@ class _ProviderButtonState extends ConsumerState<ProviderButton> {
     final action = widget.onPressed;
     if (action == null || _busy) return;
     ref.read(hapticsServiceProvider).light();
-    ref.read(audioServiceProvider).play(Sfx.click);
+    ref.read(audioServiceProvider).play(Sfx.uiTap);
     setState(() => _busy = true);
     try {
       await action();
