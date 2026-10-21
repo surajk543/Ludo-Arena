@@ -1186,9 +1186,9 @@
   "@homeMissionsSubtitle": {
     "description": "Entry tile subtitle."
   },
-  "homeCollection": "Collection Room",
+  "homeCollection": "Collection",
   "@homeCollection": {
-    "description": "Entry tile: Collection Room."
+    "description": "Entry tile: the Collection Room (short name)."
   },
   "homeCollectionSubtitle": "Dice, tokens & frames",
   "@homeCollectionSubtitle": {
@@ -1210,11 +1210,11 @@
   "@homeEventsSubtitle": {
     "description": "Entry tile subtitle."
   },
-  "homeExploreHeader": "Explore",
+  "homeExploreHeader": "More to Explore",
   "@homeExploreHeader": {
-    "description": "Section header above entry tiles."
+    "description": "Section header above the entry tiles (missions, collection, friends, events)."
   },
-  "homeGamesHeader": "Games",
+  "homeGamesHeader": "Choose a Game",
   "@homeGamesHeader": {
     "description": "Section header above the game cards."
   },
@@ -1377,6 +1377,50 @@
         "type": "String"
       }
     }
+  },
+  "homeQuickPlaySubtitle": "Find random players and start now",
+  "@homeQuickPlaySubtitle": {
+    "description": "Quick Play card subtitle."
+  },
+  "homePlayNow": "Play Now",
+  "@homePlayNow": {
+    "description": "Quick Play main button: start public matchmaking with the selected game and player count."
+  },
+  "homeQuickLudo": "Quick Ludo",
+  "@homeQuickLudo": {
+    "description": "Game option: Ludo with the quick (shorter) rules variant."
+  },
+  "homeChangeGameHint": "Change game",
+  "@homeChangeGameHint": {
+    "description": "Accessibility hint of the Quick Play game selector."
+  },
+  "homeChangePlayersHint": "Change number of players",
+  "@homeChangePlayersHint": {
+    "description": "Accessibility hint of the Quick Play player-count selector."
+  },
+  "homeGamesSubtitle": "Pick a game, then play online, with friends or against bots.",
+  "@homeGamesSubtitle": {
+    "description": "Subtitle of the Games tab."
+  },
+  "homeNavHome": "Home",
+  "@homeNavHome": {
+    "description": "Bottom navigation label: home lobby."
+  },
+  "homeNavGames": "Games",
+  "@homeNavGames": {
+    "description": "Bottom navigation label and Games tab title."
+  },
+  "homeNavMissions": "Missions",
+  "@homeNavMissions": {
+    "description": "Bottom navigation label: missions."
+  },
+  "homeNavFriends": "Friends",
+  "@homeNavFriends": {
+    "description": "Bottom navigation label: friends."
+  },
+  "homeNavProfile": "Profile",
+  "@homeNavProfile": {
+    "description": "Bottom navigation label: the player's profile."
   },
   "metaMissionsTitle": "Missions",
   "@metaMissionsTitle": {

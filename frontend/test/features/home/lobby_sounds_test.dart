@@ -69,6 +69,7 @@ void main() {
     final audio = env.audio;
 
     // The button opens the sheet: the open sound replaces the click.
+    await reveal(tester, find.text('Play Online').first);
     await tester.tap(find.text('Play Online').first);
     await tester.pumpAndSettle();
     expect(audio.played, [Sfx.uiOpen]);
@@ -110,6 +111,12 @@ void main() {
       tester,
       extra: [entryFeeProvider.overrideWith((ref, game) => 999999999)],
     );
+    // Quick Play's Play Now is disabled too.
+    await tester.tap(find.text('Play Now'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(env.audio.played, isEmpty);
+
+    await reveal(tester, find.text('Play Online').first);
     await tester.tap(find.text('Play Online').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Find match'), warnIfMissed: false);
@@ -118,17 +125,18 @@ void main() {
     expect(env.audio.played, [Sfx.uiOpen]);
   });
 
-  testWidgets('Quick Play is one play cue', (tester) async {
+  testWidgets('Quick Play: Play Now is one play cue', (tester) async {
     final (env, _) = await pumpHome(tester);
-    await tester.tap(find.text('Quick Play'));
+    await tester.tap(find.text('Play Now'));
     await tester.pumpAndSettle();
+    expect(find.textContaining('AT /matchmaking'), findsOneWidget);
     expect(env.audio.played, [Sfx.lobbyPlay]);
   });
 
   testWidgets('explore tiles click once', (tester) async {
     final (env, _) = await pumpHome(tester);
-    await reveal(tester, find.text('Collection Room'));
-    await tester.tap(find.text('Collection Room'));
+    await reveal(tester, find.text('Collection'));
+    await tester.tap(find.text('Collection'));
     await tester.pumpAndSettle();
     expect(find.text('AT /collection'), findsOneWidget);
     expect(env.audio.played, [Sfx.uiTap]);

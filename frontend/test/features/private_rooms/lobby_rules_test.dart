@@ -38,8 +38,10 @@ void main() {
 
   test('start blockers: players, connections, pending bots', () {
     expect(
-      LobbyPermissions.of(_lobby(players: [player(0)]), selfSeat: 0)
-          .startBlocker,
+      LobbyPermissions.of(
+        _lobby(players: [player(0)]),
+        selfSeat: 0,
+      ).startBlocker,
       StartBlocker.needPlayers,
     );
     expect(

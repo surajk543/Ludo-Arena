@@ -95,7 +95,7 @@ real data.
 - `backend/internal/{auth,identity,wallet,apppolicy,progression,social,analytics}`.
 - `backend/config/` — app policy per environment, `catalog.json`, `missions.json`.
 - `frontend/lib/core/` — config, network (Dio + refresh), protocol (models, reducer, FNV hash), realtime (socket, `ActiveRoomController`), analytics, theme, localization.
-- `frontend/lib/features/` — feature folders; routes are registered in `lib/app/feature_routes.dart` via `play_routes.dart` and `meta_routes.dart`.
+- `frontend/lib/features/` — feature folders; routes are registered in `lib/app/feature_routes.dart` via `play_routes.dart` and `meta_routes.dart`, except the five bottom-navigation tabs (Home, Games, Missions, Friends, Profile), which are one `StatefulShellRoute` in `lib/app/shell/main_shell.dart` (switch tabs with `context.go`, never push them).
 - `frontend/lib/shared/game_visuals/`, `features/{ludo,snakes_ladders}/presentation/board/` — board, dice, token and cosmetic renderers.
 - `monitoring/` — Prometheus scrape targets (`prometheus/targets/`), alert thresholds in one file (`prometheus/rules/thresholds.yml`), alert rules + promtool tests, Alertmanager routing to the ops bot. `monitoring/ops-bot/internal/` — `report` (PromQL + text), `pdfreport` + `charts` (PDF/PNG), `telegram` (429 retry, token redaction), `alertmanager` (webhook + dedupe), `google` (Play CSV in GCS, GA4 Data API), `schedule`. See `monitoring/README.md`.
 

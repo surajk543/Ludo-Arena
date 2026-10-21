@@ -15,7 +15,12 @@ abstract final class AppRoutes {
   static const String login = '/login';
 
   // ---------------------------------------------------------- core screens
+  // Bottom-navigation tabs (one StatefulShellRoute, see app/shell/): home,
+  // games, missions, friends, profile. Reach a tab with `context.go(...)`;
+  // pushing a tab route over a page that sits above the shell would build
+  // the shell twice.
   static const String home = '/home';
+  static const String games = '/games';
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String linkAccount = '/link-account';
@@ -102,6 +107,9 @@ abstract final class AppRoutes {
     updateRequired,
     unreachable,
   };
+
+  /// Roots of the bottom-navigation tabs, in bar order.
+  static const List<String> tabs = [home, games, missions, friends, profile];
 
   /// Routes available while signed out.
   static const Set<String> preAuthRoutes = {languageOnboarding, login};

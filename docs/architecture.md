@@ -269,8 +269,11 @@ SHA-1 / Play App Signing; App Store and Play listings (store URLs are empty, so
 the app shows "not yet available in the store"); Firebase DebugView
 verification on a device; production infrastructure. The Flutter play and
 meta screens are implemented (`feature_routes.dart` spreads `playRoutes` and
-`metaRoutes`) and covered by widget tests; a hands-on play-through on physical
-devices is still pending. See
+`metaRoutes`; the Home, Games, Missions, Friends and Profile tabs are branches
+of one `StatefulShellRoute` in `app/shell/main_shell.dart`, and play-flow and
+detail routes stay outside it so the bottom bar never shows in a match) and
+covered by widget tests; a hands-on play-through on physical devices is still
+pending. See
 [architecture.html#status](architecture.html#status).
 
 ## Related documents
