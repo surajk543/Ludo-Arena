@@ -203,6 +203,19 @@ roll back and read the winner's account. Verified by
 `backend/tests/auth_test.go: TestConcurrentFirstLoginProvisionsOnce` (20
 concurrent requests → 1 identity row, 1 wallet).
 
+**Amounts are configurable live** (default 1,000,000 coins / 10 lakh and 50
+diamonds). Each new account reads the grant once, just before its
+transaction, in this order: `welcome` in the per-environment app-policy file
+(`{"coins": 1000000, "diamonds": 50}`, hot-reloaded on `SIGHUP` or file change;
+see `docs/app-version-policy.md` → Welcome grant) > `WELCOME_COINS` /
+`WELCOME_DIAMONDS` > built-in defaults. A change applies only to accounts
+created afterwards; existing accounts are never re-granted or adjusted, and
+refresh, guest resume, linking and reconnects never grant. `GET /app/config`
+reports the live amounts (`welcome`). Verified by
+`backend/tests/welcome_test.go: TestWelcomeGrantLiveFromPolicy` (new amounts
+for the next account, existing account unchanged, 12 concurrent first logins →
+one grant of the configured amount).
+
 ## Storage (approved design)
 
 ```

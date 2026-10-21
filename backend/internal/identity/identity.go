@@ -68,11 +68,17 @@ type Account struct {
 // Store accesses identity.auth_identities.
 type Store struct {
 	pool    *pgxpool.Pool
-	welcome Welcome
+	welcome func() Welcome // read once per account creation (live config)
 }
 
-// NewStore returns a Store.
+// NewStore returns a Store with a fixed welcome grant.
 func NewStore(pool *pgxpool.Pool, welcome Welcome) *Store {
+	return NewStoreWithGrant(pool, func() Welcome { return welcome })
+}
+
+// NewStoreWithGrant returns a Store whose welcome grant is looked up when each
+// account is created, so a live config change applies to later accounts only.
+func NewStoreWithGrant(pool *pgxpool.Pool, welcome func() Welcome) *Store {
 	return &Store{pool: pool, welcome: welcome}
 }
 
@@ -109,13 +115,14 @@ func (s *Store) findOrCreate(ctx context.Context, key ident, extra ...ident) (Ac
 	}
 
 	newID := uuid.New()
-	created, err := s.createAccount(ctx, newID, append([]ident{key}, extra...))
+	grant := s.welcome()
+	created, err := s.createAccount(ctx, newID, append([]ident{key}, extra...), grant)
 	if err != nil {
 		return Account{}, err
 	}
 	if created {
 		return Account{UserID: newID, Created: true,
-			Wallet: wallet.Wallet{Coins: s.welcome.Coins, Diamonds: s.welcome.Diamonds}}, nil
+			Wallet: wallet.Wallet{Coins: grant.Coins, Diamonds: grant.Diamonds}}, nil
 	}
 	// A concurrent request created the account first; use it.
 	id, err := s.Lookup(ctx, key.provider, key.subject)
@@ -126,16 +133,17 @@ func (s *Store) findOrCreate(ctx context.Context, key ident, extra ...ident) (Ac
 	return Account{UserID: id, Wallet: w}, err
 }
 
-// createAccount inserts the wallet and every identity atomically. It returns
-// false (and rolls back, discarding the wallet) when an identity already
-// exists; the first identity is the one concurrent creators race on.
-func (s *Store) createAccount(ctx context.Context, id uuid.UUID, idents []ident) (bool, error) {
+// createAccount inserts the wallet (with the welcome grant) and every
+// identity atomically. It returns false (and rolls back, discarding the
+// wallet) when an identity already exists; the first identity is the one
+// concurrent creators race on.
+func (s *Store) createAccount(ctx context.Context, id uuid.UUID, idents []ident, grant Welcome) (bool, error) {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return false, err
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
-	if err := wallet.ProvisionTx(ctx, tx, id, s.welcome.Coins, s.welcome.Diamonds); err != nil {
+	if err := wallet.ProvisionTx(ctx, tx, id, grant.Coins, grant.Diamonds); err != nil {
 		return false, err
 	}
 	for _, in := range idents {

@@ -118,13 +118,22 @@ final quickPlayProvider = NotifierProvider<QuickPlayController, PlayConfig>(
   QuickPlayController.new,
 );
 
-/// Server-configured coin entry fee for [game] (docs defaults until the
-/// policy is known). Practice and rooms with bots are free (server rule).
+/// The backend's built-in entry fees (coins), shown only until `/app/config`
+/// delivers the live, server-configured values. Display only: the server
+/// always charges the fee stored on the room.
+const Map<String, int> kFallbackEntryFees = {
+  GameId.ludo: 100000,
+  GameId.snakesLadders: 50000,
+};
+
+/// Server-configured coin entry fee for [game] (`entryFees` from
+/// `/app/config`, re-read whenever the policy is re-fetched), falling back to
+/// [kFallbackEntryFees]. Practice and rooms with bots are free (server rule).
 final entryFeeProvider = Provider.family<int, String>((ref, game) {
   final fees = ref.watch(
     appGateControllerProvider.select((s) => s.policy?.entryFees),
   );
-  final fee = fees?[game];
-  if (fee != null) return fee;
-  return game == GameId.snakesLadders ? 500 : 1000;
+  return fees?[game] ??
+      kFallbackEntryFees[game] ??
+      kFallbackEntryFees[GameId.ludo]!;
 });

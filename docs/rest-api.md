@@ -70,10 +70,23 @@ Public (rate limited per IP). Query: `platform`, `version`, `build`,
   },
   "rulesVersion": 1,
   "protocolVersion": 1,
-  "entryFees": {"ludo": 1000, "snakes_ladders": 500},
+  "entryFees": {"ludo": 100000, "snakes_ladders": 50000},
+  "turnSeconds": 20,
+  "welcome": {"coins": 1000000, "diamonds": 50},
   "serverTime": 1761022800000
 }
 ```
+
+`entryFees` are the live coin entry fees for **new** rooms (flat, per player),
+read on every request: the app-policy file's `entryFees` (hot-reloaded), else
+`ENTRY_FEE_LUDO` / `ENTRY_FEE_SNAKES`, else the defaults 100,000 / 50,000. A
+room keeps the fee it was created with; the room snapshot's `entryFee` is what
+that room charges (see `docs/app-version-policy.md` → Entry fees).
+
+`welcome` is the live one-time grant for accounts created **from now on**:
+the app-policy file's `welcome` (hot-reloaded), else `WELCOME_COINS` /
+`WELCOME_DIAMONDS`, else 1,000,000 coins and 50 diamonds. Existing accounts
+are never changed (see `docs/app-version-policy.md` → Welcome grant).
 
 ---
 

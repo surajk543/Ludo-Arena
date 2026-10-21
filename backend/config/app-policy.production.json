@@ -1,6 +1,8 @@
 {
-  "configVersion": 1,
+  "configVersion": 2,
   "environment": "production",
+  "entryFees": {"ludo": 100000, "snakes_ladders": 50000},
+  "welcome": {"coins": 1000000, "diamonds": 50},
   "maintenance": {
     "enabled": false,
     "message": {

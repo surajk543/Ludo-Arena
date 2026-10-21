@@ -24,8 +24,8 @@ Map<String, dynamic> ludoRoomJson({
   'capacity': tokens.length,
   'status': status,
   'hostSeat': -1,
-  'entryFee': 1000,
-  'pot': 1000 * tokens.length,
+  'entryFee': 100000,
+  'pot': 100000 * tokens.length,
   'round': round,
   'fillDeadline': 0,
   'players': [

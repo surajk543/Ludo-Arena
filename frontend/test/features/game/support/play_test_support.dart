@@ -94,8 +94,8 @@ RoomSnapshot ludoRoom({
     capacity: capacity,
     status: status,
     hostSeat: hostSeat,
-    entryFee: 1000,
-    pot: 1000 * ps.length,
+    entryFee: 100000,
+    pot: 100000 * ps.length,
     round: round,
     fillDeadline: fillDeadline,
     players: ps,
@@ -138,7 +138,7 @@ RoomSnapshot snakesRoom({
     mode: mode,
     capacity: ps.length,
     status: status,
-    entryFee: 500,
+    entryFee: 50000,
     players: ps,
     turn: TurnState(
       seat: turnSeat,
@@ -406,7 +406,9 @@ class PlayHarness {
       roomShareProvider.overrideWithValue((text, {subject, origin}) async {
         shared.add(text);
       }),
-      entryFeeProvider.overrideWith((ref, game) => 1000),
+      entryFeeProvider.overrideWith(
+        (ref, game) => game == GameIds.snakesLadders ? 50000 : 100000,
+      ),
     ];
   }
 

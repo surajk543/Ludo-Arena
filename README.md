@@ -39,8 +39,9 @@ A short Markdown companion is in [docs/architecture.md](docs/architecture.md).
   an app update or reinstall through a device binding (only an HMAC of the
   device id is stored), app-issued access and refresh tokens. Apple and Facebook are implemented but pending configuration.
 - **Virtual wallet**: 1,000,000 coins + 50 diamonds granted exactly once per
-  account; all-or-nothing entry fees; at-most-once payouts. Coins are virtual
-  and non-redeemable.
+  account; all-or-nothing flat entry fees (Ludo 100,000, Snakes & Ladders
+  50,000); at-most-once payouts. The welcome grant and entry fees are set live
+  in the per-environment app-policy file. Coins are virtual and non-redeemable.
 - **Progression**: XP and 50 levels, daily/weekly missions and events,
   exactly-once reward claims, a cosmetic-only Collection Room, friends, invites
   and a weekly friends leaderboard. No loot boxes, no punitive streaks.
@@ -138,7 +139,7 @@ cd bot-play && go test -race ./...
 
 | Project | Configuration |
 |---|---|
-| backend | Environment variables (template: `backend/.env.example`): `APP_ENV`, `HTTP_ADDR`, `METRICS_ADDR`, `PUBLIC_URL`, `TRUSTED_PROXY_HOPS`, `DATABASE_URL`, `REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_TLS`, `JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `ACTIVE_USER_KEY`, `GOOGLE_CLIENT_IDS`, `APPLE_AUDIENCES`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `APP_POLICY_FILE`, `APP_MAINTENANCE_FLAG_FILE`, gameplay timers and fees (`TURN_SECONDS`, `ENTRY_FEE_LUDO`, …), WebSocket (`WS_COMPRESSION`, `WS_COMPRESSION_THRESHOLD`, `WS_OUTBOUND_QUEUE`, …), bots (`BOT_SERVICE_KEY_SHA256`, `BOT_PUBLIC_FILL_ENABLED`, `BOT_LOADTEST_ENABLED`, …). Policy and content files in `backend/config/`. |
+| backend | Environment variables (template: `backend/.env.example`): `APP_ENV`, `HTTP_ADDR`, `METRICS_ADDR`, `PUBLIC_URL`, `TRUSTED_PROXY_HOPS`, `DATABASE_URL`, `REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_TLS`, `JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `ACTIVE_USER_KEY`, `GOOGLE_CLIENT_IDS`, `APPLE_AUDIENCES`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `APP_POLICY_FILE`, `APP_MAINTENANCE_FLAG_FILE`, gameplay timers and fallback fees (`TURN_SECONDS`, `ENTRY_FEE_LUDO`, …), WebSocket (`WS_COMPRESSION`, `WS_COMPRESSION_THRESHOLD`, `WS_OUTBOUND_QUEUE`, …), bots (`BOT_SERVICE_KEY_SHA256`, `BOT_PUBLIC_FILL_ENABLED`, `BOT_LOADTEST_ENABLED`, …). Policy and content files in `backend/config/`; the live entry fees (default Ludo 100,000 / Snakes & Ladders 50,000 coins) and welcome grant (default 1,000,000 coins, 50 diamonds) are `entryFees` / `welcome` in `backend/config/app-policy.<env>.json`, hot-reloaded without a restart (`ENTRY_FEE_*` / `WELCOME_*` are fallbacks). |
 | frontend | `--dart-define`s: `API_BASE_URL`, `APP_ENV`, `GOOGLE_SERVER_CLIENT_ID`, `GOOGLE_IOS_CLIENT_ID`, `APPLE_SERVICE_ID`, `APPLE_REDIRECT_URI`, `FACEBOOK_ENABLED`; optional `--dart-define-from-file=config/firebase.json` (gitignored). |
 | bot-play | YAML in `bot-play/configs/` (`config.example.yaml`, `environments/*.yaml`, `loadtest.example.yaml`, `profiles.yaml`) + the `BOT_SERVICE_KEY` environment variable. |
 

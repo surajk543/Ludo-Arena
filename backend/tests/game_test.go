@@ -62,19 +62,27 @@ func TestFullPublicGames(t *testing.T) {
 	cases := []struct {
 		game, variant string
 		players       int
-		fee           int64
+		defaultFee    int64 // built-in default (the test policy sets no entryFees)
 	}{
-		{"ludo", "classic", 2, 1000},
-		{"ludo", "quick", 4, 1000},
-		{"snakes_ladders", "classic", 3, 500},
+		{"ludo", "classic", 2, 100_000},
+		{"ludo", "quick", 4, 100_000},
+		{"snakes_ladders", "classic", 3, 50_000},
 	}
 	for _, tc := range cases {
 		t.Run(tc.game+"_"+tc.variant, func(t *testing.T) {
 			e := newEnv(t, envOpts{dice: rooms.NewSeededDice(42)})
+			fee, welcome := e.app.Rooms.EntryFee(tc.game), e.app.Cfg.Wallet.WelcomeCoins
+			if fee != tc.defaultFee {
+				t.Fatalf("configured %s fee = %d, want default %d", tc.game, fee, tc.defaultFee)
+			}
 			cs := startPublic(t, e, tc.game, tc.variant, tc.players)
+			wantPot := fee * int64(tc.players)
+			if s := cs[0].snapshot(); s.EntryFee != fee || s.Pot != wantPot {
+				t.Fatalf("room entryFee %d pot %d, want %d / %d", s.EntryFee, s.Pot, fee, wantPot)
+			}
 			// Entry fees were charged once, atomically, before the first turn.
 			for _, c := range cs {
-				if got := e.coins(c.acct.Token); got != 1_000_000-tc.fee {
+				if got := e.coins(c.acct.Token); got != welcome-fee {
 					t.Fatalf("%s coins after start = %d", c.name, got)
 				}
 			}
@@ -85,7 +93,6 @@ func TestFullPublicGames(t *testing.T) {
 				t.Fatal("no result")
 			}
 			winner := final.Result.WinnerSeat
-			wantPot := tc.fee * int64(tc.players)
 			if final.Result.Payout != wantPot {
 				t.Fatalf("payout = %d, want %d", final.Result.Payout, wantPot)
 			}
@@ -96,10 +103,10 @@ func TestFullPublicGames(t *testing.T) {
 				for _, c := range cs {
 					total += e.coins(c.acct.Token)
 				}
-				return total == int64(tc.players)*1_000_000
+				return total == int64(tc.players)*welcome
 			})
 			for _, c := range cs {
-				want := int64(1_000_000 - tc.fee)
+				want := welcome - fee
 				if c.seat() == winner {
 					want += wantPot
 				}

@@ -4,6 +4,9 @@ The Go backend decides — per environment and per platform — whether a Flutte
 client may use online services. No Firebase Remote Config is involved; the
 policy lives in a validated JSON file loaded by the backend
 (`backend/internal/apppolicy`). Changing it never requires a new app release.
+The same file also carries live economy settings: the coin **entry fees** per
+game ([Entry fees](#entry-fees)) and the new-account **welcome grant**
+([Welcome grant](#welcome-grant)).
 
 ## Modes and precedence
 
@@ -65,6 +68,8 @@ Maintenance **pauses** matches; it does not end them:
 {
   "configVersion": 3,
   "environment": "production",
+  "entryFees": {"ludo": 100000, "snakes_ladders": 50000},
+  "welcome": {"coins": 1000000, "diamonds": 50},
   "maintenance": {
     "enabled": false,
     "message": "We're upgrading the game servers.",
@@ -100,6 +105,60 @@ and the previous policy stays active):
   `https://play.google.com/...` for Android / `https://apps.apple.com/...` for
   iOS. An Android URL in the iOS section (or vice versa) is rejected.
 - Window `endsAtUtc > startsAtUtc`; messages ≤ 500 chars.
+- `entryFees` (optional): keys only `ludo` and `snakes_ladders`; values whole
+  coins in `0..100000000` (no fractions, strings, exponents or `null`).
+- `welcome` (optional): keys only `coins` (`0..1000000000`) and `diamonds`
+  (`0..1000000`); whole numbers only.
+
+### Entry fees
+
+`entryFees` sets the flat coin entry fee each player pays when a game starts.
+The shipped policy files for every environment use **Ludo 100,000** and
+**Snakes & Ladders 50,000**. Precedence, per game:
+
+1. `entryFees.<game>` in this file (live; hot-reloaded with the rest of the
+   policy);
+2. `ENTRY_FEE_LUDO` / `ENTRY_FEE_SNAKES` (environment, read at startup; same
+   `0..100000000` range);
+3. built-in defaults: 100,000 / 50,000.
+
+`GET /api/v1/app/config` returns the live values as `entryFees` on every
+request; the app shows them and re-reads them whenever it re-fetches the
+policy (app resume, at most every 30 s).
+
+What a change affects:
+
+- **New rooms only.** The fee is copied onto a room when it is created
+  (public lobby, private room, or the new room of a public rematch) and stays
+  with that room for all its rounds (private-room rematches keep it). Rooms
+  already in a lobby or playing are never re-priced; their `entryFee` and pot
+  are unchanged.
+- Public matchmaking only seats a player in an open lobby whose fee equals the
+  current fee, so the price shown before **Find match** is the price charged.
+  Lobbies opened at an older fee keep their players and start or time out
+  normally.
+- Practice rooms, rooms with a bot seat and load-test rooms stay free.
+- An invalid value (negative, too large, unknown game) rejects the whole file;
+  the previous policy and fees stay active and the error is logged.
+
+### Welcome grant
+
+`welcome` sets the one-time grant every **new** account receives (guest or
+provider sign-in). The shipped policy files use **1,000,000 coins (10 lakh)
+and 50 diamonds**. Precedence, per amount:
+
+1. `welcome.coins` / `welcome.diamonds` in this file (live; hot-reloaded);
+2. `WELCOME_COINS` / `WELCOME_DIAMONDS` (environment, read at startup; same
+   ranges);
+3. built-in defaults: 1,000,000 coins, 50 diamonds.
+
+The amounts are read once per account creation, immediately before the
+transaction that inserts the wallet and the first identity, so the grant stays
+exactly-once (see `docs/authentication.md`). A change applies to accounts
+created afterwards only: existing wallets are never re-granted, topped up or
+reduced, and refresh, guest resume, linking and reconnects never grant.
+`GET /api/v1/app/config` reports the live amounts as `welcome`. An invalid
+value rejects the whole file and keeps the last good policy.
 
 ### Reload
 
@@ -118,6 +177,15 @@ of the file; rejected reloads are logged with the validation error.
   `maintenance.enabled: true`, bump `configVersion`, deploy the file, `kill -HUP`.
 - **Force update:** raise `minimumSupportedVersion`/`Build` for the platform.
 - **Optional update:** raise `latestVersion`/`Build` and set the message.
+- **Change entry fees:** edit `entryFees` (e.g.
+  `{"ludo": 150000, "snakes_ladders": 75000}`), bump `configVersion`, deploy
+  the file; it is picked up within the poll interval (or `kill -HUP`) on every
+  instance. Confirm with `GET /api/v1/app/config` and the
+  `app policy loaded … entryFees=…` log line.
+- **Change the welcome grant:** edit `welcome` (e.g.
+  `{"coins": 1500000, "diamonds": 75}`), bump `configVersion`, deploy the
+  file. New accounts get it once the file is picked up; existing accounts keep
+  what they have. Confirm with `GET /api/v1/app/config` (`welcome`).
 - **Preproduction vs production:** separate files
   (`app-policy.preproduction.json`, `app-policy.production.json`), selected by
   `APP_POLICY_FILE` and checked against `APP_ENV`.

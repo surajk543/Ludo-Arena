@@ -229,7 +229,10 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
 
     final players = lobby?.players ?? const <RoomPlayer>[];
     final capacity = lobby?.capacity ?? r.capacity;
-    final fee = ref.watch(entryFeeProvider(r.game));
+    // Once seated, show the lobby's own fee: that is what the server charges
+    // (a room keeps the fee it was created with).
+    final configuredFee = ref.watch(entryFeeProvider(r.game));
+    final fee = lobby?.entryFee ?? configuredFee;
     final locale = Localizations.localeOf(context);
 
     final Widget body = switch (_phase) {

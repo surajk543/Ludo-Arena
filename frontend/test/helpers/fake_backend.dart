@@ -215,6 +215,7 @@ Map<String, dynamic> policyJson({
   String message = '',
   int reminderHours = 24,
   Map<String, dynamic>? maintenance,
+  Map<String, int> entryFees = const {'ludo': 100000, 'snakes_ladders': 50000},
 }) => {
   'configVersion': 3,
   'environment': 'development',
@@ -241,6 +242,6 @@ Map<String, dynamic> policyJson({
       },
   'rulesVersion': 1,
   'protocolVersion': 1,
-  'entryFees': {'ludo': 1000, 'snakes_ladders': 500},
+  'entryFees': entryFees,
   'serverTime': 1761022800000,
 };

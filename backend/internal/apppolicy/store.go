@@ -79,7 +79,8 @@ func (s *Store) reloadLocked(force bool) error {
 				s.fileModTime = info.ModTime()
 				if prev == nil || prev.policy == nil || prev.policy.sha256 != c.sha256 {
 					s.log.Info("app policy loaded", "configVersion", c.file.ConfigVersion,
-						"environment", c.file.Environment, "sha256", c.sha256)
+						"environment", c.file.Environment, "entryFees", c.entryFees, "welcome", c.welcome,
+						"sha256", c.sha256)
 				}
 			}
 		}
@@ -158,6 +159,44 @@ func (s *Store) Run(ctx context.Context, interval time.Duration) {
 			s.mu.Unlock()
 		}
 	}
+}
+
+// EntryFee returns the live entry fee for game: the active policy file's value
+// when it sets one, otherwise fallback (the ENTRY_FEE_* environment value or
+// the built-in default). It reflects every accepted reload immediately.
+func (s *Store) EntryFee(game string, fallback int64) int64 {
+	if st := s.cur.Load(); st != nil && st.policy != nil {
+		if fee, ok := st.policy.entryFees[game]; ok {
+			return fee
+		}
+	}
+	return fallback
+}
+
+// EntryFees resolves EntryFee for every game in fallback and returns a new
+// map (game id → coins).
+func (s *Store) EntryFees(fallback map[string]int64) map[string]int64 {
+	out := make(map[string]int64, len(fallback))
+	for game, fee := range fallback {
+		out[game] = s.EntryFee(game, fee)
+	}
+	return out
+}
+
+// Welcome returns the live one-time grant for a new account: each of coins and
+// diamonds comes from the active policy file when it sets it, otherwise from
+// the fallback (WELCOME_COINS / WELCOME_DIAMONDS or the built-in default).
+func (s *Store) Welcome(fallbackCoins, fallbackDiamonds int64) (coins, diamonds int64) {
+	coins, diamonds = fallbackCoins, fallbackDiamonds
+	if st := s.cur.Load(); st != nil && st.policy != nil {
+		if v, ok := st.policy.welcome[WelcomeCoins]; ok {
+			coins = v
+		}
+		if v, ok := st.policy.welcome[WelcomeDiamonds]; ok {
+			diamonds = v
+		}
+	}
+	return coins, diamonds
 }
 
 // Client identifies the calling app build.
