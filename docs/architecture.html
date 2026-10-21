@@ -596,14 +596,14 @@ td code { font-size: 0.8rem; }
     <p>PostgreSQL holds only durable data, in three schemas of one database. Every <code>user_id</code> references <code>wallet.wallets(user_id)</code>; progression rows cascade on account deletion.</p>
     <ul>
       <li><strong><code>wallet.wallets</code></strong> holds <em>only balances</em>: <code>user_id</code>, <code>coins</code>, <code>diamonds</code> (both <code>CHECK &gt;= 0</code>). No ledger, history or profile columns.</li>
-      <li><strong><code>identity.auth_identities</code></strong> maps <code>(provider, subject)</code> → <code>user_id</code>; <code>provider</code> ∈ guest, google, facebook, apple; <code>PRIMARY KEY (provider, subject)</code> and <code>UNIQUE (user_id, provider)</code>. A guest's subject is the SHA-256 of its guest secret. No email or provider-profile columns.</li>
+      <li><strong><code>identity.auth_identities</code></strong> maps <code>(provider, subject)</code> → <code>user_id</code>; <code>provider</code> ∈ guest, google, facebook, apple, device; <code>PRIMARY KEY (provider, subject)</code> and <code>UNIQUE (user_id, provider)</code>. A guest's subject is the SHA-256 of its guest secret. <code>device</code> (migration 004) is the internal device binding used to restore an account after an app update or reinstall: its subject is an HMAC-SHA256 of <code>platform:deviceId</code> keyed from <code>PUBLIC_ID_KEY</code>, never the raw id; it is never listed as a linked provider. No email or provider-profile columns.</li>
       <li><strong><code>progression.*</code></strong>: <code>player_progress</code>, <code>mission_progress</code>, <code>mission_claims</code>, <code>match_receipts</code> (idempotency receipts only), <code>inventory</code>, <code>loadout</code>, <code>friendships</code>.</li>
       <li>There are <strong>no match-history, currency-ledger or profile tables</strong> anywhere. Display names and avatars are presentation data cached in Redis.</li>
     </ul>
 
 <figure class="diagram" id="fig-arch-er">
-  <div class="diagram-head"><span class="diagram-num">Figure 3</span><span class="diagram-title">PostgreSQL schemas wallet, identity and progression (migrations 001 to 003)</span><span class="diagram-tools"><button type="button" class="tool" data-act="size" aria-pressed="false">Actual size</button><button type="button" class="tool" data-act="src" aria-pressed="false">Source</button></span></div>
-  <div class="diagram-canvas" role="img" aria-label="Figure 3: PostgreSQL schemas wallet, identity and progression (migrations 001 to 003)"><span class="diagram-loading">Rendering diagram…</span></div>
+  <div class="diagram-head"><span class="diagram-num">Figure 3</span><span class="diagram-title">PostgreSQL schemas wallet, identity and progression (migrations 001 to 004)</span><span class="diagram-tools"><button type="button" class="tool" data-act="size" aria-pressed="false">Actual size</button><button type="button" class="tool" data-act="src" aria-pressed="false">Source</button></span></div>
+  <div class="diagram-canvas" role="img" aria-label="Figure 3: PostgreSQL schemas wallet, identity and progression (migrations 001 to 004)"><span class="diagram-loading">Rendering diagram…</span></div>
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 3">erDiagram
   direction LR
@@ -621,7 +621,7 @@ td code { font-size: 0.8rem; }
     bigint diamonds "CHECK &gt;= 0"
   }
   AUTH_IDENTITIES["identity.auth_identities"] {
-    text provider PK "guest google facebook apple"
+    text provider PK "guest google facebook apple device"
     text subject PK
     uuid user_id FK "UNIQUE with provider"
     timestamptz created_at
@@ -685,7 +685,7 @@ td code { font-size: 0.8rem; }
         </tbody>
       </table>
     </div>
-    <p class="small">Recommended production Redis: AOF <code>everysec</code> + RDB, <code>maxmemory-policy noeviction</code>, private network, AUTH/TLS. Redis Cluster is not supported (commit scripts touch keys not declared in <code>KEYS</code>). A total Redis loss drops live rooms and sessions (users sign in again, guests resume with their secret) but never wallets, identities or progression.</p>
+    <p class="small">Recommended production Redis: AOF <code>everysec</code> + RDB, <code>maxmemory-policy noeviction</code>, private network, AUTH/TLS. Redis Cluster is not supported (commit scripts touch keys not declared in <code>KEYS</code>). A total Redis loss drops live rooms and sessions (users sign in again, guests resume with their secret or device binding) but never wallets, identities or progression.</p>
 
     <h3 id="app-tokens">App-issued access and refresh tokens<a class="heading-anchor" href="#app-tokens" aria-label="Link to this heading">#</a></h3>
     <div class="table-wrap compact">
@@ -694,12 +694,13 @@ td code { font-size: 0.8rem; }
         <tbody>
           <tr><td>Access token</td><td>Client only (<code>flutter_secure_storage</code>)</td><td>HS256 JWT, 15 min (<code>ACCESS_TOKEN_TTL</code>); claims <code>sub</code> (account), <code>sid</code> (session family), <code>knd</code>, <code>act</code> (actor type). Verified on every request <em>and</em> checked against the live <code>sess:{sid}</code>, so logout, revocation and replacement by a sign-in on another device are immediate.</td></tr>
           <tr><td>Refresh token</td><td>Client secure storage; server keeps only SHA-256</td><td>Opaque, 30 days (<code>REFRESH_TOKEN_TTL</code>), rotated on every <code>POST /auth/refresh</code>; presenting a rotated token revokes the whole family (<code>refresh_reused</code>).</td></tr>
-          <tr><td>Guest secret</td><td>Client secure storage; server keeps SHA-256 as the guest identity subject</td><td>256-bit, returned once by <code>POST /auth/guest</code>; recovers the guest via <code>POST /auth/guest/resume</code>.</td></tr>
+          <tr><td>Guest secret</td><td>Client secure storage; server keeps SHA-256 as the guest identity subject</td><td>256-bit, returned once by <code>POST /auth/guest</code> when it creates the account; recovers the guest via <code>POST /auth/guest/resume</code>.</td></tr>
+          <tr><td>Device binding</td><td>Client sends the platform device id (Android 8+ <code>ANDROID_ID</code>, iOS keychain UUID); server keeps only an HMAC as the <code>device</code> identity subject</td><td>Restores the account after an app update or reinstall on the same device: <code>POST /auth/device/resume</code>, <code>POST /auth/guest {deviceId}</code>, <code>PUT</code>/<code>DELETE /account/device</code>.</td></tr>
           <tr><td>Bot tokens</td><td>bot-play memory only</td><td>Controller JWT (15 min) and per-bot session JWTs scoped to one room or the load-test pool (≤ 2 h).</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="small"><strong>One active device per account (last sign-in wins).</strong> Every human sign-in (guest, guest resume, Google/Facebook/Apple) atomically points <code>usess:{userId}</code> at the new session and deletes the previous one, leaving a <code>sessrep:{oldSid}</code> tombstone. The old device then gets <code>401 session_replaced</code> from refresh, REST and the WebSocket upgrade, and its live WebSocket is closed at once with <code>4401</code> via a <code>{"ctl":"revoke","sid":…}</code> control message on <code>ev:user:{userId}</code> (never forwarded to clients). Bot sessions are exempt. Logout (bearer access token, or the current refresh token when the access token has expired) never writes a tombstone. Long-lived WebSockets also re-check their session every 60 s and close with <code>4401</code> once revoked.</p>
+    <p class="small"><strong>One active device per account (last sign-in wins).</strong> Every human sign-in (guest, guest resume, device resume, Google/Facebook/Apple) atomically points <code>usess:{userId}</code> at the new session and deletes the previous one, leaving a <code>sessrep:{oldSid}</code> tombstone. The old device then gets <code>401 session_replaced</code> from refresh, REST and the WebSocket upgrade, and its live WebSocket is closed at once with <code>4401</code> via a <code>{"ctl":"revoke","sid":…}</code> control message on <code>ev:user:{userId}</code> (never forwarded to clients). Bot sessions are exempt. Logout (bearer access token, or the current refresh token when the access token has expired) never writes a tombstone. Long-lived WebSockets also re-check their session every 60 s and close with <code>4401</code> once revoked.</p>
   </section>
 
   <!-- ============================================================ 2 -->
@@ -795,6 +796,20 @@ td code { font-size: 0.8rem; }
       </table>
     </div>
     <p class="small">Linking is rate limited to 10 per minute per account. After linking, signing in with that provider on any device resolves to the same account id and wallet.</p>
+    <h3 id="device-binding">Restore after update or reinstall (device binding)<a class="heading-anchor" href="#device-binding" aria-label="Link to this heading">#</a></h3>
+    <p>Secure storage does not reliably survive an uninstall, so the account is also bound to a platform device id: Android 8+ sends <code>Settings.Secure.ANDROID_ID</code> (per app-signing key; survives updates and reinstalls, changes on factory reset or a different signing key; Android &lt; 8 sends nothing), iOS sends a random UUID kept in the keychain (survives updates and reinstalls on the same device). The server stores only <code>hex(HMAC-SHA256(k, platform:deviceId))</code> with <code>k = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-royale/device-id/v1")</code> as an <code>identity.auth_identities</code> row with the internal provider <code>device</code>: one account per device, one device per account. The identifier is used only for this restore.</p>
+    <div class="table-wrap compact">
+      <table>
+        <thead><tr><th>Request</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /auth/device/resume {deviceId}</code></td><td>200 sign-in to the bound account (guest or linked); 404 <code>not_found</code> if unbound; never creates an account</td></tr>
+          <tr><td><code>POST /auth/guest {deviceId}</code></td><td>200 sign-in to the bound account (no second welcome grant, no <code>guestSecret</code>); else 201 new guest + binding in one transaction</td></tr>
+          <tr><td><code>PUT /account/device {deviceId}</code></td><td>200 <code>{}</code>: binds to the caller (idempotent; replaces the caller's previous device); 409 <code>identity_conflict</code> if bound to another account (never moved)</td></tr>
+          <tr><td><code>DELETE /account/device</code></td><td>204, idempotent: "forget this guest"</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">The binding never appears in <code>linkedProviders</code> and does not make an account "linked": a guest with a device binding still has <code>isGuest = true</code> and is offered Save Progress. Device sign-ins replace the account's previous session like every other sign-in. See <a href="authentication.md#device-binding-restore-after-update-or-reinstall">authentication.md</a>.</p>
   </section>
 
   <!-- ============================================================ 4 -->
@@ -810,7 +825,7 @@ td code { font-size: 0.8rem; }
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 6">flowchart TD
   a["Verified provider identity, or a new guest"] --&gt; b{"Row in identity.auth_identities?"}
-  b --&gt;|yes| c["Existing account: no grant&lt;br/&gt;sign-in, token refresh, reconnect and guest resume never re-grant"]
+  b --&gt;|yes| c["Existing account: no grant&lt;br/&gt;sign-in, token refresh, reconnect, guest and device resume never re-grant"]
   b --&gt;|no| tx["BEGIN&lt;br/&gt;INSERT wallet.wallets: new id, 1,000,000 coins, 50 diamonds&lt;br/&gt;INSERT identity.auth_identities ON CONFLICT (provider, subject)&lt;br/&gt;DO NOTHING RETURNING user_id"]
   tx --&gt; d{"Row returned?"}
   d --&gt;|yes| e["COMMIT: account and wallet created together&lt;br/&gt;OnNewAccount: progression bootstrap, analytics touch"]
@@ -1914,7 +1929,7 @@ td code { font-size: 0.8rem; }
         <thead><tr><th>Area</th><th>Controls in place</th></tr></thead>
         <tbody>
           <tr><td>Rate limits (Redis fixed windows)</td><td>Sign-in 30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config 120/min/IP · telemetry 60/min/IP · linking 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account · matchmaking 20/min/account · wallet operations 30/min/account · social writes 30/min/account · bot service 600/min/IP · per-socket commands 10/s (burst 20) · quick chat 1 per 3 s and 10/min · invites 10/min · friend requests 60/h</td></tr>
-          <tr><td>Token handling</td><td>Provider tokens verified server-side (go-oidc JWKS, Apple nonce, Facebook <code>debug_token</code>); emails never used to match or merge; HS256 access JWT 15 min checked against the live session; refresh rotation with reuse detection; only SHA-256 of refresh tokens, guest secrets and the bot service key is stored; client tokens in <code>flutter_secure_storage</code>; sessions re-checked on live sockets every 60 s</td></tr>
+          <tr><td>Token handling</td><td>Provider tokens verified server-side (go-oidc JWKS, Apple nonce, Facebook <code>debug_token</code>); emails never used to match or merge; HS256 access JWT 15 min checked against the live session; refresh rotation with reuse detection; only SHA-256 of refresh tokens, guest secrets and the bot service key is stored, and only an HMAC of the device id (used solely to restore the account after an update or reinstall); client tokens in <code>flutter_secure_storage</code>; sessions re-checked on live sockets every 60 s</td></tr>
           <tr><td>Validation</td><td>Strict JSON decoding (unknown fields rejected); WebSocket text frames only, ≤ 4096 bytes after decompression, ids 1–64 chars, known message types, phase/seat/<code>turnSeq</code> checks, repeated invalid messages close with <code>4400</code>; server-side rules for everything; <code>Idempotency-Key</code> format checks</td></tr>
           <tr><td>Transport</td><td>TLS at the load balancer; bot-play requires https/wss in production; <code>TRUSTED_PROXY_HOPS</code> controls which <code>X-Forwarded-For</code> hop is trusted</td></tr>
           <tr><td>Data exposure</td><td>PostgreSQL and Redis on a private network only; no email or provider-profile storage; public player ids are HMAC-derived; other players never receive account ids, emails or provider ids; metrics labels are bounded (no user, room or token values)</td></tr>
@@ -1996,6 +2011,7 @@ td code { font-size: 0.8rem; }
           <tr><td>bot-play service</td><td><span class="badge b-impl">Implemented</span></td><td>Production config: practice only, public fill off</td></tr>
           <tr><td>Google Sign-In (backend + app)</td><td><span class="badge b-impl">Implemented</span></td><td>Debug Android client; consent screen in Testing mode</td></tr>
           <tr><td>Guest login, guest resume, Save Progress linking</td><td><span class="badge b-impl">Implemented</span></td><td>Conflict handling in <code>session_controller.dart</code></td></tr>
+          <tr><td>Device binding (restore guest after update / reinstall)</td><td><span class="badge b-impl">Implemented</span></td><td>Backend: <code>internal/identity/device.go</code>, <code>internal/httpapi/handlers_device.go</code>, migration 004</td></tr>
           <tr><td>App gate (policy check, maintenance, force/optional update, unreachable)</td><td><span class="badge b-impl">Implemented</span></td><td>—</td></tr>
           <tr><td>Flutter realtime client, reducer, boards, theme, localization, analytics gate</td><td><span class="badge b-impl">Implemented</span></td><td>—</td></tr>
           <tr><td>Flutter matchmaking, practice, create/join room, lobby and game screens</td><td><span class="badge b-impl">Implemented</span></td><td>Routed via <code>play_routes.dart</code>; covered by widget tests (light/dark, RTL, small screens); hands-on device play-through pending</td></tr>

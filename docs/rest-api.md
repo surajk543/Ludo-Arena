@@ -90,7 +90,7 @@ All return **AuthResponse**:
   "isNewUser": false,
   "user": User,
   "wallet": Wallet,
-  "guestSecret": "gs_…"               // ONLY on POST /auth/guest (store in secure storage)
+  "guestSecret": "gs_…"               // ONLY when POST /auth/guest creates a new account (store in secure storage)
 }
 ```
 
@@ -104,7 +104,7 @@ All return **AuthResponse**:
   "displayName": "Asha",
   "avatar": 3,
   "isGuest": true,
-  "linkedProviders": ["guest"],        // subset of guest|google|facebook|apple
+  "linkedProviders": ["guest"],        // subset of guest|google|facebook|apple (never the internal device binding)
   "level": 4, "xp": 520, "levelXp": 450, "nextLevelXp": 250,   // progress = (xp - levelXp) / nextLevelXp
   "title": "title_rookie",
   "loadout": {"dice": "dice_classic", "token": "token_classic", "ludo_board": "ludo_board_classic",
@@ -117,8 +117,9 @@ All return **AuthResponse**:
 
 | Method & path | Body | Notes |
 |---|---|---|
-| `POST /auth/guest` | `{}` | 201. Creates account + wallet (1,000,000 coins, 50 diamonds) + guest credential. Rate limited per IP. |
+| `POST /auth/guest` | empty, `{}` or `{"deviceId"}` | Without `deviceId`: 201, creates account + wallet (1,000,000 coins, 50 diamonds) + guest credential. With `deviceId` (see [Device binding](#device-binding-restore-after-update-or-reinstall)): **200** `isNewUser:false`, no `guestSecret` — signed in to the account already bound to this device (guest or linked; no new account, no second welcome grant); or **201** `isNewUser:true` + `guestSecret` — new guest created and bound to the device in one transaction. 400 `bad_request` for an invalid `deviceId`. Rate limited per IP (guest-creation budget). |
 | `POST /auth/guest/resume` | `{"guestSecret"}` | Signs a guest back in after the refresh token was lost or expired. |
+| `POST /auth/device/resume` | `{"deviceId"}` | Signs in to the account bound to this device (guest or linked): 200, `isNewUser:false`, no `guestSecret`. **404 `not_found`** if no account is bound. Never creates an account. 400 `bad_request` for an invalid `deviceId`. Rate limited per IP (sign-in budget). |
 | `POST /auth/google` | `{"idToken"}` | Google ID token; `aud` must be a configured Google client id. |
 | `POST /auth/facebook` | `{"accessToken"}` or `{"idToken","nonce"}` | Classic token (validated with Graph `debug_token`) or Limited Login OIDC token. |
 | `POST /auth/apple` | `{"identityToken","rawNonce","givenName"?,"familyName"?}` | Nonce: `sha256(rawNonce)` must equal the token's `nonce`. |
@@ -127,7 +128,8 @@ All return **AuthResponse**:
 | `POST /auth/logout` | `{"refreshToken"}` | Not version-gated; rate limited per IP (shares the refresh budget). `Authorization: Bearer` is **optional**: a valid access token identifies the session; otherwise (absent, expired, invalid) the body's refresh token does, and only the session's *current* refresh token revokes (a rotated one is ignored, not treated as reuse). Always 204 for a well-formed request, whether or not a session was found; 400 malformed body; 401 when neither credential is present. Never produces `session_replaced`. |
 
 **One live session per account.** Every sign-in above (guest, guest resume,
-Google/Facebook/Apple) ends the account's previous session (last sign-in
+device resume / guest with a bound device, Google/Facebook/Apple) ends the
+account's previous session (last sign-in
 wins; see [`authentication.md`](authentication.md)). The replaced session
 then gets **401 `session_replaced`** from `/auth/refresh` and from every
 authenticated endpoint (instead of `invalid_credential` / `unauthorized`), and
@@ -147,6 +149,37 @@ authenticated, same body as the provider login.
   with the same credential) or "Cancel".
 - 409 `provider_already_linked` — this account already has a different
   identity of that provider.
+
+`device` is not a provider here: `POST /account/link/device` is 404 (use
+`PUT /account/device`).
+
+### Device binding (restore after update or reinstall)
+
+A device binding lets the app restore its account after an app update or a
+reinstall, when secure storage (tokens, guest secret) may be gone. The client
+sends a platform-scoped device id (Android ≥ 8: `Settings.Secure.ANDROID_ID`;
+iOS: a random UUID kept in the keychain) together with the usual
+`X-App-Platform`. The server stores only
+`hex(HMAC-SHA256(k, platform + ":" + lowercase(deviceId)))` — never the raw id;
+see [`authentication.md`](authentication.md#device-binding-restore-after-update-or-reinstall).
+One device → one account, one device per account. The binding is internal: it
+never appears in `linkedProviders`, and an account with only guest + device is
+still `isGuest:true` (needs Save Progress).
+
+**Validation** (all device endpoints): `deviceId` is a string of 16–64
+characters `[A-Za-z0-9-]`, compared case-insensitively; the known-bad Android
+id `9774d56d682e549c` and values made of one repeated character (e.g. all
+zeros, hyphens ignored) are rejected → 400 `bad_request`. The platform is
+`X-App-Platform`; anything but `android` / `ios` is rejected by the version
+gate → 400 `client_version_required`. The same `deviceId` on `android` and
+`ios` is two different devices.
+
+| Method & path | Auth | Body | Responses |
+|---|---|---|---|
+| `POST /auth/guest` | none | `{"deviceId"}` | 200 sign-in to the bound account / 201 new guest bound to the device (see the table above) |
+| `POST /auth/device/resume` | none | `{"deviceId"}` | 200 AuthResponse / 404 `not_found` |
+| `PUT /account/device` | human | `{"deviceId"}` | **200 `{}`**: bound to the caller's account. Idempotent if already bound to the caller. If the caller had a different device bound, that binding is **replaced** (moved to a new phone). **409 `identity_conflict`** (no `details`) if the device is bound to **another** account — it is never moved. Rate limited 10/min/account (shared with linking). |
+| `DELETE /account/device` | human | — | **204**, idempotent: removes the caller's device binding (e.g. "forget this guest" on logout). The account itself is untouched. Like logout, **not version-gated**. Rate limited 10/min/account (shared with linking). |
 
 ### Profile & wallet
 

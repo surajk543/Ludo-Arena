@@ -105,6 +105,9 @@ type envOpts struct {
 	turnTimeout time.Duration
 	fill        time.Duration
 	compression string
+	// proxyHops sets TRUSTED_PROXY_HOPS so a test can present distinct
+	// client IPs (X-Forwarded-For) to the per-IP rate limits.
+	proxyHops int
 }
 
 func newEnv(t *testing.T, o envOpts) *env {
@@ -142,6 +145,9 @@ func newEnv(t *testing.T, o envOpts) *env {
 	}
 	if o.fill > 0 {
 		envVars["MATCHMAKING_FILL_SECONDS"] = o.fill.String()
+	}
+	if o.proxyHops > 0 {
+		envVars["TRUSTED_PROXY_HOPS"] = fmt.Sprint(o.proxyHops)
 	}
 	for k, v := range envVars {
 		if _, preset := os.LookupEnv(k); preset && k == "PROGRESSION_MIN_MATCH_DURATION" {
