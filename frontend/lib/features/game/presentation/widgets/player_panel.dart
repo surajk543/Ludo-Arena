@@ -90,6 +90,7 @@ class PlayerPanel extends StatelessWidget {
 
     Widget avatar = PlayerAvatar(
       avatarIndex: player.avatar,
+      picture: player.picture,
       frameId: player.cosmetics.frame,
       size: avatarSize,
       seatColor: _seat,

@@ -254,6 +254,7 @@ class SettingsScreen extends ConsumerWidget {
                         ListTile(
                           leading: PlayerAvatar(
                             avatarIndex: user.avatar,
+                            picture: user.picture,
                             frameId: user.loadout.frame,
                             size: 40,
                           ),

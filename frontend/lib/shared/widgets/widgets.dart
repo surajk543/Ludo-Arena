@@ -20,5 +20,6 @@ export 'icon_circle_button.dart';
 export 'layered_background.dart';
 export 'player_avatar.dart';
 export 'premium_button.dart';
+export 'profile_picture_view.dart';
 export 'progression_widgets.dart';
 export 'state_views.dart';
