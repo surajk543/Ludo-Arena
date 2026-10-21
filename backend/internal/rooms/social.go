@@ -42,6 +42,20 @@ func (s *Service) QuickChat(ctx context.Context, c Caller, roomID, msg, emote st
 			return protocol.ErrRateLimited
 		}
 	}
+	// The ownership check (Redis set; PostgreSQL only on a miss) overlaps the
+	// room load.
+	type ownership struct {
+		ok  bool
+		err error
+	}
+	var owns chan ownership
+	if emote != "" && s.Inventory != nil {
+		owns = make(chan ownership, 1)
+		go func() {
+			ok, err := s.Inventory.Owns(ctx, userUUID(c.UserID), emote)
+			owns <- ownership{ok, err}
+		}()
+	}
 	r, _, err := s.st.load(ctx, roomID)
 	if err != nil {
 		return protocol.ErrRoomNotFound
@@ -51,14 +65,14 @@ func (s *Service) QuickChat(ctx context.Context, c Caller, roomID, msg, emote st
 		return protocol.ErrNotInRoom
 	}
 	if emote != "" {
-		if s.Inventory == nil {
+		if owns == nil {
 			return protocol.ErrItemNotOwned
 		}
-		owned, err := s.Inventory.Owns(ctx, userUUID(c.UserID), emote)
-		if err != nil {
-			return err
+		o := <-owns
+		if o.err != nil {
+			return o.err
 		}
-		if !owned {
+		if !o.ok {
 			return protocol.ErrItemNotOwned
 		}
 		metrics.QuickChats.WithLabelValues("emote").Inc()

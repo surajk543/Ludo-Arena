@@ -226,3 +226,18 @@ func TestChangeNameNeedsPostgres(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestSaveNewSkipsPostgres(t *testing.T) {
+	env := progtest.Setup(t)
+	// No PostgreSQL attached: SaveNew must not need it.
+	svc := profile.New(env.RDB, []byte(testKey))
+	ctx := context.Background()
+	id := uuid.New()
+	t.Cleanup(func() { env.RDB.Del(ctx, "profile:"+id.String()) })
+	if p, err := svc.SaveNew(ctx, id, "  Google   Name "); err != nil || p.Name != "Google Name" {
+		t.Fatalf("SaveNew(provider) = %+v %v", p, err)
+	}
+	if p, err := svc.SaveNew(ctx, id, ""); err != nil || p.Name != svc.GuestName(id) {
+		t.Fatalf("SaveNew(guest) = %+v %v", p, err)
+	}
+}

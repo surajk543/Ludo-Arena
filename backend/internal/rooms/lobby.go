@@ -79,7 +79,7 @@ func (s *Service) EntryFees() map[string]int64 {
 func (s *Service) playerFor(ctx context.Context, userID string) Player {
 	uid := parseUUID(userID)
 	prof := s.Profiles.Get(ctx, uid)
-	sum, err := s.Progression.Summary(ctx, uid)
+	sum, err := playerinfo.SeatSummary(ctx, s.Progression, uid) // Redis-cached (progression/cache.go)
 	if err != nil {
 		sum = playerinfo.Starter()
 	}
@@ -157,6 +157,7 @@ func (s *Service) MatchmakingJoin(ctx context.Context, c Caller, game, variant s
 			return nil, protocol.ErrRateLimited
 		}
 	}
+	seat := s.seatAsync(ctx, c)
 	if err := s.ensureFree(ctx, c.UserID); err != nil {
 		return nil, err
 	}
@@ -171,7 +172,7 @@ func (s *Service) MatchmakingJoin(ctx context.Context, c Caller, game, variant s
 	if err := s.checkFunds(ctx, c, fee); err != nil {
 		return nil, err
 	}
-	me := s.newSeat(ctx, c)
+	me := <-seat
 	me.MatchmakeAt = s.nowMs()
 
 	key := openKey(game, variant, capacity, pool)
@@ -276,6 +277,16 @@ func (s *Service) newSeat(ctx context.Context, c Caller) Player {
 		p = s.playerFor(ctx, c.UserID)
 	}
 	return seatConnected(p, c)
+}
+
+// seatAsync builds the caller's seat (Redis profile + cached progression
+// summary; PostgreSQL only on a cache miss) concurrently with the join's
+// other checks. Receive from the channel where the seat is needed; an
+// abandoned result is simply dropped (buffered).
+func (s *Service) seatAsync(ctx context.Context, c Caller) <-chan Player {
+	ch := make(chan Player, 1)
+	go func() { ch <- s.newSeat(ctx, c) }()
+	return ch
 }
 
 // seatConnected marks a seat taken over a live connection as connected.
@@ -399,6 +410,7 @@ func (s *Service) CreatePrivate(ctx context.Context, c Caller, game, variant str
 	if err := validGame(game, variant, capacity); err != nil {
 		return nil, err
 	}
+	seat := s.seatAsync(ctx, c)
 	if err := s.ensureFree(ctx, c.UserID); err != nil {
 		return nil, err
 	}
@@ -406,7 +418,7 @@ func (s *Service) CreatePrivate(ctx context.Context, c Caller, game, variant str
 	if err := s.checkFunds(ctx, c, fee); err != nil {
 		return nil, err
 	}
-	me := seatConnected(s.playerFor(ctx, c.UserID), c)
+	me := <-seat
 	now := s.nowMs()
 	for attempt := 0; attempt < 5; attempt++ {
 		code := newCode()
@@ -474,13 +486,14 @@ func (s *Service) JoinByCode(ctx context.Context, c Caller, code string) (*Room,
 	if len(preview.Players) >= preview.Capacity {
 		return nil, protocol.ErrRoomFull
 	}
+	seat := s.seatAsync(ctx, c)
 	if err := s.ensureFree(ctx, c.UserID); err != nil {
 		return nil, err
 	}
 	if err := s.checkFunds(ctx, c, preview.EntryFee); err != nil {
 		return nil, err
 	}
-	me := seatConnected(s.playerFor(ctx, c.UserID), c)
+	me := <-seat
 	return s.mutate(ctx, preview.ID, func(m *mutation) error {
 		r := m.r
 		if r.SeatOf(c.UserID) >= 0 {

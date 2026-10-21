@@ -15,6 +15,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"ludoroyale/internal/apppolicy"
+	"ludoroyale/internal/async"
 	"ludoroyale/internal/auth"
 	"ludoroyale/internal/config"
 	"ludoroyale/internal/gameevents"
@@ -60,6 +61,7 @@ type App struct {
 	Rooms    *rooms.Service
 	Gateway  *websocket.Gateway
 	Router   *httpapi.Router
+	Async    *async.Runner
 	ext      Extensions
 }
 
@@ -72,6 +74,9 @@ type Core struct {
 	Profiles *profile.Service
 	Notifier *notify.Publisher
 	Wallets  *wallet.Store
+	// Async runs best-effort work off the request path (bounded queue,
+	// drained on shutdown); see docs/architecture.md → PostgreSQL on the hot path.
+	Async *async.Runner
 }
 
 // NewCore builds the shared base services.
@@ -82,7 +87,7 @@ func NewCore(cfg *config.Config, log *slog.Logger, pg *pgxpool.Pool, rdb *redis.
 		WithPostgres(pg, profile.Options{NameChangesPerDay: cfg.NameChangesPerDay})
 	return &Core{Cfg: cfg, Log: log, PG: pg, RDB: rdb,
 		Profiles: profiles, Notifier: notify.New(rdb, log),
-		Wallets: wallet.NewStore(pg)}
+		Wallets: wallet.NewStore(pg), Async: async.New(async.Options{Log: log})}
 }
 
 // New assembles the application.
@@ -179,7 +184,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 
 	return &App{Cfg: cfg, Log: log, PG: core.PG, RDB: core.RDB, Policy: policy, Auth: authSvc, BotAuth: botAuth,
 		IDs: ids, Wallets: core.Wallets, Profiles: core.Profiles, Notifier: core.Notifier, Rooms: roomSvc,
-		Gateway: gw, Router: rt, ext: ext}, nil
+		Gateway: gw, Router: rt, Async: core.Async, ext: ext}, nil
 }
 
 // Handler is the public HTTP handler.
@@ -197,10 +202,15 @@ func (a *App) Start(ctx context.Context) {
 	go a.Policy.Run(ctx, a.Cfg.Policy.PollInterval)
 	go a.Gateway.Run(ctx)
 	go a.Rooms.RunScheduler(ctx, 16)
+	go a.Async.Run(ctx)
 	for _, bg := range a.ext.Background {
 		go bg(ctx)
 	}
 }
+
+// Wait blocks until background work has drained after the Start context was
+// cancelled (bounded by the runner's drain timeout) or ctx is done.
+func (a *App) Wait(ctx context.Context) error { return a.Async.Wait(ctx) }
 
 // checkDice refuses any dice source other than crypto/rand in production
 // (nil means the default CryptoDice). Deterministic dice exist for tests and

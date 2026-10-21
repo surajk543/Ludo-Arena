@@ -366,10 +366,10 @@ func (s *Service) Owns(ctx context.Context, userID uuid.UUID, itemID string) (bo
 	if it.Starter() {
 		return true, nil
 	}
-	var ok bool
-	err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM progression.inventory WHERE user_id = $1 AND item_id = $2)`,
-		userID, itemID).Scan(&ok)
-	return ok, err
+	if it.Kind == KindEmote {
+		return s.ownsEmote(ctx, userID, itemID) // chat hot path: Redis set (cache.go)
+	}
+	return s.ownsStored(ctx, userID, itemID)
 }
 
 // owned returns the stored (non-starter) items of an account.
