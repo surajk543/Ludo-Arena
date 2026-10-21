@@ -177,7 +177,8 @@ func (s *Service) notify(ctx context.Context, userID uuid.UUID, msgType string, 
 // connected; social only checks that it exists.
 func PresenceKey(userID uuid.UUID) string { return "presence:" + userID.String() }
 
-// RecentKey is the ZSET of recent human opponents (score = unix ms).
+// RecentKey is the ZSET of recent opponents (score = unix ms): account ids
+// of people and "bot:{uid}" of bots met in public matches.
 func RecentKey(userID uuid.UUID) string { return "recent:" + userID.String() }
 
 // existingAccounts reports which ids are accounts (have a wallet row).
@@ -600,13 +601,31 @@ func (s *Service) Remove(ctx context.Context, me uuid.UUID, uid string) error {
 
 // ---------------------------------------------------------- recent players
 
-// recordOpponents stores each human's human opponents (idempotent: a ZSET
-// member is re-scored, never duplicated). Players whose account no longer
-// exists (deleted while the match ran) are left out, so a deleted account
-// never reappears in anyone's recent players.
+// recentBotPrefix marks a bot member of a recent-players ZSET ("bot:" +
+// public uid; people are stored by account id).
+const recentBotPrefix = "bot:"
+
+// recordOpponents stores each human's opponents (idempotent: a ZSET member
+// is re-scored, never duplicated): the other humans and, in public matches,
+// the bots — exactly like people, so "Recent" looks the same whoever filled
+// the seats. Practice and private-room bots are computer players the player
+// chose and are not recorded. Players whose account no longer exists
+// (deleted while the match ran) are left out, so a deleted account never
+// reappears in anyone's recent players.
 func (s *Service) recordOpponents(ctx context.Context, rec gameevents.MatchRecord) {
 	humans := rec.Humans()
-	if len(humans) < 2 {
+	if len(humans) == 0 {
+		return
+	}
+	var bots []string
+	if rec.Mode == "public" {
+		for _, p := range rec.Players {
+			if p.Bot && p.UID != "" {
+				bots = append(bots, recentBotPrefix+p.UID)
+			}
+		}
+	}
+	if len(humans)+len(bots) < 2 {
 		return
 	}
 	ids := make([]uuid.UUID, len(humans))
@@ -620,7 +639,7 @@ func (s *Service) recordOpponents(ctx context.Context, rec gameevents.MatchRecor
 				kept = append(kept, h)
 			}
 		}
-		if humans = kept; len(humans) < 2 {
+		if humans = kept; len(humans) == 0 {
 			return
 		}
 	} else {
@@ -641,6 +660,9 @@ func (s *Service) recordOpponents(ctx context.Context, rec gameevents.MatchRecor
 				members = append(members, redis.Z{Score: score, Member: o.UserID.String()})
 			}
 		}
+		for _, b := range bots {
+			members = append(members, redis.Z{Score: score, Member: b})
+		}
 		if len(members) == 0 {
 			continue
 		}
@@ -654,7 +676,9 @@ func (s *Service) recordOpponents(ctx context.Context, rec gameevents.MatchRecor
 	}
 }
 
-// Recent returns up to 20 human opponents of the last 14 days, newest first.
+// Recent returns up to 20 opponents of the last 14 days, newest first.
+// People and bots look the same: a bot is shown from its public card and
+// is "outgoing" while my request to it is pending.
 func (s *Service) Recent(ctx context.Context, me uuid.UUID) ([]Friend, error) {
 	minScore := strconv.FormatInt(s.opts.Now().Add(-recentTTL).UnixMilli(), 10)
 	raw, err := s.rdb.ZRevRangeByScore(ctx, RecentKey(me), &redis.ZRangeBy{
@@ -663,21 +687,31 @@ func (s *Service) Recent(ctx context.Context, me uuid.UUID) ([]Friend, error) {
 		return nil, err
 	}
 	var ids []uuid.UUID
+	var botUIDs []string
 	for _, r := range raw {
-		if id, err := uuid.Parse(r); err == nil && id != me {
+		if uid, ok := strings.CutPrefix(r, recentBotPrefix); ok {
+			botUIDs = append(botUIDs, uid)
+		} else if id, err := uuid.Parse(r); err == nil && id != me {
 			ids = append(ids, id)
 		}
 	}
-	if len(ids) == 0 {
+	if len(ids)+len(botUIDs) == 0 {
 		return []Friend{}, nil
 	}
-	// Deleted accounts are dropped (and forgotten), never shown.
-	live, err := existingAccounts(ctx, s.pool, ids)
+	// Deleted accounts and bots whose card expired are dropped (and
+	// forgotten), never shown.
+	live := map[uuid.UUID]bool{}
+	if len(ids) > 0 {
+		if live, err = existingAccounts(ctx, s.pool, ids); err != nil {
+			return nil, err
+		}
+	}
+	cards, err := s.botCards(ctx, botUIDs)
 	if err != nil {
 		return nil, err
 	}
-	kept := ids[:0]
 	var gone []any
+	kept := ids[:0]
 	for _, id := range ids {
 		if live[id] {
 			kept = append(kept, id)
@@ -685,21 +719,63 @@ func (s *Service) Recent(ctx context.Context, me uuid.UUID) ([]Friend, error) {
 			gone = append(gone, id.String())
 		}
 	}
+	for _, uid := range botUIDs {
+		if _, ok := cards[uid]; !ok {
+			gone = append(gone, recentBotPrefix+uid)
+		}
+	}
 	if len(gone) > 0 {
 		_ = s.rdb.ZRem(ctx, RecentKey(me), gone...).Err()
 	}
-	if ids = kept; len(ids) == 0 {
-		return []Friend{}, nil
+	ids = kept
+	people := map[uuid.UUID]Friend{}
+	if len(ids) > 0 {
+		rels, err := relations(ctx, s.pool, me)
+		if err != nil {
+			return nil, err
+		}
+		status := map[uuid.UUID]string{}
+		for _, r := range rels {
+			status[r.other] = r.status
+		}
+		views, err := s.views(ctx, ids, status)
+		if err != nil {
+			return nil, err
+		}
+		for i, id := range ids { // views keeps the order of ids
+			people[id] = views[i]
+		}
 	}
-	rels, err := relations(ctx, s.pool, me)
-	if err != nil {
-		return nil, err
+	pendingBots := map[string]bool{}
+	if len(cards) > 0 {
+		pending, err := s.botRequests(ctx, me)
+		if err != nil {
+			return nil, err
+		}
+		for _, p := range pending {
+			pendingBots[p.uid] = true
+		}
 	}
-	status := map[uuid.UUID]string{}
-	for _, r := range rels {
-		status[r.other] = r.status
+	out := make([]Friend, 0, len(raw))
+	for _, r := range raw {
+		if uid, ok := strings.CutPrefix(r, recentBotPrefix); ok {
+			if c, ok := cards[uid]; ok {
+				st := StatusNone
+				if pendingBots[uid] {
+					st = StatusOutgoing
+				}
+				out = append(out, Friend{UID: c.UID, Name: c.Name, Avatar: c.Avatar, Picture: c.Picture,
+					Level: max(c.Level, 1), Title: c.Title, Status: st})
+			}
+			continue
+		}
+		if id, err := uuid.Parse(r); err == nil {
+			if f, ok := people[id]; ok {
+				out = append(out, f)
+			}
+		}
 	}
-	return s.views(ctx, ids, status)
+	return out, nil
 }
 
 // ------------------------------------------------------------- leaderboard

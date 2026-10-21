@@ -41,9 +41,10 @@ type Player struct {
 	Title       string              `json:"title"`
 	Cosmetics   map[string]string   `json:"cosmetics"`
 	Picture     *playerinfo.Picture `json:"picture,omitempty"`
-	Bot         bool                `json:"bot"`
+	Bot         bool                `json:"bot"` // internal only: never in a client view
 	BotProfile  string              `json:"botProfile,omitempty"`
-	BotSID      string              `json:"botSid,omitempty"` // bot session id (revoked when the bot is removed)
+	BotEmotes   []string            `json:"botEmotes,omitempty"` // emotes a bot seat may send (its persona's)
+	BotSID      string              `json:"botSid,omitempty"`    // bot session id (revoked when the bot is removed)
 	Connected   bool                `json:"connected"`
 	ConnEpoch   int64               `json:"connEpoch"`
 	Forfeited   bool                `json:"forfeited"`
@@ -172,7 +173,8 @@ func (r *Room) hash() uint32 {
 
 // ---- client view ----
 
-// PlayerView is what every room member sees about a seat.
+// PlayerView is what every room member sees about a seat. It never says
+// whether the seat is a bot: bots are indistinguishable from people.
 type PlayerView struct {
 	Seat      int               `json:"seat"`
 	UID       string            `json:"uid"`
@@ -186,7 +188,6 @@ type PlayerView struct {
 	Picture   *playerinfo.Picture `json:"picture"`
 	Color     string              `json:"color"`
 	Connected bool                `json:"connected"`
-	Bot       bool                `json:"bot"`
 	Forfeited bool                `json:"forfeited"`
 	// ForfeitWhy is "left" or "timeouts" for a forfeited seat (not part of
 	// the state hash).
@@ -227,13 +228,17 @@ type View struct {
 	Pot          int64        `json:"pot"`
 	Round        int          `json:"round"`
 	FillDeadline int64        `json:"fillDeadline"`
-	PendingBots  int          `json:"pendingBots"`
+	PendingBots  int          `json:"pendingBots"` // practice and private rooms only (0 in public rooms)
 	Players      []PlayerView `json:"players"`
-	Turn         TurnView     `json:"turn"`
-	Board        BoardView    `json:"board"`
-	Result       *Result      `json:"result,omitempty"`
-	Rematch      *Rematch     `json:"rematch,omitempty"`
-	H            uint32       `json:"h"`
+	// ComputerSeats lists, in practice and private rooms only, the seats
+	// filled with computer players the player or host asked for. Public
+	// rooms never reveal which seats are bots.
+	ComputerSeats []int     `json:"computerSeats,omitempty"`
+	Turn          TurnView  `json:"turn"`
+	Board         BoardView `json:"board"`
+	Result        *Result   `json:"result,omitempty"`
+	Rematch       *Rematch  `json:"rematch,omitempty"`
+	H             uint32    `json:"h"`
 }
 
 // seatColors returns color names for n seats (same mapping for both games).
@@ -264,8 +269,12 @@ func (r *Room) View() View {
 		ID: r.ID, V: r.V, Game: r.Game, Variant: r.Variant, Mode: r.Mode, Code: r.Code,
 		AllowBots: r.AllowBots, Capacity: r.Capacity, Status: r.Status, HostSeat: r.HostSeat,
 		EntryFee: r.EntryFee, Pot: r.Pot, Round: r.Round, FillDeadline: r.FillDeadline,
-		PendingBots: r.PendingBots, Result: r.Result, Rematch: r.Rematch,
+		Result: r.Result, Rematch: r.Rematch,
 		Players: make([]PlayerView, n),
+	}
+	knownBots := r.Mode == ModePractice || r.Mode == ModePrivate
+	if knownBots {
+		v.PendingBots = r.PendingBots
 	}
 	for i, p := range r.Players {
 		color := ""
@@ -273,8 +282,11 @@ func (r *Room) View() View {
 			color = colors[i]
 		}
 		v.Players[i] = PlayerView{Seat: i, UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level,
-			Title: p.Title, Cosmetics: p.Cosmetics, Picture: p.Picture, Color: color, Connected: p.Connected, Bot: p.Bot,
+			Title: p.Title, Cosmetics: p.Cosmetics, Picture: p.Picture, Color: color, Connected: p.Connected,
 			Forfeited: p.Forfeited, Strikes: p.Strikes}
+		if knownBots && p.Bot {
+			v.ComputerSeats = append(v.ComputerSeats, i)
+		}
 		if p.Forfeited {
 			v.Players[i].ForfeitWhy = p.ForfeitWhy
 		}

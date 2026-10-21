@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -256,15 +257,13 @@ func (e *env) spawnNamedBots(t *testing.T, ctl string, names []string) []*client
 		for _, x := range r.Body["assignments"].([]any) {
 			id := x.(map[string]any)["id"].(string)
 			s := e.do("POST", "/api/v1/bot/sessions", ctl, map[string]any{"assignmentId": id, "name": names[len(bots)], "profile": "balanced"})
-			if s.Status != 200 {
-				t.Fatalf("bot session: %d %s", s.Status, s.Raw)
-			}
-			acct := account{Token: s.Body["accessToken"].(string), UID: s.Body["uid"].(string)}
+			acct := botAccount(t, s)
 			c, _, err := e.dial("bot"+acct.UID, acct, map[string]string{"X-App-Platform": "bot"})
 			if err != nil {
 				t.Fatalf("bot dial: %v", err)
 			}
 			bots = append(bots, c)
+			e.botClients = append(e.botClients, c)
 		}
 	}
 	if len(bots) < len(names) {
@@ -302,7 +301,10 @@ func (e *env) practiceWithBots(t *testing.T, human account, names []string) (*cl
 	s := hc.snapshot()
 	var bots []botSeat
 	for _, p := range s.Players {
-		if p.Bot {
+		if !publicUID.MatchString(p.UID) {
+			t.Fatalf("seat uid %q does not have the people's format", p.UID)
+		}
+		if slices.Contains(s.ComputerSeats, p.Seat) { // practice lists its computer seats
 			b := botSeat{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level}
 			if p.Picture != nil {
 				b.PictureID = p.Picture.ID
@@ -316,7 +318,7 @@ func (e *env) practiceWithBots(t *testing.T, human account, names []string) (*cl
 	return hc, s.ID, bots
 }
 
-// Bots are marked with bot:true but their names carry no "Bot" label, and a
+// Bot names carry no "Bot" label (no seat carries a bot flag either), and a
 // report against a bot looks exactly like one against a person: same
 // response, limits and duplicate rule, listed in "my reports". It is stored
 // (flagged reported_bot) but kept out of the operator queue.

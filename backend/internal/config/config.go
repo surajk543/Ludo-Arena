@@ -160,9 +160,16 @@ type BotConfig struct {
 	LoadTestEnabled   bool
 	SessionTTL        time.Duration
 	AssignmentTTL     time.Duration
-	// PictureShare is the share of bot seats (0..1) that wear a random
+	// PictureShare is the long-run share of bot seats (0..1) that wear an
 	// active profile picture (BOT_PICTURE_SHARE, default 0.3).
 	PictureShare float64
+	// PictureKeepMin..PictureKeepMax is how many matches a bot persona keeps
+	// its picture (or no picture) before its wardrobe changes
+	// (BOT_PICTURE_KEEP_MIN / BOT_PICTURE_KEEP_MAX, default 2..5).
+	PictureKeepMin, PictureKeepMax int
+	// PersonaTTL is how long an unused bot persona (look, level, picture,
+	// stable public id) is remembered (BOT_PERSONA_TTL, default 30 days).
+	PersonaTTL time.Duration
 }
 
 // DefaultBotPictureShare is the default BOT_PICTURE_SHARE.
@@ -435,9 +442,18 @@ func Load() (*Config, error) {
 		SessionTTL:        getDur("BOT_SESSION_TTL", 2*time.Hour),
 		AssignmentTTL:     getDur("BOT_ASSIGNMENT_TTL", 30*time.Second),
 		PictureShare:      getFloat("BOT_PICTURE_SHARE", DefaultBotPictureShare),
+		PictureKeepMin:    getInt("BOT_PICTURE_KEEP_MIN", 2),
+		PictureKeepMax:    getInt("BOT_PICTURE_KEEP_MAX", 5),
+		PersonaTTL:        getDur("BOT_PERSONA_TTL", 30*24*time.Hour),
 	}
 	if c.Bots.PictureShare < 0 || c.Bots.PictureShare > 1 {
 		errs = append(errs, errors.New("BOT_PICTURE_SHARE must be between 0 and 1"))
+	}
+	if c.Bots.PictureKeepMin < 1 || c.Bots.PictureKeepMax < c.Bots.PictureKeepMin || c.Bots.PictureKeepMax > 100 {
+		errs = append(errs, errors.New("BOT_PICTURE_KEEP_MIN/MAX must satisfy 1 <= min <= max <= 100"))
+	}
+	if c.Bots.PersonaTTL < 24*time.Hour {
+		errs = append(errs, errors.New("BOT_PERSONA_TTL must be at least 24h"))
 	}
 	if c.Bots.MaxPerRoom < 1 || c.Bots.MaxPerRoom > 3 {
 		errs = append(errs, errors.New("BOT_MAX_PER_ROOM must be between 1 and 3"))

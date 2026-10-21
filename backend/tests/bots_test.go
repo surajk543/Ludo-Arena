@@ -2,6 +2,7 @@ package tests
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -32,10 +33,7 @@ func (e *env) spawnBots(t *testing.T, ctl string, n int) []*client {
 		for _, a := range r.Body["assignments"].([]any) {
 			id := a.(map[string]any)["id"].(string)
 			s := e.do("POST", "/api/v1/bot/sessions", ctl, map[string]any{"assignmentId": id, "name": "Asha", "profile": "balanced"})
-			if s.Status != 200 {
-				t.Fatalf("bot session: %d %s", s.Status, s.Raw)
-			}
-			acct := account{Token: s.Body["accessToken"].(string), UID: s.Body["uid"].(string)}
+			acct := botAccount(t, s)
 			c, _, err := e.dial("bot"+acct.UID, acct, map[string]string{"X-App-Platform": "bot"})
 			if err != nil {
 				t.Fatalf("bot dial: %v", err)
@@ -75,24 +73,21 @@ func TestBotServiceAuthAndPracticeGame(t *testing.T) {
 		return s != nil && s.Status == "playing"
 	})
 	s := hc.snapshot()
-	botSeats := 0
-	for _, p := range s.Players {
-		if p.Bot {
-			botSeats++
-		}
+	// Practice: the player chose computer opponents, so the room lists them
+	// (only practice and private rooms do; seats never carry a bot flag).
+	if s.Mode != "practice" || len(s.ComputerSeats) != 2 || seatIn(s, bots[0].acct.UID) < 0 ||
+		!slices.Contains(s.ComputerSeats, seatIn(s, bots[0].acct.UID)) || slices.Contains(s.ComputerSeats, hc.seat()) {
+		t.Fatalf("practice room: mode %s computer seats %v", s.Mode, s.ComputerSeats)
 	}
-	if botSeats != 2 || s.Mode != "practice" {
-		t.Fatalf("practice room: mode %s bots %d", s.Mode, botSeats)
-	}
-	// Bot tokens: no player REST, no chat, no other rooms.
+	// Bot tokens: no player REST, no other rooms.
 	if r := e.do("GET", "/api/v1/wallet", bots[0].acct.Token, nil); r.Status != 403 {
 		t.Fatalf("bot used wallet API: %d", r.Status)
 	}
-	if m := bots[0].call("chat.quick", map[string]any{"roomId": s.ID, "msg": "gg"}); m.T != "error" {
-		t.Fatalf("bot chat allowed: %s", m.P)
-	}
 	if m := bots[0].call("game.request_sync", map[string]any{"roomId": "r_other"}); !strings.Contains(string(m.P), "not_in_room") {
 		t.Fatalf("bot accessed another room: %s", m.P)
+	}
+	if m := bots[0].call("chat.quick", map[string]any{"roomId": "r_other", "msg": "gg"}); !strings.Contains(string(m.P), "not_in_room") {
+		t.Fatalf("bot chatted in another room: %s", m.P)
 	}
 
 	all := append([]*client{hc}, bots...)

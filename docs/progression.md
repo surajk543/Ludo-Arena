@@ -43,7 +43,7 @@ player-chosen display name (one nullable column, below).
 | `loadout(user_id, slot, item_id)` | `(user_id, slot)` | Equipped items. A missing slot means the starter item; a row whose item no longer fits the catalog also falls back to starter. Slot `avatar` (migration 007) holds the equipped profile picture; it is reported as `picture`, never in `loadout`. |
 | `profile_pictures(id, name, format, path, price_diamonds, sort_order, active, created_at)` | `id` (`pp_…`), `path` UNIQUE | Owner-approved (2026-10-21). The Store catalogue only (no player data): object path in the private R2 bucket, `image\|lottie`, diamond price, shelf order, `active = false` retires a picture. Seeded by migration 008 from `backend/config/profile_pictures.tsv`; see [cosmetics-catalog.md](cosmetics-catalog.md#profile-pictures). |
 | `friendships(user_lo, user_hi, status, requested_by, created_at)` | `(user_lo, user_hi)`, `CHECK user_lo < user_hi` | One row per unordered pair: `pending` (request by `requested_by`) or `accepted`. Indexed on `user_hi` for "my relationships" lookups. Written only by `social`; read by `progression` inside the match transaction (friend XP bonus, friend missions). |
-| `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at, reported_bot, reported_profile)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `reporter_id` is an account; `reported_id` is an account or, with `reported_bot = true`, a bot's per-session id (no foreign key since migration 009: bots are not accounts). `reported_profile` (JSONB, bots only) keeps the bot's public profile at report time (`uid`, `name`, `avatar`, `picture`, `level`), the only name stored here, because no account holds it. `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
+| `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at, reported_bot, reported_profile)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `reporter_id` is an account; `reported_id` is an account or, with `reported_bot = true`, a bot persona's id (stable across that bot's sessions, so the once-per-player rule applies as to a person; no foreign key since migration 009: bots are not accounts). `reported_profile` (JSONB, bots only) keeps the bot's public profile at report time (`uid`, `name`, `avatar`, `picture`, `level`), the only name stored here, because no account holds it. `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
 
 Indexes on `match_receipts.processed_at`, `mission_progress.updated_at` and
 `mission_claims.claimed_at` serve the purge job.
@@ -120,7 +120,8 @@ After commit (best effort): `progression.updated`
 `{xp, level, xpGained, levelUp?, unlocked, missions:[changed missions]}` via
 the Notifier, weekly leaderboard `ZINCRBY`, metrics. Finally the registered
 observers run (social stores recent opponents for every human, including
-forfeited ones — they did meet).
+forfeited ones — they did meet — and, in public matches, the bots, exactly
+like people).
 
 Period assignment uses the match's `FinishedAt` (UTC). A failing player is
 logged and the first error is returned; re-delivering the same record is
@@ -211,7 +212,10 @@ currency for `purchase` items). Level milestones are derived from the
   status and — **for accepted friends only** — `online` (Redis
   `presence:{userId}` set by the WebSocket gateway). Account ids, emails and
   provider ids of other players never leave the server.
-- Recent opponents: humans only, last 20 within 14 days.
+- Recent opponents: last 20 within 14 days — people, and the bots met in
+  public matches shown like people from their public card (`botprof:{uid}`,
+  written by the room engine; practice and private-room computer players are
+  not recorded). A bot whose card expired is dropped like a deleted account.
 - Friends leaderboard: me + accepted friends ranked by XP gained this ISO
   week (match XP and mission XP), competition ranking (ties share a rank).
 - Invites (`gameevents.Inviter.SendInvite`, used by the WebSocket
@@ -261,7 +265,7 @@ currency for `purchase` items). Level milestones are derived from the
 | Key | Type | TTL | Content |
 |---|---|---|---|
 | `lb:xp:{weekKey}` | ZSET | 21 days | weekly XP per account id (friends leaderboard) |
-| `recent:{userId}` | ZSET | 14 days | recent human opponents (account id → finish time ms), max 20 |
+| `recent:{userId}` | ZSET | 14 days | recent opponents (account id, or `bot:{uid}` for a bot met in a public match → finish time ms), max 20 |
 | `botfr:{userId}` | hash | 72 h after the last request (each entry lapses 72 h after it was sent; lapsed entries are removed when read) | pending friend requests to bots: bot uid → `{name, avatar, picture, level, title, at}` |
 | `invite:{from}:{to}:{roomId}` | string | until the invite expires (10 s – 30 min) | invite id (dedupe) |
 | `idem:{userId}:{key}` / `…:lock` | string | 24 h / 30 s | cached successful claim/purchase response |
@@ -269,7 +273,7 @@ currency for `purchase` items). Level milestones are derived from the
 | `seat:{userId}` (+ `…:lease`, 5 s) | string | 1 h | seat summary cache (level, non-starter loadout, equipped profile-picture id) for room joins; deleted after level-ups, equips and profile-picture applies ([architecture.md → PostgreSQL on the hot path](architecture.md#postgresql-on-the-hot-path)) |
 | `emotes:{userId}` | set | 1 h | owned non-starter emotes for `chat.emote`; grants add to it, misses are confirmed in PostgreSQL |
 | `rl:invite_user:…`, `rl:friend_request_user:…`, `rl:report_user:…`, `rl:report_read_user:…`, `rl:admin_ip:…` | counter | window | rate limits |
-| read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}`, `user:{userId}:room`, `botsess:{uid}` | | | set by the gateway / profile service / room engine (reports verify seats; friend requests find bot seats) |
+| read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}`, `user:{userId}:room`, `botsess:{uid}`, `botprof:{uid}` | | | set by the gateway / profile service / room engine (reports verify seats; friend requests and recent players find bots) |
 
 Account deletion purges the account's `seat:`, `emotes:`, `recent:`, `botfr:` keys,
 its member in other players' `recent:` sets and in the weekly `lb:xp:` sets,

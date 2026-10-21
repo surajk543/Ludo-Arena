@@ -13,7 +13,8 @@ import (
 
 // Participant is one seat in a finished match.
 type Participant struct {
-	UserID    uuid.UUID // bot seats have a random id and Bot=true
+	UserID    uuid.UUID // bot seats: the bot persona's id, and Bot=true
+	UID       string    // public player id shown in the room (people and bots)
 	Seat      int
 	Bot       bool
 	Won       bool

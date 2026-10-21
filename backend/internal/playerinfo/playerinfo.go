@@ -4,6 +4,7 @@ package playerinfo
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -93,4 +94,43 @@ func (StarterProvider) Summaries(_ context.Context, ids []uuid.UUID) (map[uuid.U
 		out[id] = Starter()
 	}
 	return out, nil
+}
+
+// ---- bots ----
+
+// BotCard is the public profile of a bot persona as players saw it in a
+// room (name, avatar, picture, level, title). Bots are not accounts, so the
+// rooms engine keeps a short-lived copy under BotCardKey(uid) for the
+// features that must treat a bot like any other player after its room is
+// gone (recent players, friend requests).
+type BotCard struct {
+	UID     string   `json:"uid"`
+	Name    string   `json:"name"`
+	Avatar  int      `json:"avatar"`
+	Picture *Picture `json:"picture,omitempty"`
+	Level   int      `json:"level"`
+	Title   string   `json:"title"`
+}
+
+// BotCardKey is the Redis key of the bot card of public id uid
+// (backend/docs/redis-keys.md → botprof:{uid}).
+func BotCardKey(uid string) string { return "botprof:" + uid }
+
+// BotCardTTL is how long a bot card outlives the bot's last seating: longer
+// than the 14-day recent-players retention.
+const BotCardTTL = 15 * 24 * time.Hour
+
+// CatalogItem is the part of a cosmetics catalogue entry that bot personas
+// need to dress like a player of a given level.
+type CatalogItem struct {
+	ID       string
+	Kind     string // dice | token | frame | trail | victory | title | emote | ...
+	Starter  bool   // every account owns it
+	Level    int    // level that unlocks it (acquisition "level"); 0 otherwise
+	Purchase bool   // sold in the Store (coins or diamonds)
+}
+
+// CatalogSource lists the cosmetics catalogue (implemented by progression).
+type CatalogSource interface {
+	CatalogItems() []CatalogItem
 }

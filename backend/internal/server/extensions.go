@@ -46,7 +46,7 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 		PerDay: core.Cfg.Social.ReportsPerDay, AdminKeySHA256: core.Cfg.AdminKeySHA256})
 	tracker := analytics.New(core.RDB, core.Cfg.Telemetry.ActiveUserKey, core.Log)
 	return Extensions{
-		Progression: prog, Pictures: prog, Recorder: prog, Inviter: soc, Inventory: prog,
+		Progression: prog, Pictures: prog, Catalog: prog, Recorder: prog, Inviter: soc, Inventory: prog,
 		Routes: []func(rt *httpapi.Router){prog.Register, soc.Register, rep.Register, tracker.Register},
 		OnNewAccount: func(ctx context.Context, id uuid.UUID) {
 			// Off the sign-up request path. Every progression read and write

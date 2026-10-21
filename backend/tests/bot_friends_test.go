@@ -95,17 +95,28 @@ func TestFriendRequestToBotStaysPendingThenLapses(t *testing.T) {
 		t.Fatalf("request after lapse: %d %s", r.Status, r.Raw)
 	}
 
-	// Someone who never saw the bot (and once its session is gone) gets the
-	// unknown-code answer, as for a mistyped code.
+	// A bot's code works like a person's: someone who never met it can send
+	// a request too, even after its session ended (its public card stays).
 	stranger := e.guest()
 	if err := e.rdb.Del(ctx, "botsess:"+bots[0].UID, "botsess:"+bots[1].UID).Err(); err != nil {
 		t.Fatal(err)
 	}
-	if r := e.friendRequest(stranger, bots[0].UID); r.Status != 404 || errCode(r) != "not_found" {
+	if r := e.friendRequest(stranger, bots[0].UID); r.Status != 201 || r.Body["friend"].(map[string]any)["name"] != bots[0].Name {
 		t.Fatalf("stranger: %d %s", r.Status, r.Raw)
+	}
+	// Once the card expired (and nobody sees the bot seated), the code is
+	// unknown, as for a deleted account or a mistyped code.
+	if err := e.rdb.Del(ctx, "botprof:"+bots[0].UID).Err(); err != nil {
+		t.Fatal(err)
+	}
+	if r := e.friendRequest(e.guest(), bots[0].UID); r.Status != 404 || errCode(r) != "not_found" {
+		t.Fatalf("expired bot code: %d %s", r.Status, r.Raw)
 	}
 	// The human still sees the bot in their room (bot-play ends a bot's
 	// session when it leaves, the seat stays).
+	if err := e.rdb.Del(ctx, "botprof:"+bots[1].UID).Err(); err != nil {
+		t.Fatal(err)
+	}
 	if r := e.friendRequest(human, bots[1].UID); r.Status != 201 {
 		t.Fatalf("request from the room after the session ended: %d %s", r.Status, r.Raw)
 	}

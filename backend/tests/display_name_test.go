@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func (e *env) patchName(token string, body any) resp {
@@ -315,7 +317,7 @@ func TestDisplayNameLimitValidationAndAuth(t *testing.T) {
 	if r := e.rename(ctl, "Asha"); r.Status != http.StatusForbidden {
 		t.Fatalf("controller token: %d %s", r.Status, r.Raw)
 	}
-	bot, err := e.app.BotAuth.IssueBot(context.Background(), "r_test", false, "Asha", "balanced", time.Minute)
+	bot, err := e.app.BotAuth.IssueBot(context.Background(), uuid.Nil, "r_test", false, "Asha", "balanced", time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}

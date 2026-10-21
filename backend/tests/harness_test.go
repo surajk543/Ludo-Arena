@@ -104,6 +104,8 @@ type env struct {
 	policy string // policy file path
 	flag   string // maintenance flag path
 	cancel context.CancelFunc
+	// botClients are the bot clients spawned so far (spawnNamedBots).
+	botClients []*client
 }
 
 type envOpts struct {
@@ -124,6 +126,8 @@ type envOpts struct {
 	r2 *r2test.Server
 	// botPictureShare sets BOT_PICTURE_SHARE ("" = default 0.3).
 	botPictureShare string
+	// botPictureKeep sets BOT_PICTURE_KEEP_MIN and _MAX ("" = defaults 2..5).
+	botPictureKeep string
 }
 
 func newEnv(t *testing.T, o envOpts) *env {
@@ -154,6 +158,7 @@ func newEnv(t *testing.T, o envOpts) *env {
 		// Never pick up a real bucket from the shell.
 		"R2_ACCOUNT_ID": "", "R2_BUCKET": "", "R2_ACCESS_KEY_ID": "", "R2_SECRET_ACCESS_KEY": "",
 		"R2_ENDPOINT": "", "ASSET_URL_TTL": "", "BOT_PICTURE_SHARE": o.botPictureShare,
+		"BOT_PICTURE_KEEP_MIN": o.botPictureKeep, "BOT_PICTURE_KEEP_MAX": o.botPictureKeep,
 	}
 	if o.r2 != nil {
 		envVars["R2_ACCOUNT_ID"], envVars["R2_BUCKET"] = testR2Account, o.r2.Bucket
@@ -281,6 +286,25 @@ func (e *env) do(method, path, token string, body any, headers ...string) resp {
 type account struct {
 	Token, Refresh, UserID, UID, GuestSecret string
 	Coins, Diamonds                          int64
+	// Emotes are a bot session's emotes (POST /bot/sessions).
+	Emotes []string
+}
+
+// botAccount reads a POST /bot/sessions response.
+func botAccount(t *testing.T, s resp) account {
+	t.Helper()
+	if s.Status != 200 {
+		t.Fatalf("bot session: %d %s", s.Status, s.Raw)
+	}
+	a := account{Token: s.Body["accessToken"].(string), UID: s.Body["uid"].(string)}
+	list, ok := s.Body["emotes"].([]any)
+	if !ok {
+		t.Fatalf("bot session without emotes: %s", s.Raw)
+	}
+	for _, e := range list {
+		a.Emotes = append(a.Emotes, e.(string))
+	}
+	return a
 }
 
 func parseAuth(t *testing.T, r resp) account {
