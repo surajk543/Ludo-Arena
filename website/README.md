@@ -226,3 +226,13 @@ repository and must be confirmed or changed before publishing:
   policy; confirm the studio can meet it.
 - The provider's first name becomes a player's public display name by default
   (it is not checked against the offensive-words list); this is disclosed.
+- **In-app purchases.** The game page, the homepage card, the policy and the
+  deletion page describe the optional coin packs as built
+  ([docs/in-app-purchases.md](../docs/in-app-purchases.md)): payments through
+  Google Play / the App Store only, a purchase record (store, product, coins,
+  diamonds, time, refund status, purchase reference; Google purchase tokens
+  only as a SHA-256 hash) kept until the account is deleted, an account code
+  derived one-way from the account number given to the store, refunds taken
+  back. Publish these texts only together with (or after) the app release
+  that sells the packs, and keep them in line with the store listings'
+  "Contains in-app purchases" and Data safety / App Privacy answers.

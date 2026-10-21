@@ -26,7 +26,7 @@
 <header class="doc-head">
   <h1>Privacy Policy</h1>
   <p class="meta">Ludo Royale &middot; Sun Game Studio<br>
-  Effective 21 October 2026 &middot; Last updated 21 October 2026</p>
+  Effective 21 October 2026 &middot; Last updated 22 October 2026</p>
 </header>
 <div class="prose">
 
@@ -38,7 +38,9 @@ actually behaves. If we change what the app collects, we change this page and th
   address, phone number or a password. Your account, progress and virtual coins are kept on our game servers. If
   you save your progress with Google, Facebook or Apple, we keep the account identifier that company gives us and
   the first name it shares, never your email address. Usage statistics go to Google Analytics only if you say yes,
-  and you can change that at any time. There are no ads, no in-app purchases and no free-text chat.</p>
+  and you can change that at any time. There are no ads and no free-text chat. If you buy an optional coin pack,
+  Google Play or the App Store handles the payment: we receive a purchase reference from the store, never your card
+  or payment details. Coins and diamonds have no cash value and cannot be withdrawn.</p>
 </div>
 
 <h2>1. Who we are</h2>
@@ -107,6 +109,16 @@ anything in this policy, write to <a href="mailto:contact@sungamestudio.com">con
     <td>Until the account of either player is deleted</td>
   </tr>
   <tr>
+    <td><strong>Purchases, only if you buy a coin pack</strong>: the store (Google Play or the App Store), the pack
+        you bought, the coins and diamonds it gave, when, whether it was refunded, and the purchase reference the
+        store gives us (a Google Play purchase token and order number, or an App Store transaction ID). A purchase
+        token is stored only as a one-way hash (<code>SHA&#8209;256</code>).</td>
+    <td>To check the purchase with Google or Apple before giving you anything, to give the coins and diamonds
+        exactly once, and to take them back if the purchase is refunded</td>
+    <td>Until your account is deleted. We never receive your card, bank or other payment details or your billing
+        address.</td>
+  </tr>
+  <tr>
     <td><strong>Usage statistics, only if you say yes</strong>: which features you use (for example the game and
         mode you play, how a match ends and roughly how long it took, missions, items, level-ups, sign-in method
         and language), together with what Google Analytics collects by itself: an identifier for this installation
@@ -140,6 +152,15 @@ phone's secure storage (the Keychain on iOS, the Android Keystore on Android), a
 language and your usage-statistics choice, in the app's own storage. On Android the app's data is excluded from
 phone backups, and on iOS its keychain items stay on this device only.</p>
 
+<h3>In-app purchases</h3>
+<p>Ludo Royale offers optional in-app purchases of virtual coins and diamonds (coin packs in the Shop). You never
+have to buy anything to play. Payments are processed by Google Play or the App Store under their own terms; we
+receive only the purchase token or transaction ID, the product, the amounts and the time, never your card or
+payment details. Coins and diamonds are virtual game items: they have no cash value and cannot be withdrawn,
+cashed out, transferred or exchanged for money. Refunds are requested from Google Play or Apple under their refund
+policies; when a purchase is refunded, we take back the coins and diamonds it gave (never more than your
+balance).</p>
+
 <h2>3. Who we share it with</h2>
 <p>We do not sell your data, and we do not share it with advertisers. There are no ads in the app.</p>
 <ul>
@@ -157,6 +178,12 @@ phone backups, and on iOS its keychain items stay on this device only.</p>
   <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>; see also
   <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">how Google uses information
   from apps that use its services</a>.</li>
+  <li><strong>Google Play and the App Store</strong>, only if you buy a coin pack. They take the payment under
+  their own terms and the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>
+  or the <a href="https://www.apple.com/legal/privacy/" rel="noopener">Apple Privacy Policy</a>. So that a purchase
+  can only be credited to the account that made it, the app gives the store a code derived from your account
+  number with a one-way function (not the account number itself); our server then asks the store to confirm the
+  purchase.</li>
 </ul>
 <p>Your account and game data are stored in our own databases on servers operated by Sun Game Studio.</p>
 
@@ -166,8 +193,9 @@ phone backups, and on iOS its keychain items stay on this device only.</p>
   shares.</li>
   <li>No location permission, contacts, photos, camera or microphone. The app needs only network access.</li>
   <li>No advertising ID, no ads and no tracking across other apps or websites.</li>
-  <li>No in-app purchases and no payment details. Coins and diamonds are virtual and cannot be bought, cashed out
-  or exchanged for money.</li>
+  <li>No payment details: purchases are paid through Google Play or the App Store, and we never see your card,
+  bank or billing details. Coins and diamonds are virtual, have no cash value and cannot be withdrawn, cashed out,
+  transferred or exchanged for money.</li>
   <li>No free-text chat: players talk with ready-made phrases and emotes, which are not stored.</li>
   <li>No crash-reporting service and no history of your matches.</li>
 </ul>
@@ -175,7 +203,8 @@ phone backups, and on iOS its keychain items stay on this device only.</p>
 <h2>5. How we protect it</h2>
 <p>The app talks to our servers over encrypted connections (HTTPS). Guest keys, sign-in refresh tokens and device
 identifiers are stored on our side only as one-way hashes. Dice rolls, moves, results, coins and rewards are
-decided on our servers, so they cannot be changed from a phone.</p>
+decided on our servers, so they cannot be changed from a phone. Purchases are checked with Google or Apple by our
+servers before any coins or diamonds are given, and each purchase is credited only once.</p>
 
 <h2 id="delete">6. Deleting your account</h2>
 <p>You can delete your account at any time in the app: <strong>Settings &rarr; Delete account</strong>. It happens
@@ -186,7 +215,9 @@ with the subject <strong>Ludo Royale account deletion</strong>, telling us your 
 on your Profile, starting with <code>u_</code>) and your display name; the app never asks for an e-mail address,
 so that is how we find the account. We answer and complete e-mailed requests within <strong>30 days</strong>.</p>
 <p>Deleting removes your account, your linked sign-ins, device link and sessions, your display name, coins and
-diamonds, progress, collection, friends, and reports filed by you or about you. Statistics that do not identify
+diamonds (including any you bought), purchase records, progress, collection, friends, and reports filed by you or
+about you. Deleting your account does not cancel or refund a purchase; refunds are handled by Google Play or
+Apple. Statistics that do not identify
 you (section 2) are not affected. Deletion is permanent and cannot be undone.</p>
 <p>Uninstalling the app or signing out does not delete your account, because it lives on our servers. If you sign
 out of a guest account without saving your progress, you can no longer reach it, but it still exists until you
@@ -196,7 +227,8 @@ delete it as described above.</p>
 <p>Ludo Royale's content is rated for everyone (3+). It is a general-audience game and is not directed
 primarily at children under 13. We do not knowingly collect personal information from children under 13 beyond
 what the game needs to run, such as an account number and game progress, and usage statistics are collected only
-with consent (section 2). If you are a parent or guardian and believe your child has given us personal
+with consent (section 2). Purchases go through Google Play or the App Store, where parents can require approval
+for purchases. If you are a parent or guardian and believe your child has given us personal
 information, write to <a href="mailto:contact@sungamestudio.com">contact@sungamestudio.com</a> and we will delete
 it.</p>
 
