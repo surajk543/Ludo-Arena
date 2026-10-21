@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/analytics/analytics_providers.dart';
 import '../../core/audio_haptics/audio_service.dart';
-import '../../core/audio_haptics/haptics_service.dart';
 import '../../core/localization/number_format.dart';
 import '../../core/protocol/protocol.dart';
 import '../../core/realtime/realtime_providers.dart';
@@ -142,19 +141,9 @@ class _AppShellHostState extends ConsumerState<AppShellHost> {
 
   // ---------------------------------------------------------------- rewards
 
-  void _onProgression(ProgressionUpdatedEvent e) {
-    if (!e.levelUp || ref.read(inMatchProvider)) return;
-    final ctx = _navContext;
-    if (ctx == null) return;
-    ref.read(audioServiceProvider).play(Sfx.levelUp);
-    ref.read(hapticsServiceProvider).success();
-    AppToast.show(
-      ctx,
-      AppLocalizations.of(ctx).homeLevelUpToast(e.level),
-      kind: ToastKind.success,
-      icon: Icons.military_tech_rounded,
-    );
-  }
+  // Level-ups are celebrated by MetaShellHost (mounted in app.dart), which
+  // defers the celebration while a match is on screen. Nothing to do here.
+  void _onProgression(ProgressionUpdatedEvent e) {}
 
   void _onWallet(WalletUpdatedEvent e) {
     if (e.deltaCoins <= 0 || ref.read(inMatchProvider)) return;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ludo_royale/features/meta_routes.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -75,45 +76,57 @@ class ProfileScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.sm),
                         TitleChip(titleId: progression.title),
                         const SizedBox(height: AppSpacing.lg),
-                        Row(
-                          children: [
-                            LevelBadge(level: progression.level, size: 40),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.commonLevel(progression.level),
-                                    style: context.textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  XpProgressBar(
-                                    current: progression.isMaxLevel
-                                        ? progression.nextLevelXp
-                                        : progression.xpIntoLevel,
-                                    total: progression.nextLevelXp <= 0
-                                        ? 1
-                                        : progression.nextLevelXp,
-                                    showLabel: false,
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Text(
-                                    progression.isMaxLevel
-                                        ? l10n.profileMaxLevel
-                                        : l10n.profileLevelProgress(
-                                            formatNumberFull(
-                                              progression.xpRemaining,
-                                              locale,
-                                            ),
-                                            progression.level + 1,
-                                          ),
-                                    style: context.textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
+                        // Opens the level road (milestones and rewards).
+                        InkWell(
+                          borderRadius: BorderRadius.circular(AppRadii.md),
+                          onTap: () => context.push(MetaRoutes.progression),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.xs,
                             ),
-                          ],
+                            child: Row(
+                              children: [
+                                LevelBadge(level: progression.level, size: 40),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.commonLevel(progression.level),
+                                        style: context.textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: AppSpacing.xs),
+                                      XpProgressBar(
+                                        current: progression.isMaxLevel
+                                            ? progression.nextLevelXp
+                                            : progression.xpIntoLevel,
+                                        total: progression.nextLevelXp <= 0
+                                            ? 1
+                                            : progression.nextLevelXp,
+                                        showLabel: false,
+                                      ),
+                                      const SizedBox(height: AppSpacing.xs),
+                                      Text(
+                                        progression.isMaxLevel
+                                            ? l10n.profileMaxLevel
+                                            : l10n.profileLevelProgress(
+                                                formatNumberFull(
+                                                  progression.xpRemaining,
+                                                  locale,
+                                                ),
+                                                progression.level + 1,
+                                              ),
+                                        style: context.textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.chevron_right_rounded),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
