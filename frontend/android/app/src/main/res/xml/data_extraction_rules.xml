@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Session credentials live in the Android Keystore-backed secure storage and
      cannot be restored on another device, so nothing is backed up or
-     transferred. The server keeps all progress. -->
+     transferred. The server keeps all progress; a reinstall on the same
+     device finds its account again through ANDROID_ID (see
+     lib/core/device/device_identity.dart), not through a backup. -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" />

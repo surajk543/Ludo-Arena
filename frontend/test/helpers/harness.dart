@@ -6,6 +6,7 @@ import 'package:ludo_royale/core/app_policy/policy_signal.dart';
 import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/config/app_config.dart';
 import 'package:ludo_royale/core/config/app_info.dart';
+import 'package:ludo_royale/core/device/device_identity.dart';
 import 'package:ludo_royale/core/lifecycle/app_lifecycle.dart';
 import 'package:ludo_royale/core/localization/language_controller.dart';
 import 'package:ludo_royale/core/network/api_client.dart';
@@ -35,6 +36,10 @@ class TestEnv {
   final RecordingAnalytics analytics = RecordingAnalytics();
   final FakeClock clock = FakeClock();
   final FakeStoreLauncher store = FakeStoreLauncher();
+
+  /// No device id by default (behaves like before device binding); set
+  /// `device.id` to simulate an Android 8+ / iOS device.
+  final FakeDeviceIdentity device = FakeDeviceIdentity();
 
   /// WebSocket connector for the realtime connection; by default sockets
   /// never connect.
@@ -95,7 +100,9 @@ class TestEnv {
       )
       ..json('POST', '/auth/guest/resume', authJson())
       ..json('GET', '/me', meJson())
-      ..json('POST', '/auth/logout', const {}, status: 204);
+      ..json('POST', '/auth/logout', const {}, status: 204)
+      ..json('PUT', '/account/device', const {})
+      ..json('DELETE', '/account/device', const {}, status: 204);
   }
 
   List<Override> get overrides => [
@@ -123,6 +130,7 @@ class TestEnv {
       ),
     ),
     identityProviderClientsProvider.overrideWithValue(identity),
+    deviceIdentityProvider.overrideWithValue(device),
     analyticsServiceProvider.overrideWithValue(analytics),
     analyticsBackendProvider.overrideWithValue(analyticsBackend),
     audioServiceProvider.overrideWithValue(SilentAudioService()),

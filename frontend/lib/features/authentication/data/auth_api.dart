@@ -5,11 +5,25 @@ import 'provider_credential.dart';
 
 /// Go-owned authentication + account endpoints (see docs/rest-api.md).
 abstract interface class AuthApi {
-  /// `POST /auth/guest` → AuthResponse incl. `guestSecret`.
-  Future<AuthResponse> createGuest();
+  /// `POST /auth/guest`. Without [deviceId]: a new guest (201, incl.
+  /// `guestSecret`). With [deviceId]: the account already bound to the
+  /// device (200, no `guestSecret`) or a new guest bound to it (201).
+  Future<AuthResponse> createGuest({String? deviceId});
 
   /// `POST /auth/guest/resume`.
   Future<AuthResponse> resumeGuest(String guestSecret);
+
+  /// `POST /auth/device/resume`: signs in to the account bound to
+  /// [deviceId] (no `guestSecret`). 404 `not_found` when the device has no
+  /// account; never creates one.
+  Future<AuthResponse> resumeDevice(String deviceId);
+
+  /// `PUT /account/device`: binds [deviceId] to the current account. 409
+  /// `identity_conflict` when the device belongs to another account.
+  Future<void> bindDevice(String deviceId);
+
+  /// `DELETE /account/device`: unbinds the current account's device.
+  Future<void> unbindDevice();
 
   /// `POST /auth/{provider}`.
   Future<AuthResponse> signIn(ProviderCredential credential);
@@ -32,8 +46,34 @@ class RestAuthApi implements AuthApi {
   final ApiClient _api;
 
   @override
-  Future<AuthResponse> createGuest() async =>
-      AuthResponse.fromJson(await _api.post('/auth/guest', auth: false));
+  Future<AuthResponse> createGuest({String? deviceId}) async =>
+      AuthResponse.fromJson(
+        await _api.post(
+          '/auth/guest',
+          auth: false,
+          body: {'deviceId': ?deviceId},
+        ),
+      );
+
+  @override
+  Future<AuthResponse> resumeDevice(String deviceId) async =>
+      AuthResponse.fromJson(
+        await _api.post(
+          '/auth/device/resume',
+          auth: false,
+          body: {'deviceId': deviceId},
+        ),
+      );
+
+  @override
+  Future<void> bindDevice(String deviceId) async {
+    await _api.put('/account/device', body: {'deviceId': deviceId});
+  }
+
+  @override
+  Future<void> unbindDevice() async {
+    await _api.delete('/account/device');
+  }
 
   @override
   Future<AuthResponse> resumeGuest(String guestSecret) async =>

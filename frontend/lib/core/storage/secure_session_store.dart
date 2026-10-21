@@ -67,8 +67,9 @@ class StoredTokens {
 }
 
 /// The ONLY place session credentials live: access token, refresh token,
-/// their expiries, and the guest secret. Nothing here ever goes to
-/// SharedPreferences, logs or analytics.
+/// their expiries, the guest secret, the iOS device id and the session
+/// flags that decide whether the app may sign in on its own. Nothing here
+/// ever goes to SharedPreferences, logs or analytics.
 class SecureSessionStore {
   SecureSessionStore(this._kv);
 
@@ -80,6 +81,10 @@ class SecureSessionStore {
   static const _refreshExp = 'session.refresh_expires_at';
   static const _guestSecret = 'session.guest_secret';
   static const _lastWasGuest = 'session.last_was_guest';
+  static const _deviceId = 'session.device_id';
+  static const _deviceBoundUid = 'session.device_bound_uid';
+  static const _replaced = 'session.replaced';
+  static const _signedOut = 'session.signed_out';
 
   Future<StoredTokens?> readTokens() async {
     try {
@@ -142,6 +147,57 @@ class SecureSessionStore {
 
   Future<void> writeLastSessionWasGuest(bool guest) =>
       _kv.write(_lastWasGuest, guest ? '1' : '0');
+
+  /// The app-generated device id (iOS only: the keychain keeps it across
+  /// updates and reinstalls on the same device). Never logged or sent to
+  /// analytics.
+  Future<String?> readDeviceId() => _readOrNull(_deviceId);
+
+  Future<void> writeDeviceId(String id) => _kv.write(_deviceId, id);
+
+  /// The account (`uid`) this device was last bound to (or found bound to
+  /// another account) with `PUT /account/device`, so the binding is not
+  /// re-sent on every launch.
+  Future<String?> readDeviceBoundUid() => _readOrNull(_deviceBoundUid);
+
+  Future<void> writeDeviceBoundUid(String uid) =>
+      _kv.write(_deviceBoundUid, uid);
+
+  Future<void> clearDeviceBoundUid() => _deleteQuietly(_deviceBoundUid);
+
+  /// Signed out because the account signed in on another device.
+  Future<void> markSessionReplaced() => _kv.write(_replaced, '1');
+
+  /// Signed out by the user.
+  Future<void> markSignedOut() => _kv.write(_signedOut, '1');
+
+  /// True after a `session_replaced` sign-out or a user sign-out: the app
+  /// must not sign in on its own (no guest or device resume) until the user
+  /// signs in explicitly.
+  Future<bool> readAutoSignInBlocked() async =>
+      await _readOrNull(_replaced) == '1' ||
+      await _readOrNull(_signedOut) == '1';
+
+  /// After an explicit sign-in.
+  Future<void> clearAutoSignInBlock() async {
+    await _deleteQuietly(_replaced);
+    await _deleteQuietly(_signedOut);
+  }
+
+  Future<String?> _readOrNull(String key) async {
+    try {
+      final v = await _kv.read(key);
+      return (v == null || v.isEmpty) ? null : v;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _deleteQuietly(String key) async {
+    try {
+      await _kv.delete(key);
+    } catch (_) {}
+  }
 }
 
 final secureKeyValueProvider = Provider<SecureKeyValue>(
