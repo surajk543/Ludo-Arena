@@ -33,6 +33,8 @@ var allowedTables = []string{
 	"progression.player_reports",
 	// Profile-picture catalogue (owner-approved 2026-10-21; no player data).
 	"progression.profile_pictures",
+	// Store emote catalogue (owner-approved 2026-10-21; no player data).
+	"progression.emotes",
 }
 
 // gameplayWords are column-name words (split on "_") that indicate stored
