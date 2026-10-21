@@ -68,17 +68,20 @@ class BrandLogo extends StatelessWidget {
 ///
 /// [monochrome] paints a single-color silhouette (crown, shield rim, die
 /// with pip cut-outs) in [monochromeColor]; it is the source of the Android
-/// 13+ themed icon.
+/// 13+ themed icon. [shadow] false omits the shield's drop shadow (for
+/// artwork the system clips to a circle, like the Android 12+ splash icon).
 class BrandCrestPainter extends CustomPainter {
   const BrandCrestPainter({
     this.dark = false,
     this.monochrome = false,
     this.monochromeColor = Colors.white,
+    this.shadow = true,
   });
 
   final bool dark;
   final bool monochrome;
   final Color monochromeColor;
+  final bool shadow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -93,7 +96,7 @@ class BrandCrestPainter extends CustomPainter {
     final shieldRect = _shieldRect(size);
     final shield = _shieldPath(size);
 
-    canvas.drawShadow(shield, Colors.black, w * 0.05, false);
+    if (shadow) canvas.drawShadow(shield, Colors.black, w * 0.05, false);
     // Gold border.
     canvas.drawPath(
       shield,
@@ -386,5 +389,6 @@ class BrandCrestPainter extends CustomPainter {
   bool shouldRepaint(BrandCrestPainter old) =>
       old.dark != dark ||
       old.monochrome != monochrome ||
-      old.monochromeColor != monochromeColor;
+      old.monochromeColor != monochromeColor ||
+      old.shadow != shadow;
 }

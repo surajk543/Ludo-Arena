@@ -52,21 +52,21 @@ void main() {
   });
 
   test('iOS launch screen: crest image + light/dark brand color', () {
-    const dir = 'ios/Runner/Assets.xcassets/LaunchImage.imageset';
-    for (final (name, width) in [
-      ('LaunchImage.png', 132),
-      ('LaunchImage@2x.png', 264),
-      ('LaunchImage@3x.png', 396),
+    const dir = 'ios/Runner/Assets.xcassets/LaunchCrest.imageset';
+    for (final (name, scale) in [
+      ('LaunchCrest.png', 1),
+      ('LaunchCrest@2x.png', 2),
+      ('LaunchCrest@3x.png', 3),
     ]) {
       final (w, h, type) = _png('$dir/$name');
-      expect(w, width);
-      expect(h, (width * 1.08).round());
+      // 184 x 232 pt canvas (crest 132 pt wide + room for its shadow).
+      expect((w, h), (184 * scale, 232 * scale));
       expect(type, _rgba);
     }
     final storyboard = File(
       'ios/Runner/Base.lproj/LaunchScreen.storyboard',
     ).readAsStringSync();
-    expect(storyboard, contains('image="LaunchImage"'));
+    expect(storyboard, contains('image="LaunchCrest"'));
     expect(storyboard, contains('name="LaunchBackground"'));
     final colors = File(
       'ios/Runner/Assets.xcassets/LaunchBackground.colorset/Contents.json',
@@ -86,7 +86,8 @@ void main() {
     for (final d in densities.entries) {
       final legacy = (48 * d.value).round();
       final layer = (108 * d.value).round();
-      final logo = (132 * d.value).round();
+      final logoW = (184 * d.value).round();
+      final logoH = (232 * d.value).round();
       final m = '$res/mipmap-${d.key}';
       expect(_png('$m/ic_launcher.png'), (legacy, legacy, _rgba));
       expect(_png('$m/ic_launcher_round.png'), (legacy, legacy, _rgba));
@@ -94,8 +95,14 @@ void main() {
       expect(_png('$m/ic_launcher_background.png'), (layer, layer, _rgb));
       expect(_png('$m/ic_launcher_monochrome.png'), (layer, layer, _rgba));
       expect(_png('$res/drawable-${d.key}/launch_logo.png'), (
-        logo,
-        (logo * 1.08).round(),
+        logoW,
+        logoH,
+        _rgba,
+      ));
+      final splash = (288 * d.value).round();
+      expect(_png('$res/drawable-${d.key}/splash_icon.png'), (
+        splash,
+        splash,
         _rgba,
       ));
     }
@@ -126,7 +133,7 @@ void main() {
         xml,
         contains(
           '<item name="android:windowSplashScreenAnimatedIcon">'
-          '@mipmap/ic_launcher_foreground</item>',
+          '@drawable/splash_icon</item>',
         ),
       );
     }

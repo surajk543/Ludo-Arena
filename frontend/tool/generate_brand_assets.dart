@@ -19,9 +19,10 @@
 //     adaptive_monochrome_1024.png    single-color silhouette (themed icon)
 //     launch_logo_1024.png            crest on transparent (launch screens)
 //   ios/Runner/Assets.xcassets/AppIcon.appiconset/   every size, NO alpha
-//   ios/Runner/Assets.xcassets/LaunchImage.imageset/ crest @1x/@2x/@3x
+//   ios/Runner/Assets.xcassets/LaunchCrest.imageset/ crest @1x/@2x/@3x
 //   android/app/src/main/res/mipmap-*/              legacy + round + adaptive
 //   android/app/src/main/res/drawable-*/launch_logo.png  pre-Android-12 splash
+//   android/app/src/main/res/drawable-*/splash_icon.png  Android 12+ splash
 //
 // The XML that references these (adaptive icon, splash styles, storyboard)
 // is hand-written and committed next to them.
@@ -43,6 +44,12 @@ const double launchLogoWidth = 132;
 
 /// Crest height / width (BrandLogo paints `Size(size, size * 1.08)`).
 const double crestAspect = 1.08;
+
+/// Launch-logo canvas in points/dp: the 132-wide crest centered with room on
+/// every side for its drop shadow (a tighter canvas would cut the shadow off
+/// in a visible straight line).
+const double launchCanvasWidth = 184;
+const double launchCanvasHeight = 232;
 
 void main() {
   test('generate brand assets', () async {
@@ -83,8 +90,8 @@ void main() {
     await _write(
       'assets/branding/launch_logo_1024.png',
       1024,
-      (1024 * crestAspect).round(),
-      paintCrestOnly,
+      (1024 * launchCanvasHeight / launchCanvasWidth).round(),
+      paintLaunchLogo,
     );
 
     // ---- iOS app icon (all sizes in Contents.json; opaque, no alpha) ----
@@ -119,12 +126,11 @@ void main() {
     // LaunchBackground color set) ----
     for (final scale in [1, 2, 3]) {
       final suffix = scale == 1 ? '' : '@${scale}x';
-      final w = (launchLogoWidth * scale).round();
       await _write(
-        'ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage$suffix.png',
-        w,
-        (w * crestAspect).round(),
-        paintCrestOnly,
+        'ios/Runner/Assets.xcassets/LaunchCrest.imageset/LaunchCrest$suffix.png',
+        (launchCanvasWidth * scale).round(),
+        (launchCanvasHeight * scale).round(),
+        paintLaunchLogo,
       );
     }
 
@@ -171,12 +177,18 @@ void main() {
         adaptive,
         paintAdaptiveMonochrome,
       );
-      final logoW = (launchLogoWidth * d.value).round();
+      final splash = (splashIconCanvas * d.value).round();
+      await _write(
+        '$res/drawable-${d.key}/splash_icon.png',
+        splash,
+        splash,
+        paintSplashIcon,
+      );
       await _write(
         '$res/drawable-${d.key}/launch_logo.png',
-        logoW,
-        (logoW * crestAspect).round(),
-        paintCrestOnly,
+        (launchCanvasWidth * d.value).round(),
+        (launchCanvasHeight * d.value).round(),
+        paintLaunchLogo,
       );
     }
   });
@@ -217,11 +229,12 @@ void paintCrest(
   Offset center,
   double width, {
   bool monochrome = false,
+  bool shadow = true,
 }) {
   final size = Size(width, width * crestAspect);
   canvas.save();
   canvas.translate(center.dx - size.width / 2, center.dy - size.height / 2);
-  BrandCrestPainter(monochrome: monochrome).paint(canvas, size);
+  BrandCrestPainter(monochrome: monochrome, shadow: shadow).paint(canvas, size);
   canvas.restore();
 }
 
@@ -242,8 +255,7 @@ void paintIcon(Canvas canvas, Size size) {
 
 /// Adaptive-icon layers use a 108-unit canvas whose central 66-unit circle
 /// is always visible; the crest (52% of the canvas wide) stays inside it with
-/// margin, also for the Android 12+ splash, which shows the foreground in a
-/// 192/288 circle.
+/// margin.
 const double adaptiveCrestFraction = 0.52;
 
 void paintAdaptiveForeground(Canvas canvas, Size size) {
@@ -298,11 +310,28 @@ void paintLegacyRound(Canvas canvas, Size size) {
   );
 }
 
-/// The crest alone on a transparent canvas (launch screens).
-void paintCrestOnly(Canvas canvas, Size size) {
-  // Leave room for the shield's drop shadow at the bottom edge.
-  final width = size.width * 0.94;
-  paintCrest(canvas, (Offset.zero & size).center, width);
+/// Android 12+ system splash icon: a 288dp canvas of which the system shows
+/// the central 192dp circle. The crest is drawn at the in-app splash size
+/// (132dp wide) and without its drop shadow, which the circle would clip.
+const double splashIconCanvas = 288;
+
+void paintSplashIcon(Canvas canvas, Size size) {
+  paintCrest(
+    canvas,
+    (Offset.zero & size).center,
+    size.width * launchLogoWidth / splashIconCanvas,
+    shadow: false,
+  );
+}
+
+/// The launch-screen crest (132 wide on the 184 x 232 canvas, centered) on
+/// a transparent background; the screen color comes from the platform.
+void paintLaunchLogo(Canvas canvas, Size size) {
+  paintCrest(
+    canvas,
+    (Offset.zero & size).center,
+    size.width * launchLogoWidth / launchCanvasWidth,
+  );
 }
 
 // ---------------------------------------------------------------------------
