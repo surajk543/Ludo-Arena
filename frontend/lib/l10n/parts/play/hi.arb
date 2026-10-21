@@ -111,6 +111,8 @@
   "playForfeitTimeouts": "3 बारियाँ चूकने पर {name} को हटा दिया गया",
   "playPlayerDisconnected": "ऑफ़लाइन",
   "playPlayerForfeited": "चला गया",
+  "playPlayerOnline": "ऑनलाइन",
+  "playPlayerMuted": "म्यूट",
   "playPanelTurnA11y": "अभी इनकी बारी",
   "playStrikesA11y": "{count, plural, =1{1 बारी चूकी} other{{count} बारियाँ चूकीं}}",
   "playTokensHome": "{total} में से {home} गोटियाँ घर पहुँचीं",

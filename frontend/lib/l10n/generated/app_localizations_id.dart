@@ -2441,6 +2441,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get playPlayerForfeited => 'Keluar';
 
   @override
+  String get playPlayerOnline => 'Online';
+
+  @override
+  String get playPlayerMuted => 'Dibisukan';
+
+  @override
   String get playPanelTurnA11y => 'giliran saat ini';
 
   @override
@@ -2926,6 +2932,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get socialReported => 'Dilaporkan';
 
   @override
+  String get socialMutePlayer => 'Bisukan pemain';
+
+  @override
+  String get socialUnmutePlayer => 'Bunyikan pemain';
+
+  @override
+  String get socialMutedNote =>
+      'Kamu tidak akan melihat chat atau emote pemain ini.';
+
+  @override
   String get socialAlreadyReported =>
       'Kamu sudah melaporkan pemain ini dalam 24 jam terakhir.';
 
@@ -2959,7 +2975,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get socialReasonOffensiveName => 'Nama yang menyinggung';
 
   @override
-  String get socialReasonAbusiveBehavior => 'Perilaku kasar';
+  String get socialReasonAbusiveBehavior => 'Pelecehan atau chat kasar';
 
   @override
   String get socialReasonLeavingOrStalling =>

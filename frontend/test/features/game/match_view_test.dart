@@ -246,6 +246,70 @@ void main() {
     expect(find.text('Good game!'), findsNothing);
   });
 
+  testWidgets('presence follows player.disconnected / player.connected '
+      'deltas on every pod, mine included', (tester) async {
+    final room = ludoRoom(turnSeat: 1);
+    final h = await _pumpGame(tester, room);
+    Finder online(int seat) => find.byKey(ValueKey('pod-online-$seat'));
+    Finder offline(int seat) => find.byKey(ValueKey('pod-offline-$seat'));
+    for (final seat in [0, 1, 2, 3]) {
+      expect(online(seat), findsOneWidget, reason: 'seat $seat');
+      expect(offline(seat), findsNothing, reason: 'seat $seat');
+    }
+
+    RoomSnapshot withSeat(RoomSnapshot r, int seat, int v, bool connected) =>
+        r.copyWith(
+          v: v,
+          players: [
+            for (final p in r.players)
+              p.seat == seat ? p.copyWith(connected: connected) : p,
+          ],
+        );
+
+    final gone = withSeat(room, 2, room.v + 1, false);
+    h.controller.pushDelta(
+      PlayerConnectionEvent(
+        roomId: _roomId,
+        v: gone.v,
+        seat: 2,
+        connected: false,
+      ),
+      gone,
+    );
+    await settleAnimations(tester);
+    expect(offline(2), findsOneWidget);
+    expect(online(2), findsNothing);
+    expect(online(1), findsOneWidget);
+
+    final back = withSeat(gone, 2, gone.v + 1, true);
+    h.controller.pushDelta(
+      PlayerConnectionEvent(
+        roomId: _roomId,
+        v: back.v,
+        seat: 2,
+        connected: true,
+      ),
+      back,
+    );
+    await settleAnimations(tester);
+    expect(online(2), findsOneWidget);
+    expect(offline(2), findsNothing);
+
+    // My own pod too.
+    final meGone = withSeat(back, 0, back.v + 1, false);
+    h.controller.pushDelta(
+      PlayerConnectionEvent(
+        roomId: _roomId,
+        v: meGone.v,
+        seat: 0,
+        connected: false,
+      ),
+      meGone,
+    );
+    await settleAnimations(tester);
+    expect(offline(0), findsOneWidget);
+  });
+
   testWidgets('incoming bubbles appear near the sender when not muted', (
     tester,
   ) async {

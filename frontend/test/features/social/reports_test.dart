@@ -129,7 +129,12 @@ void main() {
         'rep_1': ('Zaid', 'Cheating', 'Submitted', 'submitted'),
         'rep_2': ('Neha', 'Offensive name', 'Under review', 'reviewing'),
         'rep_3': ('Omar', 'Leaving or stalling', 'Action taken', 'actionTaken'),
-        'rep_4': ('Lina', 'Abusive behavior', 'Dismissed', 'dismissed'),
+        'rep_4': (
+          'Lina',
+          'Harassment or abusive chat',
+          'Dismissed',
+          'dismissed',
+        ),
       };
       for (final MapEntry(key: id, value: v) in statuses.entries) {
         await scrollTo(tester, byKeyString('report-$id'));

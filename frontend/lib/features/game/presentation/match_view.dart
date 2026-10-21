@@ -19,6 +19,7 @@ import '../../../core/time/server_clock.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/game_visuals/game_visuals.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../social/application/muted_players.dart';
 import '../../social/presentation/player_actions_sheet.dart';
 import '../application/match_event_sequencer.dart';
 import '../application/match_result_view.dart';
@@ -42,7 +43,8 @@ import 'widgets/results_panel.dart';
 ///   [MatchEventSequencer] (dice → move → turn, snap on snapshots).
 /// - Player panels around the board (seat corners), dice dock, status line.
 /// - Roll / move with the live `turnSeq`, guarded against duplicate taps.
-/// - Quick chat + emotes with a client throttle and local mute.
+/// - Quick chat + emotes with a client throttle, local mute and per-player
+///   mute (from the player's pod).
 /// - Reconnect banner (non-blocking), leave/forfeit confirmation.
 /// - Victory effect → results with rewards and rematch.
 class MatchView extends ConsumerStatefulWidget {
@@ -389,11 +391,21 @@ class _MatchViewState extends ConsumerState<MatchView> {
       localMuted: _localMute,
     );
     if (!policy.shouldShow(fromSelf: fromSelf)) return;
+    if (!fromSelf && _seatMuted(seat)) return;
     final l10n = AppLocalizations.of(context);
     final line = text == null ? null : PlayText.quickChat(l10n, text);
     if (text != null && line == null) return; // unknown id: never shown raw
     _bubbles.show(seat, text: line, emoteId: emoteId);
     _feedback.chat();
+  }
+
+  /// Whether the player in [seat] is muted from their pod.
+  bool _seatMuted(int seat) {
+    final room =
+        _stage?.sequencer.presented.value ??
+        ref.read(activeRoomControllerProvider).room;
+    final uid = room?.playerAtSeat(seat)?.uid;
+    return uid != null && ref.read(mutedPlayersProvider).contains(uid);
   }
 
   Future<void> _openChat() async {
@@ -433,8 +445,8 @@ class _MatchViewState extends ConsumerState<MatchView> {
 
   // ------------------------------------------------------- player sheet
 
-  /// Opponent options (add friend / report). Never for my own seat; only
-  /// the profile for spectators and bots.
+  /// Opponent options (add friend / mute / report), the same for every
+  /// opponent. Never for my own seat; only the profile for spectators.
   Future<void> _openPlayer(RoomPlayer p) async {
     final live = ref.read(activeRoomControllerProvider);
     if (_playerSheetOpen || p.uid == live.selfUid) return;
@@ -452,13 +464,16 @@ class _MatchViewState extends ConsumerState<MatchView> {
           level: p.level,
           frameId: p.cosmetics.frame,
           seatColor: SeatColor.tryFromName(p.color),
-          bot: p.bot,
         ),
         roomId: room?.id ?? widget.roomId,
         canAct: seated,
       );
     } finally {
       _playerSheetOpen = false;
+    }
+    // Muting from the sheet also hides the bubble already on screen.
+    if (mounted && ref.read(mutedPlayersProvider).contains(p.uid)) {
+      _bubbles.hide(p.seat);
     }
   }
 
@@ -749,6 +764,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
                       links: _links,
                       turnTotal: _turnTotal,
                       onPlayerTap: _openPlayer,
+                      mutedUids: ref.watch(mutedPlayersProvider),
                       topBar: _TopBar(
                         room: presented,
                         onLeave: _onBack,
@@ -921,6 +937,7 @@ class _MatchLayout extends StatelessWidget {
     required this.topBar,
     required this.dice,
     required this.status,
+    this.mutedUids = const {},
   });
 
   final RoomSnapshot room;
@@ -930,6 +947,9 @@ class _MatchLayout extends StatelessWidget {
   final Map<int, LayerLink> links;
   final int Function(RoomSnapshot) turnTotal;
   final ValueChanged<RoomPlayer> onPlayerTap;
+
+  /// Players muted from their pod (a muted icon on the pod).
+  final Set<String> mutedUids;
   final Widget topBar;
   final Widget dice;
   final Widget status;
@@ -958,6 +978,7 @@ class _MatchLayout extends StatelessWidget {
           isTurn: isTurn,
           turnTotalMs: isTurn ? turnTotal(room) : 20000,
           stacked: stacked,
+          muted: p.seat != selfSeat && mutedUids.contains(p.uid),
           onTap: p.seat == selfSeat ? null : () => onPlayerTap(p),
         ),
       ),

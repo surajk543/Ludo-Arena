@@ -3338,6 +3338,14 @@
   "@playPlayerForfeited": {
     "description": "Player panel chip: forfeited / left."
   },
+  "playPlayerOnline": "Online",
+  "@playPlayerOnline": {
+    "description": "Accessibility: the player is connected (green dot on the pod)."
+  },
+  "playPlayerMuted": "Muted",
+  "@playPlayerMuted": {
+    "description": "Accessibility: the user muted this player (icon by the name on the pod)."
+  },
   "playPanelTurnA11y": "current turn",
   "@playPanelTurnA11y": {
     "description": "Accessibility: this player has the current turn."
@@ -4019,6 +4027,18 @@
   "@socialReported": {
     "description": "Player sheet: this player was already reported (disabled)."
   },
+  "socialMutePlayer": "Mute player",
+  "@socialMutePlayer": {
+    "description": "Player sheet: hide this player's quick chat and emotes on this device."
+  },
+  "socialUnmutePlayer": "Unmute player",
+  "@socialUnmutePlayer": {
+    "description": "Player sheet: show this muted player's quick chat and emotes again."
+  },
+  "socialMutedNote": "You won't see this player's chat or emotes.",
+  "@socialMutedNote": {
+    "description": "Player sheet: shown under Unmute while the player is muted."
+  },
   "socialAlreadyReported": "You reported this player in the last 24 hours.",
   "@socialAlreadyReported": {
     "description": "Player was reported in the last 24 hours (also 409 already_reported)."
@@ -4077,9 +4097,9 @@
   "@socialReasonOffensiveName": {
     "description": "Report reason."
   },
-  "socialReasonAbusiveBehavior": "Abusive behavior",
+  "socialReasonAbusiveBehavior": "Harassment or abusive chat",
   "@socialReasonAbusiveBehavior": {
-    "description": "Report reason."
+    "description": "Report reason (wire value abusive_behavior): harassment, insults or abusive quick chat."
   },
   "socialReasonLeavingOrStalling": "Leaving or stalling",
   "@socialReasonLeavingOrStalling": {

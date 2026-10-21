@@ -4147,6 +4147,18 @@ abstract class AppLocalizations {
   /// **'Left'**
   String get playPlayerForfeited;
 
+  /// Accessibility: the player is connected (green dot on the pod).
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get playPlayerOnline;
+
+  /// Accessibility: the user muted this player (icon by the name on the pod).
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get playPlayerMuted;
+
   /// Accessibility: this player has the current turn.
   ///
   /// In en, this message translates to:
@@ -4981,6 +4993,24 @@ abstract class AppLocalizations {
   /// **'Reported'**
   String get socialReported;
 
+  /// Player sheet: hide this player's quick chat and emotes on this device.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute player'**
+  String get socialMutePlayer;
+
+  /// Player sheet: show this muted player's quick chat and emotes again.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute player'**
+  String get socialUnmutePlayer;
+
+  /// Player sheet: shown under Unmute while the player is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t see this player\'s chat or emotes.'**
+  String get socialMutedNote;
+
   /// Player was reported in the last 24 hours (also 409 already_reported).
   ///
   /// In en, this message translates to:
@@ -5029,10 +5059,10 @@ abstract class AppLocalizations {
   /// **'Offensive name'**
   String get socialReasonOffensiveName;
 
-  /// Report reason.
+  /// Report reason (wire value abusive_behavior): harassment, insults or abusive quick chat.
   ///
   /// In en, this message translates to:
-  /// **'Abusive behavior'**
+  /// **'Harassment or abusive chat'**
   String get socialReasonAbusiveBehavior;
 
   /// Report reason.
