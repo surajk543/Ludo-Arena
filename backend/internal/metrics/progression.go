@@ -48,4 +48,9 @@ var (
 	AssetURLsSigned = counter0("asset_urls_signed_total", "Presigned asset URLs handed out.")
 	// ProfilePictureCatalogReloads counts catalogue reloads: ok | error.
 	ProfilePictureCatalogReloads = counter("profile_picture_catalog_reloads_total", "Profile-picture catalogue reloads by result.", "result")
+	// StoreEmotePurchases counts Store emotes (em_…) bought with diamonds,
+	// by format.
+	StoreEmotePurchases = counter("store_emote_purchases_total", "Store emotes bought.", "format")
+	// StoreEmoteCatalogReloads counts Store emote catalogue reloads: ok | error.
+	StoreEmoteCatalogReloads = counter("store_emote_catalog_reloads_total", "Store emote catalogue reloads by result.", "result")
 )

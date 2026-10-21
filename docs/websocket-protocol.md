@@ -291,7 +291,7 @@ appear in public lobbies.
 | `game.request_sync` | `{"roomId":"r_…"}` (optional) | `game.state` | Without `roomId` → the user's active room |
 | `game.rematch` | `{"roomId":"r_…","accept":true}` | `room.rematch` (broadcast) | Only while `rematch.open` |
 | `chat.quick` | `{"roomId":"r_…","msg":"gg"}` | broadcast `chat.quick` | Predefined ids only; 1 per 3 s, 10 per minute (bots too) |
-| `chat.emote` | `{"roomId":"r_…","emote":"emote_wave"}` | broadcast `chat.emote` | Emote must be owned (Collection Room; a bot: its persona's emotes, else `item_not_owned`); same limits |
+| `chat.emote` | `{"roomId":"r_…","emote":"emote_wave"}` or a Store emote `{"roomId":"r_…","emote":"em_party"}` | broadcast `chat.emote` | Emote must be owned (Collection Room or bought in the Shop's Emotes; a bot: its persona's emotes, else `item_not_owned`); id ≤ 64 characters; same limits |
 
 Quick-chat ids: `gg` (Good game!), `nice_move` (Nice move!), `well_played`
 (Well played!), `rematch` (Rematch?), `again` (Let's play again.), `good_luck`
@@ -322,7 +322,7 @@ Quick-chat ids: `gg` (Good game!), `nice_move` (Nice move!), `well_played`
 | `wallet.updated` | `{"coins","diamonds","delta":{"coins","diamonds"},"reason":"entry_fee"\|"payout"\|"mission"\|"purchase"\|"level"}` | – |
 | `progression.updated` | `{"xp","level","xpGained","levelUp"?:true,"unlocked":["item_id"],"missions":[{"id","progress","target","completed"}]}` | – |
 | `chat.quick` | `{"roomId","seat","msg"}` | – (not versioned) |
-| `chat.emote` | `{"roomId","seat","emote"}` | – (not versioned) |
+| `chat.emote` | `{"roomId","seat","emote","asset"?:{"path","format":"lottie"\|"image"}}` — `asset` only for Store emotes (`em_…`): the art's object path, signed with `POST /assets/sign`, downloaded once and kept on the device; absent for built-in emotes. Clients ignore a malformed `asset` (or a path outside `emotes/`) and show a generic emote | – (not versioned) |
 | `social.invite` | `{"inviteId","fromUid","fromName","roomId","code","game","expiresAt"}` | – |
 | `social.friend_request` | `{"fromUid","fromName"}` | – |
 

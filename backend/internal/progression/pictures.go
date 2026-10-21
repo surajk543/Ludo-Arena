@@ -108,15 +108,14 @@ func (p *pictures) get() *pictureCatalog {
 	return &pictureCatalog{byID: map[string]*pictureRow{}, byPath: map[string]*pictureRow{}}
 }
 
-// ReloadPictures replaces the in-memory catalogue from PostgreSQL.
-func (s *Service) ReloadPictures(ctx context.Context) error {
-	s.pics.loadMu.Lock()
-	defer s.pics.loadMu.Unlock()
+// loadCatalogue reads a catalogue table into an immutable snapshot. table
+// is a constant: progression.profile_pictures or progression.emotes (the
+// Store emotes, emotes.go), which have the same columns.
+func (s *Service) loadCatalogue(ctx context.Context, table string) (*pictureCatalog, error) {
 	rows, err := s.pool.Query(ctx, `SELECT id, name, format, path, price_diamonds, sort_order, active
-		FROM progression.profile_pictures ORDER BY sort_order, id`)
+		FROM `+table+` ORDER BY sort_order, id`)
 	if err != nil {
-		metrics.ProfilePictureCatalogReloads.WithLabelValues("error").Inc()
-		return err
+		return nil, err
 	}
 	list, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (*pictureRow, error) {
 		var r pictureRow
@@ -124,8 +123,7 @@ func (s *Service) ReloadPictures(ctx context.Context) error {
 		return &r, err
 	})
 	if err != nil {
-		metrics.ProfilePictureCatalogReloads.WithLabelValues("error").Inc()
-		return err
+		return nil, err
 	}
 	c := &pictureCatalog{rows: list, byID: make(map[string]*pictureRow, len(list)), byPath: make(map[string]*pictureRow, len(list))}
 	for _, r := range list {
@@ -133,6 +131,18 @@ func (s *Service) ReloadPictures(ctx context.Context) error {
 		if r.Active {
 			c.active = append(c.active, r)
 		}
+	}
+	return c, nil
+}
+
+// ReloadPictures replaces the in-memory catalogue from PostgreSQL.
+func (s *Service) ReloadPictures(ctx context.Context) error {
+	s.pics.loadMu.Lock()
+	defer s.pics.loadMu.Unlock()
+	c, err := s.loadCatalogue(ctx, "progression.profile_pictures")
+	if err != nil {
+		metrics.ProfilePictureCatalogReloads.WithLabelValues("error").Inc()
+		return err
 	}
 	s.pics.cur.Store(c)
 	metrics.ProfilePictureCatalogReloads.WithLabelValues("ok").Inc()
@@ -150,8 +160,9 @@ func (s *Service) ensurePicture(ctx context.Context, id string) {
 	}
 }
 
-// runPictureReload reloads the catalogue every PictureReload until ctx ends.
-func (s *Service) runPictureReload(ctx context.Context) {
+// runCatalogueReload reloads the profile-picture and Store emote catalogues
+// every PictureReload until ctx ends.
+func (s *Service) runCatalogueReload(ctx context.Context) {
 	t := time.NewTicker(s.picReload)
 	defer t.Stop()
 	for {
@@ -162,6 +173,9 @@ func (s *Service) runPictureReload(ctx context.Context) {
 		}
 		if err := s.ReloadPictures(ctx); err != nil && ctx.Err() == nil {
 			s.log.Warn("profile picture catalogue reload failed; keeping the previous one", "error", err.Error())
+		}
+		if err := s.ReloadEmotes(ctx); err != nil && ctx.Err() == nil {
+			s.log.Warn("emote catalogue reload failed; keeping the previous one", "error", err.Error())
 		}
 	}
 }
@@ -238,14 +252,16 @@ func encodeCursor(r *pictureRow) string {
 	return base64.RawURLEncoding.EncodeToString([]byte(strconv.Itoa(r.SortOrder) + ":" + r.ID))
 }
 
-func decodeCursor(c string) (sortOrder int, id string, err error) {
+// decodeCursor parses a shelf cursor whose id must satisfy validID (the
+// catalogue's id shape).
+func decodeCursor(c string, validID func(string) bool) (sortOrder int, id string, err error) {
 	raw, err := base64.RawURLEncoding.DecodeString(c)
 	if err != nil {
 		return 0, "", ErrBadStoreQuery
 	}
 	so, id, ok := strings.Cut(string(raw), ":")
 	n, err := strconv.Atoi(so)
-	if !ok || err != nil || !assets.ValidPictureID(id) {
+	if !ok || err != nil || !validID(id) {
 		return 0, "", ErrBadStoreQuery
 	}
 	return n, id, nil
@@ -312,7 +328,7 @@ func (s *Service) StorePictures(ctx context.Context, userID uuid.UUID, filter st
 	)
 	if cursor != "" {
 		var err error
-		if afterSort, afterID, err = decodeCursor(cursor); err != nil {
+		if afterSort, afterID, err = decodeCursor(cursor, assets.ValidPictureID); err != nil {
 			return PicturePage{}, err
 		}
 	}
@@ -463,17 +479,20 @@ func (s *Service) ApplyPicture(ctx context.Context, userID uuid.UUID, id string)
 	return &v, nil
 }
 
-// SignAssetPaths presigns the catalogue paths among paths (unknown paths are
-// left out, never signed). ok is false when no signer is configured.
+// SignAssetPaths presigns the catalogue paths among paths: profile pictures
+// and Store emotes (unknown paths are left out, never signed). ok is false
+// when no signer is configured.
 func (s *Service) SignAssetPaths(paths []string) (urls map[string]string, expiresAt time.Time, ok bool) {
 	if s.signer == nil {
 		return nil, time.Time{}, false
 	}
-	cat := s.pics.get()
+	pics, emos := s.pics.get(), s.emos.get()
 	known := make([]string, 0, len(paths))
 	seen := make(map[string]bool, len(paths))
 	for _, p := range paths {
-		if _, in := cat.byPath[p]; in && !seen[p] {
+		_, isPic := pics.byPath[p]
+		_, isEmote := emos.byPath[p]
+		if in := isPic || isEmote; in && !seen[p] {
 			seen[p] = true
 			known = append(known, p)
 		}

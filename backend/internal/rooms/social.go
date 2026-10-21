@@ -73,7 +73,7 @@ func (s *Service) QuickChat(ctx context.Context, c Caller, roomID, msg, emote st
 			return protocol.ErrItemNotOwned
 		}
 		metrics.QuickChats.WithLabelValues("emote").Inc()
-		return s.publishRoom(ctx, r, protocol.Encode(protocol.TChatEmote, "", map[string]any{"roomId": roomID, "seat": seat, "emote": emote}))
+		return s.publishRoom(ctx, r, s.emoteMsg(roomID, seat, emote))
 	}
 	if emote != "" {
 		if owns == nil {
@@ -87,10 +87,23 @@ func (s *Service) QuickChat(ctx context.Context, c Caller, roomID, msg, emote st
 			return protocol.ErrItemNotOwned
 		}
 		metrics.QuickChats.WithLabelValues("emote").Inc()
-		return s.publishRoom(ctx, r, protocol.Encode(protocol.TChatEmote, "", map[string]any{"roomId": roomID, "seat": seat, "emote": emote}))
+		return s.publishRoom(ctx, r, s.emoteMsg(roomID, seat, emote))
 	}
 	metrics.QuickChats.WithLabelValues("quick").Inc()
 	return s.publishRoom(ctx, r, protocol.Encode(protocol.TChatQuick, "", map[string]any{"roomId": roomID, "seat": seat, "msg": msg}))
+}
+
+// emoteMsg encodes the chat.emote broadcast. A Store emote (em_… id) carries
+// its art (object path and format, from the in-memory catalogue) so every
+// receiver can download and cache it; built-in emotes carry none.
+func (s *Service) emoteMsg(roomID string, seat int, emote string) []byte {
+	p := protocol.ChatEmote{RoomID: roomID, Seat: seat, Emote: emote}
+	if s.Inventory != nil {
+		if path, format, ok := s.Inventory.EmoteAsset(emote); ok {
+			p.Asset = &protocol.EmoteAsset{Path: path, Format: format}
+		}
+	}
+	return protocol.Encode(protocol.TChatEmote, "", p)
 }
 
 // Invite sends a private-room invite to a friend.
