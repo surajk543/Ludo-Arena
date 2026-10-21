@@ -732,6 +732,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get errorInvalidName =>
+      'لا يمكن استخدام هذا الاسم. يُرجى اختيار اسم آخر.';
+
+  @override
+  String get errorInvalidNameTooShort =>
+      'يجب أن يتكوّن الاسم من 3 أحرف على الأقل.';
+
+  @override
+  String get errorInvalidNameTooLong =>
+      'يمكن أن يتكوّن الاسم من 16 حرفًا كحد أقصى.';
+
+  @override
+  String get errorInvalidNameCharacters =>
+      'استخدم الحروف والأرقام والمسافات و_ . أو - فقط (حرف واحد على الأقل). بلا رموز تعبيرية أو رموز.';
+
+  @override
+  String get errorInvalidNameReserved =>
+      'هذا الاسم محجوز. يُرجى اختيار اسم آخر.';
+
+  @override
+  String get errorInvalidNameInappropriate =>
+      'هذا الاسم غير مسموح به. يُرجى اختيار اسم لائق.';
+
+  @override
   String get gateSplashTagline => 'ارمِ. تسابق. احكم.';
 
   @override
@@ -2688,6 +2712,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileStatsSection => 'التقدّم';
+
+  @override
+  String get profileEditNameTooltip => 'تعديل الاسم';
+
+  @override
+  String get profileEditNameTitle => 'غيّر اسمك';
+
+  @override
+  String get profileNameLabel => 'الاسم المعروض';
+
+  @override
+  String get profileNameRules =>
+      'من 3 إلى 16 حرفًا. يُسمح بالحروف والأرقام والمسافات و_ . و-.';
+
+  @override
+  String get profileNameNote =>
+      'سيظهر اسمك الجديد للأصدقاء وفي لوحات الصدارة والألعاب الجديدة. تحتفظ اللعبة الجارية بالاسم القديم.';
+
+  @override
+  String profileNameCounterSemantics(int count, int max) {
+    return '$count من $max حرفًا';
+  }
+
+  @override
+  String profileNameSaved(String name) {
+    return 'اسمك الآن $name';
+  }
+
+  @override
+  String get profileNameChangeLimit =>
+      'لقد غيّرت اسمك مرات كثيرة. يُرجى المحاولة لاحقًا.';
+
+  @override
+  String profileNameChangeLimitRetry(String wait) {
+    return 'لقد غيّرت اسمك مرات كثيرة. حاول مرة أخرى بعد $wait.';
+  }
 
   @override
   String get settingsTitle => 'الإعدادات';

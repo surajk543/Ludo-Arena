@@ -199,5 +199,29 @@
         "type": "int"
       }
     }
+  },
+  "errorInvalidName": "That name can't be used. Please choose another one.",
+  "@errorInvalidName": {
+    "description": "Error code invalid_name (display name rejected, unknown reason)."
+  },
+  "errorInvalidNameTooShort": "Your name needs at least 3 characters.",
+  "@errorInvalidNameTooShort": {
+    "description": "invalid_name reason too_short (fewer than 3 characters)."
+  },
+  "errorInvalidNameTooLong": "Your name can have at most 16 characters.",
+  "@errorInvalidNameTooLong": {
+    "description": "invalid_name reason too_long (more than 16 characters)."
+  },
+  "errorInvalidNameCharacters": "Use only letters, numbers, spaces, _ . or - (with at least one letter). No emoji or symbols.",
+  "@errorInvalidNameCharacters": {
+    "description": "invalid_name reason invalid_characters (emoji, symbols, or no letter)."
+  },
+  "errorInvalidNameReserved": "That name is reserved. Please choose another one.",
+  "@errorInvalidNameReserved": {
+    "description": "invalid_name reason reserved (e.g. starts with \"bot\" or contains \"admin\")."
+  },
+  "errorInvalidNameInappropriate": "That name isn't allowed. Please choose a friendly one.",
+  "@errorInvalidNameInappropriate": {
+    "description": "invalid_name reason inappropriate (blocked word)."
   }
 }

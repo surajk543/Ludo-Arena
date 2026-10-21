@@ -731,6 +731,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get errorInvalidName =>
+      'That name can\'t be used. Please choose another one.';
+
+  @override
+  String get errorInvalidNameTooShort =>
+      'Your name needs at least 3 characters.';
+
+  @override
+  String get errorInvalidNameTooLong =>
+      'Your name can have at most 16 characters.';
+
+  @override
+  String get errorInvalidNameCharacters =>
+      'Use only letters, numbers, spaces, _ . or - (with at least one letter). No emoji or symbols.';
+
+  @override
+  String get errorInvalidNameReserved =>
+      'That name is reserved. Please choose another one.';
+
+  @override
+  String get errorInvalidNameInappropriate =>
+      'That name isn\'t allowed. Please choose a friendly one.';
+
+  @override
   String get gateSplashTagline => 'Roll. Race. Rule.';
 
   @override
@@ -2660,6 +2684,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileStatsSection => 'Progress';
+
+  @override
+  String get profileEditNameTooltip => 'Edit name';
+
+  @override
+  String get profileEditNameTitle => 'Change your name';
+
+  @override
+  String get profileNameLabel => 'Display name';
+
+  @override
+  String get profileNameRules =>
+      '3–16 characters. Letters, numbers, spaces, _ . and - are allowed.';
+
+  @override
+  String get profileNameNote =>
+      'Friends, leaderboards and new games will show your new name. A game in progress keeps the old one.';
+
+  @override
+  String profileNameCounterSemantics(int count, int max) {
+    return '$count of $max characters';
+  }
+
+  @override
+  String profileNameSaved(String name) {
+    return 'Your name is now $name';
+  }
+
+  @override
+  String get profileNameChangeLimit =>
+      'You\'ve changed your name too often. Please try again later.';
+
+  @override
+  String profileNameChangeLimitRetry(String wait) {
+    return 'You\'ve changed your name too often. Try again in $wait.';
+  }
 
   @override
   String get settingsTitle => 'Settings';

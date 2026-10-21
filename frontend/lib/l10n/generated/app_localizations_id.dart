@@ -727,6 +727,28 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get errorInvalidName =>
+      'Nama itu tidak bisa dipakai. Silakan pilih nama lain.';
+
+  @override
+  String get errorInvalidNameTooShort => 'Nama minimal 3 karakter.';
+
+  @override
+  String get errorInvalidNameTooLong => 'Nama maksimal 16 karakter.';
+
+  @override
+  String get errorInvalidNameCharacters =>
+      'Gunakan hanya huruf, angka, spasi, _ . atau - (minimal satu huruf). Tanpa emoji atau simbol.';
+
+  @override
+  String get errorInvalidNameReserved =>
+      'Nama itu sudah dicadangkan. Silakan pilih nama lain.';
+
+  @override
+  String get errorInvalidNameInappropriate =>
+      'Nama itu tidak diizinkan. Silakan pilih nama yang sopan.';
+
+  @override
   String get gateSplashTagline => 'Lempar. Balapan. Berkuasa.';
 
   @override
@@ -2656,6 +2678,42 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get profileStatsSection => 'Progres';
+
+  @override
+  String get profileEditNameTooltip => 'Ubah nama';
+
+  @override
+  String get profileEditNameTitle => 'Ganti namamu';
+
+  @override
+  String get profileNameLabel => 'Nama tampilan';
+
+  @override
+  String get profileNameRules =>
+      '3–16 karakter. Boleh huruf, angka, spasi, _ . dan -.';
+
+  @override
+  String get profileNameNote =>
+      'Teman, papan peringkat, dan game baru akan menampilkan nama barumu. Game yang sedang berjalan tetap memakai nama lama.';
+
+  @override
+  String profileNameCounterSemantics(int count, int max) {
+    return '$count dari $max karakter';
+  }
+
+  @override
+  String profileNameSaved(String name) {
+    return 'Namamu sekarang $name';
+  }
+
+  @override
+  String get profileNameChangeLimit =>
+      'Kamu terlalu sering mengganti nama. Silakan coba lagi nanti.';
+
+  @override
+  String profileNameChangeLimitRetry(String wait) {
+    return 'Kamu terlalu sering mengganti nama. Coba lagi dalam $wait.';
+  }
 
   @override
   String get settingsTitle => 'Pengaturan';
