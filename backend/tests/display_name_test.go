@@ -232,8 +232,19 @@ func TestDisplayNameSurvivesSignInAndCacheLoss(t *testing.T) {
 	if n, _ := e.rdb.HGet(ctx, "profile:"+g3.UserID, "name").Result(); n != "Rahul Kumar" {
 		t.Fatalf("cache not rebuilt at sign-in: %q", n)
 	}
-	resumed := e.do("POST", "/api/v1/auth/guest/resume", "", map[string]any{"guestSecret": h.GuestSecret})
-	if resumed.Status != 200 || nameOf(t, resumed) != "Putri Ayu" {
+	// h is linked now: it is reached through Google (its guest secret ended
+	// with the link), and its chosen name wins over Google's.
+	if got := nameOf(t, e.do("POST", "/api/v1/auth/google", "", map[string]any{"idToken": e.oidc.googleToken(t, sub("dn-link"), googleAud, time.Hour)})); got != "Putri Ayu" {
+		t.Fatalf("linked guest's Google sign-in after cache loss: %q", got)
+	}
+	// A guest (no provider name at all) gets its chosen name back as well.
+	k := e.guest()
+	if r := e.rename(k.Token, "Siti Rahma"); r.Status != 200 {
+		t.Fatalf("guest rename: %d %s", r.Status, r.Raw)
+	}
+	_ = e.rdb.Del(ctx, "profile:"+k.UserID)
+	resumed := e.do("POST", "/api/v1/auth/guest/resume", "", map[string]any{"guestSecret": k.GuestSecret})
+	if resumed.Status != 200 || nameOf(t, resumed) != "Siti Rahma" {
 		t.Fatalf("guest resume after cache loss: %d %s", resumed.Status, resumed.Raw)
 	}
 }

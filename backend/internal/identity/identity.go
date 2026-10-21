@@ -164,33 +164,98 @@ func (s *Store) createAccount(ctx context.Context, id uuid.UUID, idents []ident,
 
 // Link attaches (provider, subject) to an existing account. It never merges
 // accounts or moves currency. Linking the same identity twice is idempotent.
+//
+// Linking Google, Facebook or Apple ends the account's life as a device
+// guest: in the same transaction its guest secret and device binding are
+// removed, so neither "Play as guest" nor a reinstall on that device
+// resolves to it any more — it is reached by signing in with a linked
+// provider (docs/authentication.md "Guest persistence"). The transaction
+// holds the account's bind lock, so a concurrent BindDevice cannot re-bind
+// it.
 func (s *Store) Link(ctx context.Context, userID uuid.UUID, provider, subject string) error {
 	if !ValidProvider(provider) {
 		return fmt.Errorf("identity: %q cannot be linked", provider) // e.g. Device: use BindDevice
 	}
-	var owner uuid.UUID
-	err := s.pool.QueryRow(ctx, `
-		INSERT INTO identity.auth_identities (provider, subject, user_id) VALUES ($1, $2, $3)
-		ON CONFLICT (provider, subject) DO NOTHING
-		RETURNING user_id`, provider, subject, userID).Scan(&owner)
-	if err == nil {
-		return nil
-	}
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "auth_identities_user_provider" {
-		return ErrProviderTaken
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return err
-	}
-	existing, err := s.Lookup(ctx, provider, subject)
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
-	if existing != userID {
-		return ErrConflict
+	defer tx.Rollback(ctx) //nolint:errcheck
+	if err := lockAccountBinds(ctx, tx, userID); err != nil {
+		return err
 	}
-	return nil
+	var owner uuid.UUID
+	err = tx.QueryRow(ctx, `
+		INSERT INTO identity.auth_identities (provider, subject, user_id) VALUES ($1, $2, $3)
+		ON CONFLICT (provider, subject) DO NOTHING
+		RETURNING user_id`, provider, subject, userID).Scan(&owner)
+	var pgErr *pgconn.PgError
+	switch {
+	case err == nil:
+	case errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "auth_identities_user_provider":
+		return ErrProviderTaken
+	case !errors.Is(err, pgx.ErrNoRows):
+		return err
+	default:
+		// The identity exists: idempotent for this account, else a conflict.
+		err = tx.QueryRow(ctx,
+			`SELECT user_id FROM identity.auth_identities WHERE provider = $1 AND subject = $2`,
+			provider, subject).Scan(&owner)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if owner != userID {
+			return ErrConflict
+		}
+	}
+	if provider != Guest {
+		if _, err := tx.Exec(ctx,
+			`DELETE FROM identity.auth_identities WHERE user_id = $1 AND provider IN ($2, $3)`,
+			userID, Guest, Device); err != nil {
+			return err
+		}
+	}
+	return tx.Commit(ctx)
+}
+
+// linkedProviderSQL matches the providers that make an account "linked"
+// (no longer a guest): the user-facing sign-in providers.
+const linkedProviderSQL = `provider IN ('google', 'facebook', 'apple')`
+
+// querier is the read side shared by the pool and transactions.
+type querier interface {
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
+// isLinked reports whether the account has a Google, Facebook or Apple
+// identity (it is then no longer a guest).
+func isLinked(ctx context.Context, q querier, userID uuid.UUID) (bool, error) {
+	var linked bool
+	err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM identity.auth_identities
+		WHERE user_id = $1 AND `+linkedProviderSQL+`)`, userID).Scan(&linked)
+	return linked, err
+}
+
+// LookupGuest resolves a guest credential — provider Guest (the hash of a
+// guest secret) or Device (a device binding) — to its account. ErrNotFound
+// when there is none, and also when that account has been linked since: a
+// guest credential never signs in to a linked account. (Linking removes
+// both credentials; this also covers rows written before it did.)
+func (s *Store) LookupGuest(ctx context.Context, provider, subject string) (uuid.UUID, error) {
+	var id uuid.UUID
+	var linked bool
+	err := s.pool.QueryRow(ctx, `
+		SELECT i.user_id, EXISTS (SELECT 1 FROM identity.auth_identities l
+			WHERE l.user_id = i.user_id AND l.`+linkedProviderSQL+`)
+		FROM identity.auth_identities i WHERE i.provider = $1 AND i.subject = $2`,
+		provider, subject).Scan(&id, &linked)
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && linked) {
+		return uuid.Nil, ErrNotFound
+	}
+	return id, err
 }
 
 // Providers lists the sign-in providers linked to an account, sorted. The

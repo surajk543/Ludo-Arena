@@ -431,15 +431,15 @@ func TestConcurrentBindDevice(t *testing.T) {
 	}
 }
 
-func TestUnbindDevice(t *testing.T) {
+// Older app versions "forget the guest" on sign-out (DELETE /account/device,
+// then they drop the guest secret). The server keeps the binding, so their
+// next "Play as guest" with the device id is the same guest as well.
+func TestUnbindDeviceKeepsTheGuest(t *testing.T) {
 	e := newEnv(t, envOpts{proxyHops: 1})
 	d := devID("forget")
 	g := parseAuth(t, e.deviceGuest(d))
 	if r := e.do("DELETE", "/api/v1/account/device", g.Token, nil); r.Status != 204 {
 		t.Fatalf("unbind: %d %s", r.Status, r.Raw)
-	}
-	if r := e.deviceResume(d); r.Status != 404 || errCode(r) != "not_found" {
-		t.Fatalf("resume after unbind: %d %s, want 404", r.Status, r.Raw)
 	}
 	// Idempotent, and (like logout) not blocked by the version gate.
 	if r := e.do("DELETE", "/api/v1/account/device", g.Token, nil,
@@ -449,16 +449,15 @@ func TestUnbindDevice(t *testing.T) {
 	if r := e.do("DELETE", "/api/v1/account/device", "", nil); r.Status != 401 {
 		t.Fatalf("unauthenticated unbind: %d", r.Status)
 	}
-	if guests, devices := e.identityCounts(g.UserID); guests != 1 || devices != 0 {
+	if guests, devices := e.identityCounts(g.UserID); guests != 1 || devices != 1 {
 		t.Fatalf("identities after unbind: %d guest, %d device", guests, devices)
 	}
-	// The account itself is untouched (its guest secret still works) ...
-	if res := parseAuth(t, e.do("POST", "/api/v1/auth/guest/resume", "", map[string]any{"guestSecret": g.GuestSecret})); res.UserID != g.UserID {
-		t.Fatalf("guest secret resolved to %s", res.UserID)
+	e.logout(t, g)
+	if r := e.deviceGuest(d); r.Status != 200 || parseAuth(t, r).UserID != g.UserID {
+		t.Fatalf("play as guest after an old app's unbind: %d %s, want the same guest", r.Status, r.Raw)
 	}
-	// ... and the forgotten device starts a fresh guest.
-	if r := e.deviceGuest(d); r.Status != 201 || parseAuth(t, r).UserID == g.UserID {
-		t.Fatalf("guest on a forgotten device: %d %s, want a new account", r.Status, r.Raw)
+	if a := parseAuth(t, e.deviceResume(d)); a.UserID != g.UserID {
+		t.Fatalf("resume after unbind resolved to %s", a.UserID)
 	}
 }
 
@@ -479,14 +478,16 @@ func TestDeviceBindingIsNotALinkedProvider(t *testing.T) {
 	if r := e.do("POST", "/api/v1/account/link/device", tok, map[string]any{"deviceId": d}); r.Status != 404 {
 		t.Fatalf("link/device: %d %s, want 404", r.Status, r.Raw)
 	}
-	// Save Progress makes it a linked account; the binding still never shows
-	// and now restores the linked account.
-	link := e.do("POST", "/api/v1/account/link/google", tok, map[string]any{"idToken": e.oidc.googleToken(t, sub("devicelink"), googleAud, time.Hour)})
-	assertUserProviders(t, "link google", link, false, "google", "guest")
-	linked := e.deviceResume(d)
-	assertUserProviders(t, "device resume (linked)", linked, false, "google", "guest")
-	if parseAuth(t, linked).UserID != g.UserID {
-		t.Fatal("device resume of a linked account resolved elsewhere")
+	// Save Progress makes it a linked account: the guest credential and the
+	// device binding are gone with it (guest_persistence_test.go covers what
+	// the device does next).
+	link := e.do("POST", "/api/v1/account/link/google", tok, map[string]any{"idToken": e.oidc.googleToken(t, devID("devicelink"), googleAud, time.Hour)})
+	assertUserProviders(t, "link google", link, false, "google")
+	if r := e.deviceResume(d); r.Status != 404 || errCode(r) != "not_found" {
+		t.Fatalf("device resume of a linked account: %d %s, want 404", r.Status, r.Raw)
+	}
+	if guests, devices := e.identityCounts(g.UserID); guests != 0 || devices != 0 {
+		t.Fatalf("linked account keeps %d guest / %d device identities", guests, devices)
 	}
 }
 
