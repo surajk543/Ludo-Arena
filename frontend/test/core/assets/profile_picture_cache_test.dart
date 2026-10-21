@@ -64,15 +64,28 @@ void main() {
   late _Downloader downloader;
   late DateTime now;
 
-  ProfilePictureCache newCache({int maxCompositions = 48}) =>
-      ProfilePictureCache(
-        root: () async => root,
-        sign: signer.call,
-        download: downloader.call,
-        now: () => now,
-        signDebounce: Duration.zero,
-        maxCompositions: maxCompositions,
-      );
+  /// [debounce] long enough for every concurrent disk check to finish
+  /// before the batch is signed (the checks are real file I/O).
+  ProfilePictureCache newCache({
+    int maxCompositions = 48,
+    Duration debounce = Duration.zero,
+  }) => ProfilePictureCache(
+    root: () async => root,
+    sign: signer.call,
+    download: downloader.call,
+    now: () => now,
+    signDebounce: debounce,
+    maxCompositions: maxCompositions,
+  );
+
+  /// Waits (real time) until [done], failing after 5 s.
+  Future<void> until(bool Function() done) async {
+    final deadline = DateTime.now().add(const Duration(seconds: 5));
+    while (!done()) {
+      if (DateTime.now().isAfter(deadline)) fail('condition not reached');
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+  }
 
   File fileOf(PlayerPicture p) => File('${root.path}/${p.path}');
 
@@ -156,7 +169,7 @@ void main() {
       ..bodies[a.path] = kTestLottieBytes
       ..bodies[b.path] = kTestPngBytes
       ..gate = Completer<void>();
-    final cache = newCache();
+    final cache = newCache(debounce: const Duration(milliseconds: 300));
     addTearDown(cache.dispose);
 
     final futures = [
@@ -166,6 +179,7 @@ void main() {
       cache.load(b),
       cache.load(b),
     ];
+    await until(() => downloader.urls.length == 2);
     await pumpEventQueue();
     expect(signer.calls, hasLength(1));
     expect(signer.calls.single, unorderedEquals([a.path, b.path]));
@@ -180,11 +194,12 @@ void main() {
   test('sign batches hold at most 50 paths', () async {
     final pictures = [for (var i = 0; i < 60; i++) imagePicture('p$i')];
     downloader.fallback = kTestPngBytes;
-    final cache = newCache();
+    final cache = newCache(debounce: const Duration(milliseconds: 300));
     addTearDown(cache.dispose);
 
     await Future.wait(pictures.map(cache.load));
     expect(signer.calls.map((c) => c.length), [kMaxSignPaths, 10]);
+    expect(signer.calls.expand((c) => c).toSet(), hasLength(60));
     expect(downloader.urls, hasLength(60));
   });
 
