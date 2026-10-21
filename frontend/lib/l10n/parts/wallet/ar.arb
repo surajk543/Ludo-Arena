@@ -1,0 +1,13 @@
+{
+  "walletTitle": "محفظتك",
+  "walletCoinsCaption": "لرسوم دخول المباريات — الفائز يأخذ الحصيلة.",
+  "walletDiamondsCaption": "للعناصر التجميلية المميزة في غرفة المجموعة.",
+  "walletExactBalance": "الرصيد الدقيق: {amount}",
+  "walletVirtualTitle": "عملة افتراضية",
+  "walletVirtualNotice": "العملات والماسات عناصر افتراضية للتسلية فقط. ليست لها قيمة حقيقية ولا يمكن بيعها أو تحويلها أو سحبها أو استبدالها بالمال.",
+  "walletEarnTitle": "كيف تكسب المزيد",
+  "walletEarnWins": "اربح المباريات لتأخذ الحصيلة",
+  "walletEarnMissions": "أكمل المهام اليومية والأسبوعية",
+  "walletEarnLevels": "ارتقِ في المستوى لتنال مكافآت المراحل",
+  "walletRefresh": "تحديث الرصيد"
+}

@@ -1,0 +1,101 @@
+{
+  "boardsColorRed": "Red",
+  "@boardsColorRed": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsColorGreen": "Green",
+  "@boardsColorGreen": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsColorYellow": "Yellow",
+  "@boardsColorYellow": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsColorBlue": "Blue",
+  "@boardsColorBlue": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsLudoBoardLabel": "Ludo board",
+  "@boardsLudoBoardLabel": {
+    "description": "Accessibility label of the whole Ludo board."
+  },
+  "boardsSnakesBoardLabel": "Snakes and Ladders board",
+  "@boardsSnakesBoardLabel": {
+    "description": "Accessibility label of the whole Snakes and Ladders board."
+  },
+  "boardsTokenInBase": "{color} token {number}, in base",
+  "@boardsTokenInBase": {
+    "description": "Accessibility label of a Ludo token that has not left its base yet.",
+    "placeholders": {
+      "color": {"type": "String", "example": "Red"},
+      "number": {"type": "int", "example": "1"}
+    }
+  },
+  "boardsTokenStepsFromHome": "{color} token {number}, {steps, plural, =1{1 square from home} other{{steps} squares from home}}",
+  "@boardsTokenStepsFromHome": {
+    "description": "Accessibility label of a Ludo token on the board; steps is how many squares it still has to move to finish.",
+    "placeholders": {
+      "color": {"type": "String", "example": "Red"},
+      "number": {"type": "int", "example": "1"},
+      "steps": {"type": "int", "example": "3"}
+    }
+  },
+  "boardsTokenHome": "{color} token {number}, finished",
+  "@boardsTokenHome": {
+    "description": "Accessibility label of a Ludo token that reached home.",
+    "placeholders": {
+      "color": {"type": "String", "example": "Red"},
+      "number": {"type": "int", "example": "1"}
+    }
+  },
+  "boardsTokenCanMove": "can move",
+  "@boardsTokenCanMove": {
+    "description": "Appended to a token's accessibility label when the player may move it now."
+  },
+  "boardsTokenMoveHint": "move this token",
+  "@boardsTokenMoveHint": {
+    "description": "Accessibility tap hint for a movable token (read as 'Double tap to move this token')."
+  },
+  "boardsCurrentTurn": "current turn",
+  "@boardsCurrentTurn": {
+    "description": "Appended to a token's accessibility label when it belongs to the player whose turn it is."
+  },
+  "boardsSnakesTokenOnSquare": "{color} token on square {square}",
+  "@boardsSnakesTokenOnSquare": {
+    "description": "Accessibility label of a Snakes and Ladders token.",
+    "placeholders": {
+      "color": {"type": "String", "example": "Red"},
+      "square": {"type": "int", "example": "34"}
+    }
+  },
+  "boardsSnakesTokenAtStart": "{color} token at the start",
+  "@boardsSnakesTokenAtStart": {
+    "description": "Accessibility label of a Snakes and Ladders token that is not on the board yet.",
+    "placeholders": {
+      "color": {"type": "String", "example": "Red"}
+    }
+  },
+  "boardsDiceShowing": "Dice showing {value}",
+  "@boardsDiceShowing": {
+    "description": "Accessibility label of the dice with its current face value.",
+    "placeholders": {
+      "value": {"type": "int", "example": "6"}
+    }
+  },
+  "boardsDiceRolling": "Dice rolling",
+  "@boardsDiceRolling": {
+    "description": "Accessibility label of the dice while it is tumbling."
+  },
+  "boardsDiceRollHint": "roll the dice",
+  "@boardsDiceRollHint": {
+    "description": "Accessibility tap hint for the dice when the player may roll (read as 'Double tap to roll the dice')."
+  },
+  "boardsVictoryCelebration": "Victory celebration",
+  "@boardsVictoryCelebration": {
+    "description": "Accessibility label of the victory celebration animation."
+  },
+  "boardsLevelUp": "Level up",
+  "@boardsLevelUp": {
+    "description": "Accessibility label of the level-up burst animation."
+  }
+}

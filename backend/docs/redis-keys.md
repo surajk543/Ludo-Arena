@@ -1,0 +1,47 @@
+# Redis Key Layout
+
+Redis holds live, mostly ephemeral state. Durable data (wallets, identities,
+progression) is in PostgreSQL. All keys live in one logical database; Redis
+Cluster is **not** supported (commit scripts touch keys not declared in
+`KEYS`). Recommended production settings: `appendonly yes`,
+`appendfsync everysec`, RDB snapshots, `maxmemory-policy noeviction`, private
+network only, AUTH/TLS.
+
+| Key | Type | TTL | Written by | Purpose |
+|---|---|---|---|---|
+| `room:{roomId}` | hash `{rev, s}` | lobby 30 min · playing 3 h · finished 10 min + rematch window · closed 2 min (refreshed on every commit) | rooms | Full authoritative room state (JSON) + optimistic revision |
+| `user:{userId}:room` | string | 6 h | rooms (atomic with room commits, guarded) | One active room per user |
+| `roomcode:{CODE}` | string | room TTL | rooms | Private room code → room id |
+| `mm:open:{pool}:{game}:{variant}:{capacity}` | zset (score = created ms) | — (members removed on start/close) | rooms | Open public lobbies; `pool` = `live` or `loadtest` |
+| `sched` | zset (score = due ms) | — | rooms | Distributed timers: `turn`, `fill`, `lobbykick`, `rematch`, `practice`, `botexp`, `payout`, `record` |
+| `settle:fee:{room}:{round}` / `settle:pay:{room}:{round}` | string | 24 h / 7 d | rooms | Settlement guards (entry fees / payout at most once) |
+| `settle:retry:*`, `record:retry:*` | counter | 1 h | rooms | Bounded retry counters |
+| `bot:assignments` | list | — | rooms | Pending bot assignment ids (long-poll queue) |
+| `botasg:{id}` | string | `BOT_ASSIGNMENT_TTL` | rooms | Assignment payload; claimed with GETDEL |
+| `botsess:{uid}` | string | bot session TTL | rooms | Bot public id → session/room (revocation) |
+| `sess:{sid}` | hash `{uid, cur, actor}` | refresh TTL (sliding) | auth | Session family; deleting it revokes access + refresh |
+| `rt:{sha256}` | string | refresh TTL | auth | Refresh-token hash → session (old hashes remain as reuse tombstones) |
+| `profile:{userId}` | hash `{name, avatar}` | none | profile | Display cache (non-authoritative) |
+| `pubid:{uid}` | string | none | profile | Public id → account id cache |
+| `presence:{userId}` | string | 60 s (refreshed) | gateway | Online indicator (friends list) |
+| `dedup:{userId}:{msgId}` | string | 2 min | gateway | WebSocket command de-duplication |
+| `rl:{rule}:{key}:{window}` | counter | window | ratelimit | Fixed-window rate limits |
+| `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify | Cross-instance event fan-out |
+| progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents, weekly leaderboard, idempotency replays, active-user sketches |
+
+## Atomic commits
+
+Every room mutation runs `commitScript` (Lua): check revision → check guards
+(e.g. "user pointer is unset or already this room") → write state + TTL →
+apply side operations (pointers, codes, open-lobby set, timers, bot queue) →
+`PUBLISH` the ordered event batch. Because Redis runs scripts serially, events
+are published in commit order even with many backend instances.
+
+## Redis restart / data loss
+
+With AOF `everysec`, at most ~1 s of room changes can be lost on a crash.
+Clients detect any resulting version gap or hash mismatch and resync from the
+restored snapshot. If Redis data is lost entirely, live rooms, sessions (users
+sign in again; guests resume with their guest secret), presence and timers are
+lost — wallets, identities and progression are not (PostgreSQL). Game recovery
+across a total Redis loss is **not** provided.

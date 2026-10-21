@@ -1,0 +1,936 @@
+{
+  "@@locale": "en",
+  "playGameVariantTitle": "{game} · {variant}",
+  "@playGameVariantTitle": {
+    "description": "Game title with its rules variant, e.g. 'Ludo · Classic'.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      },
+      "variant": {
+        "type": "String"
+      }
+    }
+  },
+  "playModeOnline": "Online",
+  "@playModeOnline": {
+    "description": "Match type label: public online match."
+  },
+  "playModePrivate": "Private room",
+  "@playModePrivate": {
+    "description": "Match type label: private room with friends."
+  },
+  "playModePractice": "Practice",
+  "@playModePractice": {
+    "description": "Match type label: practice against bots."
+  },
+  "playSeatPlayer": "Player {seat}",
+  "@playSeatPlayer": {
+    "description": "Fallback name for a player without a display name.",
+    "placeholders": {
+      "seat": {
+        "type": "int"
+      }
+    }
+  },
+  "playNameYou": "{name} (you)",
+  "@playNameYou": {
+    "description": "A player's name marked as the local user.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playHome": "Home",
+  "@playHome": {
+    "description": "Button: go to the home screen."
+  },
+  "playBackHome": "Back to home",
+  "@playBackHome": {
+    "description": "Button: return to the home screen."
+  },
+  "playTryAgain": "Try again",
+  "@playTryAgain": {
+    "description": "Button: retry the failed action."
+  },
+  "playEntryFee": "Entry {fee}",
+  "@playEntryFee": {
+    "description": "Compact entry fee chip; fee is a formatted coin amount.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "playEntryFeeNote": "Entry fee: {fee} coins per player, charged when the game starts. The winner takes the pot. Free when a bot is seated.",
+  "@playEntryFeeNote": {
+    "description": "Entry fee explanation on the private room setup.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "playNotEnoughCoinsTitle": "Not enough coins",
+  "@playNotEnoughCoinsTitle": {
+    "description": "Title when the user cannot afford the entry fee."
+  },
+  "playNotEnoughCoinsHint": "You need {fee} coins to play. Earn coins from missions and come back!",
+  "@playNotEnoughCoinsHint": {
+    "description": "Warning: the wallet is below the entry fee.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "playSeatOpen": "Open seat",
+  "@playSeatOpen": {
+    "description": "An empty seat waiting for a player."
+  },
+  "playLoadingMatch": "Joining the match…",
+  "@playLoadingMatch": {
+    "description": "Loading message while the match is opened."
+  },
+  "playMatchUnavailable": "This match is no longer available.",
+  "@playMatchUnavailable": {
+    "description": "The match can no longer be opened."
+  },
+  "playRoomClosed": "The room was closed.",
+  "@playRoomClosed": {
+    "description": "Toast: the server closed the room."
+  },
+  "playRemovedFromRoom": "You're no longer in this room.",
+  "@playRemovedFromRoom": {
+    "description": "Toast: the user is no longer seated in the room."
+  },
+  "playRoomUnavailable": "This room is no longer available.",
+  "@playRoomUnavailable": {
+    "description": "The private room can no longer be opened."
+  },
+  "playLoadingRoom": "Opening the room…",
+  "@playLoadingRoom": {
+    "description": "Loading message while the lobby is opened."
+  },
+  "playGameLabel": "Game",
+  "@playGameLabel": {
+    "description": "Form label: which game to play."
+  },
+  "playModeLabel": "Rules",
+  "@playModeLabel": {
+    "description": "Form label: Ludo rules variant (classic / quick)."
+  },
+  "playPlayersLabel": "Players",
+  "@playPlayersLabel": {
+    "description": "Form label: number of seats."
+  },
+  "playVariantClassicCaption": "4 tokens · leave base on a 6",
+  "@playVariantClassicCaption": {
+    "description": "Caption of classic Ludo rules."
+  },
+  "playVariantQuickCaption": "2 tokens · leave base on a 1 or 6",
+  "@playVariantQuickCaption": {
+    "description": "Caption of quick Ludo rules."
+  },
+  "playMatchmakingTitle": "Finding players",
+  "@playMatchmakingTitle": {
+    "description": "Matchmaking screen title."
+  },
+  "playMatchmakingConnecting": "Connecting to the game server…",
+  "@playMatchmakingConnecting": {
+    "description": "Matchmaking status: connecting to the server."
+  },
+  "playMatchmakingJoining": "Joining the queue…",
+  "@playMatchmakingJoining": {
+    "description": "Matchmaking status: joining the queue."
+  },
+  "playMatchmakingSearching": "Looking for opponents…",
+  "@playMatchmakingSearching": {
+    "description": "Matchmaking status: waiting for opponents."
+  },
+  "playMatchmakingStarting": "Table full! Starting…",
+  "@playMatchmakingStarting": {
+    "description": "Matchmaking status: all seats filled."
+  },
+  "playMatchmakingStartsSoon": "The match starts when all seats are filled or when the timer runs out.",
+  "@playMatchmakingStartsSoon": {
+    "description": "Explains the public lobby start rule when a fill timer runs."
+  },
+  "playMatchmakingStartsWhenFull": "The match starts as soon as all seats are filled.",
+  "@playMatchmakingStartsWhenFull": {
+    "description": "Explains the public lobby start rule without a timer."
+  },
+  "playMatchmakingPlayers": "{count} of {capacity} players joined",
+  "@playMatchmakingPlayers": {
+    "description": "Accessibility: how many players joined the lobby.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
+  "playMatchmakingCancel": "Cancel search",
+  "@playMatchmakingCancel": {
+    "description": "Button: stop searching for a match."
+  },
+  "playMatchmakingFeeNote": "The entry fee is charged when the match starts. The winner takes the pot.",
+  "@playMatchmakingFeeNote": {
+    "description": "Footnote about when the entry fee is charged."
+  },
+  "playMatchmakingTimeoutTitle": "No opponents right now",
+  "@playMatchmakingTimeoutTitle": {
+    "description": "Matchmaking ended without enough players."
+  },
+  "playMatchmakingTimeoutMessage": "Nobody joined in time. Try again, or invite friends to a private room.",
+  "@playMatchmakingTimeoutMessage": {
+    "description": "Explanation after a matchmaking timeout."
+  },
+  "playMatchmakingErrorTitle": "Couldn't find a match",
+  "@playMatchmakingErrorTitle": {
+    "description": "Matchmaking failed with an error."
+  },
+  "playCreateRoomTitle": "Create private room",
+  "@playCreateRoomTitle": {
+    "description": "Create private room screen title."
+  },
+  "playCreateRoomAction": "Create room",
+  "@playCreateRoomAction": {
+    "description": "Button: create the private room."
+  },
+  "playCreatingRoom": "Creating your room…",
+  "@playCreatingRoom": {
+    "description": "Loading message while the room is created."
+  },
+  "playLobbyTitle": "Private room",
+  "@playLobbyTitle": {
+    "description": "Private room lobby title."
+  },
+  "playRoomCodeLabel": "Room code",
+  "@playRoomCodeLabel": {
+    "description": "Label above the private room code."
+  },
+  "playRoomCodeA11y": "Room code {letters}",
+  "@playRoomCodeA11y": {
+    "description": "Screen reader text of the room code; letters are spelled out separated by spaces.",
+    "placeholders": {
+      "letters": {
+        "type": "String"
+      }
+    }
+  },
+  "playCopyCode": "Copy code",
+  "@playCopyCode": {
+    "description": "Button: copy the room code."
+  },
+  "playCodeCopied": "Room code copied",
+  "@playCodeCopied": {
+    "description": "Toast after copying the room code."
+  },
+  "playShareInvite": "Share invite",
+  "@playShareInvite": {
+    "description": "Button: share an invite with the room code."
+  },
+  "playInviteShareText": "Join me for {game} on Ludo Royale! Open the app, tap Join with Code and enter: {code}",
+  "@playInviteShareText": {
+    "description": "Text shared to other apps. Must contain only the game name and the room code.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "playInviteShareSubject": "Ludo Royale invite",
+  "@playInviteShareSubject": {
+    "description": "Subject line of the shared invite."
+  },
+  "playLobbyPlayers": "Players {count}/{capacity}",
+  "@playLobbyPlayers": {
+    "description": "Lobby section header with seated / total seats.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
+  "playLobbyStart": "Start game",
+  "@playLobbyStart": {
+    "description": "Host button: start the game."
+  },
+  "playLobbyWaitingForHost": "Waiting for the host to start…",
+  "@playLobbyWaitingForHost": {
+    "description": "Guest status in the lobby."
+  },
+  "playLobbyWaitingForNamedHost": "Waiting for {name} (host) to start…",
+  "@playLobbyWaitingForNamedHost": {
+    "description": "Guest status naming the host.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playStartBlockedNeedPlayers": "At least 2 players are needed to start.",
+  "@playStartBlockedNeedPlayers": {
+    "description": "Why Start is disabled: fewer than 2 players."
+  },
+  "playStartBlockedConnections": "Waiting for everyone to reconnect.",
+  "@playStartBlockedConnections": {
+    "description": "Why Start is disabled: someone is disconnected."
+  },
+  "playStartBlockedBots": "Bots are taking their seats…",
+  "@playStartBlockedBots": {
+    "description": "Why Start is disabled: requested bots are not seated yet."
+  },
+  "playAllowBots": "Allow bots",
+  "@playAllowBots": {
+    "description": "Host switch: allow bot seats."
+  },
+  "playAllowBotsHint": "Fill empty seats with computer players. Matches with bots are free and pay no coins.",
+  "@playAllowBotsHint": {
+    "description": "Explains bot seats in private rooms."
+  },
+  "playAddBot": "Add bot",
+  "@playAddBot": {
+    "description": "Host button: seat a bot."
+  },
+  "playBotJoining": "Bot joining…",
+  "@playBotJoining": {
+    "description": "A requested bot is sitting down."
+  },
+  "playRemoveBotA11y": "Remove {name}",
+  "@playRemoveBotA11y": {
+    "description": "Tooltip of the button that removes a bot from its seat.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playBotsFreeNote": "A bot is seated: this match is free and pays no coins.",
+  "@playBotsFreeNote": {
+    "description": "Note shown when a bot is seated in a private room."
+  },
+  "playInviteFriends": "Invite friends",
+  "@playInviteFriends": {
+    "description": "Button: invite friends to the room."
+  },
+  "playInviteSheetTitle": "Invite friends",
+  "@playInviteSheetTitle": {
+    "description": "Invite friends sheet title."
+  },
+  "playInviteSend": "Invite",
+  "@playInviteSend": {
+    "description": "Button: invite this friend."
+  },
+  "playInviteSent": "Invited",
+  "@playInviteSent": {
+    "description": "State after a friend was invited."
+  },
+  "playFriendOnline": "Online",
+  "@playFriendOnline": {
+    "description": "Friend presence: online."
+  },
+  "playFriendOffline": "Offline",
+  "@playFriendOffline": {
+    "description": "Friend presence: offline (cannot be invited)."
+  },
+  "playInviteEmptyTitle": "No friends yet",
+  "@playInviteEmptyTitle": {
+    "description": "Invite sheet: no friends."
+  },
+  "playInviteEmptyMessage": "Share the room code instead, or add friends from the Friends screen.",
+  "@playInviteEmptyMessage": {
+    "description": "Invite sheet: what to do without friends."
+  },
+  "playInviteError": "Couldn't load your friends.",
+  "@playInviteError": {
+    "description": "Invite sheet: the friends list failed to load."
+  },
+  "playLeaveRoom": "Leave room",
+  "@playLeaveRoom": {
+    "description": "Button: leave the private room."
+  },
+  "playLeaveRoomTitle": "Leave this room?",
+  "@playLeaveRoomTitle": {
+    "description": "Confirm dialog title for leaving a lobby."
+  },
+  "playLeaveRoomHostMessage": "You're the host. The next player becomes host when you leave.",
+  "@playLeaveRoomHostMessage": {
+    "description": "Leave dialog text for the host."
+  },
+  "playLeaveRoomMessage": "You can come back with the room code while the room is open.",
+  "@playLeaveRoomMessage": {
+    "description": "Leave dialog text for guests."
+  },
+  "playStay": "Stay",
+  "@playStay": {
+    "description": "Dialog button: stay in the room."
+  },
+  "playHostBadge": "Host",
+  "@playHostBadge": {
+    "description": "Label of the host crown."
+  },
+  "playJoinTitle": "Join with code",
+  "@playJoinTitle": {
+    "description": "Join with code screen title."
+  },
+  "playJoinHint": "Enter the 6-character room code your friend shared.",
+  "@playJoinHint": {
+    "description": "Instructions above the room code field."
+  },
+  "playJoinCodeIncomplete": "{remaining, plural, =1{1 more character} other{{remaining} more characters}}",
+  "@playJoinCodeIncomplete": {
+    "description": "How many characters of the room code are still missing.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "playJoinInvalidChars": "Room codes use the letters A–Z and the numbers 2–9 (no I, O, 0 or 1).",
+  "@playJoinInvalidChars": {
+    "description": "The code contains characters that room codes never use."
+  },
+  "playJoinLookingUp": "Looking up the room…",
+  "@playJoinLookingUp": {
+    "description": "Loading the room preview."
+  },
+  "playJoinAction": "Join room",
+  "@playJoinAction": {
+    "description": "Button: join the previewed room."
+  },
+  "playJoining": "Joining…",
+  "@playJoining": {
+    "description": "Button label while joining."
+  },
+  "playJoinPreviewHost": "Hosted by {name}",
+  "@playJoinPreviewHost": {
+    "description": "Room preview: host name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playJoinPreviewPlayers": "{count}/{capacity} players",
+  "@playJoinPreviewPlayers": {
+    "description": "Room preview: seated / total seats.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
+  "playJoinStatusOpen": "Open",
+  "@playJoinStatusOpen": {
+    "description": "Room preview status: can be joined."
+  },
+  "playJoinStatusFull": "Full",
+  "@playJoinStatusFull": {
+    "description": "Room preview status: all seats taken."
+  },
+  "playJoinStatusInProgress": "In progress",
+  "@playJoinStatusInProgress": {
+    "description": "Room preview status: the game already started."
+  },
+  "playJoinStatusClosed": "Closed",
+  "@playJoinStatusClosed": {
+    "description": "Room preview status: closed."
+  },
+  "playPaste": "Paste",
+  "@playPaste": {
+    "description": "Tooltip: paste the room code from the clipboard."
+  },
+  "playPracticeTitle": "Practice vs bots",
+  "@playPracticeTitle": {
+    "description": "Practice screen title."
+  },
+  "playPracticeBotsLabel": "Bots",
+  "@playPracticeBotsLabel": {
+    "description": "Form label: number of bots."
+  },
+  "playPracticeBotCount": "{count, plural, =1{1 bot} other{{count} bots}}",
+  "@playPracticeBotCount": {
+    "description": "Number of practice bots.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playPracticeStart": "Start practice",
+  "@playPracticeStart": {
+    "description": "Button: start a practice game."
+  },
+  "playPracticeNote": "Practice is free and pays no coins. Bots are computer players and always carry a bot badge.",
+  "@playPracticeNote": {
+    "description": "Practice explanation."
+  },
+  "playPracticeSettingUp": "Setting up your practice table…",
+  "@playPracticeSettingUp": {
+    "description": "Practice status: creating the table."
+  },
+  "playPracticeBotsJoining": "Bots joining… {seated}/{total}",
+  "@playPracticeBotsJoining": {
+    "description": "Practice status: seated bots out of requested bots.",
+    "placeholders": {
+      "seated": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "playPracticeBotsUnavailableTitle": "Bots are busy",
+  "@playPracticeBotsUnavailableTitle": {
+    "description": "Practice could not start because no bot arrived."
+  },
+  "playPracticeErrorTitle": "Couldn't start practice",
+  "@playPracticeErrorTitle": {
+    "description": "Practice failed to start."
+  },
+  "playLeave": "Leave match",
+  "@playLeave": {
+    "description": "Tooltip: leave (forfeit) the running match."
+  },
+  "playTurnYourRoll": "Your turn — tap the dice!",
+  "@playTurnYourRoll": {
+    "description": "Status: the local player must roll."
+  },
+  "playTurnPickToken": "Pick a glowing token to move",
+  "@playTurnPickToken": {
+    "description": "Status: the local player must pick one of several movable tokens."
+  },
+  "playTurnYours": "Your turn",
+  "@playTurnYours": {
+    "description": "Status: the local player's turn while the server acts."
+  },
+  "playTurnOther": "{name}'s turn",
+  "@playTurnOther": {
+    "description": "Status: another human player's turn.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playTurnBot": "{name} (bot) is playing…",
+  "@playTurnBot": {
+    "description": "Status: a bot player's turn.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playVoidedThreeSixes": "Three sixes in a row! The turn passes.",
+  "@playVoidedThreeSixes": {
+    "description": "Ludo: the third six in a row is void."
+  },
+  "playAutoPlayed": "Time's up — played automatically for {name}",
+  "@playAutoPlayed": {
+    "description": "The server played a timed-out turn for a player.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playForfeitLeft": "{name} left the match",
+  "@playForfeitLeft": {
+    "description": "A player left the running match.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playForfeitTimeouts": "{name} was removed after 3 missed turns",
+  "@playForfeitTimeouts": {
+    "description": "A player was removed after three timeouts.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playPlayerDisconnected": "Offline",
+  "@playPlayerDisconnected": {
+    "description": "Player panel chip: disconnected."
+  },
+  "playPlayerForfeited": "Left",
+  "@playPlayerForfeited": {
+    "description": "Player panel chip: forfeited / left."
+  },
+  "playPanelTurnA11y": "current turn",
+  "@playPanelTurnA11y": {
+    "description": "Accessibility: this player has the current turn."
+  },
+  "playStrikesA11y": "{count, plural, =1{1 missed turn} other{{count} missed turns}}",
+  "@playStrikesA11y": {
+    "description": "Accessibility: consecutive missed turns (3 means removal).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playTokensHome": "{home} of {total} tokens home",
+  "@playTokensHome": {
+    "description": "Accessibility: Ludo tokens that reached home.",
+    "placeholders": {
+      "home": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "playSquare": "Square {square}",
+  "@playSquare": {
+    "description": "Snakes & Ladders: the square a player is on.",
+    "placeholders": {
+      "square": {
+        "type": "int"
+      }
+    }
+  },
+  "playAtStart": "At the start",
+  "@playAtStart": {
+    "description": "Snakes & Ladders: the token has not entered the board yet."
+  },
+  "playReconnecting": "Reconnecting… your match continues",
+  "@playReconnecting": {
+    "description": "Banner while the connection is restored."
+  },
+  "playSyncing": "Syncing the board…",
+  "@playSyncing": {
+    "description": "Banner while the board is resynchronised."
+  },
+  "playLeaveMatchTitle": "Leave the match?",
+  "@playLeaveMatchTitle": {
+    "description": "Confirm dialog title for leaving a running match."
+  },
+  "playLeaveMatchMessage": "Leaving counts as a forfeit and your entry fee isn't returned.",
+  "@playLeaveMatchMessage": {
+    "description": "Leaving a running match forfeits it."
+  },
+  "playLeavePracticeMessage": "Your practice game will end.",
+  "@playLeavePracticeMessage": {
+    "description": "Leaving a practice game."
+  },
+  "playLeaveMatchConfirm": "Leave",
+  "@playLeaveMatchConfirm": {
+    "description": "Dialog button: confirm leaving the match."
+  },
+  "playKeepPlaying": "Keep playing",
+  "@playKeepPlaying": {
+    "description": "Dialog button: stay in the match."
+  },
+  "playRoundLabel": "Round {round}",
+  "@playRoundLabel": {
+    "description": "Round number after rematches.",
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "playStartingNextRound": "Starting the next round…",
+  "@playStartingNextRound": {
+    "description": "Overlay while the next round starts."
+  },
+  "playChatOpen": "Quick chat",
+  "@playChatOpen": {
+    "description": "Tooltip: open the quick chat panel."
+  },
+  "playChatTitle": "Quick chat",
+  "@playChatTitle": {
+    "description": "Quick chat panel title."
+  },
+  "playChatEmotes": "Emotes",
+  "@playChatEmotes": {
+    "description": "Quick chat: emotes section."
+  },
+  "playChatMuteOthers": "Mute other players",
+  "@playChatMuteOthers": {
+    "description": "Quick chat: hide other players' messages in this match."
+  },
+  "playChatMutedBySettings": "Quick chat is muted in Settings.",
+  "@playChatMutedBySettings": {
+    "description": "Quick chat is muted in Settings."
+  },
+  "playChatCooldown": "Next message in {seconds}s",
+  "@playChatCooldown": {
+    "description": "Quick chat is cooling down (client-side limit).",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "playChatGg": "Good game!",
+  "@playChatGg": {
+    "description": "Quick chat message 'gg'."
+  },
+  "playChatNiceMove": "Nice move!",
+  "@playChatNiceMove": {
+    "description": "Quick chat message 'nice_move'."
+  },
+  "playChatWellPlayed": "Well played!",
+  "@playChatWellPlayed": {
+    "description": "Quick chat message 'well_played'."
+  },
+  "playChatRematch": "Rematch?",
+  "@playChatRematch": {
+    "description": "Quick chat message 'rematch'."
+  },
+  "playChatAgain": "Let's play again.",
+  "@playChatAgain": {
+    "description": "Quick chat message 'again'."
+  },
+  "playChatGoodLuck": "Good luck!",
+  "@playChatGoodLuck": {
+    "description": "Quick chat message 'good_luck'."
+  },
+  "playChatOops": "Oops!",
+  "@playChatOops": {
+    "description": "Quick chat message 'oops'."
+  },
+  "playChatThanks": "Thanks!",
+  "@playChatThanks": {
+    "description": "Quick chat message 'thanks'."
+  },
+  "playResultYouWon": "You won!",
+  "@playResultYouWon": {
+    "description": "Results title: the local player won."
+  },
+  "playResultWinnerIs": "{name} wins!",
+  "@playResultWinnerIs": {
+    "description": "Results title: another player won.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playResultGameOver": "Game over",
+  "@playResultGameOver": {
+    "description": "Results title without a winner."
+  },
+  "playResultYouForfeited": "You left the match",
+  "@playResultYouForfeited": {
+    "description": "Results title: the local player forfeited."
+  },
+  "playResultByForfeit": "The others forfeited — the win is yours.",
+  "@playResultByForfeit": {
+    "description": "Results subtitle: won because everyone else forfeited."
+  },
+  "playResultWellPlayed": "Well played!",
+  "@playResultWellPlayed": {
+    "description": "Results subtitle after a win."
+  },
+  "playResultYouFinished": "You finished #{place}",
+  "@playResultYouFinished": {
+    "description": "Results subtitle: the local player's finishing position.",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "playResultFinishingOrder": "Finishing order",
+  "@playResultFinishingOrder": {
+    "description": "Results: section with the finishing order."
+  },
+  "playResultPlaceShort": "{place}",
+  "@playResultPlaceShort": {
+    "description": "Compact finishing position inside a medal.",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "playResultPlaceA11y": "Place {place}",
+  "@playResultPlaceA11y": {
+    "description": "Accessibility: finishing position.",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "playRewardsTitle": "Rewards",
+  "@playRewardsTitle": {
+    "description": "Results: rewards section."
+  },
+  "playRewardCoins": "+{amount} coins",
+  "@playRewardCoins": {
+    "description": "Coins won, confirmed by the server; amount is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "playRewardCoinsBalance": "Wallet: {amount} coins",
+  "@playRewardCoinsBalance": {
+    "description": "Wallet balance after the payout; amount is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "playRewardNoCoinsBots": "Matches with bots don't pay coins.",
+  "@playRewardNoCoinsBots": {
+    "description": "No coins because a bot was seated."
+  },
+  "playRewardNoCoins": "No coins this time — the winner takes the pot.",
+  "@playRewardNoCoins": {
+    "description": "No coins for a player who did not win."
+  },
+  "playRewardXp": "+{xp} XP",
+  "@playRewardXp": {
+    "description": "XP gained in the match (server-confirmed).",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "playRewardXpPending": "Calculating XP…",
+  "@playRewardXpPending": {
+    "description": "XP not received from the server yet."
+  },
+  "playRewardXpLater": "Your XP will show on your profile shortly.",
+  "@playRewardXpLater": {
+    "description": "XP did not arrive in time."
+  },
+  "playRewardLevelUp": "Level up! You reached level {level}",
+  "@playRewardLevelUp": {
+    "description": "Level up after the match.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "playRewardUnlocked": "Unlocked",
+  "@playRewardUnlocked": {
+    "description": "Cosmetics unlocked by this match."
+  },
+  "playRematchTitle": "Rematch",
+  "@playRematchTitle": {
+    "description": "Results: rematch section."
+  },
+  "playRematchRequest": "Ask for a rematch",
+  "@playRematchRequest": {
+    "description": "Button: ask the others for a rematch (accepts it)."
+  },
+  "playRematchAccept": "Accept",
+  "@playRematchAccept": {
+    "description": "Button: accept another player's rematch request."
+  },
+  "playRematchDecline": "Decline",
+  "@playRematchDecline": {
+    "description": "Button: decline the rematch."
+  },
+  "playRematchIncoming": "{name} wants a rematch!",
+  "@playRematchIncoming": {
+    "description": "Another player asked for a rematch.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playRematchWaiting": "You're in! Waiting for the others…",
+  "@playRematchWaiting": {
+    "description": "The local player accepted; waiting for the others."
+  },
+  "playRematchYouDeclined": "You declined the rematch.",
+  "@playRematchYouDeclined": {
+    "description": "The local player declined."
+  },
+  "playRematchClosed": "Rematch is no longer available.",
+  "@playRematchClosed": {
+    "description": "The rematch offer expired or closed."
+  },
+  "playRematchPublicNote": "Players who accept move to a new private room together.",
+  "@playRematchPublicNote": {
+    "description": "Public matches: a rematch creates a new private room."
+  },
+  "playRematchStatusAccepted": "Ready",
+  "@playRematchStatusAccepted": {
+    "description": "Rematch consent: accepted."
+  },
+  "playRematchStatusDeclined": "Declined",
+  "@playRematchStatusDeclined": {
+    "description": "Rematch consent: declined."
+  },
+  "playRematchStatusPending": "Deciding…",
+  "@playRematchStatusPending": {
+    "description": "Rematch consent: not answered yet."
+  },
+  "playRematchStatusOut": "Left",
+  "@playRematchStatusOut": {
+    "description": "Rematch consent: cannot take part (left / offline)."
+  },
+  "playRematchSeatA11y": "{name}: {status}",
+  "@playRematchSeatA11y": {
+    "description": "Accessibility: a player's rematch answer.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "playPlayAgain": "Play again",
+  "@playPlayAgain": {
+    "description": "Results button: find a new match with the same settings."
+  },
+  "playInviteIncoming": "{name} invited you to play {game}",
+  "@playInviteIncoming": {
+    "description": "In-app banner: a friend invited the user.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "playInviteJoin": "Join",
+  "@playInviteJoin": {
+    "description": "Invite banner button: join."
+  },
+  "playInviteDismiss": "Not now",
+  "@playInviteDismiss": {
+    "description": "Invite banner button: dismiss."
+  },
+  "playInviteSomeone": "A friend",
+  "@playInviteSomeone": {
+    "description": "Invite banner fallback sender name."
+  }
+}

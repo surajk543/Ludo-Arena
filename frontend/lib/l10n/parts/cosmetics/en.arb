@@ -1,0 +1,206 @@
+{
+  "cosmeticDiceClassic": "Classic Ivory",
+  "@cosmeticDiceClassic": {
+    "description": "Display name of the cosmetic item `dice_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticDiceNeon": "Neon Pulse",
+  "@cosmeticDiceNeon": {
+    "description": "Display name of the cosmetic item `dice_neon` (Collection Room, chips, rewards)."
+  },
+  "cosmeticDiceGolden": "Royal Gold",
+  "@cosmeticDiceGolden": {
+    "description": "Display name of the cosmetic item `dice_golden` (Collection Room, chips, rewards)."
+  },
+  "cosmeticDiceAutumn": "Autumn Leaf",
+  "@cosmeticDiceAutumn": {
+    "description": "Display name of the cosmetic item `dice_autumn` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenClassic": "Classic Pawn",
+  "@cosmeticTokenClassic": {
+    "description": "Display name of the cosmetic item `token_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenGem": "Gemstone",
+  "@cosmeticTokenGem": {
+    "description": "Display name of the cosmetic item `token_gem` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenRoyal": "Royal Pawn",
+  "@cosmeticTokenRoyal": {
+    "description": "Display name of the cosmetic item `token_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenCrown": "Crown Piece",
+  "@cosmeticTokenCrown": {
+    "description": "Display name of the cosmetic item `token_crown` (Collection Room, chips, rewards)."
+  },
+  "cosmeticLudoBoardClassic": "Classic",
+  "@cosmeticLudoBoardClassic": {
+    "description": "Display name of the cosmetic item `ludo_board_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticLudoBoardMidnight": "Midnight Marble",
+  "@cosmeticLudoBoardMidnight": {
+    "description": "Display name of the cosmetic item `ludo_board_midnight` (Collection Room, chips, rewards)."
+  },
+  "cosmeticLudoBoardRoyal": "Royal Court",
+  "@cosmeticLudoBoardRoyal": {
+    "description": "Display name of the cosmetic item `ludo_board_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticSnakesBoardClassic": "Classic Meadow",
+  "@cosmeticSnakesBoardClassic": {
+    "description": "Display name of the cosmetic item `snakes_board_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticSnakesBoardJungle": "Jungle Temple",
+  "@cosmeticSnakesBoardJungle": {
+    "description": "Display name of the cosmetic item `snakes_board_jungle` (Collection Room, chips, rewards)."
+  },
+  "cosmeticSnakesBoardCandy": "Candy Land",
+  "@cosmeticSnakesBoardCandy": {
+    "description": "Display name of the cosmetic item `snakes_board_candy` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTrailNone": "No Trail",
+  "@cosmeticTrailNone": {
+    "description": "Display name of the cosmetic item `trail_none` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTrailSparkle": "Sparkle",
+  "@cosmeticTrailSparkle": {
+    "description": "Display name of the cosmetic item `trail_sparkle` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTrailComet": "Comet",
+  "@cosmeticTrailComet": {
+    "description": "Display name of the cosmetic item `trail_comet` (Collection Room, chips, rewards)."
+  },
+  "cosmeticVictoryConfetti": "Confetti",
+  "@cosmeticVictoryConfetti": {
+    "description": "Display name of the cosmetic item `victory_confetti` (Collection Room, chips, rewards)."
+  },
+  "cosmeticVictoryFireworks": "Fireworks",
+  "@cosmeticVictoryFireworks": {
+    "description": "Display name of the cosmetic item `victory_fireworks` (Collection Room, chips, rewards)."
+  },
+  "cosmeticVictoryCrown": "Golden Crown",
+  "@cosmeticVictoryCrown": {
+    "description": "Display name of the cosmetic item `victory_crown` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameNone": "No Frame",
+  "@cosmeticFrameNone": {
+    "description": "Display name of the cosmetic item `frame_none` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameBronze": "Bronze Ring",
+  "@cosmeticFrameBronze": {
+    "description": "Display name of the cosmetic item `frame_bronze` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameSilver": "Silver Laurel",
+  "@cosmeticFrameSilver": {
+    "description": "Display name of the cosmetic item `frame_silver` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameGold": "Gold Laurel",
+  "@cosmeticFrameGold": {
+    "description": "Display name of the cosmetic item `frame_gold` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameRoyal": "Royal Crest",
+  "@cosmeticFrameRoyal": {
+    "description": "Display name of the cosmetic item `frame_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleRookie": "Rookie",
+  "@cosmeticTitleRookie": {
+    "description": "Display name of the cosmetic item `title_rookie` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleStrategist": "Strategist",
+  "@cosmeticTitleStrategist": {
+    "description": "Display name of the cosmetic item `title_strategist` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleDiceMaster": "Dice Master",
+  "@cosmeticTitleDiceMaster": {
+    "description": "Display name of the cosmetic item `title_dice_master` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleRoyal": "Royal Highness",
+  "@cosmeticTitleRoyal": {
+    "description": "Display name of the cosmetic item `title_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleWeeklyChampion": "Weekly Champion",
+  "@cosmeticTitleWeeklyChampion": {
+    "description": "Display name of the cosmetic item `title_weekly_champion` (Collection Room, chips, rewards)."
+  },
+  "cosmeticBadgeFirstWin": "First Victory",
+  "@cosmeticBadgeFirstWin": {
+    "description": "Display name of the cosmetic item `badge_first_win` (Collection Room, chips, rewards)."
+  },
+  "cosmeticBadgeFriendly": "Good Company",
+  "@cosmeticBadgeFriendly": {
+    "description": "Display name of the cosmetic item `badge_friendly` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteWave": "Wave",
+  "@cosmeticEmoteWave": {
+    "description": "Display name of the cosmetic item `emote_wave` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteThumbs": "Thumbs Up",
+  "@cosmeticEmoteThumbs": {
+    "description": "Display name of the cosmetic item `emote_thumbs` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteLaugh": "Laugh",
+  "@cosmeticEmoteLaugh": {
+    "description": "Display name of the cosmetic item `emote_laugh` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteWow": "Wow",
+  "@cosmeticEmoteWow": {
+    "description": "Display name of the cosmetic item `emote_wow` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteCrown": "Crown",
+  "@cosmeticEmoteCrown": {
+    "description": "Display name of the cosmetic item `emote_crown` (Collection Room, chips, rewards)."
+  },
+  "cosmeticRarityCommon": "Common",
+  "@cosmeticRarityCommon": {
+    "description": "Cosmetic rarity tier `common`."
+  },
+  "cosmeticRarityRare": "Rare",
+  "@cosmeticRarityRare": {
+    "description": "Cosmetic rarity tier `rare`."
+  },
+  "cosmeticRarityEpic": "Epic",
+  "@cosmeticRarityEpic": {
+    "description": "Cosmetic rarity tier `epic`."
+  },
+  "cosmeticRarityLegendary": "Legendary",
+  "@cosmeticRarityLegendary": {
+    "description": "Cosmetic rarity tier `legendary`."
+  },
+  "cosmeticKindDice": "Dice",
+  "@cosmeticKindDice": {
+    "description": "Cosmetic category / equip slot `dice`."
+  },
+  "cosmeticKindToken": "Tokens",
+  "@cosmeticKindToken": {
+    "description": "Cosmetic category / equip slot `token`."
+  },
+  "cosmeticKindLudoBoard": "Ludo board",
+  "@cosmeticKindLudoBoard": {
+    "description": "Cosmetic category / equip slot `ludo_board`."
+  },
+  "cosmeticKindSnakesBoard": "Snakes & Ladders board",
+  "@cosmeticKindSnakesBoard": {
+    "description": "Cosmetic category / equip slot `snakes_board`."
+  },
+  "cosmeticKindFrame": "Avatar frame",
+  "@cosmeticKindFrame": {
+    "description": "Cosmetic category / equip slot `frame`."
+  },
+  "cosmeticKindTitle": "Title",
+  "@cosmeticKindTitle": {
+    "description": "Cosmetic category / equip slot `title`."
+  },
+  "cosmeticKindBadge": "Badge",
+  "@cosmeticKindBadge": {
+    "description": "Cosmetic category / equip slot `badge`."
+  },
+  "cosmeticKindEmote": "Emote",
+  "@cosmeticKindEmote": {
+    "description": "Cosmetic category / equip slot `emote`."
+  },
+  "cosmeticKindVictory": "Victory celebration",
+  "@cosmeticKindVictory": {
+    "description": "Cosmetic category / equip slot `victory`."
+  },
+  "cosmeticKindTrail": "Token trail",
+  "@cosmeticKindTrail": {
+    "description": "Cosmetic category / equip slot `trail`."
+  }
+}

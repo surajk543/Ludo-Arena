@@ -1,0 +1,103 @@
+{
+  "widgetsCoinsBalance": "Coins: {amount}",
+  "@widgetsCoinsBalance": {
+    "description": "Screen-reader label of the coin balance chip.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsDiamondsBalance": "Diamonds: {amount}",
+  "@widgetsDiamondsBalance": {
+    "description": "Screen-reader label of the diamond balance chip.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsXpLabel": "Experience: {current} of {total}",
+  "@widgetsXpLabel": {
+    "description": "Screen-reader label of the XP progress bar.",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsAvatarLabel": "Player avatar",
+  "@widgetsAvatarLabel": {
+    "description": "Screen-reader label of a player avatar when no name is given."
+  },
+  "widgetsTitleLabel": "Title: {title}",
+  "@widgetsTitleLabel": {
+    "description": "Screen-reader label of a player title chip.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsEmoteLabel": "Emote: {name}",
+  "@widgetsEmoteLabel": {
+    "description": "Screen-reader label of an emote icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsBadgeLabel": "Badge: {name}",
+  "@widgetsBadgeLabel": {
+    "description": "Screen-reader label of a badge icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsSecondsLeft": "{seconds, plural, =1{1 second left} other{{seconds} seconds left}}",
+  "@widgetsSecondsLeft": {
+    "description": "Screen-reader label of a turn countdown ring.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "widgetsConnectionLabel": "Connection: {status}",
+  "@widgetsConnectionLabel": {
+    "description": "Screen-reader label of the connection indicator. {status} is a localized status such as Online.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsNewItems": "{count, plural, =1{1 new} other{{count} new}}",
+  "@widgetsNewItems": {
+    "description": "Screen-reader suffix for a notification count on a round header button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "widgetsSelected": "Selected",
+  "@widgetsSelected": {
+    "description": "Screen-reader hint for the selected option in a choice selector."
+  },
+  "widgetsLogoLabel": "{appName} crest",
+  "@widgetsLogoLabel": {
+    "description": "Screen-reader label of the painted app logo.",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  }
+}

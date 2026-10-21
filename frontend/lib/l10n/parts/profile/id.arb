@@ -1,0 +1,19 @@
+{
+  "profileTitle": "Profil",
+  "profileFriendCode": "Kode teman",
+  "profileFriendCodeHint": "Bagikan agar teman bisa menambahkanmu.",
+  "profileShareFriendCode": "Tambahkan aku di Ludo Royale! Kode temanku {code}",
+  "profileLevelProgress": "{xp} XP lagi ke level {level}",
+  "profileMaxLevel": "Level maksimum tercapai",
+  "profileTitleLabel": "Gelar",
+  "profileAccountSection": "Akun",
+  "profileAccountType": "Jenis akun",
+  "profileAccountGuest": "Tamu (belum disimpan)",
+  "profileAccountLinked": "Akun tersimpan",
+  "profileLinkedAccounts": "Metode masuk",
+  "profileLinked": "Tertaut",
+  "profileNotLinked": "Belum tertaut",
+  "profileSaveProgressCta": "Simpan progres",
+  "profileTotalXp": "Total XP",
+  "profileStatsSection": "Progres"
+}

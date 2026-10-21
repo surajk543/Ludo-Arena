@@ -1,0 +1,51 @@
+{
+  "walletTitle": "Your wallet",
+  "@walletTitle": {
+    "description": "Wallet sheet title."
+  },
+  "walletCoinsCaption": "For match entry fees — winners take the pot.",
+  "@walletCoinsCaption": {
+    "description": "What coins are for."
+  },
+  "walletDiamondsCaption": "For premium cosmetics in the Collection Room.",
+  "@walletDiamondsCaption": {
+    "description": "What diamonds are for."
+  },
+  "walletExactBalance": "Exact balance: {amount}",
+  "@walletExactBalance": {
+    "description": "Full-precision balance. {amount} is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "walletVirtualTitle": "Virtual currency",
+  "@walletVirtualTitle": {
+    "description": "Heading of the virtual-currency notice."
+  },
+  "walletVirtualNotice": "Coins and diamonds are virtual items for fun only. They have no real-world value and can't be sold, transferred, withdrawn or exchanged for money.",
+  "@walletVirtualNotice": {
+    "description": "Non-redeemable virtual currency notice."
+  },
+  "walletEarnTitle": "How to earn more",
+  "@walletEarnTitle": {
+    "description": "Heading of the earning tips."
+  },
+  "walletEarnWins": "Win matches to take the pot",
+  "@walletEarnWins": {
+    "description": "Earning tip."
+  },
+  "walletEarnMissions": "Complete daily and weekly missions",
+  "@walletEarnMissions": {
+    "description": "Earning tip."
+  },
+  "walletEarnLevels": "Level up for milestone rewards",
+  "@walletEarnLevels": {
+    "description": "Earning tip."
+  },
+  "walletRefresh": "Refresh balance",
+  "@walletRefresh": {
+    "description": "Button to re-fetch the balance from the server."
+  }
+}

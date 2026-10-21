@@ -1,0 +1,509 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
+
+import 'json_read.dart';
+import 'message_types.dart';
+
+const _deep = DeepCollectionEquality();
+
+/// Value equality based on the JSON form (room objects are tiny; this keeps
+/// equality exact and in sync with the wire format).
+mixin JsonValueEquality {
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other.runtimeType == runtimeType &&
+          other is JsonValueEquality &&
+          _deep.equals(toJson(), other.toJson()));
+
+  @override
+  int get hashCode => _deep.hash(toJson());
+}
+
+/// Sentinel for nullable `copyWith` parameters.
+const Object _unset = Object();
+
+/// Cosmetics a player has equipped for this room (`players[].cosmetics`).
+@immutable
+class PlayerCosmetics with JsonValueEquality {
+  const PlayerCosmetics({
+    this.dice = 'dice_classic',
+    this.token = 'token_classic',
+    this.frame = 'frame_none',
+    this.trail = 'trail_none',
+    this.victory = 'victory_confetti',
+  });
+
+  final String dice;
+  final String token;
+  final String frame;
+  final String trail;
+  final String victory;
+
+  factory PlayerCosmetics.fromJson(Map<String, dynamic> j) => PlayerCosmetics(
+    dice: readString(j['dice'], 'dice_classic'),
+    token: readString(j['token'], 'token_classic'),
+    frame: readString(j['frame'], 'frame_none'),
+    trail: readString(j['trail'], 'trail_none'),
+    victory: readString(j['victory'], 'victory_confetti'),
+  );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'dice': dice,
+    'token': token,
+    'frame': frame,
+    'trail': trail,
+    'victory': victory,
+  };
+}
+
+/// One seated player (`room.players[]`).
+@immutable
+class RoomPlayer with JsonValueEquality {
+  const RoomPlayer({
+    required this.seat,
+    required this.uid,
+    required this.name,
+    this.avatar = 0,
+    this.level = 1,
+    this.title = 'title_rookie',
+    this.cosmetics = const PlayerCosmetics(),
+    this.color = 'red',
+    this.connected = true,
+    this.bot = false,
+    this.forfeited = false,
+    this.strikes = 0,
+  });
+
+  final int seat;
+
+  /// Opaque public player id (NOT the account id).
+  final String uid;
+  final String name;
+  final int avatar;
+  final int level;
+  final String title;
+  final PlayerCosmetics cosmetics;
+
+  /// `red` | `green` | `yellow` | `blue`.
+  final String color;
+  final bool connected;
+
+  /// Server-determined. The UI must show a BOT badge.
+  final bool bot;
+  final bool forfeited;
+
+  /// Consecutive turn timeouts (3 → forfeit).
+  final int strikes;
+
+  factory RoomPlayer.fromJson(Map<String, dynamic> j) => RoomPlayer(
+    seat: readInt(j['seat']),
+    uid: readString(j['uid']),
+    name: readString(j['name']),
+    avatar: readInt(j['avatar']),
+    level: readInt(j['level'], 1),
+    title: readString(j['title'], 'title_rookie'),
+    cosmetics: PlayerCosmetics.fromJson(readMap(j['cosmetics'])),
+    color: readString(j['color'], 'red'),
+    connected: readBool(j['connected'], true),
+    bot: readBool(j['bot']),
+    forfeited: readBool(j['forfeited']),
+    strikes: readInt(j['strikes']),
+  );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'seat': seat,
+    'uid': uid,
+    'name': name,
+    'avatar': avatar,
+    'level': level,
+    'title': title,
+    'cosmetics': cosmetics.toJson(),
+    'color': color,
+    'connected': connected,
+    'bot': bot,
+    'forfeited': forfeited,
+    'strikes': strikes,
+  };
+
+  RoomPlayer copyWith({bool? connected, bool? forfeited, int? strikes}) =>
+      RoomPlayer(
+        seat: seat,
+        uid: uid,
+        name: name,
+        avatar: avatar,
+        level: level,
+        title: title,
+        cosmetics: cosmetics,
+        color: color,
+        connected: connected ?? this.connected,
+        bot: bot,
+        forfeited: forfeited ?? this.forfeited,
+        strikes: strikes ?? this.strikes,
+      );
+}
+
+/// Whose turn it is and what they may do (`room.turn`).
+@immutable
+class TurnState with JsonValueEquality {
+  const TurnState({
+    this.seat = 0,
+    this.phase = TurnPhases.none,
+    this.turnSeq = 0,
+    this.deadline = 0,
+    this.dice = 0,
+    this.legal = const [],
+    this.sixStreak = 0,
+  });
+
+  final int seat;
+
+  /// See [TurnPhases].
+  final String phase;
+
+  /// Must be echoed by `game.roll_dice` / `game.make_move`.
+  final int turnSeq;
+
+  /// Unix ms, server clock. Use `ServerClock.remainingUntil`.
+  final int deadline;
+
+  /// Last roll in this turn; 0 = none.
+  final int dice;
+
+  /// Ludo: legal token indices while `awaiting_move`.
+  final List<int> legal;
+  final int sixStreak;
+
+  bool get awaitingRoll => phase == TurnPhases.awaitingRoll;
+  bool get awaitingMove => phase == TurnPhases.awaitingMove;
+
+  factory TurnState.fromJson(Map<String, dynamic> j) => TurnState(
+    seat: readInt(j['seat']),
+    phase: readString(j['phase'], TurnPhases.none),
+    turnSeq: readInt(j['turnSeq']),
+    deadline: readInt(j['deadline']),
+    dice: readInt(j['dice']),
+    legal: readIntList(j['legal']),
+    sixStreak: readInt(j['sixStreak']),
+  );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'seat': seat,
+    'phase': phase,
+    'turnSeq': turnSeq,
+    'deadline': deadline,
+    'dice': dice,
+    'legal': legal,
+    'sixStreak': sixStreak,
+  };
+
+  TurnState copyWith({
+    int? seat,
+    String? phase,
+    int? turnSeq,
+    int? deadline,
+    int? dice,
+    List<int>? legal,
+    int? sixStreak,
+  }) => TurnState(
+    seat: seat ?? this.seat,
+    phase: phase ?? this.phase,
+    turnSeq: turnSeq ?? this.turnSeq,
+    deadline: deadline ?? this.deadline,
+    dice: dice ?? this.dice,
+    legal: legal == null ? this.legal : List<int>.unmodifiable(legal),
+    sixStreak: sixStreak ?? this.sixStreak,
+  );
+}
+
+/// Board state (`room.board`). Only the key for the room's game is present.
+@immutable
+class BoardState with JsonValueEquality {
+  const BoardState({this.ludoTokens, this.snakesPositions});
+
+  /// Ludo: `[seat][token]` progress (-1 base, 0..50 track, 51..55 home
+  /// column, 56 home). See backend/docs/game-rules.md.
+  final List<List<int>>? ludoTokens;
+
+  /// Snakes & Ladders: `[seat]` square (0 = off board, 1..100).
+  final List<int>? snakesPositions;
+
+  factory BoardState.fromJson(Map<String, dynamic> j) => BoardState(
+    ludoTokens: j['tokens'] is List
+        ? List<List<int>>.unmodifiable(
+            readList(j['tokens']).map((seat) => readIntList(seat)),
+          )
+        : null,
+    snakesPositions: j['positions'] is List
+        ? readIntList(j['positions'])
+        : null,
+  );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    if (ludoTokens != null) 'tokens': ludoTokens,
+    if (snakesPositions != null) 'positions': snakesPositions,
+  };
+
+  BoardState withLudoTokens(List<List<int>> tokens) => BoardState(
+    ludoTokens: List<List<int>>.unmodifiable(
+      tokens.map((t) => List<int>.unmodifiable(t)),
+    ),
+    snakesPositions: snakesPositions,
+  );
+
+  BoardState withSnakesPositions(List<int> positions) => BoardState(
+    ludoTokens: ludoTokens,
+    snakesPositions: List<int>.unmodifiable(positions),
+  );
+}
+
+/// `room.result` (present when `status == "finished"`).
+@immutable
+class RoomResult with JsonValueEquality {
+  const RoomResult({
+    required this.winnerSeat,
+    this.reason = 'completed',
+    this.placements = const [],
+    this.payout = 0,
+  });
+
+  final int winnerSeat;
+
+  /// `completed` | `forfeit`.
+  final String reason;
+
+  /// Seats in finishing order.
+  final List<int> placements;
+
+  /// Coins paid to the winner (0 when a bot was seated).
+  final int payout;
+
+  factory RoomResult.fromJson(Map<String, dynamic> j) => RoomResult(
+    winnerSeat: readInt(j['winnerSeat'], -1),
+    reason: readString(j['reason'], 'completed'),
+    placements: readIntList(j['placements']),
+    payout: readInt(j['payout']),
+  );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'winnerSeat': winnerSeat,
+    'reason': reason,
+    'placements': placements,
+    'payout': payout,
+  };
+}
+
+/// `room.rematch` (present when `status == "finished"`).
+@immutable
+class RematchState with JsonValueEquality {
+  const RematchState({
+    this.open = false,
+    this.deadline = 0,
+    this.accepted = const [],
+    this.declined = const [],
+  });
+
+  final bool open;
+
+  /// Unix ms, server clock.
+  final int deadline;
+
+  /// Seats that accepted / declined.
+  final List<int> accepted;
+  final List<int> declined;
+
+  factory RematchState.fromJson(Map<String, dynamic> j) => RematchState(
+    open: readBool(j['open']),
+    deadline: readInt(j['deadline']),
+    accepted: readIntList(j['accepted']),
+    declined: readIntList(j['declined']),
+  );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'open': open,
+    'deadline': deadline,
+    'accepted': accepted,
+    'declined': declined,
+  };
+}
+
+/// Full room snapshot (`room` object, websocket-protocol.md §4).
+@immutable
+class RoomSnapshot with JsonValueEquality {
+  const RoomSnapshot({
+    required this.id,
+    required this.v,
+    required this.game,
+    this.variant = GameVariants.classic,
+    this.mode = RoomModes.public,
+    this.allowBots = false,
+    this.code,
+    this.capacity = 4,
+    this.status = RoomStatuses.lobby,
+    this.hostSeat = -1,
+    this.entryFee = 0,
+    this.pot = 0,
+    this.round = 1,
+    this.fillDeadline = 0,
+    this.players = const [],
+    this.turn = const TurnState(),
+    this.board = const BoardState(),
+    this.result,
+    this.rematch,
+    this.h,
+  });
+
+  final String id;
+
+  /// Monotonic state version (§3).
+  final int v;
+
+  /// [GameIds].
+  final String game;
+
+  /// [GameVariants].
+  final String variant;
+
+  /// [RoomModes].
+  final String mode;
+  final bool allowBots;
+
+  /// Private rooms only (members see it). Never log or send to analytics.
+  final String? code;
+  final int capacity;
+
+  /// [RoomStatuses].
+  final String status;
+
+  /// Private rooms; -1 for public.
+  final int hostSeat;
+  final int entryFee;
+  final int pot;
+
+  /// Increments on each rematch in the same room.
+  final int round;
+
+  /// Public lobby: unix ms when it starts/times out.
+  final int fillDeadline;
+  final List<RoomPlayer> players;
+  final TurnState turn;
+  final BoardState board;
+  final RoomResult? result;
+  final RematchState? rematch;
+
+  /// State hash as sent by the server (snapshots carry it too).
+  final int? h;
+
+  bool get isLudo => game == GameIds.ludo;
+  bool get isSnakes => game == GameIds.snakesLadders;
+  bool get isLobby => status == RoomStatuses.lobby;
+  bool get isPlaying => status == RoomStatuses.playing;
+  bool get isFinished => status == RoomStatuses.finished;
+  bool get isClosed => status == RoomStatuses.closed;
+  bool get isPrivate => mode == RoomModes.private;
+  bool get isPractice => mode == RoomModes.practice;
+  bool get hasBots => players.any((p) => p.bot);
+
+  RoomPlayer? playerAtSeat(int seat) =>
+      players.firstWhereOrNull((p) => p.seat == seat);
+
+  RoomPlayer? playerByUid(String? uid) =>
+      uid == null ? null : players.firstWhereOrNull((p) => p.uid == uid);
+
+  factory RoomSnapshot.fromJson(Map<String, dynamic> j) => RoomSnapshot(
+    id: readString(j['id']),
+    v: readInt(j['v']),
+    game: readString(j['game'], GameIds.ludo),
+    variant: readString(j['variant'], GameVariants.classic),
+    mode: readString(j['mode'], RoomModes.public),
+    allowBots: readBool(j['allowBots']),
+    code: readStringOrNull(j['code']),
+    capacity: readInt(j['capacity'], 4),
+    status: readString(j['status'], RoomStatuses.lobby),
+    hostSeat: readInt(j['hostSeat'], -1),
+    entryFee: readInt(j['entryFee']),
+    pot: readInt(j['pot']),
+    round: readInt(j['round'], 1),
+    fillDeadline: readInt(j['fillDeadline']),
+    players: List<RoomPlayer>.unmodifiable(
+      readList(j['players']).map((p) => RoomPlayer.fromJson(readMap(p))),
+    ),
+    turn: TurnState.fromJson(readMap(j['turn'])),
+    board: BoardState.fromJson(readMap(j['board'])),
+    result: readMapOrNull(j['result']) == null
+        ? null
+        : RoomResult.fromJson(readMap(j['result'])),
+    rematch: readMapOrNull(j['rematch']) == null
+        ? null
+        : RematchState.fromJson(readMap(j['rematch'])),
+    h: readIntOrNull(j['h']),
+  );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'v': v,
+    'game': game,
+    'variant': variant,
+    'mode': mode,
+    'allowBots': allowBots,
+    'code': ?code,
+    'capacity': capacity,
+    'status': status,
+    'hostSeat': hostSeat,
+    'entryFee': entryFee,
+    'pot': pot,
+    'round': round,
+    'fillDeadline': fillDeadline,
+    'players': [for (final p in players) p.toJson()],
+    'turn': turn.toJson(),
+    'board': board.toJson(),
+    if (result != null) 'result': result!.toJson(),
+    if (rematch != null) 'rematch': rematch!.toJson(),
+    'h': ?h,
+  };
+
+  RoomSnapshot copyWith({
+    int? v,
+    String? status,
+    List<RoomPlayer>? players,
+    TurnState? turn,
+    BoardState? board,
+    Object? result = _unset,
+    Object? rematch = _unset,
+    Object? h = _unset,
+  }) => RoomSnapshot(
+    id: id,
+    v: v ?? this.v,
+    game: game,
+    variant: variant,
+    mode: mode,
+    allowBots: allowBots,
+    code: code,
+    capacity: capacity,
+    status: status ?? this.status,
+    hostSeat: hostSeat,
+    entryFee: entryFee,
+    pot: pot,
+    round: round,
+    fillDeadline: fillDeadline,
+    players: players == null
+        ? this.players
+        : List<RoomPlayer>.unmodifiable(players),
+    turn: turn ?? this.turn,
+    board: board ?? this.board,
+    result: identical(result, _unset) ? this.result : result as RoomResult?,
+    rematch: identical(rematch, _unset)
+        ? this.rematch
+        : rematch as RematchState?,
+    h: identical(h, _unset) ? this.h : h as int?,
+  );
+}

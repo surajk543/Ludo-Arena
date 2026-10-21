@@ -1,0 +1,3958 @@
+{
+  "@@locale": "en",
+  "authWelcomeTitle": "Ready to rule the board?",
+  "@authWelcomeTitle": {
+    "description": "Login screen headline."
+  },
+  "authWelcomeSubtitle": "Play Ludo and Snakes & Ladders with friends and players everywhere.",
+  "@authWelcomeSubtitle": {
+    "description": "Login screen subtitle."
+  },
+  "authContinueWithGoogle": "Continue with Google",
+  "@authContinueWithGoogle": {
+    "description": "Google sign-in button."
+  },
+  "authContinueWithFacebook": "Continue with Facebook",
+  "@authContinueWithFacebook": {
+    "description": "Facebook sign-in button."
+  },
+  "authContinueWithApple": "Sign in with Apple",
+  "@authContinueWithApple": {
+    "description": "Apple sign-in button (Apple requires this wording)."
+  },
+  "authPlayAsGuest": "Play as guest",
+  "@authPlayAsGuest": {
+    "description": "Guest play button."
+  },
+  "authGuestHint": "Start instantly — you can save your progress any time.",
+  "@authGuestHint": {
+    "description": "Hint under the guest button."
+  },
+  "authOrDivider": "or",
+  "@authOrDivider": {
+    "description": "Divider between provider buttons and guest play."
+  },
+  "authFairPlayNote": "Coins and diamonds are virtual and can't be exchanged for real money.",
+  "@authFairPlayNote": {
+    "description": "Footer note about virtual currency."
+  },
+  "authSessionExpiredBanner": "You were signed out. Please sign in again.",
+  "@authSessionExpiredBanner": {
+    "description": "Banner after the server ended the session."
+  },
+  "authChangeLanguage": "Change language",
+  "@authChangeLanguage": {
+    "description": "Button/tooltip to change the language on the login screen."
+  },
+  "authProviderGoogle": "Google",
+  "@authProviderGoogle": {
+    "description": "Provider brand name."
+  },
+  "authProviderFacebook": "Facebook",
+  "@authProviderFacebook": {
+    "description": "Provider brand name."
+  },
+  "authProviderApple": "Apple",
+  "@authProviderApple": {
+    "description": "Provider brand name."
+  },
+  "authProviderGuest": "Guest",
+  "@authProviderGuest": {
+    "description": "Guest sign-in method name."
+  },
+  "authSaveProgressTitle": "Save your progress",
+  "@authSaveProgressTitle": {
+    "description": "Save Progress screen title."
+  },
+  "authSaveProgressSubtitle": "Link a sign-in method so your coins, level and collection are never lost — even on a new phone.",
+  "@authSaveProgressSubtitle": {
+    "description": "Save Progress explanation."
+  },
+  "authSaveBenefitKeep": "Keep all your coins, XP and cosmetics",
+  "@authSaveBenefitKeep": {
+    "description": "Save Progress benefit bullet."
+  },
+  "authSaveBenefitDevices": "Sign in on any device",
+  "@authSaveBenefitDevices": {
+    "description": "Save Progress benefit bullet."
+  },
+  "authSaveBenefitSame": "Same account — nothing is reset or moved",
+  "@authSaveBenefitSame": {
+    "description": "Save Progress benefit bullet: linking keeps the same account."
+  },
+  "authSaveWithGoogle": "Save with Google",
+  "@authSaveWithGoogle": {
+    "description": "Link Google button."
+  },
+  "authSaveWithFacebook": "Save with Facebook",
+  "@authSaveWithFacebook": {
+    "description": "Link Facebook button."
+  },
+  "authSaveWithApple": "Save with Apple",
+  "@authSaveWithApple": {
+    "description": "Link Apple button."
+  },
+  "authSaveNoProviders": "No sign-in methods are available in this build.",
+  "@authSaveNoProviders": {
+    "description": "No sign-in provider is configured in this build."
+  },
+  "authLinkSuccessTitle": "Progress saved!",
+  "@authLinkSuccessTitle": {
+    "description": "Shown after linking succeeded."
+  },
+  "authLinkSuccessMessage": "Your account is now linked to {provider}. Sign in with {provider} on any device to continue.",
+  "@authLinkSuccessMessage": {
+    "description": "Shown after linking succeeded. {provider} is a brand name like Google.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authAlreadySavedTitle": "Your progress is saved",
+  "@authAlreadySavedTitle": {
+    "description": "Save Progress screen when the account is already linked."
+  },
+  "authAlreadySavedMessage": "This account is linked to a sign-in method, so your progress is safe.",
+  "@authAlreadySavedMessage": {
+    "description": "Save Progress screen when the account is already linked."
+  },
+  "authConflictTitle": "This {provider} account is already in use",
+  "@authConflictTitle": {
+    "description": "409 identity_conflict dialog title.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authConflictMessage": "That {provider} account already has its own Ludo Royale account. Nothing will be merged or moved between the two accounts.",
+  "@authConflictMessage": {
+    "description": "409 identity_conflict explanation: nothing is merged.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authConflictSignIn": "Sign in to that account",
+  "@authConflictSignIn": {
+    "description": "Conflict option: sign in to the existing provider account."
+  },
+  "authConflictGuestNote": "Your guest account stays on this device — you can switch back to it from Settings.",
+  "@authConflictGuestNote": {
+    "description": "Conflict note: the guest account stays on the device."
+  },
+  "authAlreadyLinkedTitle": "Already linked",
+  "@authAlreadyLinkedTitle": {
+    "description": "409 provider_already_linked dialog title."
+  },
+  "authAlreadyLinkedMessage": "This account is already linked to a different {provider} account.",
+  "@authAlreadyLinkedMessage": {
+    "description": "409 provider_already_linked explanation.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authLogoutTitle": "Sign out?",
+  "@authLogoutTitle": {
+    "description": "Sign-out confirmation title (saved account)."
+  },
+  "authLogoutMessage": "You can sign back in any time with the same method.",
+  "@authLogoutMessage": {
+    "description": "Sign-out confirmation message (saved account)."
+  },
+  "authLogoutConfirm": "Sign out",
+  "@authLogoutConfirm": {
+    "description": "Sign-out confirm button."
+  },
+  "authGuestLogoutTitle": "Sign out of your guest account?",
+  "@authGuestLogoutTitle": {
+    "description": "Sign-out confirmation title for an unsaved guest."
+  },
+  "authGuestLogoutMessage": "You're playing as a guest. If you sign out now, your coins, level and collection will be lost unless you save your progress first.",
+  "@authGuestLogoutMessage": {
+    "description": "Warning that guest progress is lost unless saved."
+  },
+  "authGuestLogoutConfirm": "Sign out and lose progress",
+  "@authGuestLogoutConfirm": {
+    "description": "Destructive guest sign-out button."
+  },
+  "authSaveProgressFirst": "Save progress first",
+  "@authSaveProgressFirst": {
+    "description": "Button leading to Save Progress from the guest sign-out dialog."
+  },
+  "authSwitchToGuestTitle": "Switch back to guest?",
+  "@authSwitchToGuestTitle": {
+    "description": "Confirm switching back to the stored guest account."
+  },
+  "authSwitchToGuestMessage": "You'll leave this account and continue with the guest account saved on this device.",
+  "@authSwitchToGuestMessage": {
+    "description": "Explains switching back to the guest account."
+  },
+  "authSwitchToGuestConfirm": "Switch to guest",
+  "@authSwitchToGuestConfirm": {
+    "description": "Confirm button to switch to the guest account."
+  },
+  "authGuestUnavailable": "That guest account is no longer available.",
+  "@authGuestUnavailable": {
+    "description": "The stored guest account no longer exists."
+  },
+  "authWelcomeBack": "Welcome, {name}!",
+  "@authWelcomeBack": {
+    "description": "Toast after signing in.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "boardsColorRed": "Red",
+  "@boardsColorRed": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsColorGreen": "Green",
+  "@boardsColorGreen": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsColorYellow": "Yellow",
+  "@boardsColorYellow": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsColorBlue": "Blue",
+  "@boardsColorBlue": {
+    "description": "Seat color name used in game-board accessibility labels."
+  },
+  "boardsLudoBoardLabel": "Ludo board",
+  "@boardsLudoBoardLabel": {
+    "description": "Accessibility label of the whole Ludo board."
+  },
+  "boardsSnakesBoardLabel": "Snakes and Ladders board",
+  "@boardsSnakesBoardLabel": {
+    "description": "Accessibility label of the whole Snakes and Ladders board."
+  },
+  "boardsTokenInBase": "{color} token {number}, in base",
+  "@boardsTokenInBase": {
+    "description": "Accessibility label of a Ludo token that has not left its base yet.",
+    "placeholders": {
+      "color": {
+        "type": "String",
+        "example": "Red"
+      },
+      "number": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "boardsTokenStepsFromHome": "{color} token {number}, {steps, plural, =1{1 square from home} other{{steps} squares from home}}",
+  "@boardsTokenStepsFromHome": {
+    "description": "Accessibility label of a Ludo token on the board; steps is how many squares it still has to move to finish.",
+    "placeholders": {
+      "color": {
+        "type": "String",
+        "example": "Red"
+      },
+      "number": {
+        "type": "int",
+        "example": "1"
+      },
+      "steps": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "boardsTokenHome": "{color} token {number}, finished",
+  "@boardsTokenHome": {
+    "description": "Accessibility label of a Ludo token that reached home.",
+    "placeholders": {
+      "color": {
+        "type": "String",
+        "example": "Red"
+      },
+      "number": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "boardsTokenCanMove": "can move",
+  "@boardsTokenCanMove": {
+    "description": "Appended to a token's accessibility label when the player may move it now."
+  },
+  "boardsTokenMoveHint": "move this token",
+  "@boardsTokenMoveHint": {
+    "description": "Accessibility tap hint for a movable token (read as 'Double tap to move this token')."
+  },
+  "boardsCurrentTurn": "current turn",
+  "@boardsCurrentTurn": {
+    "description": "Appended to a token's accessibility label when it belongs to the player whose turn it is."
+  },
+  "boardsSnakesTokenOnSquare": "{color} token on square {square}",
+  "@boardsSnakesTokenOnSquare": {
+    "description": "Accessibility label of a Snakes and Ladders token.",
+    "placeholders": {
+      "color": {
+        "type": "String",
+        "example": "Red"
+      },
+      "square": {
+        "type": "int",
+        "example": "34"
+      }
+    }
+  },
+  "boardsSnakesTokenAtStart": "{color} token at the start",
+  "@boardsSnakesTokenAtStart": {
+    "description": "Accessibility label of a Snakes and Ladders token that is not on the board yet.",
+    "placeholders": {
+      "color": {
+        "type": "String",
+        "example": "Red"
+      }
+    }
+  },
+  "boardsDiceShowing": "Dice showing {value}",
+  "@boardsDiceShowing": {
+    "description": "Accessibility label of the dice with its current face value.",
+    "placeholders": {
+      "value": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "boardsDiceRolling": "Dice rolling",
+  "@boardsDiceRolling": {
+    "description": "Accessibility label of the dice while it is tumbling."
+  },
+  "boardsDiceRollHint": "roll the dice",
+  "@boardsDiceRollHint": {
+    "description": "Accessibility tap hint for the dice when the player may roll (read as 'Double tap to roll the dice')."
+  },
+  "boardsVictoryCelebration": "Victory celebration",
+  "@boardsVictoryCelebration": {
+    "description": "Accessibility label of the victory celebration animation."
+  },
+  "boardsLevelUp": "Level up",
+  "@boardsLevelUp": {
+    "description": "Accessibility label of the level-up burst animation."
+  },
+  "commonOk": "OK",
+  "@commonOk": {
+    "description": "Generic confirmation button."
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Generic cancel button."
+  },
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Retry a failed action."
+  },
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Close a sheet/dialog."
+  },
+  "commonContinue": "Continue",
+  "@commonContinue": {
+    "description": "Proceed to the next step."
+  },
+  "commonBack": "Back",
+  "@commonBack": {
+    "description": "Navigate back."
+  },
+  "commonDone": "Done",
+  "@commonDone": {
+    "description": "Finish an action."
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Save changes."
+  },
+  "commonLater": "Later",
+  "@commonLater": {
+    "description": "Postpone (e.g. an update prompt)."
+  },
+  "commonLoading": "Loading…",
+  "@commonLoading": {
+    "description": "Shown while content loads."
+  },
+  "commonCopy": "Copy",
+  "@commonCopy": {
+    "description": "Copy to clipboard."
+  },
+  "commonCopied": "Copied!",
+  "@commonCopied": {
+    "description": "Toast after copying to the clipboard."
+  },
+  "commonShare": "Share",
+  "@commonShare": {
+    "description": "Open the system share sheet."
+  },
+  "commonYes": "Yes",
+  "@commonYes": {
+    "description": "Affirmative answer."
+  },
+  "commonNo": "No",
+  "@commonNo": {
+    "description": "Negative answer."
+  },
+  "commonSomethingWentWrong": "Something went wrong.",
+  "@commonSomethingWentWrong": {
+    "description": "Generic error state title."
+  },
+  "commonNothingHereYet": "Nothing here yet",
+  "@commonNothingHereYet": {
+    "description": "Generic empty state title."
+  },
+  "commonBotBadge": "BOT",
+  "@commonBotBadge": {
+    "description": "Short badge shown on bot players' avatars. Keep very short (≤ 4 characters if possible)."
+  },
+  "commonBotPlayerLabel": "Computer player",
+  "@commonBotPlayerLabel": {
+    "description": "Accessibility label for the BOT badge."
+  },
+  "commonYou": "You",
+  "@commonYou": {
+    "description": "Label for the current user in player lists."
+  },
+  "commonGuest": "Guest",
+  "@commonGuest": {
+    "description": "Account type: guest (not saved to a sign-in provider)."
+  },
+  "commonCoins": "Coins",
+  "@commonCoins": {
+    "description": "Virtual soft currency name."
+  },
+  "commonDiamonds": "Diamonds",
+  "@commonDiamonds": {
+    "description": "Virtual premium currency name."
+  },
+  "commonLevel": "Level {level}",
+  "@commonLevel": {
+    "description": "Player level, long form.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "commonLevelShort": "Lv {level}",
+  "@commonLevelShort": {
+    "description": "Player level in compact badges.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "commonXpProgress": "{current} / {total} XP",
+  "@commonXpProgress": {
+    "description": "XP progress within the current level.",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "commonConnectionConnected": "Online",
+  "@commonConnectionConnected": {
+    "description": "Realtime connection status: connected."
+  },
+  "commonConnectionConnecting": "Connecting…",
+  "@commonConnectionConnecting": {
+    "description": "Realtime connection status: first connection attempt."
+  },
+  "commonConnectionReconnecting": "Reconnecting…",
+  "@commonConnectionReconnecting": {
+    "description": "Realtime connection status: connection lost, retrying."
+  },
+  "commonConnectionOffline": "Offline",
+  "@commonConnectionOffline": {
+    "description": "Realtime connection status: offline."
+  },
+  "commonConnectionReplaced": "Signed in on another device",
+  "@commonConnectionReplaced": {
+    "description": "Realtime connection was replaced by a newer session on another device."
+  },
+  "commonReconnect": "Reconnect",
+  "@commonReconnect": {
+    "description": "Button to reconnect after being signed in elsewhere."
+  },
+  "commonSecondsShort": "{seconds}s",
+  "@commonSecondsShort": {
+    "description": "Compact seconds countdown.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "commonGameLudo": "Ludo",
+  "@commonGameLudo": {
+    "description": "Game name: Ludo."
+  },
+  "commonGameSnakesLadders": "Snakes & Ladders",
+  "@commonGameSnakesLadders": {
+    "description": "Game name: Snakes and Ladders."
+  },
+  "commonVariantClassic": "Classic",
+  "@commonVariantClassic": {
+    "description": "Ludo rules variant: classic."
+  },
+  "commonVariantQuick": "Quick",
+  "@commonVariantQuick": {
+    "description": "Ludo rules variant: quick."
+  },
+  "commonPlayerCount": "{count, plural, =1{1 player} other{{count} players}}",
+  "@commonPlayerCount": {
+    "description": "Number of players / seats.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonOfflineHint": "You're offline. Check your connection and try again.",
+  "@commonOfflineHint": {
+    "description": "Shown when an action failed because the device is offline."
+  },
+  "commonEntryFee": "Entry {amount}",
+  "@commonEntryFee": {
+    "description": "Coin entry fee for a match.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "commonFree": "Free",
+  "@commonFree": {
+    "description": "No entry fee (e.g. practice vs bots)."
+  },
+  "appTitle": "Ludo Royale",
+  "@appTitle": {
+    "description": "Application name shown in the OS task switcher and splash."
+  },
+  "languageNameNative": "English",
+  "@languageNameNative": {
+    "description": "The language's own name, in its own script."
+  },
+  "cosmeticDiceClassic": "Classic Ivory",
+  "@cosmeticDiceClassic": {
+    "description": "Display name of the cosmetic item `dice_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticDiceNeon": "Neon Pulse",
+  "@cosmeticDiceNeon": {
+    "description": "Display name of the cosmetic item `dice_neon` (Collection Room, chips, rewards)."
+  },
+  "cosmeticDiceGolden": "Royal Gold",
+  "@cosmeticDiceGolden": {
+    "description": "Display name of the cosmetic item `dice_golden` (Collection Room, chips, rewards)."
+  },
+  "cosmeticDiceAutumn": "Autumn Leaf",
+  "@cosmeticDiceAutumn": {
+    "description": "Display name of the cosmetic item `dice_autumn` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenClassic": "Classic Pawn",
+  "@cosmeticTokenClassic": {
+    "description": "Display name of the cosmetic item `token_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenGem": "Gemstone",
+  "@cosmeticTokenGem": {
+    "description": "Display name of the cosmetic item `token_gem` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenRoyal": "Royal Pawn",
+  "@cosmeticTokenRoyal": {
+    "description": "Display name of the cosmetic item `token_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTokenCrown": "Crown Piece",
+  "@cosmeticTokenCrown": {
+    "description": "Display name of the cosmetic item `token_crown` (Collection Room, chips, rewards)."
+  },
+  "cosmeticLudoBoardClassic": "Classic",
+  "@cosmeticLudoBoardClassic": {
+    "description": "Display name of the cosmetic item `ludo_board_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticLudoBoardMidnight": "Midnight Marble",
+  "@cosmeticLudoBoardMidnight": {
+    "description": "Display name of the cosmetic item `ludo_board_midnight` (Collection Room, chips, rewards)."
+  },
+  "cosmeticLudoBoardRoyal": "Royal Court",
+  "@cosmeticLudoBoardRoyal": {
+    "description": "Display name of the cosmetic item `ludo_board_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticSnakesBoardClassic": "Classic Meadow",
+  "@cosmeticSnakesBoardClassic": {
+    "description": "Display name of the cosmetic item `snakes_board_classic` (Collection Room, chips, rewards)."
+  },
+  "cosmeticSnakesBoardJungle": "Jungle Temple",
+  "@cosmeticSnakesBoardJungle": {
+    "description": "Display name of the cosmetic item `snakes_board_jungle` (Collection Room, chips, rewards)."
+  },
+  "cosmeticSnakesBoardCandy": "Candy Land",
+  "@cosmeticSnakesBoardCandy": {
+    "description": "Display name of the cosmetic item `snakes_board_candy` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTrailNone": "No Trail",
+  "@cosmeticTrailNone": {
+    "description": "Display name of the cosmetic item `trail_none` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTrailSparkle": "Sparkle",
+  "@cosmeticTrailSparkle": {
+    "description": "Display name of the cosmetic item `trail_sparkle` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTrailComet": "Comet",
+  "@cosmeticTrailComet": {
+    "description": "Display name of the cosmetic item `trail_comet` (Collection Room, chips, rewards)."
+  },
+  "cosmeticVictoryConfetti": "Confetti",
+  "@cosmeticVictoryConfetti": {
+    "description": "Display name of the cosmetic item `victory_confetti` (Collection Room, chips, rewards)."
+  },
+  "cosmeticVictoryFireworks": "Fireworks",
+  "@cosmeticVictoryFireworks": {
+    "description": "Display name of the cosmetic item `victory_fireworks` (Collection Room, chips, rewards)."
+  },
+  "cosmeticVictoryCrown": "Golden Crown",
+  "@cosmeticVictoryCrown": {
+    "description": "Display name of the cosmetic item `victory_crown` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameNone": "No Frame",
+  "@cosmeticFrameNone": {
+    "description": "Display name of the cosmetic item `frame_none` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameBronze": "Bronze Ring",
+  "@cosmeticFrameBronze": {
+    "description": "Display name of the cosmetic item `frame_bronze` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameSilver": "Silver Laurel",
+  "@cosmeticFrameSilver": {
+    "description": "Display name of the cosmetic item `frame_silver` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameGold": "Gold Laurel",
+  "@cosmeticFrameGold": {
+    "description": "Display name of the cosmetic item `frame_gold` (Collection Room, chips, rewards)."
+  },
+  "cosmeticFrameRoyal": "Royal Crest",
+  "@cosmeticFrameRoyal": {
+    "description": "Display name of the cosmetic item `frame_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleRookie": "Rookie",
+  "@cosmeticTitleRookie": {
+    "description": "Display name of the cosmetic item `title_rookie` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleStrategist": "Strategist",
+  "@cosmeticTitleStrategist": {
+    "description": "Display name of the cosmetic item `title_strategist` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleDiceMaster": "Dice Master",
+  "@cosmeticTitleDiceMaster": {
+    "description": "Display name of the cosmetic item `title_dice_master` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleRoyal": "Royal Highness",
+  "@cosmeticTitleRoyal": {
+    "description": "Display name of the cosmetic item `title_royal` (Collection Room, chips, rewards)."
+  },
+  "cosmeticTitleWeeklyChampion": "Weekly Champion",
+  "@cosmeticTitleWeeklyChampion": {
+    "description": "Display name of the cosmetic item `title_weekly_champion` (Collection Room, chips, rewards)."
+  },
+  "cosmeticBadgeFirstWin": "First Victory",
+  "@cosmeticBadgeFirstWin": {
+    "description": "Display name of the cosmetic item `badge_first_win` (Collection Room, chips, rewards)."
+  },
+  "cosmeticBadgeFriendly": "Good Company",
+  "@cosmeticBadgeFriendly": {
+    "description": "Display name of the cosmetic item `badge_friendly` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteWave": "Wave",
+  "@cosmeticEmoteWave": {
+    "description": "Display name of the cosmetic item `emote_wave` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteThumbs": "Thumbs Up",
+  "@cosmeticEmoteThumbs": {
+    "description": "Display name of the cosmetic item `emote_thumbs` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteLaugh": "Laugh",
+  "@cosmeticEmoteLaugh": {
+    "description": "Display name of the cosmetic item `emote_laugh` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteWow": "Wow",
+  "@cosmeticEmoteWow": {
+    "description": "Display name of the cosmetic item `emote_wow` (Collection Room, chips, rewards)."
+  },
+  "cosmeticEmoteCrown": "Crown",
+  "@cosmeticEmoteCrown": {
+    "description": "Display name of the cosmetic item `emote_crown` (Collection Room, chips, rewards)."
+  },
+  "cosmeticRarityCommon": "Common",
+  "@cosmeticRarityCommon": {
+    "description": "Cosmetic rarity tier `common`."
+  },
+  "cosmeticRarityRare": "Rare",
+  "@cosmeticRarityRare": {
+    "description": "Cosmetic rarity tier `rare`."
+  },
+  "cosmeticRarityEpic": "Epic",
+  "@cosmeticRarityEpic": {
+    "description": "Cosmetic rarity tier `epic`."
+  },
+  "cosmeticRarityLegendary": "Legendary",
+  "@cosmeticRarityLegendary": {
+    "description": "Cosmetic rarity tier `legendary`."
+  },
+  "cosmeticKindDice": "Dice",
+  "@cosmeticKindDice": {
+    "description": "Cosmetic category / equip slot `dice`."
+  },
+  "cosmeticKindToken": "Tokens",
+  "@cosmeticKindToken": {
+    "description": "Cosmetic category / equip slot `token`."
+  },
+  "cosmeticKindLudoBoard": "Ludo board",
+  "@cosmeticKindLudoBoard": {
+    "description": "Cosmetic category / equip slot `ludo_board`."
+  },
+  "cosmeticKindSnakesBoard": "Snakes & Ladders board",
+  "@cosmeticKindSnakesBoard": {
+    "description": "Cosmetic category / equip slot `snakes_board`."
+  },
+  "cosmeticKindFrame": "Avatar frame",
+  "@cosmeticKindFrame": {
+    "description": "Cosmetic category / equip slot `frame`."
+  },
+  "cosmeticKindTitle": "Title",
+  "@cosmeticKindTitle": {
+    "description": "Cosmetic category / equip slot `title`."
+  },
+  "cosmeticKindBadge": "Badge",
+  "@cosmeticKindBadge": {
+    "description": "Cosmetic category / equip slot `badge`."
+  },
+  "cosmeticKindEmote": "Emote",
+  "@cosmeticKindEmote": {
+    "description": "Cosmetic category / equip slot `emote`."
+  },
+  "cosmeticKindVictory": "Victory celebration",
+  "@cosmeticKindVictory": {
+    "description": "Cosmetic category / equip slot `victory`."
+  },
+  "cosmeticKindTrail": "Token trail",
+  "@cosmeticKindTrail": {
+    "description": "Cosmetic category / equip slot `trail`."
+  },
+  "errorGeneric": "Something went wrong. Please try again.",
+  "@errorGeneric": {
+    "description": "Fallback for unknown error codes."
+  },
+  "errorBadRequest": "That request couldn't be processed.",
+  "@errorBadRequest": {
+    "description": "Error code bad_request (malformed request)."
+  },
+  "errorUnknownType": "This action isn't supported. Please update the app.",
+  "@errorUnknownType": {
+    "description": "Error code unknown_type (server does not know the message type)."
+  },
+  "errorRateLimited": "You're going a bit fast! Wait a moment and try again.",
+  "@errorRateLimited": {
+    "description": "Error code rate_limited."
+  },
+  "errorUnauthorized": "Your session has expired. Please sign in again.",
+  "@errorUnauthorized": {
+    "description": "Error code unauthorized."
+  },
+  "errorUpdateRequired": "A newer version of the app is required.",
+  "@errorUpdateRequired": {
+    "description": "Error code update_required."
+  },
+  "errorMaintenance": "The game servers are under maintenance. Please try again soon.",
+  "@errorMaintenance": {
+    "description": "Error code maintenance."
+  },
+  "errorNotInRoom": "You're not in this room anymore.",
+  "@errorNotInRoom": {
+    "description": "Error code not_in_room."
+  },
+  "errorRoomNotFound": "This room doesn't exist anymore.",
+  "@errorRoomNotFound": {
+    "description": "Error code room_not_found."
+  },
+  "errorRoomFull": "This room is already full.",
+  "@errorRoomFull": {
+    "description": "Error code room_full."
+  },
+  "errorRoomInProgress": "This game has already started.",
+  "@errorRoomInProgress": {
+    "description": "Error code room_in_progress."
+  },
+  "errorRoomClosed": "This room has been closed.",
+  "@errorRoomClosed": {
+    "description": "Error code room_closed."
+  },
+  "errorAlreadyInRoom": "You're already in a room. Leave it first to join another.",
+  "@errorAlreadyInRoom": {
+    "description": "Error code already_in_room."
+  },
+  "errorNotHost": "Only the host can do that.",
+  "@errorNotHost": {
+    "description": "Error code not_host."
+  },
+  "errorNotEnoughPlayers": "At least 2 players are needed to start.",
+  "@errorNotEnoughPlayers": {
+    "description": "Error code not_enough_players."
+  },
+  "errorPlayersNotReady": "Waiting for all players to be ready.",
+  "@errorPlayersNotReady": {
+    "description": "Error code players_not_ready."
+  },
+  "errorNotYourTurn": "It's not your turn yet.",
+  "@errorNotYourTurn": {
+    "description": "Error code not_your_turn."
+  },
+  "errorInvalidPhase": "You can't do that right now.",
+  "@errorInvalidPhase": {
+    "description": "Error code invalid_phase."
+  },
+  "errorIllegalMove": "That move isn't allowed.",
+  "@errorIllegalMove": {
+    "description": "Error code illegal_move."
+  },
+  "errorStaleState": "The board just changed. Try again.",
+  "@errorStaleState": {
+    "description": "Error code stale_state (the action used an outdated turn)."
+  },
+  "errorInsufficientFunds": "You don't have enough coins for this.",
+  "@errorInsufficientFunds": {
+    "description": "Error code insufficient_funds."
+  },
+  "errorInvalidCode": "That room code isn't valid. Check it and try again.",
+  "@errorInvalidCode": {
+    "description": "Error code invalid_code."
+  },
+  "errorRematchClosed": "The rematch window has closed.",
+  "@errorRematchClosed": {
+    "description": "Error code rematch_closed."
+  },
+  "errorNotFriends": "You can only invite friends.",
+  "@errorNotFriends": {
+    "description": "Error code not_friends."
+  },
+  "errorItemNotOwned": "You don't own this item yet.",
+  "@errorItemNotOwned": {
+    "description": "Error code item_not_owned."
+  },
+  "errorBotsUnavailable": "No computer players are available right now. Try again in a moment.",
+  "@errorBotsUnavailable": {
+    "description": "Error code bots_unavailable."
+  },
+  "errorBotsNotAllowed": "Computer players aren't allowed in this room.",
+  "@errorBotsNotAllowed": {
+    "description": "Error code bots_not_allowed."
+  },
+  "errorInternal": "Something went wrong on our side. Please try again.",
+  "@errorInternal": {
+    "description": "Error code internal (server error)."
+  },
+  "errorClientVersionRequired": "The app couldn't identify its version. Please update or reinstall it.",
+  "@errorClientVersionRequired": {
+    "description": "Error code client_version_required."
+  },
+  "errorEnvironmentMismatch": "This app build is connected to the wrong server.",
+  "@errorEnvironmentMismatch": {
+    "description": "Error code environment_mismatch."
+  },
+  "errorInvalidCredential": "Sign-in failed. Please try again.",
+  "@errorInvalidCredential": {
+    "description": "Error code invalid_credential (provider token rejected)."
+  },
+  "errorRefreshReused": "For your security, you've been signed out. Please sign in again.",
+  "@errorRefreshReused": {
+    "description": "Error code refresh_reused (session revoked)."
+  },
+  "errorForbidden": "You don't have permission to do that.",
+  "@errorForbidden": {
+    "description": "Error code forbidden."
+  },
+  "errorNotFound": "We couldn't find what you were looking for.",
+  "@errorNotFound": {
+    "description": "Error code not_found."
+  },
+  "errorIdentityConflict": "This sign-in account already belongs to a different player profile.",
+  "@errorIdentityConflict": {
+    "description": "Error code identity_conflict (provider identity already has its own account)."
+  },
+  "errorProviderAlreadyLinked": "Your profile already has a different account of this type linked.",
+  "@errorProviderAlreadyLinked": {
+    "description": "Error code provider_already_linked."
+  },
+  "errorAlreadyOwned": "You already own this item.",
+  "@errorAlreadyOwned": {
+    "description": "Error code already_owned."
+  },
+  "errorAlreadyClaimed": "You've already claimed this reward.",
+  "@errorAlreadyClaimed": {
+    "description": "Error code already_claimed."
+  },
+  "errorAlreadyFriends": "You're already friends.",
+  "@errorAlreadyFriends": {
+    "description": "Error code already_friends."
+  },
+  "errorNotCompleted": "Finish this mission first to claim the reward.",
+  "@errorNotCompleted": {
+    "description": "Error code not_completed."
+  },
+  "errorItemLocked": "This item is still locked.",
+  "@errorItemLocked": {
+    "description": "Error code item_locked."
+  },
+  "errorProviderUnavailable": "The sign-in service is unavailable right now. Please try again later.",
+  "@errorProviderUnavailable": {
+    "description": "Error code provider_unavailable."
+  },
+  "errorNetwork": "Can't reach the game service. Check your internet connection.",
+  "@errorNetwork": {
+    "description": "Client code network_error (no connectivity)."
+  },
+  "errorTimeout": "The connection timed out. Please try again.",
+  "@errorTimeout": {
+    "description": "Client code timeout."
+  },
+  "errorBadResponse": "We got an unexpected response. Please try again.",
+  "@errorBadResponse": {
+    "description": "Client code bad_response."
+  },
+  "errorCancelled": "Cancelled.",
+  "@errorCancelled": {
+    "description": "Client code cancelled."
+  },
+  "errorNotConnected": "You're not connected right now. Reconnecting…",
+  "@errorNotConnected": {
+    "description": "Client code not_connected (realtime connection not open)."
+  },
+  "errorRateLimitedRetry": "{seconds, plural, =1{Too many tries. Try again in 1 second.} other{Too many tries. Try again in {seconds} seconds.}}",
+  "@errorRateLimitedRetry": {
+    "description": "Rate limited with a known wait (Retry-After).",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "gateSplashTagline": "Roll. Race. Rule.",
+  "@gateSplashTagline": {
+    "description": "Splash screen tagline under the logo."
+  },
+  "gateStatusChecking": "Checking the game servers…",
+  "@gateStatusChecking": {
+    "description": "Splash status while fetching the app policy."
+  },
+  "gateStatusSigningIn": "Signing you in…",
+  "@gateStatusSigningIn": {
+    "description": "Splash status while restoring the session."
+  },
+  "gateStatusLoadingProfile": "Loading your profile…",
+  "@gateStatusLoadingProfile": {
+    "description": "Splash status while loading profile and wallet."
+  },
+  "gateUpdateNow": "Update now",
+  "@gateUpdateNow": {
+    "description": "Button that opens the app store to update."
+  },
+  "gateForceUpdateTitle": "Update required",
+  "@gateForceUpdateTitle": {
+    "description": "Force-update screen title."
+  },
+  "gateForceUpdateMessage": "This version of Ludo Royale is no longer supported. Update to keep playing online — your coins and progress are safe.",
+  "@gateForceUpdateMessage": {
+    "description": "Force-update screen explanation (used when the server sends no localized message)."
+  },
+  "gateInstalledVersion": "Installed version",
+  "@gateInstalledVersion": {
+    "description": "Label for the installed app version."
+  },
+  "gateRequiredVersion": "Required version",
+  "@gateRequiredVersion": {
+    "description": "Label for the minimum required app version."
+  },
+  "gateStoreNotReadyTitle": "Update not yet available in the store",
+  "@gateStoreNotReadyTitle": {
+    "description": "Shown when an update is required but the store has no link yet."
+  },
+  "gateStoreNotReadyMessage": "The new version is on its way to your app store. Please check again in a little while.",
+  "@gateStoreNotReadyMessage": {
+    "description": "Explanation when the store update is not yet published."
+  },
+  "gateCheckAgain": "Check again",
+  "@gateCheckAgain": {
+    "description": "Button to re-check the app policy."
+  },
+  "gateOptionalUpdateTitle": "A new version is available",
+  "@gateOptionalUpdateTitle": {
+    "description": "Optional update dialog title."
+  },
+  "gateOptionalUpdateMessage": "Version {version} brings fixes and improvements. Update now for the smoothest games.",
+  "@gateOptionalUpdateMessage": {
+    "description": "Optional update dialog message. {version} is the latest version number.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "gateMaintenanceTitle": "We're polishing the boards",
+  "@gateMaintenanceTitle": {
+    "description": "Maintenance screen title."
+  },
+  "gateMaintenanceMessage": "Ludo Royale is down for maintenance. Your coins, progress and running matches are safe — matches resume when we're back.",
+  "@gateMaintenanceMessage": {
+    "description": "Maintenance explanation (used when the server sends no localized message)."
+  },
+  "gateMaintenanceEstimatedEnd": "Estimated end: {time}",
+  "@gateMaintenanceEstimatedEnd": {
+    "description": "Estimated maintenance end in local time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gateMaintenanceEstimateNote": "This is only an estimate and may change.",
+  "@gateMaintenanceEstimateNote": {
+    "description": "Clarifies that the end time is only an estimate."
+  },
+  "gateMaintenanceAutoCheck": "We'll check again automatically every 30 seconds.",
+  "@gateMaintenanceAutoCheck": {
+    "description": "Tells the user the app re-checks automatically."
+  },
+  "gateLastChecked": "Last checked at {time}",
+  "@gateLastChecked": {
+    "description": "Time of the last policy check.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gateCheckingNow": "Checking…",
+  "@gateCheckingNow": {
+    "description": "Shown while a re-check runs."
+  },
+  "gateServiceReachable": "Game service reachable",
+  "@gateServiceReachable": {
+    "description": "Connection status: the game service answered."
+  },
+  "gateServiceUnreachableShort": "No connection to the game service",
+  "@gateServiceUnreachableShort": {
+    "description": "Connection status: the game service did not answer."
+  },
+  "gateUnreachableTitle": "Can't reach the game service",
+  "@gateUnreachableTitle": {
+    "description": "Title when the backend cannot be reached at startup."
+  },
+  "gateUnreachableMessage": "Ludo Royale needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.",
+  "@gateUnreachableMessage": {
+    "description": "Explains that online play needs a connection."
+  },
+  "gateUnreachableLastKnownMaintenance": "The last status we received said the servers were under maintenance.",
+  "@gateUnreachableLastKnownMaintenance": {
+    "description": "Context from the cached policy: maintenance."
+  },
+  "gateUnreachableLastKnownUpdate": "The last status we received said this version needs an update.",
+  "@gateUnreachableLastKnownUpdate": {
+    "description": "Context from the cached policy: an update is required."
+  },
+  "gateNotFoundTitle": "Not available yet",
+  "@gateNotFoundTitle": {
+    "description": "Title for a route that is not available in this build."
+  },
+  "gateNotFoundMessage": "This part of Ludo Royale isn't available in this version yet.",
+  "@gateNotFoundMessage": {
+    "description": "Message for a route that is not available in this build."
+  },
+  "gateGoHome": "Back to home",
+  "@gateGoHome": {
+    "description": "Button back to the home screen."
+  },
+  "homeGreeting": "Hi, {name}",
+  "@homeGreeting": {
+    "description": "Header greeting with the display name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeQuickPlay": "Quick Play",
+  "@homeQuickPlay": {
+    "description": "Quick Play action title."
+  },
+  "homeQuickPlayDetails": "{game} · {variant} · {players}",
+  "@homeQuickPlayDetails": {
+    "description": "Quick Play configuration summary, e.g. \"Ludo · Classic · 4 players\".",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      },
+      "variant": {
+        "type": "String"
+      },
+      "players": {
+        "type": "String"
+      }
+    }
+  },
+  "homePrivateRoom": "Private Room",
+  "@homePrivateRoom": {
+    "description": "Private room action title."
+  },
+  "homePrivateRoomSubtitle": "Create a room for friends",
+  "@homePrivateRoomSubtitle": {
+    "description": "Private room action subtitle."
+  },
+  "homeJoinWithCode": "Join with Code",
+  "@homeJoinWithCode": {
+    "description": "Join-with-code action title."
+  },
+  "homeJoinWithCodeSubtitle": "Enter a room code",
+  "@homeJoinWithCodeSubtitle": {
+    "description": "Join-with-code action subtitle."
+  },
+  "homePlayOnline": "Play Online",
+  "@homePlayOnline": {
+    "description": "Game card action: public matchmaking."
+  },
+  "homePlayWithFriends": "Play with Friends",
+  "@homePlayWithFriends": {
+    "description": "Game card action: private room."
+  },
+  "homePracticeVsBots": "Practice vs Bots",
+  "@homePracticeVsBots": {
+    "description": "Game card action: practice room with bots."
+  },
+  "homeLudoTagline": "Race all four tokens home",
+  "@homeLudoTagline": {
+    "description": "Ludo card tagline."
+  },
+  "homeSnakesTagline": "Climb ladders, dodge snakes",
+  "@homeSnakesTagline": {
+    "description": "Snakes & Ladders card tagline."
+  },
+  "homeMissions": "Missions",
+  "@homeMissions": {
+    "description": "Entry tile: missions."
+  },
+  "homeMissionsSubtitle": "Daily & weekly goals",
+  "@homeMissionsSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeCollection": "Collection Room",
+  "@homeCollection": {
+    "description": "Entry tile: Collection Room."
+  },
+  "homeCollectionSubtitle": "Dice, tokens & frames",
+  "@homeCollectionSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeFriends": "Friends",
+  "@homeFriends": {
+    "description": "Entry tile: friends."
+  },
+  "homeFriendsSubtitle": "Play with your crew",
+  "@homeFriendsSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeEvents": "Events",
+  "@homeEvents": {
+    "description": "Entry tile: events."
+  },
+  "homeEventsSubtitle": "Limited-time cups",
+  "@homeEventsSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeExploreHeader": "Explore",
+  "@homeExploreHeader": {
+    "description": "Section header above entry tiles."
+  },
+  "homeGamesHeader": "Games",
+  "@homeGamesHeader": {
+    "description": "Section header above the game cards."
+  },
+  "homeSaveProgressTooltip": "Save progress",
+  "@homeSaveProgressTooltip": {
+    "description": "Tooltip of the cloud-save button for guests."
+  },
+  "homeProfileTooltip": "Profile",
+  "@homeProfileTooltip": {
+    "description": "Tooltip of the profile button."
+  },
+  "homeSettingsTooltip": "Settings",
+  "@homeSettingsTooltip": {
+    "description": "Tooltip of the settings button."
+  },
+  "homeThemeTooltip": "Switch light/dark theme",
+  "@homeThemeTooltip": {
+    "description": "Tooltip of the theme shortcut."
+  },
+  "homeWalletTooltip": "Wallet",
+  "@homeWalletTooltip": {
+    "description": "Accessibility label for opening the wallet."
+  },
+  "homeOptionsOnlineTitle": "{game} online",
+  "@homeOptionsOnlineTitle": {
+    "description": "Options sheet title for public play. {game} is the game name.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOptionsFriendsTitle": "{game} with friends",
+  "@homeOptionsFriendsTitle": {
+    "description": "Options sheet title for a private room.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOptionsPracticeTitle": "Practice {game}",
+  "@homeOptionsPracticeTitle": {
+    "description": "Options sheet title for practice.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOptionsPrivateRoomTitle": "Create a private room",
+  "@homeOptionsPrivateRoomTitle": {
+    "description": "Options sheet title for creating a private room (game not chosen yet)."
+  },
+  "homeGameLabel": "Game",
+  "@homeGameLabel": {
+    "description": "Picker label: game."
+  },
+  "homePlayersLabel": "Players",
+  "@homePlayersLabel": {
+    "description": "Picker label: number of players."
+  },
+  "homeModeLabel": "Mode",
+  "@homeModeLabel": {
+    "description": "Picker label: Ludo rules variant."
+  },
+  "homeBotsLabel": "Bots",
+  "@homeBotsLabel": {
+    "description": "Picker label: number of bots."
+  },
+  "homeModeClassicCaption": "Full rules",
+  "@homeModeClassicCaption": {
+    "description": "Caption for the classic variant."
+  },
+  "homeModeQuickCaption": "Shorter games",
+  "@homeModeQuickCaption": {
+    "description": "Caption for the quick variant."
+  },
+  "homeBotCount": "{count, plural, =1{1 bot} other{{count} bots}}",
+  "@homeBotCount": {
+    "description": "Number of bot opponents.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeFindMatch": "Find match",
+  "@homeFindMatch": {
+    "description": "Start public matchmaking."
+  },
+  "homeCreateRoom": "Create room",
+  "@homeCreateRoom": {
+    "description": "Create a private room."
+  },
+  "homeStartPractice": "Start practice",
+  "@homeStartPractice": {
+    "description": "Start a practice game with bots."
+  },
+  "homeHaveACode": "Have a code? Join a room",
+  "@homeHaveACode": {
+    "description": "Link from the friends sheet to the join-by-code sheet."
+  },
+  "homeEntryFeeNote": "Entry fee {fee} coins · Winner takes the pot",
+  "@homeEntryFeeNote": {
+    "description": "Entry fee note in options sheets. {fee} is a formatted coin amount.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "homePracticeNote": "Practice is free: no coins, but you still earn XP and mission progress.",
+  "@homePracticeNote": {
+    "description": "Practice explanation: free, XP still earned."
+  },
+  "homeNotEnoughCoins": "You need at least {fee} coins for this match.",
+  "@homeNotEnoughCoins": {
+    "description": "Shown when the balance is below the entry fee. {fee} is formatted.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "homeJoinCodeTitle": "Join a private room",
+  "@homeJoinCodeTitle": {
+    "description": "Join-by-code sheet title."
+  },
+  "homeJoinCodeLabel": "Room code",
+  "@homeJoinCodeLabel": {
+    "description": "Room code input label."
+  },
+  "homeJoinCodeHelper": "Ask the host for the 6-character code.",
+  "@homeJoinCodeHelper": {
+    "description": "Room code input helper."
+  },
+  "homeJoinCodeInvalid": "Room codes have 6 letters or numbers.",
+  "@homeJoinCodeInvalid": {
+    "description": "Room code validation error."
+  },
+  "homeJoinCodeAction": "Join room",
+  "@homeJoinCodeAction": {
+    "description": "Join-by-code submit button."
+  },
+  "homeLevelUpToast": "Level up! You reached level {level}.",
+  "@homeLevelUpToast": {
+    "description": "Toast when the server reports a level up.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "homeCoinsGainedToast": "+{amount} coins",
+  "@homeCoinsGainedToast": {
+    "description": "Toast for a server-confirmed coin gain. {amount} is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaMissionsTitle": "Missions",
+  "@metaMissionsTitle": {
+    "description": "Missions screen title."
+  },
+  "metaEventsTitle": "Events",
+  "@metaEventsTitle": {
+    "description": "Events screen title."
+  },
+  "metaCollectionTitle": "Collection Room",
+  "@metaCollectionTitle": {
+    "description": "Collection Room screen title."
+  },
+  "metaFriendsTitle": "Friends",
+  "@metaFriendsTitle": {
+    "description": "Friends screen title."
+  },
+  "metaLeaderboardTitle": "Weekly ranking",
+  "@metaLeaderboardTitle": {
+    "description": "Weekly friends leaderboard title."
+  },
+  "metaLevelRoadTitle": "Level road",
+  "@metaLevelRoadTitle": {
+    "description": "Level road (milestones) screen title."
+  },
+  "metaDailyTitle": "Daily missions",
+  "@metaDailyTitle": {
+    "description": "Section header: daily missions."
+  },
+  "metaWeeklyTitle": "Weekly challenge",
+  "@metaWeeklyTitle": {
+    "description": "Section header: weekly challenge."
+  },
+  "metaClaim": "Claim",
+  "@metaClaim": {
+    "description": "Button: claim a completed mission reward."
+  },
+  "metaStatusInProgress": "In progress",
+  "@metaStatusInProgress": {
+    "description": "Mission state."
+  },
+  "metaStatusReady": "Ready to claim",
+  "@metaStatusReady": {
+    "description": "Mission state: completed, reward can be claimed."
+  },
+  "metaStatusClaimed": "Claimed",
+  "@metaStatusClaimed": {
+    "description": "Mission state: reward already claimed."
+  },
+  "metaCollected": "Reward collected — added to your account",
+  "@metaCollected": {
+    "description": "Shown right after a successful claim."
+  },
+  "metaProgressCount": "{progress} / {target}",
+  "@metaProgressCount": {
+    "description": "Mission progress, e.g. \"1 / 2\".",
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "metaMissionSemantics": "{title}. Progress {progress}. {state}",
+  "@metaMissionSemantics": {
+    "description": "Screen reader label of a mission card.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardAmount": "+{amount}",
+  "@metaRewardAmount": {
+    "description": "Reward chip amount, e.g. \"+500\".",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardXp": "+{amount} XP",
+  "@metaRewardXp": {
+    "description": "XP reward chip, e.g. \"+30 XP\".",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardCoinsLabel": "{amount} coins",
+  "@metaRewardCoinsLabel": {
+    "description": "Screen reader: coin reward.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardDiamondsLabel": "{amount} diamonds",
+  "@metaRewardDiamondsLabel": {
+    "description": "Screen reader: diamond reward.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardXpLabel": "{amount} experience points",
+  "@metaRewardXpLabel": {
+    "description": "Screen reader: XP reward.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardItemLabel": "{name} ({kind})",
+  "@metaRewardItemLabel": {
+    "description": "Screen reader: cosmetic reward with its kind.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "metaGameAny": "Any game",
+  "@metaGameAny": {
+    "description": "Mission game filter: any game."
+  },
+  "metaResetsDailyAt": "New missions at {time}",
+  "@metaResetsDailyAt": {
+    "description": "When daily missions refresh, local time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "metaResetsWeeklyAt": "Resets {day} at {time}",
+  "@metaResetsWeeklyAt": {
+    "description": "When the weekly challenge resets, local weekday and time.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "metaEventEndsAt": "Ends {date}",
+  "@metaEventEndsAt": {
+    "description": "When an event ends, local date and time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "metaWhenWithCountdown": "{when} · in {duration}",
+  "@metaWhenWithCountdown": {
+    "description": "Reset line with a calm relative time, e.g. \"New missions at 5:30 AM · in 4 h 12 min\".",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "metaDurationDaysHours": "{days} d {hours} h",
+  "@metaDurationDaysHours": {
+    "description": "Compact duration.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "metaDurationHoursMinutes": "{hours} h {minutes} min",
+  "@metaDurationHoursMinutes": {
+    "description": "Compact duration.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "metaDurationMinutes": "{minutes} min",
+  "@metaDurationMinutes": {
+    "description": "Compact duration.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "metaNoPenaltyNote": "Missed a day? No problem — your XP, level and collection are always kept.",
+  "@metaNoPenaltyNote": {
+    "description": "Calm footnote under missions."
+  },
+  "metaMissionsEmptyTitle": "No missions right now",
+  "@metaMissionsEmptyTitle": {
+    "description": "Empty state title."
+  },
+  "metaMissionsEmptyMessage": "New daily missions arrive every day. Pull down to refresh.",
+  "@metaMissionsEmptyMessage": {
+    "description": "Empty state message."
+  },
+  "metaRetryHint": "{message} Tap again to retry.",
+  "@metaRetryHint": {
+    "description": "Toast after a transient claim/purchase failure.",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNewItemsTitle": "New in your collection!",
+  "@metaNewItemsTitle": {
+    "description": "Dialog title after new items were granted."
+  },
+  "metaNewItemsMessage": "{count, plural, =1{This item is now yours to equip and enjoy.} other{These {count} items are now yours to equip and enjoy.}}",
+  "@metaNewItemsMessage": {
+    "description": "Dialog message listing granted items.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaNice": "Nice!",
+  "@metaNice": {
+    "description": "Dismiss button of a reward dialog."
+  },
+  "metaViewCollection": "View collection",
+  "@metaViewCollection": {
+    "description": "Button: open the Collection Room."
+  },
+  "metaEventDetails": "Details",
+  "@metaEventDetails": {
+    "description": "Section action: open event details."
+  },
+  "metaMissionLudoTimeTitle": "Ludo Time",
+  "@metaMissionLudoTimeTitle": {
+    "description": "Mission title (daily_ludo_match)."
+  },
+  "metaMissionClimbTitle": "Climb the Ladder",
+  "@metaMissionClimbTitle": {
+    "description": "Mission title (daily_snakes_match)."
+  },
+  "metaMissionWarmUpTitle": "Warm-Up",
+  "@metaMissionWarmUpTitle": {
+    "description": "Mission title (daily_play_two)."
+  },
+  "metaMissionFriendlyTableTitle": "Friendly Table",
+  "@metaMissionFriendlyTableTitle": {
+    "description": "Mission title (daily_friends_private)."
+  },
+  "metaMissionStayToEndTitle": "Stay to the End",
+  "@metaMissionStayToEndTitle": {
+    "description": "Mission title (daily_finish_strong)."
+  },
+  "metaMissionTasteOfVictoryTitle": "Taste of Victory",
+  "@metaMissionTasteOfVictoryTitle": {
+    "description": "Mission title (daily_win_one)."
+  },
+  "metaMissionQuickDrawTitle": "Quick Draw",
+  "@metaMissionQuickDrawTitle": {
+    "description": "Mission title (daily_quick_ludo)."
+  },
+  "metaMissionWeeklyChallengeTitle": "Weekly Challenge",
+  "@metaMissionWeeklyChallengeTitle": {
+    "description": "Mission title (weekly_ten_matches)."
+  },
+  "metaMissionAutumnSprintTitle": "Autumn Sprint",
+  "@metaMissionAutumnSprintTitle": {
+    "description": "Event mission title (autumn_quick_ludo)."
+  },
+  "metaMissionFallbackTitle": "Mission",
+  "@metaMissionFallbackTitle": {
+    "description": "Title for an unknown mission."
+  },
+  "metaMissionLudoMatchesDesc": "{count, plural, =1{Complete 1 Ludo match.} other{Complete {count} Ludo matches.}}",
+  "@metaMissionLudoMatchesDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionSnakesMatchesDesc": "{count, plural, =1{Complete 1 Snakes & Ladders match.} other{Complete {count} Snakes & Ladders matches.}}",
+  "@metaMissionSnakesMatchesDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionAnyMatchesDesc": "{count, plural, =1{Complete 1 match in any game.} other{Complete {count} matches in any game.}}",
+  "@metaMissionAnyMatchesDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionFriendPrivateDesc": "{count, plural, =1{Complete a private match with a friend.} other{Complete {count} private matches with friends.}}",
+  "@metaMissionFriendPrivateDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionNoLeavingDesc": "{count, plural, =1{Complete a match without leaving early.} other{Complete {count} matches without leaving early.}}",
+  "@metaMissionNoLeavingDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionWinDesc": "{count, plural, =1{Win 1 match.} other{Win {count} matches.}}",
+  "@metaMissionWinDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionQuickLudoDesc": "{count, plural, =1{Complete 1 Quick Ludo match.} other{Complete {count} Quick Ludo matches.}}",
+  "@metaMissionQuickLudoDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionWeeklyDesc": "{count, plural, =1{Complete 1 match in Ludo or Snakes & Ladders.} other{Complete {count} matches across Ludo and Snakes & Ladders.}}",
+  "@metaMissionWeeklyDesc": {
+    "description": "Weekly challenge description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaEventAutumnCupTitle": "Autumn Cup",
+  "@metaEventAutumnCupTitle": {
+    "description": "Event title (autumn_cup)."
+  },
+  "metaEventAutumnCupDesc": "Celebrate the season with Quick Ludo and win the Autumn Leaf dice.",
+  "@metaEventAutumnCupDesc": {
+    "description": "Event description (autumn_cup)."
+  },
+  "metaEventWindow": "{start} – {end}",
+  "@metaEventWindow": {
+    "description": "Event start and end, local time.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "metaEventLiveBadge": "Event running",
+  "@metaEventLiveBadge": {
+    "description": "Badge on a running event."
+  },
+  "metaEventMissionsTitle": "Event missions",
+  "@metaEventMissionsTitle": {
+    "description": "Section header: missions of an event."
+  },
+  "metaEventRulesTitle": "How it works",
+  "@metaEventRulesTitle": {
+    "description": "Event rules card title."
+  },
+  "metaEventRuleComplete": "Complete the event missions while the event is running.",
+  "@metaEventRuleComplete": {
+    "description": "Event rule."
+  },
+  "metaEventRuleEligible": "A match counts when you play it to the end, make at least 3 moves and it lasts at least 30 seconds.",
+  "@metaEventRuleEligible": {
+    "description": "Event rule: which matches count."
+  },
+  "metaEventRuleClaim": "Claim each reward here — it is added to your account right away.",
+  "@metaEventRuleClaim": {
+    "description": "Event rule: claiming."
+  },
+  "metaEventRuleEnd": "Rewards not claimed before the event ends are no longer available. Your XP, level and collection are never affected.",
+  "@metaEventRuleEnd": {
+    "description": "Event rule: what happens at the end."
+  },
+  "metaNoEventsTitle": "No events right now",
+  "@metaNoEventsTitle": {
+    "description": "Empty state: no running events."
+  },
+  "metaNoEventsMessage": "New events will appear here. Your daily missions are always available.",
+  "@metaNoEventsMessage": {
+    "description": "Empty state message."
+  },
+  "metaGoToMissions": "Go to missions",
+  "@metaGoToMissions": {
+    "description": "Button: open missions."
+  },
+  "metaXpToNextLevel": "{xp} XP to level {level}",
+  "@metaXpToNextLevel": {
+    "description": "XP needed for the next level.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMaxLevelReached": "Max level reached — XP still counts for the weekly ranking",
+  "@metaMaxLevelReached": {
+    "description": "At the level cap."
+  },
+  "metaMaxBadge": "MAX",
+  "@metaMaxBadge": {
+    "description": "Small badge at max level."
+  },
+  "metaTotalXp": "Total XP: {xp}",
+  "@metaTotalXp": {
+    "description": "Total XP line.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaHowToEarnXp": "How to earn XP",
+  "@metaHowToEarnXp": {
+    "description": "Card title."
+  },
+  "metaXpForMatch": "+{xp} XP for every completed match",
+  "@metaXpForMatch": {
+    "description": "XP rule.",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "metaXpForWin": "+{xp} XP bonus for a win",
+  "@metaXpForWin": {
+    "description": "XP rule.",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "metaXpForFriend": "+{xp} XP when a friend plays with you",
+  "@metaXpForFriend": {
+    "description": "XP rule.",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "metaXpForMissions": "Mission rewards include XP too",
+  "@metaXpForMissions": {
+    "description": "XP rule."
+  },
+  "metaXpFairPlayNote": "Matches count when played to the end (at least 3 moves and 30 seconds). Bots never earn XP.",
+  "@metaXpFairPlayNote": {
+    "description": "Fair-play note."
+  },
+  "metaMilestonesTitle": "Milestones",
+  "@metaMilestonesTitle": {
+    "description": "Section header: level milestones."
+  },
+  "metaMilestoneUnlocked": "Unlocked",
+  "@metaMilestoneUnlocked": {
+    "description": "Milestone reached."
+  },
+  "metaMilestoneNext": "Next milestone · {xp} XP to go",
+  "@metaMilestoneNext": {
+    "description": "Next milestone with XP to go.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaMilestoneLocked": "{xp} XP to go",
+  "@metaMilestoneLocked": {
+    "description": "Locked milestone with the XP still needed.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNoMilestones": "Milestones will appear here.",
+  "@metaNoMilestones": {
+    "description": "No milestones configured."
+  },
+  "metaLevelUpTitle": "Level up!",
+  "@metaLevelUpTitle": {
+    "description": "Level-up celebration title."
+  },
+  "metaLevelUpMessage": "You reached level {level}.",
+  "@metaLevelUpMessage": {
+    "description": "Level-up celebration message.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaUnlockedHeader": "Unlocked for you",
+  "@metaUnlockedHeader": {
+    "description": "Header above unlocked items."
+  },
+  "metaLevelUpContinue": "Awesome!",
+  "@metaLevelUpContinue": {
+    "description": "Dismiss level-up celebration."
+  },
+  "metaYourLook": "Your look",
+  "@metaYourLook": {
+    "description": "Equipped loadout summary."
+  },
+  "metaCollectedCount": "{owned} of {total} collected",
+  "@metaCollectedCount": {
+    "description": "Collection progress.",
+    "placeholders": {
+      "owned": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "metaTabDice": "Dice",
+  "@metaTabDice": {
+    "description": "Collection tab."
+  },
+  "metaTabTokens": "Tokens",
+  "@metaTabTokens": {
+    "description": "Collection tab."
+  },
+  "metaTabLudoBoards": "Ludo boards",
+  "@metaTabLudoBoards": {
+    "description": "Collection tab."
+  },
+  "metaTabSnakesBoards": "Snakes boards",
+  "@metaTabSnakesBoards": {
+    "description": "Collection tab."
+  },
+  "metaTabTrails": "Trails",
+  "@metaTabTrails": {
+    "description": "Collection tab."
+  },
+  "metaTabVictory": "Victory",
+  "@metaTabVictory": {
+    "description": "Collection tab."
+  },
+  "metaTabFrames": "Frames",
+  "@metaTabFrames": {
+    "description": "Collection tab."
+  },
+  "metaTabTitles": "Titles",
+  "@metaTabTitles": {
+    "description": "Collection tab."
+  },
+  "metaTabBadges": "Badges",
+  "@metaTabBadges": {
+    "description": "Collection tab."
+  },
+  "metaTabEmotes": "Emotes",
+  "@metaTabEmotes": {
+    "description": "Collection tab."
+  },
+  "metaFilterAll": "All",
+  "@metaFilterAll": {
+    "description": "Collection filter."
+  },
+  "metaFilterOwned": "Owned",
+  "@metaFilterOwned": {
+    "description": "Collection filter."
+  },
+  "metaFilterLocked": "To unlock",
+  "@metaFilterLocked": {
+    "description": "Collection filter: not owned yet."
+  },
+  "metaEquipped": "Equipped",
+  "@metaEquipped": {
+    "description": "Item state."
+  },
+  "metaOwned": "Owned",
+  "@metaOwned": {
+    "description": "Item state."
+  },
+  "metaLocked": "Locked",
+  "@metaLocked": {
+    "description": "Item state."
+  },
+  "metaNewBadge": "New",
+  "@metaNewBadge": {
+    "description": "Badge on newly owned items."
+  },
+  "metaItemSemantics": "{name}, {rarity}, {state}. {how}",
+  "@metaItemSemantics": {
+    "description": "Screen reader label of an item card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "rarity": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      },
+      "how": {
+        "type": "String"
+      }
+    }
+  },
+  "metaAcqStarter": "Starter item",
+  "@metaAcqStarter": {
+    "description": "Acquisition label."
+  },
+  "metaAcqLevel": "Reach level {level}",
+  "@metaAcqLevel": {
+    "description": "Acquisition label.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaAcqMission": "Mission reward",
+  "@metaAcqMission": {
+    "description": "Acquisition label."
+  },
+  "metaAcqWeeklyChallenge": "Weekly challenge reward",
+  "@metaAcqWeeklyChallenge": {
+    "description": "Acquisition label."
+  },
+  "metaAcqFirstWin": "Win your first match",
+  "@metaAcqFirstWin": {
+    "description": "Acquisition label."
+  },
+  "metaAcqEvent": "Event reward",
+  "@metaAcqEvent": {
+    "description": "Acquisition label."
+  },
+  "metaAcqAutumnCup": "Autumn Cup reward",
+  "@metaAcqAutumnCup": {
+    "description": "Acquisition label."
+  },
+  "metaPriceCoins": "{amount} coins",
+  "@metaPriceCoins": {
+    "description": "Price in coins.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaPriceDiamonds": "{amount} diamonds",
+  "@metaPriceDiamonds": {
+    "description": "Price in diamonds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaEquip": "Equip",
+  "@metaEquip": {
+    "description": "Button: equip an item."
+  },
+  "metaEquipDefault": "Use default",
+  "@metaEquipDefault": {
+    "description": "Button: reset the slot to its starter item."
+  },
+  "metaEquippedToast": "Equipped!",
+  "@metaEquippedToast": {
+    "description": "Toast after equipping."
+  },
+  "metaDefaultEquippedToast": "Back to the default look",
+  "@metaDefaultEquippedToast": {
+    "description": "Toast after resetting to default."
+  },
+  "metaEmoteHint": "Use your emotes during matches from the emote button.",
+  "@metaEmoteHint": {
+    "description": "Owned emote info."
+  },
+  "metaBadgeHint": "Badges celebrate what you have achieved. They are yours to keep.",
+  "@metaBadgeHint": {
+    "description": "Owned badge info."
+  },
+  "metaBuyFor": "Buy for {price}",
+  "@metaBuyFor": {
+    "description": "Purchase button.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "metaBuy": "Buy",
+  "@metaBuy": {
+    "description": "Confirm purchase."
+  },
+  "metaPurchaseTitle": "Buy {item}?",
+  "@metaPurchaseTitle": {
+    "description": "Purchase confirmation title.",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "metaPrice": "Price",
+  "@metaPrice": {
+    "description": "Purchase dialog row."
+  },
+  "metaYourBalance": "Your balance",
+  "@metaYourBalance": {
+    "description": "Purchase dialog row."
+  },
+  "metaBalanceAfter": "After purchase",
+  "@metaBalanceAfter": {
+    "description": "Purchase dialog row."
+  },
+  "metaNeedMore": "Not enough yet — you need another {amount}. Win matches and complete missions to earn more.",
+  "@metaNeedMore": {
+    "description": "Not enough balance.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaCosmeticOnlyNote": "Cosmetic only — it never changes dice, rules or matchmaking.",
+  "@metaCosmeticOnlyNote": {
+    "description": "Honest purchase note."
+  },
+  "metaPurchaseSuccess": "{item} is now in your collection!",
+  "@metaPurchaseSuccess": {
+    "description": "Toast after purchase.",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNotEnoughCoins": "Not enough coins for this item.",
+  "@metaNotEnoughCoins": {
+    "description": "Purchase failed: not enough coins."
+  },
+  "metaNotEnoughDiamonds": "Not enough diamonds for this item.",
+  "@metaNotEnoughDiamonds": {
+    "description": "Purchase failed: not enough diamonds."
+  },
+  "metaAlreadyOwned": "You already own this item.",
+  "@metaAlreadyOwned": {
+    "description": "Purchase failed: already owned."
+  },
+  "metaItemNotForSale": "This item is unlocked by playing, not bought.",
+  "@metaItemNotForSale": {
+    "description": "Purchase failed: not a purchasable item."
+  },
+  "metaUnlocksAtLevel": "Unlocks automatically when you reach level {level}.",
+  "@metaUnlocksAtLevel": {
+    "description": "Locked level item info.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaEarnFromMissionsHint": "Earn it by completing the matching mission or event — no purchase needed.",
+  "@metaEarnFromMissionsHint": {
+    "description": "Locked mission/event item info."
+  },
+  "metaAllOwnedInKind": "You have unlocked everything here. Nicely done!",
+  "@metaAllOwnedInKind": {
+    "description": "Locked filter is empty."
+  },
+  "metaNothingOwnedInKind": "Nothing here yet — keep playing to unlock more.",
+  "@metaNothingOwnedInKind": {
+    "description": "Owned filter is empty."
+  },
+  "metaCollectionFairNote": "Every item is cosmetic and has a fixed way to get it — no random boxes, no gameplay advantage.",
+  "@metaCollectionFairNote": {
+    "description": "Fairness note in the Collection Room."
+  },
+  "metaDescDiceClassic": "Timeless ivory dice with crisp black pips.",
+  "@metaDescDiceClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescDiceNeon": "Glowing dice that pulse with every roll.",
+  "@metaDescDiceNeon": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescDiceGolden": "Polished gold dice fit for royalty.",
+  "@metaDescDiceGolden": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescDiceAutumn": "Warm amber dice from the Autumn Cup.",
+  "@metaDescDiceAutumn": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenClassic": "The pawn everyone knows.",
+  "@metaDescTokenClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenGem": "Faceted gem tokens that catch the light.",
+  "@metaDescTokenGem": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenRoyal": "Pawns wearing tiny crowns.",
+  "@metaDescTokenRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenCrown": "A legendary crown-shaped piece.",
+  "@metaDescTokenCrown": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescLudoBoardClassic": "The traditional four-colour Ludo board.",
+  "@metaDescLudoBoardClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescLudoBoardMidnight": "Dark marble with silver inlays.",
+  "@metaDescLudoBoardMidnight": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescLudoBoardRoyal": "A palace courtyard in gold and crimson.",
+  "@metaDescLudoBoardRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescSnakesBoardClassic": "Green meadows, friendly snakes, sturdy ladders.",
+  "@metaDescSnakesBoardClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescSnakesBoardJungle": "Vines, ruins and temple stairs.",
+  "@metaDescSnakesBoardJungle": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescSnakesBoardCandy": "Licorice snakes and candy-cane ladders.",
+  "@metaDescSnakesBoardCandy": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTrailNone": "Clean moves, no trail.",
+  "@metaDescTrailNone": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTrailSparkle": "A shower of sparkles follows every move.",
+  "@metaDescTrailSparkle": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTrailComet": "A blazing comet tail.",
+  "@metaDescTrailComet": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescVictoryConfetti": "A classic confetti celebration.",
+  "@metaDescVictoryConfetti": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescVictoryFireworks": "Light up the sky when you win.",
+  "@metaDescVictoryFireworks": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescVictoryCrown": "A golden crown descends on the winner.",
+  "@metaDescVictoryCrown": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameNone": "Your avatar, unframed.",
+  "@metaDescFrameNone": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameBronze": "A simple bronze ring around your avatar.",
+  "@metaDescFrameBronze": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameSilver": "A silver laurel wreath.",
+  "@metaDescFrameSilver": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameGold": "A gold laurel wreath for seasoned players.",
+  "@metaDescFrameGold": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameRoyal": "An ornate royal crest.",
+  "@metaDescFrameRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleRookie": "Everyone starts somewhere.",
+  "@metaDescTitleRookie": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleStrategist": "For players who think three moves ahead.",
+  "@metaDescTitleStrategist": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleDiceMaster": "The dice seem to listen to you.",
+  "@metaDescTitleDiceMaster": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleRoyal": "Reserved for true royalty.",
+  "@metaDescTitleRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleWeeklyChampion": "Completed a weekly challenge.",
+  "@metaDescTitleWeeklyChampion": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescBadgeFirstWin": "Won your first match.",
+  "@metaDescBadgeFirstWin": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescBadgeFriendly": "Completed a weekly challenge.",
+  "@metaDescBadgeFriendly": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteWave": "Say hello.",
+  "@metaDescEmoteWave": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteThumbs": "Nice one!",
+  "@metaDescEmoteThumbs": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteLaugh": "Share a laugh.",
+  "@metaDescEmoteLaugh": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteWow": "Did that just happen?",
+  "@metaDescEmoteWow": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteCrown": "Show who rules the board.",
+  "@metaDescEmoteCrown": {
+    "description": "Cosmetic item description."
+  },
+  "metaYourFriendCode": "Your friend code",
+  "@metaYourFriendCode": {
+    "description": "Friend code card title."
+  },
+  "metaFriendCodeHint": "Share it so friends can add you.",
+  "@metaFriendCodeHint": {
+    "description": "Friend code card hint."
+  },
+  "metaFriendCodeSemantics": "Friend code: {code}",
+  "@metaFriendCodeSemantics": {
+    "description": "Screen reader: friend code spelled out.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "metaShareFriendCodeMessage": "Let's play Ludo Royale together! Add me as a friend with my code: {code}",
+  "@metaShareFriendCodeMessage": {
+    "description": "Share sheet text.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "metaAddFriend": "Add friend",
+  "@metaAddFriend": {
+    "description": "Button: add a friend."
+  },
+  "metaAdd": "Add",
+  "@metaAdd": {
+    "description": "Compact add-friend button in lists."
+  },
+  "metaAddFriendTitle": "Add a friend",
+  "@metaAddFriendTitle": {
+    "description": "Add-friend sheet title."
+  },
+  "metaAddFriendHelp": "Enter your friend's code. They can find it on their Friends screen.",
+  "@metaAddFriendHelp": {
+    "description": "Add-friend sheet help."
+  },
+  "metaFriendCodeLabel": "Friend code",
+  "@metaFriendCodeLabel": {
+    "description": "Input label."
+  },
+  "metaFriendCodeHintExample": "u_abcd 2345 wxyz",
+  "@metaFriendCodeHintExample": {
+    "description": "Input placeholder (Latin code format)."
+  },
+  "metaPaste": "Paste",
+  "@metaPaste": {
+    "description": "Paste button tooltip."
+  },
+  "metaSendRequest": "Send request",
+  "@metaSendRequest": {
+    "description": "Send friend request."
+  },
+  "metaFriendCodeRequired": "Enter a friend code.",
+  "@metaFriendCodeRequired": {
+    "description": "Validation: empty code."
+  },
+  "metaInvalidFriendCode": "That doesn't look like a friend code. It starts with u_ followed by letters and numbers.",
+  "@metaInvalidFriendCode": {
+    "description": "Validation: malformed code."
+  },
+  "metaRequestSent": "Friend request sent to {name}",
+  "@metaRequestSent": {
+    "description": "Toast after sending a request.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNowFriends": "You and {name} are now friends!",
+  "@metaNowFriends": {
+    "description": "Toast: friendship accepted.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaAlreadyFriends": "You're already friends.",
+  "@metaAlreadyFriends": {
+    "description": "Add friend: already friends."
+  },
+  "metaTabFriends": "Friends",
+  "@metaTabFriends": {
+    "description": "Friends tab."
+  },
+  "metaTabRequests": "Requests",
+  "@metaTabRequests": {
+    "description": "Requests tab."
+  },
+  "metaTabRecent": "Recent",
+  "@metaTabRecent": {
+    "description": "Recent opponents tab."
+  },
+  "metaOnline": "Online",
+  "@metaOnline": {
+    "description": "Friend presence."
+  },
+  "metaOffline": "Offline",
+  "@metaOffline": {
+    "description": "Friend presence."
+  },
+  "metaMoreActions": "More actions",
+  "@metaMoreActions": {
+    "description": "Overflow menu tooltip."
+  },
+  "metaRemoveFriend": "Remove friend",
+  "@metaRemoveFriend": {
+    "description": "Menu: remove friend."
+  },
+  "metaRemoveFriendTitle": "Remove {name}?",
+  "@metaRemoveFriendTitle": {
+    "description": "Confirm dialog title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRemoveFriendMessage": "You can add each other again any time with a friend code.",
+  "@metaRemoveFriendMessage": {
+    "description": "Confirm dialog message."
+  },
+  "metaRemove": "Remove",
+  "@metaRemove": {
+    "description": "Confirm removal."
+  },
+  "metaFriendRemoved": "{name} was removed from your friends",
+  "@metaFriendRemoved": {
+    "description": "Toast after removal.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaIncomingRequests": "Received",
+  "@metaIncomingRequests": {
+    "description": "Section header."
+  },
+  "metaOutgoingRequests": "Sent",
+  "@metaOutgoingRequests": {
+    "description": "Section header."
+  },
+  "metaWantsToBeFriends": "Wants to be your friend",
+  "@metaWantsToBeFriends": {
+    "description": "Incoming request subtitle."
+  },
+  "metaRequestPending": "Waiting for an answer",
+  "@metaRequestPending": {
+    "description": "Outgoing request subtitle."
+  },
+  "metaAccept": "Accept",
+  "@metaAccept": {
+    "description": "Accept a request."
+  },
+  "metaDecline": "Decline",
+  "@metaDecline": {
+    "description": "Decline a request."
+  },
+  "metaRequestDeclined": "Request declined",
+  "@metaRequestDeclined": {
+    "description": "Toast."
+  },
+  "metaRequestCancelled": "Request cancelled",
+  "@metaRequestCancelled": {
+    "description": "Toast."
+  },
+  "metaRequested": "Requested",
+  "@metaRequested": {
+    "description": "Recent list: request already sent."
+  },
+  "metaFriendsLabel": "Friends",
+  "@metaFriendsLabel": {
+    "description": "Recent list: already friends."
+  },
+  "metaNoFriendsTitle": "No friends yet",
+  "@metaNoFriendsTitle": {
+    "description": "Empty state."
+  },
+  "metaNoFriendsMessage": "Share your code or add a friend to play together.",
+  "@metaNoFriendsMessage": {
+    "description": "Empty state."
+  },
+  "metaNoRequestsTitle": "No pending requests",
+  "@metaNoRequestsTitle": {
+    "description": "Empty state."
+  },
+  "metaNoRequestsMessage": "Friend requests you send or receive appear here.",
+  "@metaNoRequestsMessage": {
+    "description": "Empty state."
+  },
+  "metaRecentHint": "Players you met in online matches during the last 14 days.",
+  "@metaRecentHint": {
+    "description": "Recent tab hint."
+  },
+  "metaNoRecentTitle": "No recent opponents",
+  "@metaNoRecentTitle": {
+    "description": "Empty state."
+  },
+  "metaNoRecentMessage": "Play an online match — the players you meet will show up here.",
+  "@metaNoRecentMessage": {
+    "description": "Empty state."
+  },
+  "metaFriendRequestBanner": "{name} wants to be your friend",
+  "@metaFriendRequestBanner": {
+    "description": "In-app banner for a new friend request.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaView": "View",
+  "@metaView": {
+    "description": "Banner action."
+  },
+  "metaErrorCannotFriendSelf": "That's your own friend code.",
+  "@metaErrorCannotFriendSelf": {
+    "description": "Error: own code."
+  },
+  "metaErrorFriendLimit": "The friend or request limit has been reached. Remove a friend or request and try again.",
+  "@metaErrorFriendLimit": {
+    "description": "Error: friend limit."
+  },
+  "metaErrorUnknownFriendCode": "No player has this friend code. Check it and try again.",
+  "@metaErrorUnknownFriendCode": {
+    "description": "Error: no player with this code."
+  },
+  "metaErrorRequestInProgress": "Still working on it — please try again in a moment.",
+  "@metaErrorRequestInProgress": {
+    "description": "Error: same request still processing."
+  },
+  "metaErrorMissionEnded": "This mission has ended. Pull down to see the current missions.",
+  "@metaErrorMissionEnded": {
+    "description": "Error: mission no longer in a current period."
+  },
+  "metaLeaderboardSubtitle": "You and your friends, ranked by XP earned this week.",
+  "@metaLeaderboardSubtitle": {
+    "description": "Leaderboard explanation."
+  },
+  "metaLeaderboardTeaser": "See how you and your friends are doing this week.",
+  "@metaLeaderboardTeaser": {
+    "description": "Teaser card on Friends."
+  },
+  "metaWeeklyXp": "{xp} XP",
+  "@metaWeeklyXp": {
+    "description": "Weekly XP of a player.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaYouName": "{name} (you)",
+  "@metaYouName": {
+    "description": "Leaderboard: my own row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaLeaderboardRowSemantics": "Rank {rank}: {name}, {xp}",
+  "@metaLeaderboardRowSemantics": {
+    "description": "Screen reader: leaderboard row.",
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaLeaderboardAlone": "Add friends to see how you compare. Friendly competition, no pressure.",
+  "@metaLeaderboardAlone": {
+    "description": "Leaderboard with no friends."
+  },
+  "numberLakh": "{value} Lakh",
+  "@numberLakh": {
+    "description": "Indian numbering unit 100,000 (lakh), used for large coin amounts in en/hi/ur. {value} is already formatted (e.g. 10 or 12.5).",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "numberCrore": "{value} Crore",
+  "@numberCrore": {
+    "description": "Indian numbering unit 10,000,000 (crore). {value} is already formatted.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingLanguageTitle": "Choose your language",
+  "@onboardingLanguageTitle": {
+    "description": "First-run language picker title."
+  },
+  "onboardingLanguageSubtitle": "You can change it any time in Settings.",
+  "@onboardingLanguageSubtitle": {
+    "description": "First-run language picker subtitle."
+  },
+  "onboardingPreviewLabel": "Preview",
+  "@onboardingPreviewLabel": {
+    "description": "Label of the live language preview card."
+  },
+  "onboardingPreviewTitle": "Welcome to Ludo Royale!",
+  "@onboardingPreviewTitle": {
+    "description": "Preview card headline."
+  },
+  "onboardingPreviewBody": "Roll the dice, race your tokens home and claim the crown.",
+  "@onboardingPreviewBody": {
+    "description": "Preview card body text."
+  },
+  "playGameVariantTitle": "{game} · {variant}",
+  "@playGameVariantTitle": {
+    "description": "Game title with its rules variant, e.g. 'Ludo · Classic'.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      },
+      "variant": {
+        "type": "String"
+      }
+    }
+  },
+  "playModeOnline": "Online",
+  "@playModeOnline": {
+    "description": "Match type label: public online match."
+  },
+  "playModePrivate": "Private room",
+  "@playModePrivate": {
+    "description": "Match type label: private room with friends."
+  },
+  "playModePractice": "Practice",
+  "@playModePractice": {
+    "description": "Match type label: practice against bots."
+  },
+  "playSeatPlayer": "Player {seat}",
+  "@playSeatPlayer": {
+    "description": "Fallback name for a player without a display name.",
+    "placeholders": {
+      "seat": {
+        "type": "int"
+      }
+    }
+  },
+  "playNameYou": "{name} (you)",
+  "@playNameYou": {
+    "description": "A player's name marked as the local user.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playHome": "Home",
+  "@playHome": {
+    "description": "Button: go to the home screen."
+  },
+  "playBackHome": "Back to home",
+  "@playBackHome": {
+    "description": "Button: return to the home screen."
+  },
+  "playTryAgain": "Try again",
+  "@playTryAgain": {
+    "description": "Button: retry the failed action."
+  },
+  "playEntryFee": "Entry {fee}",
+  "@playEntryFee": {
+    "description": "Compact entry fee chip; fee is a formatted coin amount.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "playEntryFeeNote": "Entry fee: {fee} coins per player, charged when the game starts. The winner takes the pot. Free when a bot is seated.",
+  "@playEntryFeeNote": {
+    "description": "Entry fee explanation on the private room setup.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "playNotEnoughCoinsTitle": "Not enough coins",
+  "@playNotEnoughCoinsTitle": {
+    "description": "Title when the user cannot afford the entry fee."
+  },
+  "playNotEnoughCoinsHint": "You need {fee} coins to play. Earn coins from missions and come back!",
+  "@playNotEnoughCoinsHint": {
+    "description": "Warning: the wallet is below the entry fee.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "playSeatOpen": "Open seat",
+  "@playSeatOpen": {
+    "description": "An empty seat waiting for a player."
+  },
+  "playLoadingMatch": "Joining the match…",
+  "@playLoadingMatch": {
+    "description": "Loading message while the match is opened."
+  },
+  "playMatchUnavailable": "This match is no longer available.",
+  "@playMatchUnavailable": {
+    "description": "The match can no longer be opened."
+  },
+  "playRoomClosed": "The room was closed.",
+  "@playRoomClosed": {
+    "description": "Toast: the server closed the room."
+  },
+  "playRemovedFromRoom": "You're no longer in this room.",
+  "@playRemovedFromRoom": {
+    "description": "Toast: the user is no longer seated in the room."
+  },
+  "playRoomUnavailable": "This room is no longer available.",
+  "@playRoomUnavailable": {
+    "description": "The private room can no longer be opened."
+  },
+  "playLoadingRoom": "Opening the room…",
+  "@playLoadingRoom": {
+    "description": "Loading message while the lobby is opened."
+  },
+  "playGameLabel": "Game",
+  "@playGameLabel": {
+    "description": "Form label: which game to play."
+  },
+  "playModeLabel": "Rules",
+  "@playModeLabel": {
+    "description": "Form label: Ludo rules variant (classic / quick)."
+  },
+  "playPlayersLabel": "Players",
+  "@playPlayersLabel": {
+    "description": "Form label: number of seats."
+  },
+  "playVariantClassicCaption": "4 tokens · leave base on a 6",
+  "@playVariantClassicCaption": {
+    "description": "Caption of classic Ludo rules."
+  },
+  "playVariantQuickCaption": "2 tokens · leave base on a 1 or 6",
+  "@playVariantQuickCaption": {
+    "description": "Caption of quick Ludo rules."
+  },
+  "playMatchmakingTitle": "Finding players",
+  "@playMatchmakingTitle": {
+    "description": "Matchmaking screen title."
+  },
+  "playMatchmakingConnecting": "Connecting to the game server…",
+  "@playMatchmakingConnecting": {
+    "description": "Matchmaking status: connecting to the server."
+  },
+  "playMatchmakingJoining": "Joining the queue…",
+  "@playMatchmakingJoining": {
+    "description": "Matchmaking status: joining the queue."
+  },
+  "playMatchmakingSearching": "Looking for opponents…",
+  "@playMatchmakingSearching": {
+    "description": "Matchmaking status: waiting for opponents."
+  },
+  "playMatchmakingStarting": "Table full! Starting…",
+  "@playMatchmakingStarting": {
+    "description": "Matchmaking status: all seats filled."
+  },
+  "playMatchmakingStartsSoon": "The match starts when all seats are filled or when the timer runs out.",
+  "@playMatchmakingStartsSoon": {
+    "description": "Explains the public lobby start rule when a fill timer runs."
+  },
+  "playMatchmakingStartsWhenFull": "The match starts as soon as all seats are filled.",
+  "@playMatchmakingStartsWhenFull": {
+    "description": "Explains the public lobby start rule without a timer."
+  },
+  "playMatchmakingPlayers": "{count} of {capacity} players joined",
+  "@playMatchmakingPlayers": {
+    "description": "Accessibility: how many players joined the lobby.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
+  "playMatchmakingCancel": "Cancel search",
+  "@playMatchmakingCancel": {
+    "description": "Button: stop searching for a match."
+  },
+  "playMatchmakingFeeNote": "The entry fee is charged when the match starts. The winner takes the pot.",
+  "@playMatchmakingFeeNote": {
+    "description": "Footnote about when the entry fee is charged."
+  },
+  "playMatchmakingTimeoutTitle": "No opponents right now",
+  "@playMatchmakingTimeoutTitle": {
+    "description": "Matchmaking ended without enough players."
+  },
+  "playMatchmakingTimeoutMessage": "Nobody joined in time. Try again, or invite friends to a private room.",
+  "@playMatchmakingTimeoutMessage": {
+    "description": "Explanation after a matchmaking timeout."
+  },
+  "playMatchmakingErrorTitle": "Couldn't find a match",
+  "@playMatchmakingErrorTitle": {
+    "description": "Matchmaking failed with an error."
+  },
+  "playCreateRoomTitle": "Create private room",
+  "@playCreateRoomTitle": {
+    "description": "Create private room screen title."
+  },
+  "playCreateRoomAction": "Create room",
+  "@playCreateRoomAction": {
+    "description": "Button: create the private room."
+  },
+  "playCreatingRoom": "Creating your room…",
+  "@playCreatingRoom": {
+    "description": "Loading message while the room is created."
+  },
+  "playLobbyTitle": "Private room",
+  "@playLobbyTitle": {
+    "description": "Private room lobby title."
+  },
+  "playRoomCodeLabel": "Room code",
+  "@playRoomCodeLabel": {
+    "description": "Label above the private room code."
+  },
+  "playRoomCodeA11y": "Room code {letters}",
+  "@playRoomCodeA11y": {
+    "description": "Screen reader text of the room code; letters are spelled out separated by spaces.",
+    "placeholders": {
+      "letters": {
+        "type": "String"
+      }
+    }
+  },
+  "playCopyCode": "Copy code",
+  "@playCopyCode": {
+    "description": "Button: copy the room code."
+  },
+  "playCodeCopied": "Room code copied",
+  "@playCodeCopied": {
+    "description": "Toast after copying the room code."
+  },
+  "playShareInvite": "Share invite",
+  "@playShareInvite": {
+    "description": "Button: share an invite with the room code."
+  },
+  "playInviteShareText": "Join me for {game} on Ludo Royale! Open the app, tap Join with Code and enter: {code}",
+  "@playInviteShareText": {
+    "description": "Text shared to other apps. Must contain only the game name and the room code.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "playInviteShareSubject": "Ludo Royale invite",
+  "@playInviteShareSubject": {
+    "description": "Subject line of the shared invite."
+  },
+  "playLobbyPlayers": "Players {count}/{capacity}",
+  "@playLobbyPlayers": {
+    "description": "Lobby section header with seated / total seats.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
+  "playLobbyStart": "Start game",
+  "@playLobbyStart": {
+    "description": "Host button: start the game."
+  },
+  "playLobbyWaitingForHost": "Waiting for the host to start…",
+  "@playLobbyWaitingForHost": {
+    "description": "Guest status in the lobby."
+  },
+  "playLobbyWaitingForNamedHost": "Waiting for {name} (host) to start…",
+  "@playLobbyWaitingForNamedHost": {
+    "description": "Guest status naming the host.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playStartBlockedNeedPlayers": "At least 2 players are needed to start.",
+  "@playStartBlockedNeedPlayers": {
+    "description": "Why Start is disabled: fewer than 2 players."
+  },
+  "playStartBlockedConnections": "Waiting for everyone to reconnect.",
+  "@playStartBlockedConnections": {
+    "description": "Why Start is disabled: someone is disconnected."
+  },
+  "playStartBlockedBots": "Bots are taking their seats…",
+  "@playStartBlockedBots": {
+    "description": "Why Start is disabled: requested bots are not seated yet."
+  },
+  "playAllowBots": "Allow bots",
+  "@playAllowBots": {
+    "description": "Host switch: allow bot seats."
+  },
+  "playAllowBotsHint": "Fill empty seats with computer players. Matches with bots are free and pay no coins.",
+  "@playAllowBotsHint": {
+    "description": "Explains bot seats in private rooms."
+  },
+  "playAddBot": "Add bot",
+  "@playAddBot": {
+    "description": "Host button: seat a bot."
+  },
+  "playBotJoining": "Bot joining…",
+  "@playBotJoining": {
+    "description": "A requested bot is sitting down."
+  },
+  "playRemoveBotA11y": "Remove {name}",
+  "@playRemoveBotA11y": {
+    "description": "Tooltip of the button that removes a bot from its seat.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playBotsFreeNote": "A bot is seated: this match is free and pays no coins.",
+  "@playBotsFreeNote": {
+    "description": "Note shown when a bot is seated in a private room."
+  },
+  "playInviteFriends": "Invite friends",
+  "@playInviteFriends": {
+    "description": "Button: invite friends to the room."
+  },
+  "playInviteSheetTitle": "Invite friends",
+  "@playInviteSheetTitle": {
+    "description": "Invite friends sheet title."
+  },
+  "playInviteSend": "Invite",
+  "@playInviteSend": {
+    "description": "Button: invite this friend."
+  },
+  "playInviteSent": "Invited",
+  "@playInviteSent": {
+    "description": "State after a friend was invited."
+  },
+  "playFriendOnline": "Online",
+  "@playFriendOnline": {
+    "description": "Friend presence: online."
+  },
+  "playFriendOffline": "Offline",
+  "@playFriendOffline": {
+    "description": "Friend presence: offline (cannot be invited)."
+  },
+  "playInviteEmptyTitle": "No friends yet",
+  "@playInviteEmptyTitle": {
+    "description": "Invite sheet: no friends."
+  },
+  "playInviteEmptyMessage": "Share the room code instead, or add friends from the Friends screen.",
+  "@playInviteEmptyMessage": {
+    "description": "Invite sheet: what to do without friends."
+  },
+  "playInviteError": "Couldn't load your friends.",
+  "@playInviteError": {
+    "description": "Invite sheet: the friends list failed to load."
+  },
+  "playLeaveRoom": "Leave room",
+  "@playLeaveRoom": {
+    "description": "Button: leave the private room."
+  },
+  "playLeaveRoomTitle": "Leave this room?",
+  "@playLeaveRoomTitle": {
+    "description": "Confirm dialog title for leaving a lobby."
+  },
+  "playLeaveRoomHostMessage": "You're the host. The next player becomes host when you leave.",
+  "@playLeaveRoomHostMessage": {
+    "description": "Leave dialog text for the host."
+  },
+  "playLeaveRoomMessage": "You can come back with the room code while the room is open.",
+  "@playLeaveRoomMessage": {
+    "description": "Leave dialog text for guests."
+  },
+  "playStay": "Stay",
+  "@playStay": {
+    "description": "Dialog button: stay in the room."
+  },
+  "playHostBadge": "Host",
+  "@playHostBadge": {
+    "description": "Label of the host crown."
+  },
+  "playJoinTitle": "Join with code",
+  "@playJoinTitle": {
+    "description": "Join with code screen title."
+  },
+  "playJoinHint": "Enter the 6-character room code your friend shared.",
+  "@playJoinHint": {
+    "description": "Instructions above the room code field."
+  },
+  "playJoinCodeIncomplete": "{remaining, plural, =1{1 more character} other{{remaining} more characters}}",
+  "@playJoinCodeIncomplete": {
+    "description": "How many characters of the room code are still missing.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "playJoinInvalidChars": "Room codes use the letters A–Z and the numbers 2–9 (no I, O, 0 or 1).",
+  "@playJoinInvalidChars": {
+    "description": "The code contains characters that room codes never use."
+  },
+  "playJoinLookingUp": "Looking up the room…",
+  "@playJoinLookingUp": {
+    "description": "Loading the room preview."
+  },
+  "playJoinAction": "Join room",
+  "@playJoinAction": {
+    "description": "Button: join the previewed room."
+  },
+  "playJoining": "Joining…",
+  "@playJoining": {
+    "description": "Button label while joining."
+  },
+  "playJoinPreviewHost": "Hosted by {name}",
+  "@playJoinPreviewHost": {
+    "description": "Room preview: host name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playJoinPreviewPlayers": "{count}/{capacity} players",
+  "@playJoinPreviewPlayers": {
+    "description": "Room preview: seated / total seats.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
+  "playJoinStatusOpen": "Open",
+  "@playJoinStatusOpen": {
+    "description": "Room preview status: can be joined."
+  },
+  "playJoinStatusFull": "Full",
+  "@playJoinStatusFull": {
+    "description": "Room preview status: all seats taken."
+  },
+  "playJoinStatusInProgress": "In progress",
+  "@playJoinStatusInProgress": {
+    "description": "Room preview status: the game already started."
+  },
+  "playJoinStatusClosed": "Closed",
+  "@playJoinStatusClosed": {
+    "description": "Room preview status: closed."
+  },
+  "playPaste": "Paste",
+  "@playPaste": {
+    "description": "Tooltip: paste the room code from the clipboard."
+  },
+  "playPracticeTitle": "Practice vs bots",
+  "@playPracticeTitle": {
+    "description": "Practice screen title."
+  },
+  "playPracticeBotsLabel": "Bots",
+  "@playPracticeBotsLabel": {
+    "description": "Form label: number of bots."
+  },
+  "playPracticeBotCount": "{count, plural, =1{1 bot} other{{count} bots}}",
+  "@playPracticeBotCount": {
+    "description": "Number of practice bots.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playPracticeStart": "Start practice",
+  "@playPracticeStart": {
+    "description": "Button: start a practice game."
+  },
+  "playPracticeNote": "Practice is free and pays no coins. Bots are computer players and always carry a bot badge.",
+  "@playPracticeNote": {
+    "description": "Practice explanation."
+  },
+  "playPracticeSettingUp": "Setting up your practice table…",
+  "@playPracticeSettingUp": {
+    "description": "Practice status: creating the table."
+  },
+  "playPracticeBotsJoining": "Bots joining… {seated}/{total}",
+  "@playPracticeBotsJoining": {
+    "description": "Practice status: seated bots out of requested bots.",
+    "placeholders": {
+      "seated": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "playPracticeBotsUnavailableTitle": "Bots are busy",
+  "@playPracticeBotsUnavailableTitle": {
+    "description": "Practice could not start because no bot arrived."
+  },
+  "playPracticeErrorTitle": "Couldn't start practice",
+  "@playPracticeErrorTitle": {
+    "description": "Practice failed to start."
+  },
+  "playLeave": "Leave match",
+  "@playLeave": {
+    "description": "Tooltip: leave (forfeit) the running match."
+  },
+  "playTurnYourRoll": "Your turn — tap the dice!",
+  "@playTurnYourRoll": {
+    "description": "Status: the local player must roll."
+  },
+  "playTurnPickToken": "Pick a glowing token to move",
+  "@playTurnPickToken": {
+    "description": "Status: the local player must pick one of several movable tokens."
+  },
+  "playTurnYours": "Your turn",
+  "@playTurnYours": {
+    "description": "Status: the local player's turn while the server acts."
+  },
+  "playTurnOther": "{name}'s turn",
+  "@playTurnOther": {
+    "description": "Status: another human player's turn.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playTurnBot": "{name} (bot) is playing…",
+  "@playTurnBot": {
+    "description": "Status: a bot player's turn.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playVoidedThreeSixes": "Three sixes in a row! The turn passes.",
+  "@playVoidedThreeSixes": {
+    "description": "Ludo: the third six in a row is void."
+  },
+  "playAutoPlayed": "Time's up — played automatically for {name}",
+  "@playAutoPlayed": {
+    "description": "The server played a timed-out turn for a player.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playForfeitLeft": "{name} left the match",
+  "@playForfeitLeft": {
+    "description": "A player left the running match.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playForfeitTimeouts": "{name} was removed after 3 missed turns",
+  "@playForfeitTimeouts": {
+    "description": "A player was removed after three timeouts.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playPlayerDisconnected": "Offline",
+  "@playPlayerDisconnected": {
+    "description": "Player panel chip: disconnected."
+  },
+  "playPlayerForfeited": "Left",
+  "@playPlayerForfeited": {
+    "description": "Player panel chip: forfeited / left."
+  },
+  "playPanelTurnA11y": "current turn",
+  "@playPanelTurnA11y": {
+    "description": "Accessibility: this player has the current turn."
+  },
+  "playStrikesA11y": "{count, plural, =1{1 missed turn} other{{count} missed turns}}",
+  "@playStrikesA11y": {
+    "description": "Accessibility: consecutive missed turns (3 means removal).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playTokensHome": "{home} of {total} tokens home",
+  "@playTokensHome": {
+    "description": "Accessibility: Ludo tokens that reached home.",
+    "placeholders": {
+      "home": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "playSquare": "Square {square}",
+  "@playSquare": {
+    "description": "Snakes & Ladders: the square a player is on.",
+    "placeholders": {
+      "square": {
+        "type": "int"
+      }
+    }
+  },
+  "playAtStart": "At the start",
+  "@playAtStart": {
+    "description": "Snakes & Ladders: the token has not entered the board yet."
+  },
+  "playReconnecting": "Reconnecting… your match continues",
+  "@playReconnecting": {
+    "description": "Banner while the connection is restored."
+  },
+  "playSyncing": "Syncing the board…",
+  "@playSyncing": {
+    "description": "Banner while the board is resynchronised."
+  },
+  "playLeaveMatchTitle": "Leave the match?",
+  "@playLeaveMatchTitle": {
+    "description": "Confirm dialog title for leaving a running match."
+  },
+  "playLeaveMatchMessage": "Leaving counts as a forfeit and your entry fee isn't returned.",
+  "@playLeaveMatchMessage": {
+    "description": "Leaving a running match forfeits it."
+  },
+  "playLeavePracticeMessage": "Your practice game will end.",
+  "@playLeavePracticeMessage": {
+    "description": "Leaving a practice game."
+  },
+  "playLeaveMatchConfirm": "Leave",
+  "@playLeaveMatchConfirm": {
+    "description": "Dialog button: confirm leaving the match."
+  },
+  "playKeepPlaying": "Keep playing",
+  "@playKeepPlaying": {
+    "description": "Dialog button: stay in the match."
+  },
+  "playRoundLabel": "Round {round}",
+  "@playRoundLabel": {
+    "description": "Round number after rematches.",
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "playStartingNextRound": "Starting the next round…",
+  "@playStartingNextRound": {
+    "description": "Overlay while the next round starts."
+  },
+  "playChatOpen": "Quick chat",
+  "@playChatOpen": {
+    "description": "Tooltip: open the quick chat panel."
+  },
+  "playChatTitle": "Quick chat",
+  "@playChatTitle": {
+    "description": "Quick chat panel title."
+  },
+  "playChatEmotes": "Emotes",
+  "@playChatEmotes": {
+    "description": "Quick chat: emotes section."
+  },
+  "playChatMuteOthers": "Mute other players",
+  "@playChatMuteOthers": {
+    "description": "Quick chat: hide other players' messages in this match."
+  },
+  "playChatMutedBySettings": "Quick chat is muted in Settings.",
+  "@playChatMutedBySettings": {
+    "description": "Quick chat is muted in Settings."
+  },
+  "playChatCooldown": "Next message in {seconds}s",
+  "@playChatCooldown": {
+    "description": "Quick chat is cooling down (client-side limit).",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "playChatGg": "Good game!",
+  "@playChatGg": {
+    "description": "Quick chat message 'gg'."
+  },
+  "playChatNiceMove": "Nice move!",
+  "@playChatNiceMove": {
+    "description": "Quick chat message 'nice_move'."
+  },
+  "playChatWellPlayed": "Well played!",
+  "@playChatWellPlayed": {
+    "description": "Quick chat message 'well_played'."
+  },
+  "playChatRematch": "Rematch?",
+  "@playChatRematch": {
+    "description": "Quick chat message 'rematch'."
+  },
+  "playChatAgain": "Let's play again.",
+  "@playChatAgain": {
+    "description": "Quick chat message 'again'."
+  },
+  "playChatGoodLuck": "Good luck!",
+  "@playChatGoodLuck": {
+    "description": "Quick chat message 'good_luck'."
+  },
+  "playChatOops": "Oops!",
+  "@playChatOops": {
+    "description": "Quick chat message 'oops'."
+  },
+  "playChatThanks": "Thanks!",
+  "@playChatThanks": {
+    "description": "Quick chat message 'thanks'."
+  },
+  "playResultYouWon": "You won!",
+  "@playResultYouWon": {
+    "description": "Results title: the local player won."
+  },
+  "playResultWinnerIs": "{name} wins!",
+  "@playResultWinnerIs": {
+    "description": "Results title: another player won.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playResultGameOver": "Game over",
+  "@playResultGameOver": {
+    "description": "Results title without a winner."
+  },
+  "playResultYouForfeited": "You left the match",
+  "@playResultYouForfeited": {
+    "description": "Results title: the local player forfeited."
+  },
+  "playResultByForfeit": "The others forfeited — the win is yours.",
+  "@playResultByForfeit": {
+    "description": "Results subtitle: won because everyone else forfeited."
+  },
+  "playResultWellPlayed": "Well played!",
+  "@playResultWellPlayed": {
+    "description": "Results subtitle after a win."
+  },
+  "playResultYouFinished": "You finished #{place}",
+  "@playResultYouFinished": {
+    "description": "Results subtitle: the local player's finishing position.",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "playResultFinishingOrder": "Finishing order",
+  "@playResultFinishingOrder": {
+    "description": "Results: section with the finishing order."
+  },
+  "playResultPlaceShort": "{place}",
+  "@playResultPlaceShort": {
+    "description": "Compact finishing position inside a medal.",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "playResultPlaceA11y": "Place {place}",
+  "@playResultPlaceA11y": {
+    "description": "Accessibility: finishing position.",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "playRewardsTitle": "Rewards",
+  "@playRewardsTitle": {
+    "description": "Results: rewards section."
+  },
+  "playRewardCoins": "+{amount} coins",
+  "@playRewardCoins": {
+    "description": "Coins won, confirmed by the server; amount is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "playRewardCoinsBalance": "Wallet: {amount} coins",
+  "@playRewardCoinsBalance": {
+    "description": "Wallet balance after the payout; amount is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "playRewardNoCoinsBots": "Matches with bots don't pay coins.",
+  "@playRewardNoCoinsBots": {
+    "description": "No coins because a bot was seated."
+  },
+  "playRewardNoCoins": "No coins this time — the winner takes the pot.",
+  "@playRewardNoCoins": {
+    "description": "No coins for a player who did not win."
+  },
+  "playRewardXp": "+{xp} XP",
+  "@playRewardXp": {
+    "description": "XP gained in the match (server-confirmed).",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "playRewardXpPending": "Calculating XP…",
+  "@playRewardXpPending": {
+    "description": "XP not received from the server yet."
+  },
+  "playRewardXpLater": "Your XP will show on your profile shortly.",
+  "@playRewardXpLater": {
+    "description": "XP did not arrive in time."
+  },
+  "playRewardLevelUp": "Level up! You reached level {level}",
+  "@playRewardLevelUp": {
+    "description": "Level up after the match.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "playRewardUnlocked": "Unlocked",
+  "@playRewardUnlocked": {
+    "description": "Cosmetics unlocked by this match."
+  },
+  "playRematchTitle": "Rematch",
+  "@playRematchTitle": {
+    "description": "Results: rematch section."
+  },
+  "playRematchRequest": "Ask for a rematch",
+  "@playRematchRequest": {
+    "description": "Button: ask the others for a rematch (accepts it)."
+  },
+  "playRematchAccept": "Accept",
+  "@playRematchAccept": {
+    "description": "Button: accept another player's rematch request."
+  },
+  "playRematchDecline": "Decline",
+  "@playRematchDecline": {
+    "description": "Button: decline the rematch."
+  },
+  "playRematchIncoming": "{name} wants a rematch!",
+  "@playRematchIncoming": {
+    "description": "Another player asked for a rematch.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playRematchWaiting": "You're in! Waiting for the others…",
+  "@playRematchWaiting": {
+    "description": "The local player accepted; waiting for the others."
+  },
+  "playRematchYouDeclined": "You declined the rematch.",
+  "@playRematchYouDeclined": {
+    "description": "The local player declined."
+  },
+  "playRematchClosed": "Rematch is no longer available.",
+  "@playRematchClosed": {
+    "description": "The rematch offer expired or closed."
+  },
+  "playRematchPublicNote": "Players who accept move to a new private room together.",
+  "@playRematchPublicNote": {
+    "description": "Public matches: a rematch creates a new private room."
+  },
+  "playRematchStatusAccepted": "Ready",
+  "@playRematchStatusAccepted": {
+    "description": "Rematch consent: accepted."
+  },
+  "playRematchStatusDeclined": "Declined",
+  "@playRematchStatusDeclined": {
+    "description": "Rematch consent: declined."
+  },
+  "playRematchStatusPending": "Deciding…",
+  "@playRematchStatusPending": {
+    "description": "Rematch consent: not answered yet."
+  },
+  "playRematchStatusOut": "Left",
+  "@playRematchStatusOut": {
+    "description": "Rematch consent: cannot take part (left / offline)."
+  },
+  "playRematchSeatA11y": "{name}: {status}",
+  "@playRematchSeatA11y": {
+    "description": "Accessibility: a player's rematch answer.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "playPlayAgain": "Play again",
+  "@playPlayAgain": {
+    "description": "Results button: find a new match with the same settings."
+  },
+  "playInviteIncoming": "{name} invited you to play {game}",
+  "@playInviteIncoming": {
+    "description": "In-app banner: a friend invited the user.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "playInviteJoin": "Join",
+  "@playInviteJoin": {
+    "description": "Invite banner button: join."
+  },
+  "playInviteDismiss": "Not now",
+  "@playInviteDismiss": {
+    "description": "Invite banner button: dismiss."
+  },
+  "playInviteSomeone": "A friend",
+  "@playInviteSomeone": {
+    "description": "Invite banner fallback sender name."
+  },
+  "profileTitle": "Profile",
+  "@profileTitle": {
+    "description": "Profile screen title."
+  },
+  "profileFriendCode": "Friend code",
+  "@profileFriendCode": {
+    "description": "Label of the public friend code (uid)."
+  },
+  "profileFriendCodeHint": "Share it so friends can add you.",
+  "@profileFriendCodeHint": {
+    "description": "Hint under the friend code."
+  },
+  "profileShareFriendCode": "Add me on Ludo Royale! My friend code is {code}",
+  "@profileShareFriendCode": {
+    "description": "Share-sheet text with the friend code.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLevelProgress": "{xp} XP to level {level}",
+  "@profileLevelProgress": {
+    "description": "XP still needed for the next level. {xp} is formatted.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "profileMaxLevel": "Max level reached",
+  "@profileMaxLevel": {
+    "description": "Shown at the maximum level."
+  },
+  "profileTitleLabel": "Title",
+  "@profileTitleLabel": {
+    "description": "Label of the equipped title."
+  },
+  "profileAccountSection": "Account",
+  "@profileAccountSection": {
+    "description": "Account section header."
+  },
+  "profileAccountType": "Account type",
+  "@profileAccountType": {
+    "description": "Account type label."
+  },
+  "profileAccountGuest": "Guest (not saved)",
+  "@profileAccountGuest": {
+    "description": "Account type value: unsaved guest."
+  },
+  "profileAccountLinked": "Saved account",
+  "@profileAccountLinked": {
+    "description": "Account type value: linked to a provider."
+  },
+  "profileLinkedAccounts": "Sign-in methods",
+  "@profileLinkedAccounts": {
+    "description": "Section listing sign-in providers."
+  },
+  "profileLinked": "Linked",
+  "@profileLinked": {
+    "description": "Provider status: linked."
+  },
+  "profileNotLinked": "Not linked",
+  "@profileNotLinked": {
+    "description": "Provider status: not linked."
+  },
+  "profileSaveProgressCta": "Save progress",
+  "@profileSaveProgressCta": {
+    "description": "Save Progress button on the profile."
+  },
+  "profileTotalXp": "Total XP",
+  "@profileTotalXp": {
+    "description": "Total XP label."
+  },
+  "profileStatsSection": "Progress",
+  "@profileStatsSection": {
+    "description": "Progress section header."
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings screen title."
+  },
+  "settingsAppearance": "Appearance",
+  "@settingsAppearance": {
+    "description": "Section header."
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Theme setting label."
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Theme option."
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Theme option."
+  },
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {
+    "description": "Theme option: follow the device."
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Language setting label."
+  },
+  "settingsSoundAndHaptics": "Sound & haptics",
+  "@settingsSoundAndHaptics": {
+    "description": "Section header."
+  },
+  "settingsSound": "Sound effects",
+  "@settingsSound": {
+    "description": "Toggle for sound effects."
+  },
+  "settingsHaptics": "Vibration",
+  "@settingsHaptics": {
+    "description": "Toggle for haptic feedback."
+  },
+  "settingsReducedMotion": "Reduce motion",
+  "@settingsReducedMotion": {
+    "description": "Toggle to reduce animations."
+  },
+  "settingsReducedMotionSubtitle": "Fewer animations and effects",
+  "@settingsReducedMotionSubtitle": {
+    "description": "Reduce motion explanation."
+  },
+  "settingsReducedMotionSystemOn": "Also on in your device settings",
+  "@settingsReducedMotionSystemOn": {
+    "description": "Shown when the OS already disables animations."
+  },
+  "settingsGameplay": "Gameplay",
+  "@settingsGameplay": {
+    "description": "Section header."
+  },
+  "settingsQuickChatMute": "Mute quick chat",
+  "@settingsQuickChatMute": {
+    "description": "Toggle to hide incoming quick chat."
+  },
+  "settingsQuickChatMuteSubtitle": "Hide other players' chat messages and emotes",
+  "@settingsQuickChatMuteSubtitle": {
+    "description": "Quick chat mute explanation."
+  },
+  "settingsPrivacy": "Privacy",
+  "@settingsPrivacy": {
+    "description": "Section header."
+  },
+  "settingsAnalytics": "Share anonymous usage stats",
+  "@settingsAnalytics": {
+    "description": "Analytics consent toggle."
+  },
+  "settingsAnalyticsSubtitle": "Helps us improve the game. Never includes your name, chats or room codes.",
+  "@settingsAnalyticsSubtitle": {
+    "description": "Analytics consent explanation."
+  },
+  "settingsAnalyticsNotConfigured": "Not available in this build",
+  "@settingsAnalyticsNotConfigured": {
+    "description": "Analytics is not configured in this build."
+  },
+  "settingsAccount": "Account",
+  "@settingsAccount": {
+    "description": "Section header."
+  },
+  "settingsSignedInAs": "Signed in as {name}",
+  "@settingsSignedInAs": {
+    "description": "Current account. {name} is the display name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSaveProgress": "Save progress",
+  "@settingsSaveProgress": {
+    "description": "Save Progress entry."
+  },
+  "settingsSaveProgressSubtitle": "Link a sign-in method to keep your progress safe",
+  "@settingsSaveProgressSubtitle": {
+    "description": "Save Progress entry subtitle."
+  },
+  "settingsSwitchToGuest": "Switch back to guest",
+  "@settingsSwitchToGuest": {
+    "description": "Switch back to the stored guest account."
+  },
+  "settingsSwitchToGuestSubtitle": "Return to the guest account saved on this device",
+  "@settingsSwitchToGuestSubtitle": {
+    "description": "Switch to guest subtitle."
+  },
+  "settingsSignOut": "Sign out",
+  "@settingsSignOut": {
+    "description": "Sign out entry."
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "Section header."
+  },
+  "settingsVersion": "Version",
+  "@settingsVersion": {
+    "description": "Version label."
+  },
+  "settingsLicenses": "Licenses",
+  "@settingsLicenses": {
+    "description": "Licenses entry."
+  },
+  "settingsLicensesSubtitle": "Open-source software and fonts",
+  "@settingsLicensesSubtitle": {
+    "description": "Licenses entry subtitle."
+  },
+  "settingsConsentTitle": "Help us make Ludo Royale better",
+  "@settingsConsentTitle": {
+    "description": "First-run analytics consent sheet title."
+  },
+  "settingsConsentMessage": "Can we collect anonymous usage stats, like which game modes are popular? We never collect your name, chats, room codes or contact details. You can change this any time in Settings.",
+  "@settingsConsentMessage": {
+    "description": "First-run analytics consent explanation (opt-in)."
+  },
+  "settingsConsentAllow": "Share anonymous stats",
+  "@settingsConsentAllow": {
+    "description": "Opt in to analytics."
+  },
+  "settingsConsentDeny": "No thanks",
+  "@settingsConsentDeny": {
+    "description": "Decline analytics."
+  },
+  "walletTitle": "Your wallet",
+  "@walletTitle": {
+    "description": "Wallet sheet title."
+  },
+  "walletCoinsCaption": "For match entry fees — winners take the pot.",
+  "@walletCoinsCaption": {
+    "description": "What coins are for."
+  },
+  "walletDiamondsCaption": "For premium cosmetics in the Collection Room.",
+  "@walletDiamondsCaption": {
+    "description": "What diamonds are for."
+  },
+  "walletExactBalance": "Exact balance: {amount}",
+  "@walletExactBalance": {
+    "description": "Full-precision balance. {amount} is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "walletVirtualTitle": "Virtual currency",
+  "@walletVirtualTitle": {
+    "description": "Heading of the virtual-currency notice."
+  },
+  "walletVirtualNotice": "Coins and diamonds are virtual items for fun only. They have no real-world value and can't be sold, transferred, withdrawn or exchanged for money.",
+  "@walletVirtualNotice": {
+    "description": "Non-redeemable virtual currency notice."
+  },
+  "walletEarnTitle": "How to earn more",
+  "@walletEarnTitle": {
+    "description": "Heading of the earning tips."
+  },
+  "walletEarnWins": "Win matches to take the pot",
+  "@walletEarnWins": {
+    "description": "Earning tip."
+  },
+  "walletEarnMissions": "Complete daily and weekly missions",
+  "@walletEarnMissions": {
+    "description": "Earning tip."
+  },
+  "walletEarnLevels": "Level up for milestone rewards",
+  "@walletEarnLevels": {
+    "description": "Earning tip."
+  },
+  "walletRefresh": "Refresh balance",
+  "@walletRefresh": {
+    "description": "Button to re-fetch the balance from the server."
+  },
+  "widgetsCoinsBalance": "Coins: {amount}",
+  "@widgetsCoinsBalance": {
+    "description": "Screen-reader label of the coin balance chip.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsDiamondsBalance": "Diamonds: {amount}",
+  "@widgetsDiamondsBalance": {
+    "description": "Screen-reader label of the diamond balance chip.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsXpLabel": "Experience: {current} of {total}",
+  "@widgetsXpLabel": {
+    "description": "Screen-reader label of the XP progress bar.",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsAvatarLabel": "Player avatar",
+  "@widgetsAvatarLabel": {
+    "description": "Screen-reader label of a player avatar when no name is given."
+  },
+  "widgetsTitleLabel": "Title: {title}",
+  "@widgetsTitleLabel": {
+    "description": "Screen-reader label of a player title chip.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsEmoteLabel": "Emote: {name}",
+  "@widgetsEmoteLabel": {
+    "description": "Screen-reader label of an emote icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsBadgeLabel": "Badge: {name}",
+  "@widgetsBadgeLabel": {
+    "description": "Screen-reader label of a badge icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsSecondsLeft": "{seconds, plural, =1{1 second left} other{{seconds} seconds left}}",
+  "@widgetsSecondsLeft": {
+    "description": "Screen-reader label of a turn countdown ring.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "widgetsConnectionLabel": "Connection: {status}",
+  "@widgetsConnectionLabel": {
+    "description": "Screen-reader label of the connection indicator. {status} is a localized status such as Online.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetsNewItems": "{count, plural, =1{1 new} other{{count} new}}",
+  "@widgetsNewItems": {
+    "description": "Screen-reader suffix for a notification count on a round header button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "widgetsSelected": "Selected",
+  "@widgetsSelected": {
+    "description": "Screen-reader hint for the selected option in a choice selector."
+  },
+  "widgetsLogoLabel": "{appName} crest",
+  "@widgetsLogoLabel": {
+    "description": "Screen-reader label of the painted app logo.",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  }
+}

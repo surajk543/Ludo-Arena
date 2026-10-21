@@ -1,0 +1,1265 @@
+{
+  "@@locale": "en",
+  "metaMissionsTitle": "Missions",
+  "@metaMissionsTitle": {
+    "description": "Missions screen title."
+  },
+  "metaEventsTitle": "Events",
+  "@metaEventsTitle": {
+    "description": "Events screen title."
+  },
+  "metaCollectionTitle": "Collection Room",
+  "@metaCollectionTitle": {
+    "description": "Collection Room screen title."
+  },
+  "metaFriendsTitle": "Friends",
+  "@metaFriendsTitle": {
+    "description": "Friends screen title."
+  },
+  "metaLeaderboardTitle": "Weekly ranking",
+  "@metaLeaderboardTitle": {
+    "description": "Weekly friends leaderboard title."
+  },
+  "metaLevelRoadTitle": "Level road",
+  "@metaLevelRoadTitle": {
+    "description": "Level road (milestones) screen title."
+  },
+  "metaDailyTitle": "Daily missions",
+  "@metaDailyTitle": {
+    "description": "Section header: daily missions."
+  },
+  "metaWeeklyTitle": "Weekly challenge",
+  "@metaWeeklyTitle": {
+    "description": "Section header: weekly challenge."
+  },
+  "metaClaim": "Claim",
+  "@metaClaim": {
+    "description": "Button: claim a completed mission reward."
+  },
+  "metaStatusInProgress": "In progress",
+  "@metaStatusInProgress": {
+    "description": "Mission state."
+  },
+  "metaStatusReady": "Ready to claim",
+  "@metaStatusReady": {
+    "description": "Mission state: completed, reward can be claimed."
+  },
+  "metaStatusClaimed": "Claimed",
+  "@metaStatusClaimed": {
+    "description": "Mission state: reward already claimed."
+  },
+  "metaCollected": "Reward collected — added to your account",
+  "@metaCollected": {
+    "description": "Shown right after a successful claim."
+  },
+  "metaProgressCount": "{progress} / {target}",
+  "@metaProgressCount": {
+    "description": "Mission progress, e.g. \"1 / 2\".",
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "metaMissionSemantics": "{title}. Progress {progress}. {state}",
+  "@metaMissionSemantics": {
+    "description": "Screen reader label of a mission card.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardAmount": "+{amount}",
+  "@metaRewardAmount": {
+    "description": "Reward chip amount, e.g. \"+500\".",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardXp": "+{amount} XP",
+  "@metaRewardXp": {
+    "description": "XP reward chip, e.g. \"+30 XP\".",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardCoinsLabel": "{amount} coins",
+  "@metaRewardCoinsLabel": {
+    "description": "Screen reader: coin reward.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardDiamondsLabel": "{amount} diamonds",
+  "@metaRewardDiamondsLabel": {
+    "description": "Screen reader: diamond reward.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardXpLabel": "{amount} experience points",
+  "@metaRewardXpLabel": {
+    "description": "Screen reader: XP reward.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRewardItemLabel": "{name} ({kind})",
+  "@metaRewardItemLabel": {
+    "description": "Screen reader: cosmetic reward with its kind.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "metaGameAny": "Any game",
+  "@metaGameAny": {
+    "description": "Mission game filter: any game."
+  },
+  "metaResetsDailyAt": "New missions at {time}",
+  "@metaResetsDailyAt": {
+    "description": "When daily missions refresh, local time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "metaResetsWeeklyAt": "Resets {day} at {time}",
+  "@metaResetsWeeklyAt": {
+    "description": "When the weekly challenge resets, local weekday and time.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "metaEventEndsAt": "Ends {date}",
+  "@metaEventEndsAt": {
+    "description": "When an event ends, local date and time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "metaWhenWithCountdown": "{when} · in {duration}",
+  "@metaWhenWithCountdown": {
+    "description": "Reset line with a calm relative time, e.g. \"New missions at 5:30 AM · in 4 h 12 min\".",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "metaDurationDaysHours": "{days} d {hours} h",
+  "@metaDurationDaysHours": {
+    "description": "Compact duration.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "metaDurationHoursMinutes": "{hours} h {minutes} min",
+  "@metaDurationHoursMinutes": {
+    "description": "Compact duration.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "metaDurationMinutes": "{minutes} min",
+  "@metaDurationMinutes": {
+    "description": "Compact duration.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "metaNoPenaltyNote": "Missed a day? No problem — your XP, level and collection are always kept.",
+  "@metaNoPenaltyNote": {
+    "description": "Calm footnote under missions."
+  },
+  "metaMissionsEmptyTitle": "No missions right now",
+  "@metaMissionsEmptyTitle": {
+    "description": "Empty state title."
+  },
+  "metaMissionsEmptyMessage": "New daily missions arrive every day. Pull down to refresh.",
+  "@metaMissionsEmptyMessage": {
+    "description": "Empty state message."
+  },
+  "metaRetryHint": "{message} Tap again to retry.",
+  "@metaRetryHint": {
+    "description": "Toast after a transient claim/purchase failure.",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNewItemsTitle": "New in your collection!",
+  "@metaNewItemsTitle": {
+    "description": "Dialog title after new items were granted."
+  },
+  "metaNewItemsMessage": "{count, plural, =1{This item is now yours to equip and enjoy.} other{These {count} items are now yours to equip and enjoy.}}",
+  "@metaNewItemsMessage": {
+    "description": "Dialog message listing granted items.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaNice": "Nice!",
+  "@metaNice": {
+    "description": "Dismiss button of a reward dialog."
+  },
+  "metaViewCollection": "View collection",
+  "@metaViewCollection": {
+    "description": "Button: open the Collection Room."
+  },
+  "metaEventDetails": "Details",
+  "@metaEventDetails": {
+    "description": "Section action: open event details."
+  },
+  "metaMissionLudoTimeTitle": "Ludo Time",
+  "@metaMissionLudoTimeTitle": {
+    "description": "Mission title (daily_ludo_match)."
+  },
+  "metaMissionClimbTitle": "Climb the Ladder",
+  "@metaMissionClimbTitle": {
+    "description": "Mission title (daily_snakes_match)."
+  },
+  "metaMissionWarmUpTitle": "Warm-Up",
+  "@metaMissionWarmUpTitle": {
+    "description": "Mission title (daily_play_two)."
+  },
+  "metaMissionFriendlyTableTitle": "Friendly Table",
+  "@metaMissionFriendlyTableTitle": {
+    "description": "Mission title (daily_friends_private)."
+  },
+  "metaMissionStayToEndTitle": "Stay to the End",
+  "@metaMissionStayToEndTitle": {
+    "description": "Mission title (daily_finish_strong)."
+  },
+  "metaMissionTasteOfVictoryTitle": "Taste of Victory",
+  "@metaMissionTasteOfVictoryTitle": {
+    "description": "Mission title (daily_win_one)."
+  },
+  "metaMissionQuickDrawTitle": "Quick Draw",
+  "@metaMissionQuickDrawTitle": {
+    "description": "Mission title (daily_quick_ludo)."
+  },
+  "metaMissionWeeklyChallengeTitle": "Weekly Challenge",
+  "@metaMissionWeeklyChallengeTitle": {
+    "description": "Mission title (weekly_ten_matches)."
+  },
+  "metaMissionAutumnSprintTitle": "Autumn Sprint",
+  "@metaMissionAutumnSprintTitle": {
+    "description": "Event mission title (autumn_quick_ludo)."
+  },
+  "metaMissionFallbackTitle": "Mission",
+  "@metaMissionFallbackTitle": {
+    "description": "Title for an unknown mission."
+  },
+  "metaMissionLudoMatchesDesc": "{count, plural, =1{Complete 1 Ludo match.} other{Complete {count} Ludo matches.}}",
+  "@metaMissionLudoMatchesDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionSnakesMatchesDesc": "{count, plural, =1{Complete 1 Snakes & Ladders match.} other{Complete {count} Snakes & Ladders matches.}}",
+  "@metaMissionSnakesMatchesDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionAnyMatchesDesc": "{count, plural, =1{Complete 1 match in any game.} other{Complete {count} matches in any game.}}",
+  "@metaMissionAnyMatchesDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionFriendPrivateDesc": "{count, plural, =1{Complete a private match with a friend.} other{Complete {count} private matches with friends.}}",
+  "@metaMissionFriendPrivateDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionNoLeavingDesc": "{count, plural, =1{Complete a match without leaving early.} other{Complete {count} matches without leaving early.}}",
+  "@metaMissionNoLeavingDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionWinDesc": "{count, plural, =1{Win 1 match.} other{Win {count} matches.}}",
+  "@metaMissionWinDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionQuickLudoDesc": "{count, plural, =1{Complete 1 Quick Ludo match.} other{Complete {count} Quick Ludo matches.}}",
+  "@metaMissionQuickLudoDesc": {
+    "description": "Mission description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMissionWeeklyDesc": "{count, plural, =1{Complete 1 match in Ludo or Snakes & Ladders.} other{Complete {count} matches across Ludo and Snakes & Ladders.}}",
+  "@metaMissionWeeklyDesc": {
+    "description": "Weekly challenge description.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaEventAutumnCupTitle": "Autumn Cup",
+  "@metaEventAutumnCupTitle": {
+    "description": "Event title (autumn_cup)."
+  },
+  "metaEventAutumnCupDesc": "Celebrate the season with Quick Ludo and win the Autumn Leaf dice.",
+  "@metaEventAutumnCupDesc": {
+    "description": "Event description (autumn_cup)."
+  },
+  "metaEventWindow": "{start} – {end}",
+  "@metaEventWindow": {
+    "description": "Event start and end, local time.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "metaEventLiveBadge": "Event running",
+  "@metaEventLiveBadge": {
+    "description": "Badge on a running event."
+  },
+  "metaEventMissionsTitle": "Event missions",
+  "@metaEventMissionsTitle": {
+    "description": "Section header: missions of an event."
+  },
+  "metaEventRulesTitle": "How it works",
+  "@metaEventRulesTitle": {
+    "description": "Event rules card title."
+  },
+  "metaEventRuleComplete": "Complete the event missions while the event is running.",
+  "@metaEventRuleComplete": {
+    "description": "Event rule."
+  },
+  "metaEventRuleEligible": "A match counts when you play it to the end, make at least 3 moves and it lasts at least 30 seconds.",
+  "@metaEventRuleEligible": {
+    "description": "Event rule: which matches count."
+  },
+  "metaEventRuleClaim": "Claim each reward here — it is added to your account right away.",
+  "@metaEventRuleClaim": {
+    "description": "Event rule: claiming."
+  },
+  "metaEventRuleEnd": "Rewards not claimed before the event ends are no longer available. Your XP, level and collection are never affected.",
+  "@metaEventRuleEnd": {
+    "description": "Event rule: what happens at the end."
+  },
+  "metaNoEventsTitle": "No events right now",
+  "@metaNoEventsTitle": {
+    "description": "Empty state: no running events."
+  },
+  "metaNoEventsMessage": "New events will appear here. Your daily missions are always available.",
+  "@metaNoEventsMessage": {
+    "description": "Empty state message."
+  },
+  "metaGoToMissions": "Go to missions",
+  "@metaGoToMissions": {
+    "description": "Button: open missions."
+  },
+  "metaXpToNextLevel": "{xp} XP to level {level}",
+  "@metaXpToNextLevel": {
+    "description": "XP needed for the next level.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaMaxLevelReached": "Max level reached — XP still counts for the weekly ranking",
+  "@metaMaxLevelReached": {
+    "description": "At the level cap."
+  },
+  "metaMaxBadge": "MAX",
+  "@metaMaxBadge": {
+    "description": "Small badge at max level."
+  },
+  "metaTotalXp": "Total XP: {xp}",
+  "@metaTotalXp": {
+    "description": "Total XP line.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaHowToEarnXp": "How to earn XP",
+  "@metaHowToEarnXp": {
+    "description": "Card title."
+  },
+  "metaXpForMatch": "+{xp} XP for every completed match",
+  "@metaXpForMatch": {
+    "description": "XP rule.",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "metaXpForWin": "+{xp} XP bonus for a win",
+  "@metaXpForWin": {
+    "description": "XP rule.",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "metaXpForFriend": "+{xp} XP when a friend plays with you",
+  "@metaXpForFriend": {
+    "description": "XP rule.",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "metaXpForMissions": "Mission rewards include XP too",
+  "@metaXpForMissions": {
+    "description": "XP rule."
+  },
+  "metaXpFairPlayNote": "Matches count when played to the end (at least 3 moves and 30 seconds). Bots never earn XP.",
+  "@metaXpFairPlayNote": {
+    "description": "Fair-play note."
+  },
+  "metaMilestonesTitle": "Milestones",
+  "@metaMilestonesTitle": {
+    "description": "Section header: level milestones."
+  },
+  "metaMilestoneUnlocked": "Unlocked",
+  "@metaMilestoneUnlocked": {
+    "description": "Milestone reached."
+  },
+  "metaMilestoneNext": "Next milestone · {xp} XP to go",
+  "@metaMilestoneNext": {
+    "description": "Next milestone with XP to go.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaMilestoneLocked": "{xp} XP to go",
+  "@metaMilestoneLocked": {
+    "description": "Locked milestone with the XP still needed.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNoMilestones": "Milestones will appear here.",
+  "@metaNoMilestones": {
+    "description": "No milestones configured."
+  },
+  "metaLevelUpTitle": "Level up!",
+  "@metaLevelUpTitle": {
+    "description": "Level-up celebration title."
+  },
+  "metaLevelUpMessage": "You reached level {level}.",
+  "@metaLevelUpMessage": {
+    "description": "Level-up celebration message.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaUnlockedHeader": "Unlocked for you",
+  "@metaUnlockedHeader": {
+    "description": "Header above unlocked items."
+  },
+  "metaLevelUpContinue": "Awesome!",
+  "@metaLevelUpContinue": {
+    "description": "Dismiss level-up celebration."
+  },
+  "metaYourLook": "Your look",
+  "@metaYourLook": {
+    "description": "Equipped loadout summary."
+  },
+  "metaCollectedCount": "{owned} of {total} collected",
+  "@metaCollectedCount": {
+    "description": "Collection progress.",
+    "placeholders": {
+      "owned": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "metaTabDice": "Dice",
+  "@metaTabDice": {
+    "description": "Collection tab."
+  },
+  "metaTabTokens": "Tokens",
+  "@metaTabTokens": {
+    "description": "Collection tab."
+  },
+  "metaTabLudoBoards": "Ludo boards",
+  "@metaTabLudoBoards": {
+    "description": "Collection tab."
+  },
+  "metaTabSnakesBoards": "Snakes boards",
+  "@metaTabSnakesBoards": {
+    "description": "Collection tab."
+  },
+  "metaTabTrails": "Trails",
+  "@metaTabTrails": {
+    "description": "Collection tab."
+  },
+  "metaTabVictory": "Victory",
+  "@metaTabVictory": {
+    "description": "Collection tab."
+  },
+  "metaTabFrames": "Frames",
+  "@metaTabFrames": {
+    "description": "Collection tab."
+  },
+  "metaTabTitles": "Titles",
+  "@metaTabTitles": {
+    "description": "Collection tab."
+  },
+  "metaTabBadges": "Badges",
+  "@metaTabBadges": {
+    "description": "Collection tab."
+  },
+  "metaTabEmotes": "Emotes",
+  "@metaTabEmotes": {
+    "description": "Collection tab."
+  },
+  "metaFilterAll": "All",
+  "@metaFilterAll": {
+    "description": "Collection filter."
+  },
+  "metaFilterOwned": "Owned",
+  "@metaFilterOwned": {
+    "description": "Collection filter."
+  },
+  "metaFilterLocked": "To unlock",
+  "@metaFilterLocked": {
+    "description": "Collection filter: not owned yet."
+  },
+  "metaEquipped": "Equipped",
+  "@metaEquipped": {
+    "description": "Item state."
+  },
+  "metaOwned": "Owned",
+  "@metaOwned": {
+    "description": "Item state."
+  },
+  "metaLocked": "Locked",
+  "@metaLocked": {
+    "description": "Item state."
+  },
+  "metaNewBadge": "New",
+  "@metaNewBadge": {
+    "description": "Badge on newly owned items."
+  },
+  "metaItemSemantics": "{name}, {rarity}, {state}. {how}",
+  "@metaItemSemantics": {
+    "description": "Screen reader label of an item card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "rarity": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      },
+      "how": {
+        "type": "String"
+      }
+    }
+  },
+  "metaAcqStarter": "Starter item",
+  "@metaAcqStarter": {
+    "description": "Acquisition label."
+  },
+  "metaAcqLevel": "Reach level {level}",
+  "@metaAcqLevel": {
+    "description": "Acquisition label.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaAcqMission": "Mission reward",
+  "@metaAcqMission": {
+    "description": "Acquisition label."
+  },
+  "metaAcqWeeklyChallenge": "Weekly challenge reward",
+  "@metaAcqWeeklyChallenge": {
+    "description": "Acquisition label."
+  },
+  "metaAcqFirstWin": "Win your first match",
+  "@metaAcqFirstWin": {
+    "description": "Acquisition label."
+  },
+  "metaAcqEvent": "Event reward",
+  "@metaAcqEvent": {
+    "description": "Acquisition label."
+  },
+  "metaAcqAutumnCup": "Autumn Cup reward",
+  "@metaAcqAutumnCup": {
+    "description": "Acquisition label."
+  },
+  "metaPriceCoins": "{amount} coins",
+  "@metaPriceCoins": {
+    "description": "Price in coins.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaPriceDiamonds": "{amount} diamonds",
+  "@metaPriceDiamonds": {
+    "description": "Price in diamonds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaEquip": "Equip",
+  "@metaEquip": {
+    "description": "Button: equip an item."
+  },
+  "metaEquipDefault": "Use default",
+  "@metaEquipDefault": {
+    "description": "Button: reset the slot to its starter item."
+  },
+  "metaEquippedToast": "Equipped!",
+  "@metaEquippedToast": {
+    "description": "Toast after equipping."
+  },
+  "metaDefaultEquippedToast": "Back to the default look",
+  "@metaDefaultEquippedToast": {
+    "description": "Toast after resetting to default."
+  },
+  "metaEmoteHint": "Use your emotes during matches from the emote button.",
+  "@metaEmoteHint": {
+    "description": "Owned emote info."
+  },
+  "metaBadgeHint": "Badges celebrate what you have achieved. They are yours to keep.",
+  "@metaBadgeHint": {
+    "description": "Owned badge info."
+  },
+  "metaBuyFor": "Buy for {price}",
+  "@metaBuyFor": {
+    "description": "Purchase button.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "metaBuy": "Buy",
+  "@metaBuy": {
+    "description": "Confirm purchase."
+  },
+  "metaPurchaseTitle": "Buy {item}?",
+  "@metaPurchaseTitle": {
+    "description": "Purchase confirmation title.",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "metaPrice": "Price",
+  "@metaPrice": {
+    "description": "Purchase dialog row."
+  },
+  "metaYourBalance": "Your balance",
+  "@metaYourBalance": {
+    "description": "Purchase dialog row."
+  },
+  "metaBalanceAfter": "After purchase",
+  "@metaBalanceAfter": {
+    "description": "Purchase dialog row."
+  },
+  "metaNeedMore": "Not enough yet — you need another {amount}. Win matches and complete missions to earn more.",
+  "@metaNeedMore": {
+    "description": "Not enough balance.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "metaCosmeticOnlyNote": "Cosmetic only — it never changes dice, rules or matchmaking.",
+  "@metaCosmeticOnlyNote": {
+    "description": "Honest purchase note."
+  },
+  "metaPurchaseSuccess": "{item} is now in your collection!",
+  "@metaPurchaseSuccess": {
+    "description": "Toast after purchase.",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNotEnoughCoins": "Not enough coins for this item.",
+  "@metaNotEnoughCoins": {
+    "description": "Purchase failed: not enough coins."
+  },
+  "metaNotEnoughDiamonds": "Not enough diamonds for this item.",
+  "@metaNotEnoughDiamonds": {
+    "description": "Purchase failed: not enough diamonds."
+  },
+  "metaAlreadyOwned": "You already own this item.",
+  "@metaAlreadyOwned": {
+    "description": "Purchase failed: already owned."
+  },
+  "metaItemNotForSale": "This item is unlocked by playing, not bought.",
+  "@metaItemNotForSale": {
+    "description": "Purchase failed: not a purchasable item."
+  },
+  "metaUnlocksAtLevel": "Unlocks automatically when you reach level {level}.",
+  "@metaUnlocksAtLevel": {
+    "description": "Locked level item info.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "metaEarnFromMissionsHint": "Earn it by completing the matching mission or event — no purchase needed.",
+  "@metaEarnFromMissionsHint": {
+    "description": "Locked mission/event item info."
+  },
+  "metaAllOwnedInKind": "You have unlocked everything here. Nicely done!",
+  "@metaAllOwnedInKind": {
+    "description": "Locked filter is empty."
+  },
+  "metaNothingOwnedInKind": "Nothing here yet — keep playing to unlock more.",
+  "@metaNothingOwnedInKind": {
+    "description": "Owned filter is empty."
+  },
+  "metaCollectionFairNote": "Every item is cosmetic and has a fixed way to get it — no random boxes, no gameplay advantage.",
+  "@metaCollectionFairNote": {
+    "description": "Fairness note in the Collection Room."
+  },
+  "metaDescDiceClassic": "Timeless ivory dice with crisp black pips.",
+  "@metaDescDiceClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescDiceNeon": "Glowing dice that pulse with every roll.",
+  "@metaDescDiceNeon": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescDiceGolden": "Polished gold dice fit for royalty.",
+  "@metaDescDiceGolden": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescDiceAutumn": "Warm amber dice from the Autumn Cup.",
+  "@metaDescDiceAutumn": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenClassic": "The pawn everyone knows.",
+  "@metaDescTokenClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenGem": "Faceted gem tokens that catch the light.",
+  "@metaDescTokenGem": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenRoyal": "Pawns wearing tiny crowns.",
+  "@metaDescTokenRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTokenCrown": "A legendary crown-shaped piece.",
+  "@metaDescTokenCrown": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescLudoBoardClassic": "The traditional four-colour Ludo board.",
+  "@metaDescLudoBoardClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescLudoBoardMidnight": "Dark marble with silver inlays.",
+  "@metaDescLudoBoardMidnight": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescLudoBoardRoyal": "A palace courtyard in gold and crimson.",
+  "@metaDescLudoBoardRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescSnakesBoardClassic": "Green meadows, friendly snakes, sturdy ladders.",
+  "@metaDescSnakesBoardClassic": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescSnakesBoardJungle": "Vines, ruins and temple stairs.",
+  "@metaDescSnakesBoardJungle": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescSnakesBoardCandy": "Licorice snakes and candy-cane ladders.",
+  "@metaDescSnakesBoardCandy": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTrailNone": "Clean moves, no trail.",
+  "@metaDescTrailNone": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTrailSparkle": "A shower of sparkles follows every move.",
+  "@metaDescTrailSparkle": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTrailComet": "A blazing comet tail.",
+  "@metaDescTrailComet": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescVictoryConfetti": "A classic confetti celebration.",
+  "@metaDescVictoryConfetti": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescVictoryFireworks": "Light up the sky when you win.",
+  "@metaDescVictoryFireworks": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescVictoryCrown": "A golden crown descends on the winner.",
+  "@metaDescVictoryCrown": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameNone": "Your avatar, unframed.",
+  "@metaDescFrameNone": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameBronze": "A simple bronze ring around your avatar.",
+  "@metaDescFrameBronze": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameSilver": "A silver laurel wreath.",
+  "@metaDescFrameSilver": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameGold": "A gold laurel wreath for seasoned players.",
+  "@metaDescFrameGold": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescFrameRoyal": "An ornate royal crest.",
+  "@metaDescFrameRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleRookie": "Everyone starts somewhere.",
+  "@metaDescTitleRookie": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleStrategist": "For players who think three moves ahead.",
+  "@metaDescTitleStrategist": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleDiceMaster": "The dice seem to listen to you.",
+  "@metaDescTitleDiceMaster": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleRoyal": "Reserved for true royalty.",
+  "@metaDescTitleRoyal": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescTitleWeeklyChampion": "Completed a weekly challenge.",
+  "@metaDescTitleWeeklyChampion": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescBadgeFirstWin": "Won your first match.",
+  "@metaDescBadgeFirstWin": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescBadgeFriendly": "Completed a weekly challenge.",
+  "@metaDescBadgeFriendly": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteWave": "Say hello.",
+  "@metaDescEmoteWave": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteThumbs": "Nice one!",
+  "@metaDescEmoteThumbs": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteLaugh": "Share a laugh.",
+  "@metaDescEmoteLaugh": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteWow": "Did that just happen?",
+  "@metaDescEmoteWow": {
+    "description": "Cosmetic item description."
+  },
+  "metaDescEmoteCrown": "Show who rules the board.",
+  "@metaDescEmoteCrown": {
+    "description": "Cosmetic item description."
+  },
+  "metaYourFriendCode": "Your friend code",
+  "@metaYourFriendCode": {
+    "description": "Friend code card title."
+  },
+  "metaFriendCodeHint": "Share it so friends can add you.",
+  "@metaFriendCodeHint": {
+    "description": "Friend code card hint."
+  },
+  "metaFriendCodeSemantics": "Friend code: {code}",
+  "@metaFriendCodeSemantics": {
+    "description": "Screen reader: friend code spelled out.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "metaShareFriendCodeMessage": "Let's play Ludo Royale together! Add me as a friend with my code: {code}",
+  "@metaShareFriendCodeMessage": {
+    "description": "Share sheet text.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "metaAddFriend": "Add friend",
+  "@metaAddFriend": {
+    "description": "Button: add a friend."
+  },
+  "metaAdd": "Add",
+  "@metaAdd": {
+    "description": "Compact add-friend button in lists."
+  },
+  "metaAddFriendTitle": "Add a friend",
+  "@metaAddFriendTitle": {
+    "description": "Add-friend sheet title."
+  },
+  "metaAddFriendHelp": "Enter your friend's code. They can find it on their Friends screen.",
+  "@metaAddFriendHelp": {
+    "description": "Add-friend sheet help."
+  },
+  "metaFriendCodeLabel": "Friend code",
+  "@metaFriendCodeLabel": {
+    "description": "Input label."
+  },
+  "metaFriendCodeHintExample": "u_abcd 2345 wxyz",
+  "@metaFriendCodeHintExample": {
+    "description": "Input placeholder (Latin code format)."
+  },
+  "metaPaste": "Paste",
+  "@metaPaste": {
+    "description": "Paste button tooltip."
+  },
+  "metaSendRequest": "Send request",
+  "@metaSendRequest": {
+    "description": "Send friend request."
+  },
+  "metaFriendCodeRequired": "Enter a friend code.",
+  "@metaFriendCodeRequired": {
+    "description": "Validation: empty code."
+  },
+  "metaInvalidFriendCode": "That doesn't look like a friend code. It starts with u_ followed by letters and numbers.",
+  "@metaInvalidFriendCode": {
+    "description": "Validation: malformed code."
+  },
+  "metaRequestSent": "Friend request sent to {name}",
+  "@metaRequestSent": {
+    "description": "Toast after sending a request.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaNowFriends": "You and {name} are now friends!",
+  "@metaNowFriends": {
+    "description": "Toast: friendship accepted.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaAlreadyFriends": "You're already friends.",
+  "@metaAlreadyFriends": {
+    "description": "Add friend: already friends."
+  },
+  "metaTabFriends": "Friends",
+  "@metaTabFriends": {
+    "description": "Friends tab."
+  },
+  "metaTabRequests": "Requests",
+  "@metaTabRequests": {
+    "description": "Requests tab."
+  },
+  "metaTabRecent": "Recent",
+  "@metaTabRecent": {
+    "description": "Recent opponents tab."
+  },
+  "metaOnline": "Online",
+  "@metaOnline": {
+    "description": "Friend presence."
+  },
+  "metaOffline": "Offline",
+  "@metaOffline": {
+    "description": "Friend presence."
+  },
+  "metaMoreActions": "More actions",
+  "@metaMoreActions": {
+    "description": "Overflow menu tooltip."
+  },
+  "metaRemoveFriend": "Remove friend",
+  "@metaRemoveFriend": {
+    "description": "Menu: remove friend."
+  },
+  "metaRemoveFriendTitle": "Remove {name}?",
+  "@metaRemoveFriendTitle": {
+    "description": "Confirm dialog title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaRemoveFriendMessage": "You can add each other again any time with a friend code.",
+  "@metaRemoveFriendMessage": {
+    "description": "Confirm dialog message."
+  },
+  "metaRemove": "Remove",
+  "@metaRemove": {
+    "description": "Confirm removal."
+  },
+  "metaFriendRemoved": "{name} was removed from your friends",
+  "@metaFriendRemoved": {
+    "description": "Toast after removal.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaIncomingRequests": "Received",
+  "@metaIncomingRequests": {
+    "description": "Section header."
+  },
+  "metaOutgoingRequests": "Sent",
+  "@metaOutgoingRequests": {
+    "description": "Section header."
+  },
+  "metaWantsToBeFriends": "Wants to be your friend",
+  "@metaWantsToBeFriends": {
+    "description": "Incoming request subtitle."
+  },
+  "metaRequestPending": "Waiting for an answer",
+  "@metaRequestPending": {
+    "description": "Outgoing request subtitle."
+  },
+  "metaAccept": "Accept",
+  "@metaAccept": {
+    "description": "Accept a request."
+  },
+  "metaDecline": "Decline",
+  "@metaDecline": {
+    "description": "Decline a request."
+  },
+  "metaRequestDeclined": "Request declined",
+  "@metaRequestDeclined": {
+    "description": "Toast."
+  },
+  "metaRequestCancelled": "Request cancelled",
+  "@metaRequestCancelled": {
+    "description": "Toast."
+  },
+  "metaRequested": "Requested",
+  "@metaRequested": {
+    "description": "Recent list: request already sent."
+  },
+  "metaFriendsLabel": "Friends",
+  "@metaFriendsLabel": {
+    "description": "Recent list: already friends."
+  },
+  "metaNoFriendsTitle": "No friends yet",
+  "@metaNoFriendsTitle": {
+    "description": "Empty state."
+  },
+  "metaNoFriendsMessage": "Share your code or add a friend to play together.",
+  "@metaNoFriendsMessage": {
+    "description": "Empty state."
+  },
+  "metaNoRequestsTitle": "No pending requests",
+  "@metaNoRequestsTitle": {
+    "description": "Empty state."
+  },
+  "metaNoRequestsMessage": "Friend requests you send or receive appear here.",
+  "@metaNoRequestsMessage": {
+    "description": "Empty state."
+  },
+  "metaRecentHint": "Players you met in online matches during the last 14 days.",
+  "@metaRecentHint": {
+    "description": "Recent tab hint."
+  },
+  "metaNoRecentTitle": "No recent opponents",
+  "@metaNoRecentTitle": {
+    "description": "Empty state."
+  },
+  "metaNoRecentMessage": "Play an online match — the players you meet will show up here.",
+  "@metaNoRecentMessage": {
+    "description": "Empty state."
+  },
+  "metaFriendRequestBanner": "{name} wants to be your friend",
+  "@metaFriendRequestBanner": {
+    "description": "In-app banner for a new friend request.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaView": "View",
+  "@metaView": {
+    "description": "Banner action."
+  },
+  "metaErrorCannotFriendSelf": "That's your own friend code.",
+  "@metaErrorCannotFriendSelf": {
+    "description": "Error: own code."
+  },
+  "metaErrorFriendLimit": "The friend or request limit has been reached. Remove a friend or request and try again.",
+  "@metaErrorFriendLimit": {
+    "description": "Error: friend limit."
+  },
+  "metaErrorUnknownFriendCode": "No player has this friend code. Check it and try again.",
+  "@metaErrorUnknownFriendCode": {
+    "description": "Error: no player with this code."
+  },
+  "metaErrorRequestInProgress": "Still working on it — please try again in a moment.",
+  "@metaErrorRequestInProgress": {
+    "description": "Error: same request still processing."
+  },
+  "metaErrorMissionEnded": "This mission has ended. Pull down to see the current missions.",
+  "@metaErrorMissionEnded": {
+    "description": "Error: mission no longer in a current period."
+  },
+  "metaLeaderboardSubtitle": "You and your friends, ranked by XP earned this week.",
+  "@metaLeaderboardSubtitle": {
+    "description": "Leaderboard explanation."
+  },
+  "metaLeaderboardTeaser": "See how you and your friends are doing this week.",
+  "@metaLeaderboardTeaser": {
+    "description": "Teaser card on Friends."
+  },
+  "metaWeeklyXp": "{xp} XP",
+  "@metaWeeklyXp": {
+    "description": "Weekly XP of a player.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaYouName": "{name} (you)",
+  "@metaYouName": {
+    "description": "Leaderboard: my own row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "metaLeaderboardRowSemantics": "Rank {rank}: {name}, {xp}",
+  "@metaLeaderboardRowSemantics": {
+    "description": "Screen reader: leaderboard row.",
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "xp": {
+        "type": "String"
+      }
+    }
+  },
+  "metaLeaderboardAlone": "Add friends to see how you compare. Friendly competition, no pressure.",
+  "@metaLeaderboardAlone": {
+    "description": "Leaderboard with no friends."
+  }
+}

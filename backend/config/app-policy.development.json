@@ -1,0 +1,45 @@
+{
+  "configVersion": 1,
+  "environment": "development",
+  "maintenance": {
+    "enabled": false,
+    "message": {
+      "en": "The game is temporarily unavailable while we upgrade our servers.",
+      "hi": "हम अपने सर्वर अपग्रेड कर रहे हैं, इसलिए गेम अस्थायी रूप से उपलब्ध नहीं है।",
+      "ur": "ہم اپنے سرورز اپ گریڈ کر رہے ہیں، اس لیے گیم عارضی طور پر دستیاب نہیں ہے۔",
+      "id": "Game sementara tidak tersedia karena kami sedang meningkatkan server.",
+      "ar": "اللعبة غير متاحة مؤقتًا أثناء ترقية خوادمنا."
+    },
+    "windows": []
+  },
+  "platforms": {
+    "android": {
+      "minimumSupportedVersion": "1.0.0",
+      "minimumSupportedBuild": 1,
+      "latestVersion": "1.0.0",
+      "latestBuild": 1,
+      "storeUrl": "",
+      "forceUpdateTitle": "",
+      "forceUpdateMessage": "",
+      "optionalUpdateTitle": "",
+      "optionalUpdateMessage": "",
+      "optionalUpdateReminderHours": 24,
+      "securityCritical": false,
+      "maintenance": {"enabled": false, "message": ""}
+    },
+    "ios": {
+      "minimumSupportedVersion": "1.0.0",
+      "minimumSupportedBuild": 1,
+      "latestVersion": "1.0.0",
+      "latestBuild": 1,
+      "storeUrl": "",
+      "forceUpdateTitle": "",
+      "forceUpdateMessage": "",
+      "optionalUpdateTitle": "",
+      "optionalUpdateMessage": "",
+      "optionalUpdateReminderHours": 24,
+      "securityCritical": false,
+      "maintenance": {"enabled": false, "message": ""}
+    }
+  }
+}

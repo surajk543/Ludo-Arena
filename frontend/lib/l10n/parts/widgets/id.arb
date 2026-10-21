@@ -1,0 +1,14 @@
+{
+  "widgetsCoinsBalance": "Koin: {amount}",
+  "widgetsDiamondsBalance": "Berlian: {amount}",
+  "widgetsXpLabel": "Pengalaman: {current} dari {total}",
+  "widgetsAvatarLabel": "Avatar pemain",
+  "widgetsTitleLabel": "Gelar: {title}",
+  "widgetsEmoteLabel": "Emote: {name}",
+  "widgetsBadgeLabel": "Lencana: {name}",
+  "widgetsSecondsLeft": "{seconds, plural, other{{seconds} detik lagi}}",
+  "widgetsConnectionLabel": "Koneksi: {status}",
+  "widgetsNewItems": "{count, plural, other{{count} baru}}",
+  "widgetsSelected": "Dipilih",
+  "widgetsLogoLabel": "Lambang {appName}"
+}

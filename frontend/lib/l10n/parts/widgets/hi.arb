@@ -1,0 +1,14 @@
+{
+  "widgetsCoinsBalance": "सिक्के: {amount}",
+  "widgetsDiamondsBalance": "हीरे: {amount}",
+  "widgetsXpLabel": "अनुभव: {total} में से {current}",
+  "widgetsAvatarLabel": "खिलाड़ी का अवतार",
+  "widgetsTitleLabel": "उपाधि: {title}",
+  "widgetsEmoteLabel": "इमोट: {name}",
+  "widgetsBadgeLabel": "बैज: {name}",
+  "widgetsSecondsLeft": "{seconds, plural, =1{1 सेकंड बाकी} other{{seconds} सेकंड बाकी}}",
+  "widgetsConnectionLabel": "कनेक्शन: {status}",
+  "widgetsNewItems": "{count, plural, =1{1 नया} other{{count} नए}}",
+  "widgetsSelected": "चुना गया",
+  "widgetsLogoLabel": "{appName} का शाही चिह्न"
+}

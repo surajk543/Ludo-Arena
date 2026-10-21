@@ -1,0 +1,13 @@
+{
+  "walletTitle": "آپ کا والٹ",
+  "walletCoinsCaption": "میچ کی انٹری فیس کے لیے — جیتنے والے کو پورا پاٹ ملتا ہے۔",
+  "walletDiamondsCaption": "کلیکشن روم میں پریمیم کاسمیٹکس کے لیے۔",
+  "walletExactBalance": "درست بیلنس: {amount}",
+  "walletVirtualTitle": "ورچوئل کرنسی",
+  "walletVirtualNotice": "سکے اور ہیرے صرف تفریح کے لیے ورچوئل آئٹمز ہیں۔ ان کی کوئی حقیقی قیمت نہیں اور انہیں بیچا، منتقل، نکالا یا رقم میں تبدیل نہیں کیا جا سکتا۔",
+  "walletEarnTitle": "مزید کیسے کمائیں",
+  "walletEarnWins": "میچ جیتیں اور پاٹ حاصل کریں",
+  "walletEarnMissions": "روزانہ اور ہفتہ وار مشن مکمل کریں",
+  "walletEarnLevels": "لیول بڑھائیں اور سنگ میل انعامات پائیں",
+  "walletRefresh": "بیلنس ریفریش کریں"
+}

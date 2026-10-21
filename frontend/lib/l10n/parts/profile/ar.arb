@@ -1,0 +1,19 @@
+{
+  "profileTitle": "الملف الشخصي",
+  "profileFriendCode": "رمز الصداقة",
+  "profileFriendCodeHint": "شاركه ليتمكن أصدقاؤك من إضافتك.",
+  "profileShareFriendCode": "أضفني في لودو رويال! رمز صداقتي هو {code}",
+  "profileLevelProgress": "{xp} خبرة للوصول إلى المستوى {level}",
+  "profileMaxLevel": "وصلت إلى أعلى مستوى",
+  "profileTitleLabel": "اللقب",
+  "profileAccountSection": "الحساب",
+  "profileAccountType": "نوع الحساب",
+  "profileAccountGuest": "ضيف (غير محفوظ)",
+  "profileAccountLinked": "حساب محفوظ",
+  "profileLinkedAccounts": "طرق تسجيل الدخول",
+  "profileLinked": "مرتبط",
+  "profileNotLinked": "غير مرتبط",
+  "profileSaveProgressCta": "احفظ التقدّم",
+  "profileTotalXp": "إجمالي الخبرة",
+  "profileStatsSection": "التقدّم"
+}

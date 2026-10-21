@@ -1,0 +1,147 @@
+{
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings screen title."
+  },
+  "settingsAppearance": "Appearance",
+  "@settingsAppearance": {
+    "description": "Section header."
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Theme setting label."
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Theme option."
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Theme option."
+  },
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {
+    "description": "Theme option: follow the device."
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Language setting label."
+  },
+  "settingsSoundAndHaptics": "Sound & haptics",
+  "@settingsSoundAndHaptics": {
+    "description": "Section header."
+  },
+  "settingsSound": "Sound effects",
+  "@settingsSound": {
+    "description": "Toggle for sound effects."
+  },
+  "settingsHaptics": "Vibration",
+  "@settingsHaptics": {
+    "description": "Toggle for haptic feedback."
+  },
+  "settingsReducedMotion": "Reduce motion",
+  "@settingsReducedMotion": {
+    "description": "Toggle to reduce animations."
+  },
+  "settingsReducedMotionSubtitle": "Fewer animations and effects",
+  "@settingsReducedMotionSubtitle": {
+    "description": "Reduce motion explanation."
+  },
+  "settingsReducedMotionSystemOn": "Also on in your device settings",
+  "@settingsReducedMotionSystemOn": {
+    "description": "Shown when the OS already disables animations."
+  },
+  "settingsGameplay": "Gameplay",
+  "@settingsGameplay": {
+    "description": "Section header."
+  },
+  "settingsQuickChatMute": "Mute quick chat",
+  "@settingsQuickChatMute": {
+    "description": "Toggle to hide incoming quick chat."
+  },
+  "settingsQuickChatMuteSubtitle": "Hide other players' chat messages and emotes",
+  "@settingsQuickChatMuteSubtitle": {
+    "description": "Quick chat mute explanation."
+  },
+  "settingsPrivacy": "Privacy",
+  "@settingsPrivacy": {
+    "description": "Section header."
+  },
+  "settingsAnalytics": "Share anonymous usage stats",
+  "@settingsAnalytics": {
+    "description": "Analytics consent toggle."
+  },
+  "settingsAnalyticsSubtitle": "Helps us improve the game. Never includes your name, chats or room codes.",
+  "@settingsAnalyticsSubtitle": {
+    "description": "Analytics consent explanation."
+  },
+  "settingsAnalyticsNotConfigured": "Not available in this build",
+  "@settingsAnalyticsNotConfigured": {
+    "description": "Analytics is not configured in this build."
+  },
+  "settingsAccount": "Account",
+  "@settingsAccount": {
+    "description": "Section header."
+  },
+  "settingsSignedInAs": "Signed in as {name}",
+  "@settingsSignedInAs": {
+    "description": "Current account. {name} is the display name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSaveProgress": "Save progress",
+  "@settingsSaveProgress": {
+    "description": "Save Progress entry."
+  },
+  "settingsSaveProgressSubtitle": "Link a sign-in method to keep your progress safe",
+  "@settingsSaveProgressSubtitle": {
+    "description": "Save Progress entry subtitle."
+  },
+  "settingsSwitchToGuest": "Switch back to guest",
+  "@settingsSwitchToGuest": {
+    "description": "Switch back to the stored guest account."
+  },
+  "settingsSwitchToGuestSubtitle": "Return to the guest account saved on this device",
+  "@settingsSwitchToGuestSubtitle": {
+    "description": "Switch to guest subtitle."
+  },
+  "settingsSignOut": "Sign out",
+  "@settingsSignOut": {
+    "description": "Sign out entry."
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "Section header."
+  },
+  "settingsVersion": "Version",
+  "@settingsVersion": {
+    "description": "Version label."
+  },
+  "settingsLicenses": "Licenses",
+  "@settingsLicenses": {
+    "description": "Licenses entry."
+  },
+  "settingsLicensesSubtitle": "Open-source software and fonts",
+  "@settingsLicensesSubtitle": {
+    "description": "Licenses entry subtitle."
+  },
+  "settingsConsentTitle": "Help us make Ludo Royale better",
+  "@settingsConsentTitle": {
+    "description": "First-run analytics consent sheet title."
+  },
+  "settingsConsentMessage": "Can we collect anonymous usage stats, like which game modes are popular? We never collect your name, chats, room codes or contact details. You can change this any time in Settings.",
+  "@settingsConsentMessage": {
+    "description": "First-run analytics consent explanation (opt-in)."
+  },
+  "settingsConsentAllow": "Share anonymous stats",
+  "@settingsConsentAllow": {
+    "description": "Opt in to analytics."
+  },
+  "settingsConsentDeny": "No thanks",
+  "@settingsConsentDeny": {
+    "description": "Decline analytics."
+  }
+}

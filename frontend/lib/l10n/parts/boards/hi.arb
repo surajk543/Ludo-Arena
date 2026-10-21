@@ -1,0 +1,21 @@
+{
+  "boardsColorRed": "लाल",
+  "boardsColorGreen": "हरी",
+  "boardsColorYellow": "पीली",
+  "boardsColorBlue": "नीली",
+  "boardsLudoBoardLabel": "लूडो बोर्ड",
+  "boardsSnakesBoardLabel": "साँप-सीढ़ी बोर्ड",
+  "boardsTokenInBase": "{color} गोटी {number}, शुरुआती घर में",
+  "boardsTokenStepsFromHome": "{color} गोटी {number}, {steps, plural, =1{मंज़िल से 1 खाना दूर} other{मंज़िल से {steps} खाने दूर}}",
+  "boardsTokenHome": "{color} गोटी {number}, मंज़िल पर पहुँच गई",
+  "boardsTokenCanMove": "चल सकती है",
+  "boardsTokenMoveHint": "यह गोटी चलें",
+  "boardsCurrentTurn": "अभी इसकी बारी है",
+  "boardsSnakesTokenOnSquare": "{color} गोटी खाना {square} पर",
+  "boardsSnakesTokenAtStart": "{color} गोटी शुरुआत में",
+  "boardsDiceShowing": "पासे पर {value} है",
+  "boardsDiceRolling": "पासा घूम रहा है",
+  "boardsDiceRollHint": "पासा फेंकें",
+  "boardsVictoryCelebration": "जीत का जश्न",
+  "boardsLevelUp": "लेवल बढ़ गया"
+}

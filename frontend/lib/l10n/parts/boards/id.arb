@@ -1,0 +1,21 @@
+{
+  "boardsColorRed": "Merah",
+  "boardsColorGreen": "Hijau",
+  "boardsColorYellow": "Kuning",
+  "boardsColorBlue": "Biru",
+  "boardsLudoBoardLabel": "Papan Ludo",
+  "boardsSnakesBoardLabel": "Papan Ular Tangga",
+  "boardsTokenInBase": "Bidak {color} {number}, di markas",
+  "boardsTokenStepsFromHome": "Bidak {color} {number}, {steps, plural, other{{steps} kotak lagi menuju finis}}",
+  "boardsTokenHome": "Bidak {color} {number}, sudah finis",
+  "boardsTokenCanMove": "bisa dijalankan",
+  "boardsTokenMoveHint": "jalankan bidak ini",
+  "boardsCurrentTurn": "sedang giliran",
+  "boardsSnakesTokenOnSquare": "Bidak {color} di kotak {square}",
+  "boardsSnakesTokenAtStart": "Bidak {color} di garis start",
+  "boardsDiceShowing": "Dadu menunjukkan {value}",
+  "boardsDiceRolling": "Dadu sedang bergulir",
+  "boardsDiceRollHint": "lempar dadu",
+  "boardsVictoryCelebration": "Perayaan kemenangan",
+  "boardsLevelUp": "Naik level"
+}

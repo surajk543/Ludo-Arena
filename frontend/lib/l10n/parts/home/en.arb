@@ -1,0 +1,266 @@
+{
+  "homeGreeting": "Hi, {name}",
+  "@homeGreeting": {
+    "description": "Header greeting with the display name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeQuickPlay": "Quick Play",
+  "@homeQuickPlay": {
+    "description": "Quick Play action title."
+  },
+  "homeQuickPlayDetails": "{game} · {variant} · {players}",
+  "@homeQuickPlayDetails": {
+    "description": "Quick Play configuration summary, e.g. \"Ludo · Classic · 4 players\".",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      },
+      "variant": {
+        "type": "String"
+      },
+      "players": {
+        "type": "String"
+      }
+    }
+  },
+  "homePrivateRoom": "Private Room",
+  "@homePrivateRoom": {
+    "description": "Private room action title."
+  },
+  "homePrivateRoomSubtitle": "Create a room for friends",
+  "@homePrivateRoomSubtitle": {
+    "description": "Private room action subtitle."
+  },
+  "homeJoinWithCode": "Join with Code",
+  "@homeJoinWithCode": {
+    "description": "Join-with-code action title."
+  },
+  "homeJoinWithCodeSubtitle": "Enter a room code",
+  "@homeJoinWithCodeSubtitle": {
+    "description": "Join-with-code action subtitle."
+  },
+  "homePlayOnline": "Play Online",
+  "@homePlayOnline": {
+    "description": "Game card action: public matchmaking."
+  },
+  "homePlayWithFriends": "Play with Friends",
+  "@homePlayWithFriends": {
+    "description": "Game card action: private room."
+  },
+  "homePracticeVsBots": "Practice vs Bots",
+  "@homePracticeVsBots": {
+    "description": "Game card action: practice room with bots."
+  },
+  "homeLudoTagline": "Race all four tokens home",
+  "@homeLudoTagline": {
+    "description": "Ludo card tagline."
+  },
+  "homeSnakesTagline": "Climb ladders, dodge snakes",
+  "@homeSnakesTagline": {
+    "description": "Snakes & Ladders card tagline."
+  },
+  "homeMissions": "Missions",
+  "@homeMissions": {
+    "description": "Entry tile: missions."
+  },
+  "homeMissionsSubtitle": "Daily & weekly goals",
+  "@homeMissionsSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeCollection": "Collection Room",
+  "@homeCollection": {
+    "description": "Entry tile: Collection Room."
+  },
+  "homeCollectionSubtitle": "Dice, tokens & frames",
+  "@homeCollectionSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeFriends": "Friends",
+  "@homeFriends": {
+    "description": "Entry tile: friends."
+  },
+  "homeFriendsSubtitle": "Play with your crew",
+  "@homeFriendsSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeEvents": "Events",
+  "@homeEvents": {
+    "description": "Entry tile: events."
+  },
+  "homeEventsSubtitle": "Limited-time cups",
+  "@homeEventsSubtitle": {
+    "description": "Entry tile subtitle."
+  },
+  "homeExploreHeader": "Explore",
+  "@homeExploreHeader": {
+    "description": "Section header above entry tiles."
+  },
+  "homeGamesHeader": "Games",
+  "@homeGamesHeader": {
+    "description": "Section header above the game cards."
+  },
+  "homeSaveProgressTooltip": "Save progress",
+  "@homeSaveProgressTooltip": {
+    "description": "Tooltip of the cloud-save button for guests."
+  },
+  "homeProfileTooltip": "Profile",
+  "@homeProfileTooltip": {
+    "description": "Tooltip of the profile button."
+  },
+  "homeSettingsTooltip": "Settings",
+  "@homeSettingsTooltip": {
+    "description": "Tooltip of the settings button."
+  },
+  "homeThemeTooltip": "Switch light/dark theme",
+  "@homeThemeTooltip": {
+    "description": "Tooltip of the theme shortcut."
+  },
+  "homeWalletTooltip": "Wallet",
+  "@homeWalletTooltip": {
+    "description": "Accessibility label for opening the wallet."
+  },
+  "homeOptionsOnlineTitle": "{game} online",
+  "@homeOptionsOnlineTitle": {
+    "description": "Options sheet title for public play. {game} is the game name.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOptionsFriendsTitle": "{game} with friends",
+  "@homeOptionsFriendsTitle": {
+    "description": "Options sheet title for a private room.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOptionsPracticeTitle": "Practice {game}",
+  "@homeOptionsPracticeTitle": {
+    "description": "Options sheet title for practice.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOptionsPrivateRoomTitle": "Create a private room",
+  "@homeOptionsPrivateRoomTitle": {
+    "description": "Options sheet title for creating a private room (game not chosen yet)."
+  },
+  "homeGameLabel": "Game",
+  "@homeGameLabel": {
+    "description": "Picker label: game."
+  },
+  "homePlayersLabel": "Players",
+  "@homePlayersLabel": {
+    "description": "Picker label: number of players."
+  },
+  "homeModeLabel": "Mode",
+  "@homeModeLabel": {
+    "description": "Picker label: Ludo rules variant."
+  },
+  "homeBotsLabel": "Bots",
+  "@homeBotsLabel": {
+    "description": "Picker label: number of bots."
+  },
+  "homeModeClassicCaption": "Full rules",
+  "@homeModeClassicCaption": {
+    "description": "Caption for the classic variant."
+  },
+  "homeModeQuickCaption": "Shorter games",
+  "@homeModeQuickCaption": {
+    "description": "Caption for the quick variant."
+  },
+  "homeBotCount": "{count, plural, =1{1 bot} other{{count} bots}}",
+  "@homeBotCount": {
+    "description": "Number of bot opponents.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeFindMatch": "Find match",
+  "@homeFindMatch": {
+    "description": "Start public matchmaking."
+  },
+  "homeCreateRoom": "Create room",
+  "@homeCreateRoom": {
+    "description": "Create a private room."
+  },
+  "homeStartPractice": "Start practice",
+  "@homeStartPractice": {
+    "description": "Start a practice game with bots."
+  },
+  "homeHaveACode": "Have a code? Join a room",
+  "@homeHaveACode": {
+    "description": "Link from the friends sheet to the join-by-code sheet."
+  },
+  "homeEntryFeeNote": "Entry fee {fee} coins · Winner takes the pot",
+  "@homeEntryFeeNote": {
+    "description": "Entry fee note in options sheets. {fee} is a formatted coin amount.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "homePracticeNote": "Practice is free: no coins, but you still earn XP and mission progress.",
+  "@homePracticeNote": {
+    "description": "Practice explanation: free, XP still earned."
+  },
+  "homeNotEnoughCoins": "You need at least {fee} coins for this match.",
+  "@homeNotEnoughCoins": {
+    "description": "Shown when the balance is below the entry fee. {fee} is formatted.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "homeJoinCodeTitle": "Join a private room",
+  "@homeJoinCodeTitle": {
+    "description": "Join-by-code sheet title."
+  },
+  "homeJoinCodeLabel": "Room code",
+  "@homeJoinCodeLabel": {
+    "description": "Room code input label."
+  },
+  "homeJoinCodeHelper": "Ask the host for the 6-character code.",
+  "@homeJoinCodeHelper": {
+    "description": "Room code input helper."
+  },
+  "homeJoinCodeInvalid": "Room codes have 6 letters or numbers.",
+  "@homeJoinCodeInvalid": {
+    "description": "Room code validation error."
+  },
+  "homeJoinCodeAction": "Join room",
+  "@homeJoinCodeAction": {
+    "description": "Join-by-code submit button."
+  },
+  "homeLevelUpToast": "Level up! You reached level {level}.",
+  "@homeLevelUpToast": {
+    "description": "Toast when the server reports a level up.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "homeCoinsGainedToast": "+{amount} coins",
+  "@homeCoinsGainedToast": {
+    "description": "Toast for a server-confirmed coin gain. {amount} is formatted.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
+}
