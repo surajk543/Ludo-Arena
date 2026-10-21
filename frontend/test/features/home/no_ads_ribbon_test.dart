@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ludo_royale/app/routes.dart';
+import 'package:ludo_royale/core/audio_haptics/reduced_motion.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/home/presentation/home_screen.dart';
 import 'package:ludo_royale/features/home/presentation/widgets/home_header.dart';
@@ -232,4 +233,103 @@ void main() {
       });
     }
   }
+
+  group('blinking label', () {
+    /// The ribbon alone, with reduced motion driven by [reduce].
+    Future<void> pumpRibbon(
+      WidgetTester tester,
+      ValueNotifier<bool> reduce,
+    ) async {
+      final env = await TestEnv.create();
+      await pumpScreen(
+        tester,
+        env,
+        ValueListenableBuilder<bool>(
+          valueListenable: reduce,
+          builder: (_, value, _) => ReducedMotion(
+            reduce: value,
+            child: const Center(child: NoAdsRibbon()),
+          ),
+        ),
+      );
+    }
+
+    double opacity(WidgetTester tester) => tester
+        .widget<FadeTransition>(
+          find.descendant(
+            of: find.byType(NoAdsRibbon),
+            matching: find.byType(FadeTransition),
+          ),
+        )
+        .opacity
+        .value;
+
+    /// Label opacities sampled every 50 ms over one blink.
+    Future<List<double>> sampleBlink(WidgetTester tester) async {
+      final samples = <double>[];
+      const step = Duration(milliseconds: 50);
+      for (var t = Duration.zero; t < NoAdsRibbon.blinkPeriod; t += step) {
+        await tester.pump(step);
+        samples.add(opacity(tester));
+      }
+      return samples;
+    }
+
+    testWidgets('blinks on a loop and keeps blinking', (tester) async {
+      final reduce = ValueNotifier(false);
+      addTearDown(reduce.dispose);
+      await pumpRibbon(tester, reduce);
+
+      for (var blink = 0; blink < 2; blink++) {
+        final samples = await sampleBlink(tester);
+        expect(samples.reduce(math.max), moreOrLessEquals(1));
+        expect(
+          samples.reduce(math.min),
+          moreOrLessEquals(NoAdsRibbon.blinkMinOpacity),
+        );
+        // Mostly readable: fully visible for a good part of every blink.
+        expect(samples.where((o) => o > 0.99).length, greaterThan(5));
+      }
+
+      // Still going a minute later (no end, unlike bounded pulses).
+      await tester.pump(const Duration(minutes: 1));
+      expect(tester.binding.hasScheduledFrame, isTrue);
+      expect(
+        (await sampleBlink(tester)).reduce(math.min),
+        moreOrLessEquals(NoAdsRibbon.blinkMinOpacity),
+      );
+      // At most one blink every 1.4 s: far below 3 flashes per second.
+      expect(
+        NoAdsRibbon.blinkPeriod,
+        greaterThanOrEqualTo(const Duration(seconds: 1)),
+      );
+    });
+
+    testWidgets('stays still and fully visible with reduced motion', (
+      tester,
+    ) async {
+      final reduce = ValueNotifier(true);
+      addTearDown(reduce.dispose);
+      await pumpRibbon(tester, reduce);
+      expect(opacity(tester), 1);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+
+      // Turning motion on starts the blink; turning it off mid-blink stops
+      // it with the label fully visible.
+      reduce.value = false;
+      await tester.pump();
+      final samples = await sampleBlink(tester);
+      expect(
+        samples.reduce(math.min),
+        moreOrLessEquals(NoAdsRibbon.blinkMinOpacity),
+      );
+      await tester.pump(NoAdsRibbon.blinkPeriod * 0.7); // in the dim hold
+      expect(opacity(tester), lessThan(0.5));
+      reduce.value = true;
+      await tester.pump();
+      expect(opacity(tester), 1);
+      await tester.pumpAndSettle();
+      expect(opacity(tester), 1);
+    });
+  });
 }
