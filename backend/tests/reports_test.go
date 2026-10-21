@@ -363,6 +363,18 @@ func TestReportBotSeatAndUnlabelledBotNames(t *testing.T) {
 		!flagged || stored != bots[0].Name || reporter != human.UserID {
 		t.Fatalf("stored bot report: %v %v %q %s", err, flagged, stored, reporter)
 	}
+	// The report points at the bot's real wallet row, whose is_bot flag set
+	// reported_bot.
+	var reported string
+	if err := e.app.PG.QueryRow(context.Background(), `SELECT reported_id::text FROM progression.player_reports WHERE id = $1`,
+		rep["id"]).Scan(&reported); err != nil {
+		t.Fatal(err)
+	}
+	if botID := e.botIDOf(t, bots[0].UID); reported != botID.String() {
+		t.Fatalf("reported id %s, bot %s", reported, botID)
+	} else if _, _, isBot := e.botWallet(t, botID); !isBot {
+		t.Fatal("the reported bot's wallet is not flagged is_bot")
+	}
 
 	// Duplicate and daily limit apply as to anyone.
 	if r := e.report(human.Token, bots[0].UID, roomID, "cheating"); r.Status != 409 || errCode(r) != "already_reported" {

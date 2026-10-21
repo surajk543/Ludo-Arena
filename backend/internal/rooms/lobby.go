@@ -58,7 +58,8 @@ func validGame(game, variant string, capacity int) error {
 // of game. Precedence: the app-policy file's "entryFees" (hot-reloaded) >
 // ENTRY_FEE_* > built-in default. A room stores the fee it was created with
 // (Room.EntryFee) for all of its rounds, so a policy change never alters rooms
-// that already exist. Practice, bot and load-test games stay free (startGame).
+// that already exist. Practice and load-test games stay free; bots pay it like
+// people (startGame).
 func (s *Service) EntryFee(game string) int64 {
 	fallback := s.Game.EntryFeeLudo
 	if game == GameSnakes {

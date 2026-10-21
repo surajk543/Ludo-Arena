@@ -190,19 +190,36 @@ func LeaderboardKey(weekKey string) string { return "lb:xp:" + weekKey }
 
 // ---------------------------------------------------------------- accounts
 
-// insertProgress lazily creates the progression row. The conflict target is
-// deliberately omitted so both unique indexes (user_id, public_id) arbitrate:
-// with `ON CONFLICT (user_id)` two concurrent first inserts for the same
-// account fail on the public_id index with 23505.
+// insertProgress lazily creates the progression row of an account: a wallet
+// row that is not a bot's (bot wallets never get progression rows). The
+// conflict target is deliberately omitted so both unique indexes (user_id,
+// public_id) arbitrate: with `ON CONFLICT (user_id)` two concurrent first
+// inserts for the same account fail on the public_id index with 23505.
 const insertProgress = `
-	INSERT INTO progression.player_progress (user_id, public_id) VALUES ($1, $2)
+	INSERT INTO progression.player_progress (user_id, public_id)
+	SELECT w.user_id, $2 FROM wallet.wallets w WHERE w.user_id = $1 AND NOT w.is_bot
 	ON CONFLICT DO NOTHING`
 
 // Bootstrap creates the account's progression row (idempotent). Call it for
-// new accounts; every other entry point also creates the row lazily.
+// new accounts; every other entry point also creates the row lazily. It
+// returns ErrUnknownUser when userID is not an account (no wallet, or a bot's).
 func (s *Service) Bootstrap(ctx context.Context, userID uuid.UUID) error {
-	_, err := s.pool.Exec(ctx, insertProgress, userID, s.profiles.PublicID(userID))
-	return mapFK(err)
+	tag, err := s.pool.Exec(ctx, insertProgress, userID, s.profiles.PublicID(userID))
+	if err != nil {
+		return mapFK(err)
+	}
+	if tag.RowsAffected() == 1 {
+		return nil
+	}
+	var exists bool
+	if err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM progression.player_progress WHERE user_id = $1)`,
+		userID).Scan(&exists); err != nil {
+		return err
+	}
+	if !exists {
+		return ErrUnknownUser
+	}
+	return nil
 }
 
 // lockProgress ensures the row exists and locks it for the transaction. Every
@@ -351,11 +368,12 @@ func (s *Service) Summaries(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 		}
 	}
 	if len(missing) > 0 {
-		// Lazily create rows for real accounts only (bots have no wallet).
+		// Lazily create rows for real accounts only (bots have no wallet,
+		// or a bot wallet, which never gets progression rows).
 		if _, err := s.pool.Exec(ctx, `
 			INSERT INTO progression.player_progress (user_id, public_id)
 			SELECT w.user_id, x.pid FROM unnest($1::uuid[], $2::text[]) AS x(uid, pid)
-			  JOIN wallet.wallets w ON w.user_id = x.uid
+			  JOIN wallet.wallets w ON w.user_id = x.uid AND NOT w.is_bot
 			ON CONFLICT DO NOTHING`, missing, pubs); err != nil {
 			return nil, err
 		}

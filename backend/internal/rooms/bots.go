@@ -249,6 +249,7 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 	// the session's user id, so the public uid has the people's format and
 	// stays the same when this persona is met again.
 	lease := s.leasePersona(ctx, poolFor(a.Kind), display, asgID)
+	s.ensureBotWallet(ctx, lease.p.ID)
 	sess, err := s.BotAuth.IssueBot(ctx, lease.p.ID, a.RoomID, false, display, profileName, s.Bots.SessionTTL)
 	if err != nil {
 		s.releasePersona(ctx, lease.lease, lease.token)
@@ -291,6 +292,18 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 		}()
 	}
 	return sess, room, uid, nil
+}
+
+// ensureBotWallet creates the persona's coin wallet (wallet.wallets, is_bot)
+// the first time it is seated, so reports and friend requests always point
+// at a real row. A failure is only logged: the entry fee creates it too.
+func (s *Service) ensureBotWallet(ctx context.Context, id uuid.UUID) {
+	if s.Wallets == nil {
+		return
+	}
+	if _, err := s.Wallets.EnsureBots(ctx, []uuid.UUID{id}, s.Bots.Coins.Start); err != nil {
+		s.Log.Warn("bot wallet create failed", "error", err.Error())
+	}
 }
 
 // botEmotes returns the emotes of the seated bot uid in roomID (bot-play

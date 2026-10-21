@@ -23,9 +23,10 @@ import (
 // a bot (player pod, recent players, or its code typed in) behaves like a
 // request to a person who never answers: the same checks and limits, the
 // same 201 response, and the request is listed under outgoing — until it
-// quietly lapses after BotRequestTTL. Bots are not accounts, so these
-// requests live in Redis (BotRequestsKey), never in progression.friendships,
-// and are never accepted. A bot's code works while its seat is live or its
+// quietly lapses after BotRequestTTL. Bots are not accounts (their coin
+// wallets are flagged wallet.wallets.is_bot and excluded from every account
+// lookup), so these requests live in Redis (BotRequestsKey), never in
+// progression.friendships, and are never accepted. A bot's code works while its seat is live or its
 // public card (playerinfo.BotCardKey) exists.
 
 // DefaultBotRequestTTL is how long a request to a bot stays pending.

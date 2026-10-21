@@ -120,4 +120,18 @@ func TestFriendRequestToBotStaysPendingThenLapses(t *testing.T) {
 	if r := e.friendRequest(human, bots[1].UID); r.Status != 201 {
 		t.Fatalf("request from the room after the session ended: %d %s", r.Status, r.Raw)
 	}
+
+	// Bots never accept. Each has a real wallet row (is_bot, its coins), yet
+	// no request to it ever became a friendship row, and the row never makes
+	// it an account (no progression, identity or friendship rows).
+	for _, b := range bots {
+		id := e.botIDOf(t, b.UID)
+		if coins, _, isBot := e.botWallet(t, id); !isBot || coins != botStart {
+			t.Fatalf("bot wallet of %s: %d coins, bot=%v", b.UID, coins, isBot)
+		}
+		e.assertBotNotAccount(t, id)
+	}
+	if got := outgoingUIDs(t, e.friends(t, human)); strings.Join(got, ",") != bots[1].UID+","+bots[0].UID+","+friend.UID {
+		t.Fatalf("outgoing at the end: %v", got)
+	}
 }

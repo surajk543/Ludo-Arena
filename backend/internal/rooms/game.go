@@ -3,6 +3,7 @@ package rooms
 import (
 	"context"
 	"errors"
+	"slices"
 	"strconv"
 	"time"
 
@@ -100,7 +101,29 @@ type finishedP struct {
 
 // ---- starting ----
 
-// startGame charges entry fees (humans, only when no bots are seated) in one
+// roomFee is the entry fee every seat pays when the round starts: the room's
+// fee, except practice and load-test rooms, which are free. Bots pay like
+// people (wallet/bots.go), so a bot seat changes nothing.
+func roomFee(r *Room) int64 {
+	if r.LoadTest || r.Mode == ModePractice {
+		return 0
+	}
+	return r.EntryFee
+}
+
+// seatIDs splits the seated user ids into people and bots.
+func seatIDs(r *Room) (people, bots []uuid.UUID) {
+	for _, p := range r.Players {
+		if p.Bot {
+			bots = append(bots, parseUUID(p.UserID))
+		} else {
+			people = append(people, parseUUID(p.UserID))
+		}
+	}
+	return people, bots
+}
+
+// startGame charges every seat (people and bots) the entry fee in one
 // PostgreSQL transaction, then switches the room to playing. If the room
 // changed between charging and committing, every fee is refunded.
 func (s *Service) startGame(ctx context.Context, roomID string) error {
@@ -114,16 +137,8 @@ func (s *Service) startGame(ctx context.Context, roomID string) error {
 	if len(r.Players) < 2 {
 		return protocol.ErrNotEnoughPlayers
 	}
-	fee := r.EntryFee
-	if r.Bots() > 0 || r.LoadTest || r.Mode == ModePractice {
-		fee = 0
-	}
-	var humans []uuid.UUID
-	for _, p := range r.Players {
-		if !p.Bot {
-			humans = append(humans, parseUUID(p.UserID))
-		}
-	}
+	fee := roomFee(r)
+	people, bots := seatIDs(r)
 	settleKey := "settle:fee:" + r.ID + ":" + strconv.Itoa(r.Round)
 	var charged map[uuid.UUID]wallet.Wallet
 	if fee > 0 {
@@ -134,7 +149,7 @@ func (s *Service) startGame(ctx context.Context, roomID string) error {
 		if !ok {
 			return nil // another start is in progress for this round
 		}
-		charged, err = s.Wallets.DebitAll(ctx, humans, fee)
+		charged, err = s.Wallets.ChargeEntry(ctx, people, bots, fee, s.Bots.Coins)
 		if err != nil {
 			s.RDB.Del(ctx, settleKey)
 			var short *wallet.ShortError
@@ -164,7 +179,7 @@ func (s *Service) startGame(ctx context.Context, roomID string) error {
 	})
 	if err != nil {
 		if fee > 0 {
-			s.refund(ctx, charged, fee, "entry_fee_refund")
+			s.refund(ctx, charged, bots, fee, "entry_fee_refund")
 			s.RDB.Del(ctx, settleKey)
 		}
 		if errors.Is(err, errStartChanged) {
@@ -172,10 +187,12 @@ func (s *Service) startGame(ctx context.Context, roomID string) error {
 		}
 		return err
 	}
-	for uid, w := range charged {
-		s.notifyUser(ctx, uid.String(), protocol.TWalletUpdated, map[string]any{
-			"coins": w.Coins, "diamonds": w.Diamonds,
-			"delta": map[string]int64{"coins": -fee, "diamonds": 0}, "reason": "entry_fee"})
+	for _, uid := range people {
+		if w, ok := charged[uid]; ok {
+			s.notifyUser(ctx, uid.String(), protocol.TWalletUpdated, map[string]any{
+				"coins": w.Coins, "diamonds": w.Diamonds,
+				"delta": map[string]int64{"coins": -fee, "diamonds": 0}, "reason": "entry_fee"})
+		}
 	}
 	return nil
 }
@@ -203,15 +220,14 @@ func (s *Service) beginRound(m *mutation, fee int64) error {
 	now := s.nowMs()
 	r.Status = StatusPlaying
 	r.StartedAt = now
-	r.Pot = fee * int64(r.Humans())
+	r.Pot = fee * int64(len(r.Players)) // every seat paid, people and bots alike
 	r.Result, r.Rematch, r.Paid = nil, nil, false
 	r.FillDeadline = 0
 	for i := range r.Players {
 		p := &r.Players[i]
 		p.Strikes, p.Actions, p.Forfeited, p.ForfeitWhy = 0, 0, false, ""
-		p.FeePaid = 0
+		p.FeePaid = fee
 		if !p.Bot {
-			p.FeePaid = fee
 			if p.MatchmakeAt > 0 {
 				metrics.MatchmakingWait.WithLabelValues(r.Game).Observe(float64(now-p.MatchmakeAt) / 1000)
 				metrics.MatchmakingResults.WithLabelValues("matched").Inc()
@@ -279,12 +295,17 @@ func (s *Service) removeBroke(ctx context.Context, roomID string, users []uuid.U
 	return err
 }
 
-func (s *Service) refund(ctx context.Context, charged map[uuid.UUID]wallet.Wallet, fee int64, reason string) {
+// refund gives every charged seat its fee back (bots too; only people are
+// notified).
+func (s *Service) refund(ctx context.Context, charged map[uuid.UUID]wallet.Wallet, bots []uuid.UUID, fee int64, reason string) {
 	for uid := range charged {
 		w, err := s.Wallets.Credit(ctx, uid, fee, 0)
 		if err != nil {
 			metrics.SettlementFailures.WithLabelValues("refund").Inc()
 			s.Log.Error("entry fee refund failed", "error", err.Error())
+			continue
+		}
+		if slices.Contains(bots, uid) {
 			continue
 		}
 		s.notifyUser(ctx, uid.String(), protocol.TWalletUpdated, map[string]any{
@@ -570,8 +591,9 @@ func (s *Service) finishGame(m *mutation, reason string) error {
 	} else {
 		winner, placements = r.Snakes.Winner, append([]int{}, r.Snakes.Placements...)
 	}
+	// The winner takes the pot, person or bot (a bot's goes to its wallet).
 	payout := int64(0)
-	if winner >= 0 && winner < len(r.Players) && !r.Players[winner].Bot {
+	if winner >= 0 && winner < len(r.Players) {
 		payout = r.Pot
 	}
 	now := s.nowMs()

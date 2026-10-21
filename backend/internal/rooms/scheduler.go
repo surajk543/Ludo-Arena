@@ -95,10 +95,12 @@ func (s *Service) runJob(ctx context.Context, member string) {
 	}
 }
 
-// handlePayout credits the pot to a human winner at most once: a Redis
-// settlement key is claimed before the PostgreSQL credit. If the process dies
-// between the claim and the credit, the payout is NOT retried (it may be
-// lost); it is never paid twice. See docs/architecture.md.
+// handlePayout credits the pot to the winner (a person's wallet or a bot's)
+// at most once: a Redis settlement key is claimed before the PostgreSQL
+// credit. If the process dies between the claim and the credit, the payout is
+// NOT retried (it may be lost); it is never paid twice. See
+// docs/architecture.md. Once paid, the bots of the round get the
+// after-settlement rule (recharge below BOT_COINS_RECHARGE_BELOW).
 func (s *Service) handlePayout(ctx context.Context, roomID string, round int) error {
 	r, _, err := s.st.load(ctx, roomID)
 	if err != nil {
@@ -122,6 +124,7 @@ func (s *Service) handlePayout(ctx context.Context, roomID string, round int) er
 		// nobody to pay, and retrying cannot help.
 		s.RDB.Set(ctx, key, "account_gone", 7*24*time.Hour)
 		s.Log.Warn("payout skipped: winner account no longer exists", "room", roomID)
+		s.settleBots(ctx, r)
 		return nil
 	}
 	if err != nil {
@@ -145,10 +148,27 @@ func (s *Service) handlePayout(ctx context.Context, roomID string, round int) er
 		m.write = true
 		return nil
 	})
-	s.notifyUser(ctx, winner.UserID, protocol.TWalletUpdated, map[string]any{
-		"coins": w.Coins, "diamonds": w.Diamonds,
-		"delta": map[string]int64{"coins": r.Result.Payout, "diamonds": 0}, "reason": "payout"})
+	if !winner.Bot {
+		s.notifyUser(ctx, winner.UserID, protocol.TWalletUpdated, map[string]any{
+			"coins": w.Coins, "diamonds": w.Diamonds,
+			"delta": map[string]int64{"coins": r.Result.Payout, "diamonds": 0}, "reason": "payout"})
+	}
+	s.settleBots(ctx, r)
 	return nil
+}
+
+// settleBots applies the after-settlement rule to the wallets of the round's
+// bots. A failure is only logged: the same rule runs again before the bot's
+// next entry fee.
+func (s *Service) settleBots(ctx context.Context, r *Room) {
+	_, bots := seatIDs(r)
+	if len(bots) == 0 || s.Wallets == nil {
+		return
+	}
+	if err := s.Wallets.SettleBots(ctx, bots, s.Bots.Coins); err != nil {
+		metrics.SettlementFailures.WithLabelValues("bot_recharge").Inc()
+		s.Log.Warn("bot wallet settlement failed", "room", r.ID, "error", err.Error())
+	}
 }
 
 // handleRecord emits the finished-match record to progression/missions. The

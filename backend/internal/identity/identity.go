@@ -221,9 +221,8 @@ func (s *Store) Wallet(ctx context.Context, userID uuid.UUID) (wallet.Wallet, er
 
 // Exists reports whether the account exists (its wallet row is present).
 func (s *Store) Exists(ctx context.Context, userID uuid.UUID) (bool, error) {
-	_, err := wallet.GetTx(ctx, s.pool, userID)
-	if errors.Is(err, wallet.ErrNotFound) {
-		return false, nil
-	}
-	return err == nil, err
+	var ok bool
+	err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM wallet.wallets WHERE user_id = $1 AND NOT is_bot)`,
+		userID).Scan(&ok)
+	return ok, err
 }

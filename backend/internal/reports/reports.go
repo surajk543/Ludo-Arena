@@ -11,9 +11,11 @@
 // Bots: a bot seat is reported exactly like a person from the reporter's side
 // (same checks, limits, response and "my reports" entry), so the app never
 // reveals which opponents are bots. Bots are not accounts: the row stores the
-// bot persona's id (stable across its sessions, like an account) with
-// reported_bot = true and a copy of its public profile (reported_profile),
-// which "my reports" shows. The operator queue leaves bot reports out.
+// bot persona's id (stable across its sessions, like an account; it is also
+// the user_id of the persona's coin wallet, flagged wallet.wallets.is_bot)
+// with reported_bot taken from that flag and a copy of its public profile
+// (reported_profile), which "my reports" shows. The operator queue leaves bot
+// reports out.
 //
 // Limits (per reporter, rolling 24 h window): at most Options.PerDay reports
 // (REPORTS_PER_DAY, default 2) and at most one report per reported player.
@@ -319,9 +321,12 @@ func (s *Service) Create(ctx context.Context, me uuid.UUID, in CreateInput) (rep
 		return Report{}, Limit{}, err
 	}
 	id := uuid.New()
+	// reported_bot is the reported wallet's is_bot flag (the seat's flag for
+	// a bot whose wallet does not exist yet).
 	_, err = tx.Exec(ctx, `INSERT INTO progression.player_reports
 		(id, reporter_id, reported_id, reason, room_id, game, status, created_at, updated_at, reported_bot, reported_profile)
-		VALUES ($1, $2, $3, $4, $5, $6, 'submitted', $7, $7, $8, $9)`,
+		VALUES ($1, $2, $3, $4, $5, $6, 'submitted', $7, $7,
+		        COALESCE((SELECT is_bot FROM wallet.wallets WHERE user_id = $3), $8), $9)`,
 		id, me, target, in.Reason, in.RoomID, game, now, bot != nil, bot)
 	if err != nil {
 		return Report{}, Limit{}, err

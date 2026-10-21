@@ -259,7 +259,8 @@ func (s *Service) GetMany(ctx context.Context, ids []uuid.UUID) map[uuid.UUID]Pr
 // rebuild restores lost cache entries of accounts from PostgreSQL: the
 // chosen name, or the generated name for accounts without one (what readers
 // saw before; the next sign-in refreshes a provider name). Ids that are not
-// accounts (bots, unknown ids) stay uncached. HSETNX never overwrites a name
+// accounts (bots, whose wallets are flagged is_bot, and unknown ids) stay
+// uncached. HSETNX never overwrites a name
 // written concurrently (e.g. by ChangeName).
 func (s *Service) rebuild(ctx context.Context, ids []uuid.UUID, out map[uuid.UUID]Profile) {
 	if s.pg == nil {
@@ -268,7 +269,7 @@ func (s *Service) rebuild(ctx context.Context, ids []uuid.UUID, out map[uuid.UUI
 	rows, err := s.pg.Query(ctx, `
 		SELECT w.user_id, p.display_name
 		FROM wallet.wallets w LEFT JOIN progression.player_progress p ON p.user_id = w.user_id
-		WHERE w.user_id = ANY($1)`, ids)
+		WHERE w.user_id = ANY($1) AND NOT w.is_bot`, ids)
 	if err != nil {
 		return
 	}
