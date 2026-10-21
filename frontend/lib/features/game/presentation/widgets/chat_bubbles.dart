@@ -56,6 +56,13 @@ class ChatBubbleHub extends ValueNotifier<Map<int, ChatBubbleData>> {
     value = {...value}..remove(seat);
   }
 
+  /// Removes [seat]'s bubble now (that player was just muted).
+  void hide(int seat) {
+    if (_disposed || !value.containsKey(seat)) return;
+    _timers.remove(seat)?.cancel();
+    value = {...value}..remove(seat);
+  }
+
   void clear() {
     for (final t in _timers.values) {
       t.cancel();

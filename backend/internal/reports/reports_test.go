@@ -175,7 +175,6 @@ func TestErrorMapping(t *testing.T) {
 		{ErrUnknownPlayer, 404, "not_found"},
 		{ErrRoomGone, 404, "room_not_found"},
 		{ErrSelf, 422, "cannot_report_self"},
-		{ErrBot, 422, "cannot_report_bot"},
 		{ErrNotInRoom, 422, "not_in_room"},
 		{ErrAlreadyReported, 409, "already_reported"},
 		{&LimitError{Retry: time.Hour}, 429, "report_limit"},
@@ -228,12 +227,15 @@ func newFixture(t *testing.T, perDay int) *fixture {
 	return f
 }
 
+// testBot is the bot seat every fixture room has.
+var testBot = Seat{UserID: uuid.NewString(), UID: "b_0123456789", Bot: true, Name: "Asha", Avatar: 7, Level: 1}
+
 func (f *fixture) room(id string, humans ...uuid.UUID) {
 	info := RoomInfo{Game: "ludo"}
 	for _, h := range humans {
-		info.Seats = append(info.Seats, Seat{UserID: h.String(), UID: f.env.Profiles.PublicID(h)})
+		info.Seats = append(info.Seats, Seat{UserID: h.String(), UID: f.env.Profiles.PublicID(h), Level: 3})
 	}
-	info.Seats = append(info.Seats, Seat{UserID: uuid.NewString(), UID: "b_0123456789", Bot: true})
+	info.Seats = append(info.Seats, testBot)
 	f.mu.Lock()
 	f.rooms[id] = info
 	f.mu.Unlock()
@@ -259,9 +261,6 @@ func TestCreateRulesAndWindow(t *testing.T) {
 
 	if err := f.report(a, a, "r_unit1"); !errors.Is(err, ErrSelf) {
 		t.Fatalf("self: %v", err)
-	}
-	if _, _, err := f.svc.Create(ctx, a, CreateInput{UID: "b_0123456789", RoomID: "r_unit1", Reason: "other"}); !errors.Is(err, ErrBot) {
-		t.Fatalf("bot: %v", err)
 	}
 	if err := f.report(a, b, "r_gone"); !errors.Is(err, ErrRoomGone) {
 		t.Fatalf("room gone: %v", err)
@@ -371,5 +370,99 @@ func TestAdminUpdate(t *testing.T) {
 	mine, _, _ := f.svc.Mine(ctx, a)
 	if len(mine) != 1 || mine[0].Status != StatusDismissed {
 		t.Fatalf("reporter view: %+v", mine)
+	}
+}
+
+// A bot seat is reported like a person: same response, same limits and
+// duplicate rule, listed in "my reports" with the profile it had in the room.
+// The row is flagged and kept out of the operator queue.
+func TestReportBotLikeAPerson(t *testing.T) {
+	f := newFixture(t, 2)
+	ctx := context.Background()
+	a, b, c := f.env.NewAccount(t), f.env.NewAccount(t), f.env.NewAccount(t)
+	f.room("r_unitbot", a, b, c)
+	bot := CreateInput{UID: strings.ToUpper(testBot.UID), RoomID: "r_unitbot", Reason: ReasonAbusiveBehavior}
+
+	rep, lim, err := f.svc.Create(ctx, a, bot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := PlayerRef{UID: testBot.UID, Name: "Asha", Avatar: 7, Level: 1}
+	if rep.Player != want || rep.Status != StatusSubmitted || rep.Game != "ludo" || rep.RoomID != "r_unitbot" ||
+		rep.Reason != ReasonAbusiveBehavior || lim.Remaining != 1 || lim.ResetsAt == nil {
+		t.Fatalf("created: %+v %+v", rep, lim)
+	}
+	var flagged bool
+	var reported uuid.UUID
+	var name string
+	if err := f.env.Pool.QueryRow(ctx, `SELECT reported_bot, reported_id, reported_profile->>'name'
+		FROM progression.player_reports WHERE id = $1`, rep.ID).Scan(&flagged, &reported, &name); err != nil ||
+		!flagged || reported.String() != testBot.UserID || name != "Asha" {
+		t.Fatalf("stored: %v %v %s %q", err, flagged, reported, name)
+	}
+	if _, _, err := f.svc.Create(ctx, a, bot); !errors.Is(err, ErrAlreadyReported) {
+		t.Fatalf("duplicate: %v", err)
+	}
+	f.tick(time.Second)
+	if err := f.report(a, b, "r_unitbot"); err != nil {
+		t.Fatal(err)
+	}
+	var le *LimitError
+	if err := f.report(a, c, "r_unitbot"); !errors.As(err, &le) {
+		t.Fatalf("limit: %v", err)
+	}
+	mine, lim, err := f.svc.Mine(ctx, a)
+	if err != nil || len(mine) != 2 || lim.Remaining != 0 || mine[1].Player != want || mine[1].ID != rep.ID {
+		t.Fatalf("mine: %+v %+v %v", mine, lim, err)
+	}
+
+	// Operators never see it, and cannot change it.
+	queue, err := f.svc.AdminList(ctx, "", AdminMaxLimit)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range queue {
+		if r.ID == rep.ID || r.Reported.UID == testBot.UID {
+			t.Fatalf("bot report in the operator queue: %+v", r)
+		}
+	}
+	st := StatusDismissed
+	if _, err := f.svc.AdminUpdate(ctx, uuid.MustParse(rep.ID), &st, nil); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("admin update of a bot report: %v", err)
+	}
+
+	// A bot seat whose id is not a UUID cannot be stored.
+	f.mu.Lock()
+	f.rooms["r_unitbad"] = RoomInfo{Game: "ludo", Seats: []Seat{
+		{UserID: c.String(), UID: f.env.Profiles.PublicID(c)},
+		{UserID: "not-a-uuid", UID: "b_aaaaaaaaaa", Bot: true, Name: "Omar"},
+	}}
+	f.mu.Unlock()
+	if _, _, err := f.svc.Create(ctx, c, CreateInput{UID: "b_aaaaaaaaaa", RoomID: "r_unitbad", Reason: ReasonOther}); !errors.Is(err, ErrUnknownPlayer) {
+		t.Fatalf("bad bot id: %v", err)
+	}
+}
+
+func TestAccountIDsSkipsBots(t *testing.T) {
+	a, b, botID := uuid.New(), uuid.New(), uuid.New()
+	cases := []struct {
+		name string
+		rows []row
+		want []uuid.UUID
+	}{
+		{"empty", nil, []uuid.UUID{}},
+		{"accounts deduplicated", []row{{reported: a}, {reported: b}, {reported: a}}, []uuid.UUID{a, b}},
+		{"bots left out", []row{{reported: botID, bot: &PlayerRef{UID: "b_1"}}, {reported: a}}, []uuid.UUID{a}},
+	}
+	for _, c := range cases {
+		got := accountIDs(c.rows)
+		if len(got) != len(c.want) {
+			t.Fatalf("%s: %v", c.name, got)
+		}
+		for i := range got {
+			if got[i] != c.want[i] {
+				t.Fatalf("%s: %v", c.name, got)
+			}
+		}
 	}
 }

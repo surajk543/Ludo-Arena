@@ -202,7 +202,7 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
       "picture": {"id": "pp_wolf", "format": "image", "path": "profile_pictures/image/wolf.png"},  // or null
       "color": "red",
       "connected": true,
-      "bot": false,               // server-determined from the session; the app shows no bot badge (names carry no label) but hides friend/report actions on bots
+      "bot": false,               // server-determined from the session; the app shows no bot badge (names carry no label) and offers the same pod actions on every opponent
       "forfeited": false,
       // "forfeitWhy": "timeouts", // only on forfeited seats: "left" | "timeouts" (not in the state hash)
       "strikes": 0                // consecutive missed turns (MAX_STRIKES, default 5, forfeits)

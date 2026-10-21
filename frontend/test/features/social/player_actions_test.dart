@@ -11,14 +11,19 @@ import 'package:ludo_royale/features/game/application/match_result_view.dart';
 import 'package:ludo_royale/features/game/presentation/game_route_screen.dart';
 import 'package:ludo_royale/features/game/presentation/widgets/player_panel.dart';
 import 'package:ludo_royale/features/game/presentation/widgets/results_panel.dart';
+import 'package:ludo_royale/features/social/application/muted_players.dart';
 import 'package:ludo_royale/features/social/presentation/player_actions_sheet.dart';
 import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
+import 'package:ludo_royale/shared/widgets/widgets.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';
 import '../game/support/play_test_support.dart';
 import '../progression/meta_test_support.dart'
     show friendJson, friendsJson, limitJson, reportJson, reportsJson, routeMeta;
+
+/// The bot's public id has the server's bot shape (`b_` + 10 hex).
+const _botUid = 'b_0a1b2c3d4e';
 
 /// A Ludo match: me (`u_0`, seat 0), a human opponent (`u_1`, "Ravi"), a
 /// bot (seat 2, "Bolt") and another human (seat 3).
@@ -29,7 +34,7 @@ RoomSnapshot _room({int turnSeat = 0, String status = RoomStatuses.playing}) =>
       players: [
         player(0),
         player(1, name: 'Ravi', level: 9),
-        player(2, name: 'Bolt', bot: true),
+        player(2, uid: _botUid, name: 'Bolt', bot: true),
         player(3, name: 'Meera'),
       ],
     );
@@ -49,6 +54,7 @@ Future<_Match> _pumpMatch(
   Locale locale = const Locale('en'),
   Size size = const Size(360, 740),
   double textScale = 1.0,
+  ThemeMode themeMode = ThemeMode.light,
 }) async {
   final r = room ?? _room();
   final env = await TestEnv.create();
@@ -70,6 +76,7 @@ Future<_Match> _pumpMatch(
     tester,
     GameRouteScreen(roomId: r.id),
     locale: locale,
+    themeMode: themeMode,
     size: size,
     textScale: textScale,
     extra: [...env.overrides.where((o) => !kept.contains(o.origin))],
@@ -147,10 +154,26 @@ void main() {
       semantics.dispose();
     });
 
-    testWidgets('a bot pod shows the profile only (no actions, no bot note)', (
+    testWidgets("a bot pod offers exactly what a person's pod offers", (
       tester,
     ) async {
       await _pumpMatch(tester);
+      List<(String, String, bool)> actions() => [
+        for (final k in ['sheet-friend-action', 'sheet-mute', 'sheet-report'])
+          (
+            k,
+            _buttonLabel(tester, k),
+            tester.widget<PremiumButton>(_key(k)).onPressed != null,
+          ),
+      ];
+      String note() => _buttonLabel(tester, 'sheet-report-note');
+
+      await _openPod(tester, 1);
+      final human = actions();
+      final humanNote = note();
+      await tester.tap(find.byTooltip('Close'));
+      await _settle(tester);
+
       await _openPod(tester, 2);
       final sheet = _key('player-sheet');
       expect(
@@ -158,8 +181,13 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Level 4'), findsOneWidget);
-      expect(_key('sheet-friend-action'), findsNothing);
-      expect(_key('sheet-report'), findsNothing);
+      expect(human, [
+        ('sheet-friend-action', 'Add friend', true),
+        ('sheet-mute', 'Mute player', true),
+        ('sheet-report', 'Report player', true),
+      ]);
+      expect(actions(), human);
+      expect(note(), humanNote);
       expect(
         find.descendant(
           of: sheet,
@@ -176,6 +204,7 @@ void main() {
       await _openPod(tester, 1);
       expect(find.byType(PlayerActionsPanel), findsOneWidget);
       expect(_key('sheet-friend-action'), findsNothing);
+      expect(_key('sheet-mute'), findsNothing);
       expect(_key('sheet-report'), findsNothing);
     });
 
@@ -484,7 +513,211 @@ void main() {
     });
   });
 
+  group('bot opponents', () {
+    testWidgets('Add friend on a bot sends its code and shows "Request sent"', (
+      tester,
+    ) async {
+      final m = await _pumpMatch(
+        tester,
+        routes: (env) => env.backend.json('POST', '/friends/requests', {
+          'friend': friendJson(_botUid, 'Bolt', status: 'outgoing', level: 1),
+        }, status: 201),
+      );
+      await _openPod(tester, 2);
+      await tester.tap(_key('sheet-friend-action'));
+      await _settle(tester);
+      expect(m.env.backend.calls('POST', '/friends/requests').single.json, {
+        'friendCode': _botUid,
+      });
+      expect(_buttonLabel(tester, 'sheet-friend-action'), 'Request sent');
+      expect(m.h.analytics.events, contains('friend_request_sent:match'));
+    });
+
+    testWidgets('reporting a bot works like reporting anyone', (tester) async {
+      final m = await _pumpMatch(
+        tester,
+        routes: (env) => env.backend.on('POST', '/reports', (_) {
+          final report = reportJson(
+            'rep_b',
+            uid: _botUid,
+            name: 'Bolt',
+            reason: 'abusive_behavior',
+            ago: Duration.zero,
+          );
+          env.backend.json(
+            'GET',
+            '/reports',
+            reportsJson(reports: [report], remaining: 1),
+          );
+          return FakeResponse(201, {
+            'report': report,
+            'limit': limitJson(remaining: 1),
+          });
+        }),
+      );
+      await _openPod(tester, 2);
+      await tester.tap(_key('sheet-report'));
+      await _settle(tester);
+      // The reasons read clearly; harassment is a choice of its own.
+      for (final label in [
+        'Cheating',
+        'Offensive name',
+        'Harassment or abusive chat',
+        'Leaving or stalling',
+        'Something else',
+      ]) {
+        expect(find.text(label), findsOneWidget);
+      }
+      await tester.tap(_key('report-reason-abusive_behavior'));
+      await tester.pump();
+      await tester.ensureVisible(_key('send-report'));
+      await tester.tap(_key('send-report'));
+      await _settle(tester);
+      expect(m.env.backend.calls('POST', '/reports').single.json, {
+        'uid': _botUid,
+        'roomId': 'r_1',
+        'reason': 'abusive_behavior',
+      });
+      expect(
+        find.text('Report sent. 1 of 2 reports left today.'),
+        findsOneWidget,
+      );
+      expect(
+        m.h.analytics.events,
+        contains('player_reported:abusive_behavior'),
+      );
+      await _openPod(tester, 2);
+      expect(_buttonLabel(tester, 'sheet-report'), 'Reported');
+    });
+  });
+
+  group('mute from a match', () {
+    QuickChatReceived chat(int seat, String msg) => QuickChatReceived(
+      QuickChatEvent(roomId: 'r_1', seat: seat, msg: msg),
+      fromSelf: false,
+    );
+    EmoteReceived emote(int seat) => EmoteReceived(
+      EmoteEvent(roomId: 'r_1', seat: seat, emote: 'emote_wave'),
+      fromSelf: false,
+    );
+    String? stored(_Match m) => m.h.container
+        .read(preferencesStoreProvider)
+        .getString(PrefKeys.mutedPlayers);
+    Future<void> toggleMute(WidgetTester tester, int seat) async {
+      await _openPod(tester, seat);
+      await tester.tap(_key('sheet-mute'));
+      await _settle(tester);
+    }
+
+    Future<void> close(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Close'));
+      await _settle(tester);
+    }
+
+    testWidgets("muting hides that player's chat and emotes (only theirs), "
+        'is kept on the device, and Unmute shows them again', (tester) async {
+      final semantics = tester.ensureSemantics();
+      final m = await _pumpMatch(tester);
+      // Ravi's bubble is on screen when the user mutes him.
+      m.h.controller.emit(chat(1, 'good_luck'));
+      await tester.pump();
+      expect(find.text('Good luck!'), findsOneWidget);
+
+      await toggleMute(tester, 1);
+      expect(_buttonLabel(tester, 'sheet-mute'), 'Unmute player');
+      expect(
+        find.text("You won't see this player's chat or emotes."),
+        findsOneWidget,
+      );
+      expect(stored(m), '["u_1"]');
+      await close(tester);
+      expect(find.text('Good luck!'), findsNothing);
+      expect(_key('pod-muted-1'), findsOneWidget);
+      expect(_key('pod-muted-3'), findsNothing);
+      expect(tester.getSemantics(_key('pod-1')).label, contains('Muted'));
+
+      m.h.controller
+        ..emit(chat(1, 'nice_move'))
+        ..emit(emote(1));
+      await tester.pump();
+      expect(find.text('Nice move!'), findsNothing);
+      expect(find.byType(EmoteIcon), findsNothing);
+      // Everyone else still shows.
+      m.h.controller
+        ..emit(chat(3, 'well_played'))
+        ..emit(emote(2));
+      await tester.pump();
+      expect(find.text('Well played!'), findsOneWidget);
+      expect(find.byType(EmoteIcon), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+
+      await toggleMute(tester, 1);
+      expect(_buttonLabel(tester, 'sheet-mute'), 'Mute player');
+      expect(_key('sheet-mute-note'), findsNothing);
+      expect(stored(m), '[]');
+      await close(tester);
+      expect(_key('pod-muted-1'), findsNothing);
+      m.h.controller.emit(chat(1, 'nice_move'));
+      await tester.pump();
+      expect(find.text('Nice move!'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      semantics.dispose();
+    });
+
+    testWidgets('a bot is muted like anyone', (tester) async {
+      final m = await _pumpMatch(tester);
+      await toggleMute(tester, 2);
+      expect(_buttonLabel(tester, 'sheet-mute'), 'Unmute player');
+      expect(stored(m), '["$_botUid"]');
+      await close(tester);
+      expect(_key('pod-muted-2'), findsOneWidget);
+      m.h.controller.emit(emote(2));
+      await tester.pump();
+      expect(find.byType(EmoteIcon), findsNothing);
+    });
+
+    testWidgets('my own messages always show', (tester) async {
+      final m = await _pumpMatch(tester);
+      // Even if my own uid somehow ended up in the list.
+      await m.h.container
+          .read(mutedPlayersProvider.notifier)
+          .setMuted('u_0', muted: true);
+      m.h.controller.emit(
+        const QuickChatReceived(
+          QuickChatEvent(roomId: 'r_1', seat: 0, msg: 'gg'),
+          fromSelf: true,
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Good game!'), findsOneWidget);
+      expect(_key('pod-muted-0'), findsNothing);
+      await tester.pump(const Duration(seconds: 3));
+    });
+  });
+
   group('layout', () {
+    for (final locale in ['en', 'hi', 'ur', 'id', 'ar']) {
+      for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+        testWidgets("a muted bot's sheet fits 320×640 in $locale at 1.35× "
+            '(${mode.name})', (tester) async {
+          await expectNoOverflow(tester, () async {
+            await _pumpMatch(
+              tester,
+              locale: Locale(locale),
+              size: const Size(320, 640),
+              textScale: 1.35,
+              themeMode: mode,
+            );
+            await _openPod(tester, 2);
+            await tester.tap(_key('sheet-mute'));
+            await _settle(tester);
+            expect(_key('sheet-mute-note'), findsOneWidget);
+          });
+          expect(tester.takeException(), isNull);
+        });
+      }
+    }
+
     for (final (locale, mode) in [
       (const Locale('ar'), 'ar'),
       (const Locale('ur'), 'ur'),

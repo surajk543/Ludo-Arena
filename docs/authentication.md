@@ -235,7 +235,8 @@ nothing was deleted. Implementation: `backend/internal/account`.
    holds it (control message `{"ctl":"deleted"}` on `ev:user:{userId}`); a
    room joined in the meantime is left again; then `profile:{userId}`,
    `pubid:{publicId}`, `namechg:{userId}`, `seat:{userId}` (+ lease),
-   `emotes:{userId}`, `presence:{userId}`, `recent:{userId}` **and** the
+   `emotes:{userId}`, `presence:{userId}`, `botfr:{userId}` (pending friend
+   requests to bots), `recent:{userId}` **and** the
    account's entry in every recent opponent's `recent:{otherId}`, its member
    in the last five weekly leaderboards `lb:xp:{week}`, and its per-account
    rate-limit counters (`rl:{rule}:{userId}:{window}`, incl. the report

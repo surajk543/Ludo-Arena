@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Keys for non-sensitive preferences. Never store tokens, secrets, room
-/// codes or identifiers here (those belong in `SecureSessionStore`).
+/// codes or identifiers here (those belong in `SecureSessionStore`). The one
+/// exception is [mutedPlayers]: other players' public uids, which every
+/// opponent already sees (friend codes, never account ids).
 abstract final class PrefKeys {
   static const themeMode = 'ui.theme_mode';
   static const locale = 'ui.locale';
@@ -15,6 +17,9 @@ abstract final class PrefKeys {
   static const hapticsEnabled = 'settings.haptics';
   static const reducedMotion = 'settings.reduced_motion';
   static const quickChatMuted = 'settings.quick_chat_muted';
+
+  /// JSON list of muted players' public uids, oldest first (at most 200).
+  static const mutedPlayers = 'social.muted_players';
 
   /// `indian` | `international`; absent follows the app language.
   static const numberSystem = 'settings.number_system';

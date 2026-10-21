@@ -112,6 +112,8 @@
   "playRemovedForInactivity": "{count, plural, =1{آپ کو میچ سے ہٹا دیا گیا کیونکہ آپ کی باری چھوٹ گئی۔} other{آپ کو میچ سے ہٹا دیا گیا کیونکہ آپ کی لگاتار {count} باریاں چھوٹ گئیں۔}}",
   "playPlayerDisconnected": "آف لائن",
   "playPlayerForfeited": "چلا گیا",
+  "playPlayerOnline": "آن لائن",
+  "playPlayerMuted": "میوٹ",
   "playPanelTurnA11y": "ابھی ان کی باری",
   "playStrikesA11y": "{count, plural, =1{1 باری چھوٹی} other{{count} باریاں چھوٹیں}}",
   "playTokensHome": "{total} میں سے {home} گوٹیاں گھر پہنچیں",

@@ -2495,6 +2495,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get playPlayerForfeited => 'چلا گیا';
 
   @override
+  String get playPlayerOnline => 'آن لائن';
+
+  @override
+  String get playPlayerMuted => 'میوٹ';
+
+  @override
   String get playPanelTurnA11y => 'ابھی ان کی باری';
 
   @override
@@ -3025,6 +3031,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get socialReported => 'رپورٹ کی گئی';
 
   @override
+  String get socialMutePlayer => 'کھلاڑی کو میوٹ کریں';
+
+  @override
+  String get socialUnmutePlayer => 'کھلاڑی کو اَن میوٹ کریں';
+
+  @override
+  String get socialMutedNote =>
+      'آپ کو اس کھلاڑی کی چیٹ یا ایموٹس نظر نہیں آئیں گے۔';
+
+  @override
   String get socialAlreadyReported =>
       'آپ نے پچھلے 24 گھنٹوں میں اس کھلاڑی کی رپورٹ کی ہے۔';
 
@@ -3058,7 +3074,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get socialReasonOffensiveName => 'نامناسب نام';
 
   @override
-  String get socialReasonAbusiveBehavior => 'بدسلوکی';
+  String get socialReasonAbusiveBehavior => 'ہراسانی یا توہین آمیز چیٹ';
 
   @override
   String get socialReasonLeavingOrStalling =>

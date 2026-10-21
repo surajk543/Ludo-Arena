@@ -2496,6 +2496,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playPlayerForfeited => 'Left';
 
   @override
+  String get playPlayerOnline => 'Online';
+
+  @override
+  String get playPlayerMuted => 'Muted';
+
+  @override
   String get playPanelTurnA11y => 'current turn';
 
   @override
@@ -3021,6 +3027,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get socialReported => 'Reported';
 
   @override
+  String get socialMutePlayer => 'Mute player';
+
+  @override
+  String get socialUnmutePlayer => 'Unmute player';
+
+  @override
+  String get socialMutedNote => 'You won\'t see this player\'s chat or emotes.';
+
+  @override
   String get socialAlreadyReported =>
       'You reported this player in the last 24 hours.';
 
@@ -3054,7 +3069,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get socialReasonOffensiveName => 'Offensive name';
 
   @override
-  String get socialReasonAbusiveBehavior => 'Abusive behavior';
+  String get socialReasonAbusiveBehavior => 'Harassment or abusive chat';
 
   @override
   String get socialReasonLeavingOrStalling => 'Leaving or stalling';

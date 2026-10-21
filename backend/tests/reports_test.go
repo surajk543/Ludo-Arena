@@ -273,39 +273,137 @@ func (e *env) spawnNamedBots(t *testing.T, ctl string, names []string) []*client
 	return bots
 }
 
-// Bots are marked with bot:true but their names carry no "Bot" label, and
-// they cannot be reported.
-func TestReportBotSeatAndUnlabelledBotNames(t *testing.T) {
-	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(9)})
+// botSeat is a bot's seat as the human sees it in the room snapshot.
+type botSeat struct {
+	UID, Name     string
+	Avatar, Level int
+	PictureID     string // "" = no profile picture
+}
+
+// pictureID is the id of a JSON profile picture ("" for null).
+func pictureID(v any) string {
+	m, _ := v.(map[string]any)
+	id, _ := m["id"].(string)
+	return id
+}
+
+// practiceWithBots starts a Ludo practice game of human against bots named
+// names (as bot-play would request them) and returns the human's client, the
+// room id and the bot seats in seat order.
+func (e *env) practiceWithBots(t *testing.T, human account, names []string) (*client, string, []botSeat) {
+	t.Helper()
 	ctl := e.botController(t)
-	human := e.guest()
 	hc := e.mustDial("human", human)
-	if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 2}); m.T != "ack" {
+	if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": len(names)}); m.T != "ack" {
 		t.Fatalf("practice.start: %s %s", m.T, m.P)
 	}
-	e.spawnNamedBots(t, ctl, []string{"Bot Asha", ""})
+	e.spawnNamedBots(t, ctl, names)
 	waitFor(t, 10*time.Second, "practice start", func() bool { s := hc.snapshot(); return s != nil && s.Status == "playing" })
 	s := hc.snapshot()
-	var botUIDs, names []string
+	var bots []botSeat
 	for _, p := range s.Players {
-		if !p.Bot {
-			continue
-		}
-		botUIDs = append(botUIDs, p.UID)
-		names = append(names, p.Name)
-		if p.Name == "" || strings.HasPrefix(strings.ToLower(p.Name), "bot") {
-			t.Fatalf("bot seat name %q carries a bot label", p.Name)
-		}
-	}
-	if len(botUIDs) != 2 || (names[0] != "Asha" && names[1] != "Asha") {
-		t.Fatalf("bot seats: %v %v", botUIDs, names)
-	}
-	for _, uid := range botUIDs {
-		if r := e.report(human.Token, uid, s.ID, "cheating"); r.Status != 422 || errCode(r) != "cannot_report_bot" {
-			t.Fatalf("report bot %s: %d %s", uid, r.Status, r.Raw)
+		if p.Bot {
+			b := botSeat{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level}
+			if p.Picture != nil {
+				b.PictureID = p.Picture.ID
+			}
+			bots = append(bots, b)
 		}
 	}
-	if r := e.do("GET", "/api/v1/reports", human.Token, nil); r.Status != 200 || num(limitOf(t, r)["remaining"]) != 2 {
-		t.Fatalf("rejected reports must not count: %d %s", r.Status, r.Raw)
+	if len(bots) != len(names) {
+		t.Fatalf("bot seats: %+v", bots)
+	}
+	return hc, s.ID, bots
+}
+
+// Bots are marked with bot:true but their names carry no "Bot" label, and a
+// report against a bot looks exactly like one against a person: same
+// response, limits and duplicate rule, listed in "my reports". It is stored
+// (flagged reported_bot) but kept out of the operator queue.
+func TestReportBotSeatAndUnlabelledBotNames(t *testing.T) {
+	t.Setenv("ADMIN_API_KEY_SHA256", adminHash())
+	// Every bot wears a Store picture, which the report must keep too.
+	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(9), botPictureShare: "1"})
+	human := e.guest()
+	_, roomID, bots := e.practiceWithBots(t, human, []string{"Bot Asha", ""})
+	asha := -1
+	for i, b := range bots {
+		if b.Name == "" || strings.HasPrefix(strings.ToLower(b.Name), "bot") {
+			t.Fatalf("bot seat name %q carries a bot label", b.Name)
+		}
+		if b.Name == "Asha" {
+			asha = i
+		}
+	}
+	if asha < 0 {
+		t.Fatalf("bot seats: %+v", bots)
+	}
+
+	// First bot: 201 with the same body as a person's report.
+	r := e.report(human.Token, bots[0].UID, roomID, "abusive_behavior")
+	if r.Status != 201 {
+		t.Fatalf("report bot: %d %s", r.Status, r.Raw)
+	}
+	rep := r.Body["report"].(map[string]any)
+	player := rep["player"].(map[string]any)
+	if bots[0].PictureID == "" || pictureID(player["picture"]) != bots[0].PictureID {
+		t.Fatalf("bot report picture: seat %q, report %s", bots[0].PictureID, r.Raw)
+	}
+	if player["uid"] != bots[0].UID || player["name"] != bots[0].Name || num(player["avatar"]) != int64(bots[0].Avatar) ||
+		num(player["level"]) != int64(max(bots[0].Level, 1)) || rep["status"] != "submitted" || rep["roomId"] != roomID ||
+		rep["game"] != "ludo" || rep["reason"] != "abusive_behavior" || num(limitOf(t, r)["remaining"]) != 1 {
+		t.Fatalf("bot report body: %s", r.Raw)
+	}
+	var flagged bool
+	var stored, reporter string
+	if err := e.app.PG.QueryRow(context.Background(), `SELECT reported_bot, reported_profile->>'name', reporter_id::text
+		FROM progression.player_reports WHERE id = $1`, rep["id"]).Scan(&flagged, &stored, &reporter); err != nil ||
+		!flagged || stored != bots[0].Name || reporter != human.UserID {
+		t.Fatalf("stored bot report: %v %v %q %s", err, flagged, stored, reporter)
+	}
+
+	// Duplicate and daily limit apply as to anyone.
+	if r := e.report(human.Token, bots[0].UID, roomID, "cheating"); r.Status != 409 || errCode(r) != "already_reported" {
+		t.Fatalf("duplicate bot report: %d %s", r.Status, r.Raw)
+	}
+	second := e.report(human.Token, strings.ToUpper(bots[1].UID), roomID, "cheating")
+	if second.Status != 201 || num(limitOf(t, second)["remaining"]) != 0 {
+		t.Fatalf("second bot report: %d %s", second.Status, second.Raw)
+	}
+	if r := e.report(human.Token, bots[0].UID, roomID, "other"); r.Status != 409 || errCode(r) != "already_reported" {
+		t.Fatalf("duplicate at the limit: %d %s", r.Status, r.Raw)
+	}
+	other := e.guest()
+	if r := e.report(other.Token, bots[0].UID, roomID, "other"); r.Status != 422 || errCode(r) != "not_in_room" {
+		t.Fatalf("stranger reports a bot: %d %s", r.Status, r.Raw)
+	}
+
+	// My reports list both with the bots' names, newest first.
+	g := e.do("GET", "/api/v1/reports", human.Token, nil)
+	list, _ := g.Body["reports"].([]any)
+	if g.Status != 200 || len(list) != 2 || num(limitOf(t, g)["remaining"]) != 0 {
+		t.Fatalf("my reports: %d %s", g.Status, g.Raw)
+	}
+	for i, want := range []botSeat{bots[1], bots[0]} {
+		p := list[i].(map[string]any)["player"].(map[string]any)
+		if p["uid"] != want.UID || p["name"] != want.Name || num(p["avatar"]) != int64(want.Avatar) ||
+			pictureID(p["picture"]) != want.PictureID {
+			t.Fatalf("my report %d: %v want %+v", i, p, want)
+		}
+	}
+
+	// Not in the operator queue; not reviewable.
+	l := e.do("GET", "/api/v1/admin/reports?limit=200", "", nil, "X-Admin-Key", adminKey)
+	if l.Status != 200 {
+		t.Fatalf("admin list: %d %s", l.Status, l.Raw)
+	}
+	for _, b := range bots {
+		if strings.Contains(string(l.Raw), b.UID) || strings.Contains(string(l.Raw), rep["id"].(string)) {
+			t.Fatalf("bot report in the operator queue: %s", l.Raw)
+		}
+	}
+	if u := e.do("PATCH", "/api/v1/admin/reports/"+rep["id"].(string), "", map[string]any{"status": "dismissed"},
+		"X-Admin-Key", adminKey); u.Status != 404 || errCode(u) != "not_found" {
+		t.Fatalf("admin patch of a bot report: %d %s", u.Status, u.Raw)
 	}
 }

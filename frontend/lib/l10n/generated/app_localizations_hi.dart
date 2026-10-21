@@ -2495,6 +2495,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playPlayerForfeited => 'चला गया';
 
   @override
+  String get playPlayerOnline => 'ऑनलाइन';
+
+  @override
+  String get playPlayerMuted => 'म्यूट';
+
+  @override
   String get playPanelTurnA11y => 'अभी इनकी बारी';
 
   @override
@@ -3025,6 +3031,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get socialReported => 'रिपोर्ट की गई';
 
   @override
+  String get socialMutePlayer => 'खिलाड़ी को म्यूट करें';
+
+  @override
+  String get socialUnmutePlayer => 'खिलाड़ी को अनम्यूट करें';
+
+  @override
+  String get socialMutedNote => 'आपको इस खिलाड़ी की चैट या इमोट नहीं दिखेंगे।';
+
+  @override
   String get socialAlreadyReported =>
       'आपने पिछले 24 घंटों में इस खिलाड़ी की रिपोर्ट की है।';
 
@@ -3058,7 +3073,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get socialReasonOffensiveName => 'आपत्तिजनक नाम';
 
   @override
-  String get socialReasonAbusiveBehavior => 'अपमानजनक व्यवहार';
+  String get socialReasonAbusiveBehavior => 'उत्पीड़न या अपमानजनक चैट';
 
   @override
   String get socialReasonLeavingOrStalling => 'गेम छोड़ना या जानबूझकर देर करना';

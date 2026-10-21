@@ -2526,6 +2526,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get playPlayerForfeited => 'غادر';
 
   @override
+  String get playPlayerOnline => 'متصل';
+
+  @override
+  String get playPlayerMuted => 'مكتوم';
+
+  @override
   String get playPanelTurnA11y => 'الدور الحالي';
 
   @override
@@ -3053,6 +3059,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get socialReported => 'تم الإبلاغ';
 
   @override
+  String get socialMutePlayer => 'كتم اللاعب';
+
+  @override
+  String get socialUnmutePlayer => 'إلغاء كتم اللاعب';
+
+  @override
+  String get socialMutedNote => 'لن ترى دردشة هذا اللاعب أو رموزه التعبيرية.';
+
+  @override
   String get socialAlreadyReported =>
       'لقد أبلغت عن هذا اللاعب خلال آخر 24 ساعة.';
 
@@ -3086,7 +3101,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get socialReasonOffensiveName => 'اسم مسيء';
 
   @override
-  String get socialReasonAbusiveBehavior => 'سلوك مسيء';
+  String get socialReasonAbusiveBehavior => 'مضايقة أو دردشة مسيئة';
 
   @override
   String get socialReasonLeavingOrStalling => 'مغادرة اللعبة أو المماطلة';

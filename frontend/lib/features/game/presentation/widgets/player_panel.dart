@@ -11,7 +11,9 @@ import '../../../../shared/widgets/widgets.dart';
 import '../play_text.dart';
 
 /// Per-seat summary shown around the board: avatar with frame, name, seat color, connection / forfeit state, missed-turn strikes and
-/// progress (Ludo tokens home, Snakes square). The current turn is
+/// progress (Ludo tokens home, Snakes square). A presence mark sits on the
+/// avatar's edge: a green dot while the player is connected, a wifi-off
+/// badge while they are disconnected (none once they left). The current turn is
 /// emphasised with a seat-colored glow and a server-clock [CountdownRing].
 ///
 /// Where the pod has room (the [stacked] card and the widest row tier) the
@@ -27,6 +29,7 @@ class PlayerPanel extends StatelessWidget {
     required this.isTurn,
     this.turnTotalMs = 20000,
     this.stacked = false,
+    this.muted = false,
     this.onTap,
   });
 
@@ -43,6 +46,9 @@ class PlayerPanel extends StatelessWidget {
   /// Card layout (large avatar with the progress column beside it, full-width
   /// name below), used when the screen has spare height around the board.
   final bool stacked;
+
+  /// The user muted this player from their pod (a muted icon by the name).
+  final bool muted;
 
   /// Opens the player's options (opponents only). The pod then reads as a
   /// button to screen readers.
@@ -111,6 +117,15 @@ class PlayerPanel extends StatelessWidget {
             )
           : Center(child: avatar),
     );
+    if (!out) {
+      avatar = _withPresence(
+        avatar,
+        ring: ring,
+        avatarSize: avatarSize,
+        online: player.connected,
+        reduce: reduce,
+      );
+    }
 
     final progress = _progress(context, l10n, m);
     final status = _statusChip(context, l10n, m, offline: offline, out: out);
@@ -119,7 +134,9 @@ class PlayerPanel extends StatelessWidget {
       name,
       if (isSelf) l10n.commonYou,
       if (isTurn) l10n.playPanelTurnA11y,
+      if (!out && player.connected) l10n.playPlayerOnline,
       if (offline) l10n.playPlayerDisconnected,
+      if (muted) l10n.playPlayerMuted,
       if (out) l10n.playPlayerForfeited,
       if (player.strikes > 0) l10n.playStrikesA11y(player.strikes),
       ?progress?.$2,
@@ -159,6 +176,15 @@ class PlayerPanel extends StatelessWidget {
             ),
           ),
         ),
+        if (muted) ...[
+          const SizedBox(width: 3),
+          Icon(
+            Icons.volume_off_rounded,
+            key: ValueKey('pod-muted-${player.seat}'),
+            size: m.nameFont - 2,
+            color: c.textMuted,
+          ),
+        ],
         if (strikes && player.strikes > 0) ...[
           const SizedBox(width: 4),
           _Strikes(count: player.strikes),
@@ -308,6 +334,51 @@ class PlayerPanel extends StatelessWidget {
               onTap: tap,
               child: pod,
             ),
+    );
+  }
+
+  /// [avatar] (its turn-ring box, [ring] wide) with the presence mark
+  /// centred on the avatar circle's bottom-end edge (mirrored in RTL).
+  Widget _withPresence(
+    Widget avatar, {
+    required double ring,
+    required double avatarSize,
+    required bool online,
+    required bool reduce,
+  }) {
+    final dot = (avatarSize * 0.22).clamp(9.0, 16.0);
+    final box = (dot * 1.45).roundToDouble();
+    // Distance from the box's bottom-end corner to the avatar circle at 45°.
+    final edge = ring / 2 - avatarSize / 2 * math.sqrt1_2;
+    final inset = math.max(0.0, edge - box / 2);
+    return SizedBox.square(
+      dimension: ring,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(child: avatar),
+          PositionedDirectional(
+            end: inset,
+            bottom: inset,
+            child: SizedBox.square(
+              dimension: box,
+              child: Center(
+                child: AnimatedSwitcher(
+                  duration: reduce ? Duration.zero : AppDurations.fast,
+                  child: _PresenceMark(
+                    key: ValueKey(
+                      '${online ? 'pod-online' : 'pod-offline'}-${player.seat}',
+                    ),
+                    online: online,
+                    dot: dot,
+                    box: box,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -662,6 +733,50 @@ class _PodMetrics {
   TextStyle? detailStyle(BuildContext context) => largeDetail
       ? context.textTheme.labelMedium
       : context.textTheme.labelSmall;
+}
+
+/// Presence on the avatar: a green dot (connected) or a small wifi-off
+/// badge (disconnected). Both are ringed with the surface color so they
+/// read on any avatar, frame and theme.
+class _PresenceMark extends StatelessWidget {
+  const _PresenceMark({
+    super.key,
+    required this.online,
+    required this.dot,
+    required this.box,
+  });
+
+  final bool online;
+  final double dot;
+  final double box;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    if (online) {
+      return Container(
+        width: dot,
+        height: dot,
+        decoration: BoxDecoration(
+          color: c.success,
+          shape: BoxShape.circle,
+          border: Border.all(color: c.surface, width: math.max(1.5, dot / 6)),
+        ),
+      );
+    }
+    return Container(
+      width: box,
+      height: box,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: c.surface,
+        shape: BoxShape.circle,
+        border: Border.all(color: c.warning, width: 1.2),
+        boxShadow: c.shadow(AppElevation.low),
+      ),
+      child: Icon(Icons.wifi_off_rounded, size: box * 0.62, color: c.warning),
+    );
+  }
 }
 
 /// Missed-turn strikes, one dot per allowed miss (server `MAX_STRIKES`, 5

@@ -4,8 +4,9 @@
 -- them through the admin API. Idempotent: applied on every start.
 --
 -- Both ids are accounts (wallet.wallets) and are removed with them
--- (ON DELETE CASCADE), like every other progression table. `note` is an
--- operator note and is never shown to the reporter. The per-reporter daily
+-- (ON DELETE CASCADE), like every other progression table (since
+-- 009_report_bots.sql reported_id may also be a bot id, without that key).
+-- `note` is an operator note and is never shown to the reporter. The per-reporter daily
 -- limit and the 24 h duplicate rule are enforced by the backend inside a
 -- transaction that holds a per-reporter advisory lock.
 CREATE SCHEMA IF NOT EXISTS progression;

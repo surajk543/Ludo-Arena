@@ -579,6 +579,14 @@
   "@playPlayerForfeited": {
     "description": "Player panel chip: forfeited / left."
   },
+  "playPlayerOnline": "Online",
+  "@playPlayerOnline": {
+    "description": "Accessibility: the player is connected (green dot on the pod)."
+  },
+  "playPlayerMuted": "Muted",
+  "@playPlayerMuted": {
+    "description": "Accessibility: the user muted this player (icon by the name on the pod)."
+  },
   "playPanelTurnA11y": "current turn",
   "@playPanelTurnA11y": {
     "description": "Accessibility: this player has the current turn."

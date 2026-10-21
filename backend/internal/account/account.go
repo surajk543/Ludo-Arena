@@ -20,8 +20,8 @@
 //     live WebSocket is closed with 4401 "account deleted" on whichever
 //     instance holds it, and the account's caches and counters are removed
 //     (profile, public-id mapping, name-change window, seat/emote caches,
-//     presence, recent players on both sides, weekly leaderboard entries,
-//     per-account rate-limit counters). This step is best effort and
+//     presence, recent players on both sides, pending friend requests to
+//     bots, weekly leaderboard entries, per-account rate-limit counters). This step is best effort and
 //     idempotent: a failure is logged and the next DELETE with a still-live
 //     session repeats it (and answers 401, the account being gone).
 //
@@ -151,7 +151,8 @@ func (s *Service) eraseOnce(ctx context.Context, userID uuid.UUID) (Erased, erro
 
 	var e Erased
 	// Children first, explicitly (every progression table also cascades
-	// from wallet.wallets; identity.auth_identities does not).
+	// from wallet.wallets except player_reports.reported_id, which may hold
+	// a bot id since migration 009; identity.auth_identities does not).
 	steps := []struct {
 		n   *int64
 		sql string
@@ -223,7 +224,7 @@ func (s *Service) purge(ctx context.Context, userID uuid.UUID, sessionID string)
 		pipe.ZRem(ctx, progression.LeaderboardKey(progression.WeekKey(now.AddDate(0, 0, -7*w))), uid)
 	}
 	keys := []string{
-		social.RecentKey(userID), social.PresenceKey(userID),
+		social.RecentKey(userID), social.PresenceKey(userID), social.BotRequestsKey(userID),
 		"profile:" + uid, profile.NameChangesKey(userID),
 		progression.SeatKey(userID), progression.SeatKey(userID) + ":lease", progression.EmotesKey(userID),
 	}

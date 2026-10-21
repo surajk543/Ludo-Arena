@@ -112,6 +112,8 @@
   "playRemovedForInactivity": "{count, plural, =1{आपको मैच से हटा दिया गया क्योंकि आपने अपनी बारी चूक दी।} other{आपको मैच से हटा दिया गया क्योंकि आपने लगातार {count} बारियाँ चूक दीं।}}",
   "playPlayerDisconnected": "ऑफ़लाइन",
   "playPlayerForfeited": "चला गया",
+  "playPlayerOnline": "ऑनलाइन",
+  "playPlayerMuted": "म्यूट",
   "playPanelTurnA11y": "अभी इनकी बारी",
   "playStrikesA11y": "{count, plural, =1{1 बारी चूकी} other{{count} बारियाँ चूकीं}}",
   "playTokensHome": "{total} में से {home} गोटियाँ घर पहुँचीं",
