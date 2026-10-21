@@ -1109,6 +1109,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get homeNavProfile => 'پروفائل';
 
   @override
+  String get homeNoAdsRibbon => 'اشتہار نہیں';
+
+  @override
   String get metaMissionsTitle => 'مشنز';
 
   @override

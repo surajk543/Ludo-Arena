@@ -2018,6 +2018,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get homeNavProfile;
 
+  /// Text on the decorative diagonal ribbon in the lobby header's top corner: the app shows no ads. Keep it very short; screen readers also read it.
+  ///
+  /// In en, this message translates to:
+  /// **'No Ads'**
+  String get homeNoAdsRibbon;
+
   /// Missions screen title.
   ///
   /// In en, this message translates to:
