@@ -27,7 +27,7 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 | HTTP | Typical codes |
 |---|---|
 | 400 | `bad_request`, `client_version_required`, `environment_mismatch` |
-| 401 | `unauthorized`, `invalid_credential`, `refresh_reused` |
+| 401 | `unauthorized`, `invalid_credential`, `refresh_reused`, `session_replaced` |
 | 403 | `forbidden` |
 | 404 | `not_found`, `invalid_code` |
 | 409 | `identity_conflict`, `provider_already_linked`, `already_owned`, `already_claimed`, `already_friends`, `request_in_progress` |
@@ -123,8 +123,16 @@ All return **AuthResponse**:
 | `POST /auth/facebook` | `{"accessToken"}` or `{"idToken","nonce"}` | Classic token (validated with Graph `debug_token`) or Limited Login OIDC token. |
 | `POST /auth/apple` | `{"identityToken","rawNonce","givenName"?,"familyName"?}` | Nonce: `sha256(rawNonce)` must equal the token's `nonce`. |
 | `POST /auth/apple/callback` | form post from Apple | Android web flow only: redirects to `intent://callback?…#Intent;package=com.ludoroyale.app;scheme=signinwithapple;end`. Not version-gated. |
-| `POST /auth/refresh` | `{"refreshToken"}` | Rotates. Re-use of an old refresh token revokes the whole session (`refresh_reused`). |
-| `POST /auth/logout` | `{"refreshToken"}` | 204. Revokes the session; access tokens of that session stop working. |
+| `POST /auth/refresh` | `{"refreshToken"}` | Rotates (same session). Re-use of an old refresh token revokes the whole session (`refresh_reused`). 401 `session_replaced` if the session was ended by a sign-in on another device; `invalid_credential` for other dead sessions. |
+| `POST /auth/logout` | `{"refreshToken"}` | Not version-gated; rate limited per IP (shares the refresh budget). `Authorization: Bearer` is **optional**: a valid access token identifies the session; otherwise (absent, expired, invalid) the body's refresh token does, and only the session's *current* refresh token revokes (a rotated one is ignored, not treated as reuse). Always 204 for a well-formed request, whether or not a session was found; 400 malformed body; 401 when neither credential is present. Never produces `session_replaced`. |
+
+**One live session per account.** Every sign-in above (guest, guest resume,
+Google/Facebook/Apple) ends the account's previous session (last sign-in
+wins; see [`authentication.md`](authentication.md)). The replaced session
+then gets **401 `session_replaced`** from `/auth/refresh` and from every
+authenticated endpoint (instead of `invalid_credential` / `unauthorized`), and
+its WebSocket is closed with `4401`. Clients show "signed in on another
+device" and go to sign-in without re-authenticating automatically.
 
 ### Account linking (Save Progress)
 

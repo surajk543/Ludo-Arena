@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,6 +27,34 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   /// One sign-in at a time across all buttons.
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final reason = ref.read(sessionControllerProvider).signOutReason;
+    if (reason == SignOutReason.replaced) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_explainReplaced());
+      });
+    }
+  }
+
+  /// Signed out because the account signed in on another device.
+  Future<void> _explainReplaced() {
+    final l10n = AppLocalizations.of(context);
+    return AppDialog.show<void>(
+      context,
+      title: l10n.authSignedInElsewhereTitle,
+      message: l10n.authSignedInElsewhereMessage,
+      illustration: const Icon(Icons.devices_other_rounded, size: 48),
+      actions: [
+        AppDialogAction(
+          label: l10n.commonOk,
+          variant: PremiumButtonVariant.primary,
+        ),
+      ],
+    );
+  }
 
   Future<void> _run(Future<AuthOutcome> Function() action) async {
     if (_busy) return;
@@ -66,11 +96,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final l10n = AppLocalizations.of(context);
     final c = context.colors;
     final providers = ref.watch(availableSignInProvidersProvider);
-    final expired = ref.watch(
-      sessionControllerProvider.select(
-        (s) => s.signOutReason == SignOutReason.expired,
-      ),
+    final reason = ref.watch(
+      sessionControllerProvider.select((s) => s.signOutReason),
     );
+    final banner = switch (reason) {
+      SignOutReason.expired => l10n.authSessionExpiredBanner,
+      SignOutReason.replaced => l10n.authSignedInElsewhereBanner,
+      _ => null,
+    };
     final locale = ref.watch(languageControllerProvider);
     final session = ref.read(sessionControllerProvider.notifier);
 
@@ -102,9 +135,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           textAlign: TextAlign.center,
           style: context.textTheme.bodyLarge?.copyWith(color: c.textSecondary),
         ),
-        if (expired) ...[
+        if (banner != null) ...[
           const SizedBox(height: AppSpacing.lg),
-          _Banner(text: l10n.authSessionExpiredBanner),
+          _Banner(text: banner),
         ],
       ],
     );

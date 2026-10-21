@@ -42,6 +42,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم تسجيل خروجك. يُرجى تسجيل الدخول مرة أخرى.';
 
   @override
+  String get authSignedInElsewhereTitle => 'تم تسجيل الدخول على جهاز آخر';
+
+  @override
+  String get authSignedInElsewhereMessage =>
+      'سجّل أحدهم الدخول إلى حسابك على جهاز آخر، لذا تم تسجيل خروجك هنا. يمكن تسجيل الدخول على جهاز واحد فقط في كل مرة. سجّل الدخول مرة أخرى للعب هنا — وسيتم تسجيل خروج الجهاز الآخر.';
+
+  @override
+  String get authSignedInElsewhereBanner =>
+      'تم تسجيل الدخول إلى حسابك على جهاز آخر.';
+
+  @override
   String get authChangeLanguage => 'تغيير اللغة';
 
   @override
@@ -340,7 +351,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonConnectionOffline => 'غير متصل';
 
   @override
-  String get commonConnectionReplaced => 'تم تسجيل الدخول من جهاز آخر';
+  String get commonConnectionReplaced => 'هذه اللعبة مفتوحة في مكان آخر';
 
   @override
   String get commonReconnect => 'إعادة الاتصال';
@@ -651,6 +662,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get errorRefreshReused =>
       'حفاظًا على أمانك، تم تسجيل خروجك. يُرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get errorSessionReplaced =>
+      'تم تسجيل الدخول إلى حسابك على جهاز آخر. يُرجى تسجيل الدخول مرة أخرى.';
 
   @override
   String get errorForbidden => 'ليس لديك إذن للقيام بذلك.';

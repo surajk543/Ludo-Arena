@@ -6,6 +6,7 @@ import 'package:ludo_royale/core/network/api_client.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/authentication/presentation/link_account_screen.dart';
 import 'package:ludo_royale/features/authentication/presentation/login_screen.dart';
+import 'package:ludo_royale/l10n/generated/app_localizations.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';
@@ -96,6 +97,52 @@ void main() {
       findsOneWidget,
     );
   });
+
+  for (final locale in const [Locale('en'), Locale('ar')]) {
+    testWidgets('signed in on another device: popup + banner on login '
+        '(${locale.languageCode})', (tester) async {
+      final env = await TestEnv.create();
+      env.routeHappyPath();
+      env.backend
+        ..json(
+          'POST',
+          '/auth/google',
+          authJson(isGuest: false, providers: ['google']),
+        )
+        ..on(
+          'POST',
+          '/auth/refresh',
+          (_) => FakeResponse.error(401, 'session_replaced'),
+        );
+      await pumpScreen(
+        tester,
+        env,
+        const LoginScreen(),
+        locale: locale,
+        prepare: (c) async {
+          await c
+              .read(sessionControllerProvider.notifier)
+              .signIn(LinkedProvider.google);
+          // Another device signs in: this session's refresh is refused.
+          await c.read(tokenManagerProvider).refreshNow();
+        },
+      );
+      await tester.pump();
+      final l10n = lookupAppLocalizations(locale);
+      expect(find.text(l10n.authSignedInElsewhereTitle), findsOneWidget);
+      expect(find.text(l10n.authSignedInElsewhereMessage), findsOneWidget);
+      expect(find.text(l10n.authSignedInElsewhereBanner), findsOneWidget);
+      expect(find.text(l10n.authSessionExpiredBanner), findsNothing);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text(l10n.commonOk));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.authSignedInElsewhereTitle), findsNothing);
+      // The banner stays; nothing signed back in on its own.
+      expect(find.text(l10n.authSignedInElsewhereBanner), findsOneWidget);
+      expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
+    });
+  }
 
   group('Save Progress', () {
     GoRouter router() => GoRouter(

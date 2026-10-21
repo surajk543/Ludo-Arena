@@ -43,6 +43,17 @@ class AppLocalizationsId extends AppLocalizations {
       'Kamu telah keluar. Silakan masuk lagi.';
 
   @override
+  String get authSignedInElsewhereTitle => 'Masuk di perangkat lain';
+
+  @override
+  String get authSignedInElsewhereMessage =>
+      'Seseorang masuk ke akunmu di perangkat lain, jadi kamu telah dikeluarkan di sini. Hanya satu perangkat yang bisa masuk dalam satu waktu. Masuk lagi untuk bermain di sini — perangkat lain akan dikeluarkan.';
+
+  @override
+  String get authSignedInElsewhereBanner =>
+      'Akunmu telah masuk di perangkat lain.';
+
+  @override
   String get authChangeLanguage => 'Ganti bahasa';
 
   @override
@@ -339,7 +350,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonConnectionOffline => 'Offline';
 
   @override
-  String get commonConnectionReplaced => 'Masuk di perangkat lain';
+  String get commonConnectionReplaced => 'Game ini terbuka di tempat lain';
 
   @override
   String get commonReconnect => 'Sambungkan lagi';
@@ -648,6 +659,10 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get errorRefreshReused =>
       'Demi keamananmu, kamu telah dikeluarkan. Silakan masuk lagi.';
+
+  @override
+  String get errorSessionReplaced =>
+      'Akunmu telah masuk di perangkat lain. Silakan masuk lagi.';
 
   @override
   String get errorForbidden => 'Kamu tidak punya izin untuk melakukannya.';

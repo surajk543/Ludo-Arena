@@ -110,6 +110,11 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p, err := g.auth.Authenticate(ctx, strings.TrimSpace(tok))
+	if errors.Is(err, auth.ErrSessionReplaced) {
+		metrics.WSConnects.WithLabelValues("unauthorized").Inc()
+		rejectJSON(w, http.StatusUnauthorized, "session_replaced", "Your account was signed in on another device.", nil)
+		return
+	}
 	if err != nil || (p.Kind != auth.KindAccess && p.Kind != auth.KindBot) {
 		metrics.WSConnects.WithLabelValues("unauthorized").Inc()
 		rejectJSON(w, http.StatusUnauthorized, "unauthorized", "Authentication required.", nil)
@@ -273,9 +278,27 @@ func (g *Gateway) register(c *conn) {
 
 // controlMsg is an instance-to-instance message on a user channel; it is
 // never forwarded to clients.
+//
+//	{"ctl":"kick","conn":"<connId>"}  a newer connection of this user exists
+//	{"ctl":"revoke","sid":"<sid>"}    session sid was replaced by a newer sign-in
 type controlMsg struct {
 	Ctl  string `json:"ctl"`
-	Conn string `json:"conn"`
+	Conn string `json:"conn,omitempty"`
+	Sid  string `json:"sid,omitempty"`
+}
+
+// RevokeSession closes, on every instance, the live connection of userID
+// that was authenticated with session sid (4401 "session replaced"). Called
+// after a newer sign-in of the account revoked that session; the periodic
+// session re-check remains the fallback if the publish is lost.
+func (g *Gateway) RevokeSession(ctx context.Context, userID, sid string) {
+	if userID == "" || sid == "" {
+		return
+	}
+	ctl, _ := json.Marshal(controlMsg{Ctl: "revoke", Sid: sid})
+	if err := g.rdb.Publish(ctx, notify.UserChannel(userID), ctl).Err(); err != nil {
+		g.log.Warn("session revoke publish failed", "error", err.Error())
+	}
 }
 
 func (g *Gateway) unregister(c *conn) {
@@ -345,8 +368,14 @@ func (g *Gateway) route(msg *redis.Message) {
 		if !bytes.HasPrefix(payload, []byte(`{"t":`)) {
 			// Not a client envelope: an instance control message.
 			var ctl controlMsg
-			if json.Unmarshal(payload, &ctl) == nil && ctl.Ctl == "kick" && ctl.Conn != c.id {
+			if json.Unmarshal(payload, &ctl) != nil {
+				return
+			}
+			switch {
+			case ctl.Ctl == "kick" && ctl.Conn != c.id:
 				c.close(CloseReplaced, "session replaced by a newer connection")
+			case ctl.Ctl == "revoke" && ctl.Sid != "" && ctl.Sid == c.principal.SessionID:
+				c.close(CloseUnauthorized, "session replaced")
 			}
 			return
 		}

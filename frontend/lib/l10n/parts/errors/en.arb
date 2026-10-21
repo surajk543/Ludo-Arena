@@ -127,6 +127,10 @@
   "@errorRefreshReused": {
     "description": "Error code refresh_reused (session revoked)."
   },
+  "errorSessionReplaced": "Your account was signed in on another device. Please sign in again.",
+  "@errorSessionReplaced": {
+    "description": "Error code session_replaced (the account signed in on another device)."
+  },
   "errorForbidden": "You don't have permission to do that.",
   "@errorForbidden": {
     "description": "Error code forbidden."

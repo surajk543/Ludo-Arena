@@ -119,6 +119,11 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	})
 	gw := websocket.New(cfg.WS, log, authSvc, policy, limiter, roomSvc, core.RDB, cfg.TrustedProxyHops)
 	gw.OnHumanConnect = ext.OnActivity
+	// One live human session per account: a sign-in elsewhere closes the
+	// replaced session's WebSocket on whichever instance holds it.
+	authSvc.OnSessionReplaced = func(ctx context.Context, userID uuid.UUID, oldSessionID string) {
+		gw.RevokeSession(context.WithoutCancel(ctx), userID.String(), oldSessionID)
+	}
 
 	rt := httpapi.NewRouter(log, authSvc, policy, limiter, cfg.TrustedProxyHops)
 	acct := &httpapi.Account{Log: log, Auth: authSvc, IDs: ids, Profiles: core.Profiles,

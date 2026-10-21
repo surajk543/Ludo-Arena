@@ -31,6 +31,7 @@
   "errorEnvironmentMismatch": "Build aplikasi ini terhubung ke server yang salah.",
   "errorInvalidCredential": "Gagal masuk. Silakan coba lagi.",
   "errorRefreshReused": "Demi keamananmu, kamu telah dikeluarkan. Silakan masuk lagi.",
+  "errorSessionReplaced": "Akunmu telah masuk di perangkat lain. Silakan masuk lagi.",
   "errorForbidden": "Kamu tidak punya izin untuk melakukannya.",
   "errorNotFound": "Yang kamu cari tidak ditemukan.",
   "errorIdentityConflict": "Akun ini sudah terhubung ke profil pemain lain.",

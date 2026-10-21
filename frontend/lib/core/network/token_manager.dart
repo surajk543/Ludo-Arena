@@ -9,6 +9,16 @@ import 'api_models.dart';
 /// Dio so the refresh call never recurses through the auth interceptor).
 typedef RefreshCall = Future<AuthResponse> Function(String refreshToken);
 
+/// Why the server ended the session.
+enum SessionEnd {
+  /// Expired, revoked or reused refresh token.
+  expired,
+
+  /// The account signed in on another device (`session_replaced`): only one
+  /// device may be signed in at a time.
+  replaced,
+}
+
 /// Owns the in-memory copy of the session tokens, persists rotations to
 /// [SecureSessionStore], and runs a **single-flight** refresh: concurrent
 /// 401s / expiring tokens share one `POST /auth/refresh`.
@@ -26,13 +36,18 @@ class TokenManager {
   int _generation = 0;
 
   final _refreshed = StreamController<AuthResponse>.broadcast();
-  final _expired = StreamController<void>.broadcast();
+  final _expired = StreamController<SessionEnd>.broadcast();
+  SessionEnd? _lastEnd;
 
   /// Emits every successful refresh (carries fresh `user` + `wallet`).
   Stream<AuthResponse> get onRefreshed => _refreshed.stream;
 
   /// Emits when the server rejected the refresh token (session over).
-  Stream<void> get onExpired => _expired.stream;
+  Stream<SessionEnd> get onExpired => _expired.stream;
+
+  /// Why the last session ended (null while a session is held or after a
+  /// local logout).
+  SessionEnd? get lastEnd => _lastEnd;
 
   bool get hasSession => _tokens != null;
   String? get accessToken => _tokens?.accessToken;
@@ -46,6 +61,7 @@ class TokenManager {
   /// Stores tokens from an [AuthResponse] (login, guest, refresh).
   Future<void> adopt(AuthResponse r) async {
     _generation++;
+    _lastEnd = null;
     final t = StoredTokens(
       accessToken: r.accessToken,
       accessExpiresAt: r.accessTokenExpiresAt,
@@ -60,6 +76,7 @@ class TokenManager {
   /// discarded.
   Future<void> clear() async {
     _generation++;
+    _lastEnd = null;
     _tokens = null;
     _inflight = null;
     await _store.clearTokens();
@@ -133,11 +150,16 @@ class TokenManager {
           e.status == 401 ||
           e.status == 403 ||
           e.code == 'refresh_reused' ||
+          e.code == 'session_replaced' ||
           e.code == 'unauthorized' ||
           e.code == 'invalid_credential';
       if (terminal) {
         await clear();
-        _expired.add(null);
+        final end = e.code == 'session_replaced'
+            ? SessionEnd.replaced
+            : SessionEnd.expired;
+        _lastEnd = end;
+        _expired.add(end);
         return null;
       }
       rethrow;

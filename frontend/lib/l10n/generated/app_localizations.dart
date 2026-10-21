@@ -164,6 +164,24 @@ abstract class AppLocalizations {
   /// **'You were signed out. Please sign in again.'**
   String get authSessionExpiredBanner;
 
+  /// Popup title when the account signed in on another device and this device was signed out.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in on another device'**
+  String get authSignedInElsewhereTitle;
+
+  /// Popup body: this device was signed out because the account signed in elsewhere (one device at a time).
+  ///
+  /// In en, this message translates to:
+  /// **'Someone signed in to your account on another device, so you\'ve been signed out here. Only one device can be signed in at a time. Sign in again to play here — the other device will be signed out.'**
+  String get authSignedInElsewhereMessage;
+
+  /// Login-screen banner after being signed out by a sign-in on another device.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account was signed in on another device.'**
+  String get authSignedInElsewhereBanner;
+
   /// Button/tooltip to change the language on the login screen.
   ///
   /// In en, this message translates to:
@@ -674,13 +692,13 @@ abstract class AppLocalizations {
   /// **'Offline'**
   String get commonConnectionOffline;
 
-  /// Realtime connection was replaced by a newer session on another device.
+  /// Close code 4409: a newer connection of the same signed-in session took over (e.g. the app opened twice). A sign-in on another device is shown separately (authSignedInElsewhere*).
   ///
   /// In en, this message translates to:
-  /// **'Signed in on another device'**
+  /// **'This game is open somewhere else'**
   String get commonConnectionReplaced;
 
-  /// Button to reconnect after being signed in elsewhere.
+  /// Button to reconnect (play here) after the connection was taken over or lost.
   ///
   /// In en, this message translates to:
   /// **'Reconnect'**
@@ -1249,6 +1267,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For your security, you\'ve been signed out. Please sign in again.'**
   String get errorRefreshReused;
+
+  /// Error code session_replaced (the account signed in on another device).
+  ///
+  /// In en, this message translates to:
+  /// **'Your account was signed in on another device. Please sign in again.'**
+  String get errorSessionReplaced;
 
   /// Error code forbidden.
   ///

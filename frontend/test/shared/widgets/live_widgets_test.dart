@@ -56,7 +56,7 @@ void main() {
         RealtimeStatus.connecting: 'Connecting…',
         RealtimeStatus.reconnecting: 'Reconnecting…',
         RealtimeStatus.offline: 'Offline',
-        RealtimeStatus.replaced: 'Signed in on another device',
+        RealtimeStatus.replaced: 'This game is open somewhere else',
       }.entries) {
         await tester.pumpWidget(
           await buildHarness(ConnectionIndicator(status: entry.key)),

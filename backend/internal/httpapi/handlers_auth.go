@@ -1,10 +1,13 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -69,7 +72,9 @@ func (a *Account) Register(rt *Router) {
 	rt.Handle("POST /api/v1/auth/facebook", gated(Route{IPRule: &authIP}), a.provider(identity.Facebook))
 	rt.Handle("POST /api/v1/auth/apple", gated(Route{IPRule: &authIP}), a.provider(identity.Apple))
 	rt.Handle("POST /api/v1/auth/refresh", gated(Route{IPRule: &refreshIP}), a.refresh)
-	rt.Handle("POST /api/v1/auth/logout", Route{Auth: AuthHuman}, a.logout)
+	// Logout accepts the access token OR the current refresh token (the access
+	// token is often expired by then), so it authenticates in the handler.
+	rt.Handle("POST /api/v1/auth/logout", Route{IPRule: &refreshIP}, a.logout)
 	rt.Handle("POST /api/v1/account/link/{provider}", gated(Route{Auth: AuthHuman, UserRule: &link}), a.link)
 	rt.Handle("GET /api/v1/me", gated(Route{Auth: AuthHuman}), a.me)
 	rt.Handle("GET /api/v1/wallet", gated(Route{Auth: AuthHuman}), a.wallet)
@@ -211,17 +216,54 @@ func refreshResult(err error) string {
 	switch {
 	case errors.Is(err, auth.ErrRefreshReused):
 		return "reused"
+	case errors.Is(err, auth.ErrSessionReplaced):
+		return "replaced"
 	case errors.Is(err, auth.ErrRefreshInvalid):
 		return "invalid"
 	}
 	return "error"
 }
 
+// logout ends the caller's session. A valid bearer access token identifies
+// the session; otherwise the body's refreshToken does, and only if it is the
+// session's current refresh token. The response is 204 whether or not a
+// session was found (idempotent; nothing about the token is revealed).
 func (a *Account) logout(w http.ResponseWriter, r *http.Request) error {
-	p, _ := PrincipalFrom(r.Context())
-	// The session is identified by the authenticated access token; an optional
-	// refreshToken in the body is ignored.
-	if err := a.Auth.Logout(r.Context(), p); err != nil {
+	var body struct {
+		RefreshToken string `json:"refreshToken"`
+	}
+	raw, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(bytes.TrimSpace(raw)) > 0 {
+		r.Body = io.NopCloser(bytes.NewReader(raw))
+		if err := DecodeJSON(r, &body); err != nil {
+			return err
+		}
+	}
+	ctx := r.Context()
+	if tok, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer "); ok && strings.TrimSpace(tok) != "" {
+		p, err := a.Auth.Authenticate(ctx, strings.TrimSpace(tok))
+		switch {
+		case err == nil && p.Kind != auth.KindAccess:
+			return ErrForbidden
+		case err == nil:
+			if err := a.Auth.Logout(ctx, p); err != nil {
+				return err
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return nil
+		case !errors.Is(err, auth.ErrInvalidToken) && !errors.Is(err, auth.ErrRevoked) &&
+			!errors.Is(err, auth.ErrSessionReplaced):
+			return err // infrastructure failure, not a credential problem
+		}
+		// Expired/invalid/dead access token: fall back to the refresh token.
+	}
+	if body.RefreshToken == "" {
+		return Errf(http.StatusUnauthorized, "unauthorized", "A valid access token or the refreshToken is required.")
+	}
+	if err := a.Auth.LogoutRefresh(ctx, body.RefreshToken); err != nil {
 		return err
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -337,6 +379,8 @@ func mapAuthErr(err error) error {
 			"This sign-in method is unavailable right now. Please try again or use another method.")
 	case errors.Is(err, auth.ErrRefreshReused):
 		return Errf(http.StatusUnauthorized, "refresh_reused", "Your session has ended. Please sign in again.")
+	case errors.Is(err, auth.ErrSessionReplaced):
+		return ErrSessionReplaced
 	case errors.Is(err, auth.ErrCredentialInvalid), errors.Is(err, auth.ErrRefreshInvalid):
 		return Errf(http.StatusUnauthorized, "invalid_credential", "The sign-in credential is invalid or has expired.")
 	}

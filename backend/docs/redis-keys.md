@@ -21,12 +21,14 @@ network only, AUTH/TLS.
 | `botsess:{uid}` | string | bot session TTL | rooms | Bot public id → session/room (revocation) |
 | `sess:{sid}` | hash `{uid, cur, actor}` | refresh TTL (sliding) | auth | Session family; deleting it revokes access + refresh |
 | `rt:{sha256}` | string | refresh TTL | auth | Refresh-token hash → session (old hashes remain as reuse tombstones) |
+| `usess:{userId}` | string (sid) | refresh TTL (slides with refresh) | auth | The account's one live **human** session. Set atomically by every sign-in (Lua), which deletes the previous `sess:{old}`; cleared on logout only if it still names that sid. Never written for bot sessions |
+| `sessrep:{sid}` | string (newer sid) | refresh TTL | auth | Tombstone: `sid` was ended by a newer sign-in of the account → refresh / REST / WS upgrade answer `session_replaced`. Not written by logout or reuse revocation |
 | `profile:{userId}` | hash `{name, avatar}` | none | profile | Display cache (non-authoritative) |
 | `pubid:{uid}` | string | none | profile | Public id → account id cache |
 | `presence:{userId}` | string | 60 s (refreshed) | gateway | Online indicator (friends list) |
 | `dedup:{userId}:{msgId}` | string | 2 min | gateway | WebSocket command de-duplication |
 | `rl:{rule}:{key}:{window}` | counter | window | ratelimit | Fixed-window rate limits |
-| `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify | Cross-instance event fan-out |
+| `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify / gateway | Cross-instance event fan-out. `ev:user:*` also carries gateway control messages (`{"ctl":"kick","conn":…}`, `{"ctl":"revoke","sid":…}`) that are never forwarded to clients |
 | progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents, weekly leaderboard, idempotency replays, active-user sketches |
 
 ## Atomic commits

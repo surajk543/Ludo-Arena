@@ -42,6 +42,10 @@ type Service struct {
 	// OnNewAccount is called after a genuinely new account is created
 	// (progression bootstrap, analytics counters). Optional.
 	OnNewAccount func(ctx context.Context, userID uuid.UUID)
+	// OnSessionReplaced is called after a human sign-in revoked the account's
+	// previous session (last sign-in wins); the gateway uses it to close that
+	// session's live WebSocket on every instance. Optional.
+	OnSessionReplaced func(ctx context.Context, userID uuid.UUID, oldSessionID string)
 }
 
 // NewService wires the auth service.
@@ -54,11 +58,15 @@ func NewService(signer *Signer, sessions *Sessions, ids *identity.Store, profile
 // Verifier exposes provider verification (used by linking).
 func (s *Service) Verifier() *Verifier { return s.verifier }
 
-// issue creates a new session family for the account.
+// issue creates a new human session family for the account. An account has
+// one live human session: the previous one (another device) is revoked.
 func (s *Service) issue(ctx context.Context, userID uuid.UUID) (Tokens, error) {
-	sid, refresh, err := s.sessions.Create(ctx, userID, ActorHuman)
+	sid, refresh, replaced, err := s.sessions.CreateHuman(ctx, userID)
 	if err != nil {
 		return Tokens{}, err
+	}
+	if replaced != "" && s.OnSessionReplaced != nil {
+		s.OnSessionReplaced(ctx, userID, replaced)
 	}
 	return s.access(userID, sid, refresh)
 }
@@ -152,23 +160,28 @@ func (s *Service) Refresh(ctx context.Context, refresh string) (Tokens, uuid.UUI
 	return toks, uid, err
 }
 
-// Logout revokes the caller's session family.
+// Logout revokes the caller's session family (not reported as replaced).
 func (s *Service) Logout(ctx context.Context, p Principal) error {
-	return s.sessions.Revoke(ctx, p.SessionID)
+	return s.sessions.EndHuman(ctx, p.UserID, p.SessionID)
+}
+
+// LogoutRefresh revokes the session whose current refresh token is refresh;
+// used when the client no longer holds a valid access token. Old (rotated) or
+// unknown tokens are ignored without error, so callers cannot probe tokens.
+func (s *Service) LogoutRefresh(ctx context.Context, refresh string) error {
+	return s.sessions.EndByRefresh(ctx, refresh)
 }
 
 // Authenticate validates an access token and that its session is active.
+// A dead session yields ErrSessionReplaced (newer sign-in of the account) or
+// ErrRevoked (logout, refresh reuse, expiry).
 func (s *Service) Authenticate(ctx context.Context, raw string) (Principal, error) {
 	c, err := s.signer.Parse(raw)
 	if err != nil {
 		return Principal{}, err
 	}
-	ok, err := s.sessions.Active(ctx, c.SessionID)
-	if err != nil {
+	if err := s.sessions.Check(ctx, c.SessionID); err != nil {
 		return Principal{}, err
-	}
-	if !ok {
-		return Principal{}, ErrRevoked
 	}
 	uid, err := uuid.Parse(c.Subject)
 	if err != nil {
@@ -178,9 +191,10 @@ func (s *Service) Authenticate(ctx context.Context, raw string) (Principal, erro
 		RoomID: c.RoomID, LoadTest: c.LoadTest, BotName: c.BotName}, nil
 }
 
-// SessionActive is used by long-lived connections to re-check revocation.
-func (s *Service) SessionActive(ctx context.Context, sid string) (bool, error) {
-	return s.sessions.Active(ctx, sid)
+// CheckSession is used by long-lived connections to re-check revocation:
+// nil, ErrSessionReplaced, ErrRevoked or a Redis error.
+func (s *Service) CheckSession(ctx context.Context, sid string) error {
+	return s.sessions.Check(ctx, sid)
 }
 
 // Link attaches a verified provider identity to the caller's account. The

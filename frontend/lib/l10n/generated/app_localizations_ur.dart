@@ -43,6 +43,17 @@ class AppLocalizationsUr extends AppLocalizations {
       'آپ سائن آؤٹ ہو گئے تھے۔ براہ کرم دوبارہ سائن اِن کریں۔';
 
   @override
+  String get authSignedInElsewhereTitle => 'کسی دوسرے آلے پر سائن اِن ہوا';
+
+  @override
+  String get authSignedInElsewhereMessage =>
+      'کسی نے آپ کے اکاؤنٹ سے دوسرے آلے پر سائن اِن کیا ہے، اس لیے آپ کو یہاں سے سائن آؤٹ کر دیا گیا ہے۔ ایک وقت میں صرف ایک آلے پر سائن اِن کیا جا سکتا ہے۔ یہاں کھیلنے کے لیے دوبارہ سائن اِن کریں — دوسرا آلہ سائن آؤٹ ہو جائے گا۔';
+
+  @override
+  String get authSignedInElsewhereBanner =>
+      'آپ کے اکاؤنٹ سے کسی دوسرے آلے پر سائن اِن کیا گیا۔';
+
+  @override
   String get authChangeLanguage => 'زبان بدلیں';
 
   @override
@@ -341,7 +352,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get commonConnectionOffline => 'آف لائن';
 
   @override
-  String get commonConnectionReplaced => 'کسی دوسرے ڈیوائس پر سائن اِن ہے';
+  String get commonConnectionReplaced => 'یہ گیم کہیں اور کھلا ہے';
 
   @override
   String get commonReconnect => 'دوبارہ کنیکٹ کریں';
@@ -652,6 +663,10 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get errorRefreshReused =>
       'آپ کی حفاظت کے لیے آپ کو سائن آؤٹ کر دیا گیا ہے۔ براہِ کرم دوبارہ سائن اِن کریں۔';
+
+  @override
+  String get errorSessionReplaced =>
+      'آپ کے اکاؤنٹ سے کسی دوسرے آلے پر سائن اِن کیا گیا۔ براہِ کرم دوبارہ سائن اِن کریں۔';
 
   @override
   String get errorForbidden => 'آپ کو یہ کرنے کی اجازت نہیں ہے۔';

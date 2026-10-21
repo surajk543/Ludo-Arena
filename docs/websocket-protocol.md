@@ -30,13 +30,18 @@ error body (same shape as REST errors) when:
 | HTTP | `error.code` | Client action |
 |---|---|---|
 | 401 | `unauthorized` | Refresh the access token, then reconnect |
+| 401 | `session_replaced` | The account signed in on another device: show the "signed in on another device" popup, go to sign-in (no automatic re-login) |
 | 426 | `update_required` | Re-check app policy → force-update screen |
 | 503 | `maintenance` | Re-check app policy → maintenance screen |
 | 429 | `rate_limited` | Back off, reconnect later |
 | 400 | `bad_request` / `client_version_required` | Bug: stop reconnecting |
 
-Only one live connection per user. A newer connection closes the older one
-with close code `4409`.
+Only one live connection per user. A newer connection **of the same signed-in
+session** closes the older one with close code `4409` (e.g. the app opened a
+second socket). Another device can no longer hold a valid session at the same
+time: an account has one live human session, and signing in on another device
+revokes the previous one, whose socket is closed at once with `4401` (see
+`authentication.md` → "One active device per account").
 
 ### Close codes (after upgrade)
 
@@ -46,8 +51,8 @@ with close code `4409`.
 | 1001 | Server shutting down | Reconnect with backoff |
 | 1008 | Policy violation (message too large / malformed frames) | Reconnect with backoff |
 | 4400 | Protocol violation (repeated invalid messages) | Reconnect with backoff |
-| 4401 | Session revoked or expired | Refresh token; if refresh fails → sign-in screen |
-| 4409 | Session replaced by a newer connection | Do **not** auto-reconnect; show "Signed in on another device" with a Reconnect button |
+| 4401 | Session revoked or expired — **or the account signed in on another device** (reason `session replaced`, sent immediately) | Refresh token; if refresh fails → sign-in screen. If the refresh fails with `session_replaced`: show "Your account was signed in on another device", clear the session, go to sign-in **without** automatic re-login |
+| 4409 | Replaced by a newer connection of the **same session** (another socket opened by the same signed-in app) | Do **not** auto-reconnect; offer a Reconnect button (not the "another device" popup — that is `4401` + `session_replaced`) |
 | 4426 | Client version no longer supported | Policy re-check → force-update screen |
 | 4429 | Rate limit abuse | Reconnect after ≥ 10 s |
 | 4503 | Maintenance started | Policy re-check → maintenance screen |

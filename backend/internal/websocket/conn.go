@@ -202,8 +202,11 @@ func (c *conn) heartbeat() {
 			}
 			c.g.rdb.Expire(c.ctx, "presence:"+c.userID, presenceTTL)
 		case <-sess.C:
-			ok, err := c.g.auth.SessionActive(c.ctx, c.principal.SessionID)
-			if err == nil && !ok {
+			switch err := c.g.auth.CheckSession(c.ctx, c.principal.SessionID); {
+			case errors.Is(err, auth.ErrSessionReplaced):
+				c.close(CloseUnauthorized, "session replaced")
+				return
+			case errors.Is(err, auth.ErrRevoked):
 				c.close(CloseUnauthorized, "session revoked")
 				return
 			}

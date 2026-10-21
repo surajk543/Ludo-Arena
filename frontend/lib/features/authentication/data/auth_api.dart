@@ -14,8 +14,10 @@ abstract interface class AuthApi {
   /// `POST /auth/{provider}`.
   Future<AuthResponse> signIn(ProviderCredential credential);
 
-  /// `POST /auth/logout` (best effort).
-  Future<void> logout(String refreshToken);
+  /// `POST /auth/logout` (best effort). Revokes the session of
+  /// [accessToken] when given (sent explicitly: the local session is being
+  /// replaced or cleared at the same time), else of [refreshToken].
+  Future<void> logout(String refreshToken, {String? accessToken});
 
   /// `GET /me`.
   Future<MeResponse> me();
@@ -54,10 +56,11 @@ class RestAuthApi implements AuthApi {
       );
 
   @override
-  Future<void> logout(String refreshToken) async {
+  Future<void> logout(String refreshToken, {String? accessToken}) async {
     await _api.post(
       '/auth/logout',
       auth: false,
+      bearer: accessToken,
       body: {'refreshToken': refreshToken},
     );
   }

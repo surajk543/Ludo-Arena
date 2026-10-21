@@ -82,10 +82,18 @@ func TestGoogleLoginLinkingAndConflicts(t *testing.T) {
 	if user["id"] != g.UserID || user["isGuest"] != false || link.Body["wallet"].(map[string]any)["coins"].(float64) != 1_000_000 {
 		t.Fatalf("link changed account or wallet: %s", link.Raw)
 	}
-	// Signing in with that Google account on "another device" resolves to it.
+	// Signing in with that Google account on "another device" resolves to it
+	// and, one live session per account (last sign-in wins), ends the first
+	// device's session.
 	other := parseAuth(t, e.do("POST", "/api/v1/auth/google", "", map[string]any{"idToken": e.oidc.googleToken(t, sub("link"), googleAud, time.Hour)}))
 	if other.UserID != g.UserID || other.Coins != 1_000_000 {
 		t.Fatalf("provider login resolved to %s with %d coins", other.UserID, other.Coins)
+	}
+	if r := e.do("GET", "/api/v1/me", g.Token, nil); r.Status != 401 || errCode(r) != "session_replaced" {
+		t.Fatalf("first device after sign-in elsewhere: %d %s, want 401 session_replaced", r.Status, r.Raw)
+	}
+	if r := e.do("POST", "/api/v1/auth/refresh", "", map[string]any{"refreshToken": g.Refresh}); r.Status != 401 || errCode(r) != "session_replaced" {
+		t.Fatalf("first device refresh: %d %s, want 401 session_replaced", r.Status, r.Raw)
 	}
 
 	// Another guest trying to link the same Google identity gets a conflict;
@@ -98,13 +106,14 @@ func TestGoogleLoginLinkingAndConflicts(t *testing.T) {
 	if e.coins(g2.Token) != 1_000_000 || e.coins(other.Token) != 1_000_000 {
 		t.Fatal("conflict changed balances")
 	}
-	// Linking a second, different Google account to the same profile fails.
-	again := e.do("POST", "/api/v1/account/link/google", g.Token, map[string]any{"idToken": e.oidc.googleToken(t, sub("second"), googleAud, time.Hour)})
+	// Linking a second, different Google account to the same profile fails
+	// (from the device that is now signed in).
+	again := e.do("POST", "/api/v1/account/link/google", other.Token, map[string]any{"idToken": e.oidc.googleToken(t, sub("second"), googleAud, time.Hour)})
 	if again.Status != 409 || again.Body["error"].(map[string]any)["code"] != "provider_already_linked" {
 		t.Fatalf("second google link: %d %s", again.Status, again.Raw)
 	}
 	// Re-linking the same identity is idempotent.
-	if r := e.do("POST", "/api/v1/account/link/google", g.Token, map[string]any{"idToken": e.oidc.googleToken(t, sub("link"), googleAud, time.Hour)}); r.Status != 200 {
+	if r := e.do("POST", "/api/v1/account/link/google", other.Token, map[string]any{"idToken": e.oidc.googleToken(t, sub("link"), googleAud, time.Hour)}); r.Status != 200 {
 		t.Fatalf("idempotent relink: %d", r.Status)
 	}
 }
@@ -114,6 +123,7 @@ func TestConcurrentFirstLoginProvisionsOnce(t *testing.T) {
 	tok := e.oidc.googleToken(t, sub("race"), googleAud, time.Hour)
 	var wg sync.WaitGroup
 	ids := make(chan string, 20)
+	tokens := make(chan string, 20)
 	for i := 0; i < 20; i++ {
 		wg.Add(1)
 		go func() {
@@ -121,11 +131,25 @@ func TestConcurrentFirstLoginProvisionsOnce(t *testing.T) {
 			r := e.do("POST", "/api/v1/auth/google", "", map[string]any{"idToken": tok})
 			if r.Status == 200 {
 				ids <- r.Body["user"].(map[string]any)["id"].(string)
+				tokens <- r.Body["accessToken"].(string)
 			}
 		}()
 	}
 	wg.Wait()
 	close(ids)
+	close(tokens)
+	// One live session per account: concurrent sign-ins leave exactly one.
+	live := 0
+	for at := range tokens {
+		if r := e.do("GET", "/api/v1/me", at, nil); r.Status == 200 {
+			live++
+		} else if errCode(r) != "session_replaced" {
+			t.Fatalf("concurrent sign-in session: %d %s", r.Status, r.Raw)
+		}
+	}
+	if live != 1 {
+		t.Fatalf("%d live sessions after concurrent sign-ins, want 1", live)
+	}
 	seen := map[string]bool{}
 	for id := range ids {
 		seen[id] = true
