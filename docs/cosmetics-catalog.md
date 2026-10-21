@@ -7,8 +7,8 @@ rewards. There are no random/loot-box items.
 
 Acquisition types: `starter` (every account owns it, no row stored), `level`
 (granted automatically when the level is reached), `mission` / `event`
-(granted by claiming that objective), `purchase` (fixed price, coins or
-diamonds, bought explicitly).
+(granted by claiming that objective), `purchase` (fixed price in diamonds
+only, bought explicitly in the Shop).
 
 | Slot / kind | id | Name | Rarity | Acquisition |
 |---|---|---|---|---|
@@ -19,13 +19,13 @@ diamonds, bought explicitly).
 | token | `token_classic` | Classic Pawn | common | starter |
 | token | `token_gem` | Gemstone | rare | level 3 |
 | token | `token_royal` | Royal Pawn | epic | level 10 |
-| token | `token_crown` | Crown Piece | legendary | purchase 150,000 coins |
+| token | `token_crown` | Crown Piece | legendary | purchase 100 diamonds |
 | ludo_board | `ludo_board_classic` | Classic | common | starter |
 | ludo_board | `ludo_board_midnight` | Midnight Marble | rare | level 8 |
-| ludo_board | `ludo_board_royal` | Royal Court | epic | purchase 30 diamonds |
+| ludo_board | `ludo_board_royal` | Royal Court | epic | purchase 200 diamonds |
 | snakes_board | `snakes_board_classic` | Classic Meadow | common | starter |
 | snakes_board | `snakes_board_jungle` | Jungle Temple | rare | level 6 |
-| snakes_board | `snakes_board_candy` | Candy Land | epic | purchase 200,000 coins |
+| snakes_board | `snakes_board_candy` | Candy Land | epic | purchase 200 diamonds |
 | trail | `trail_none` | No Trail | common | starter |
 | trail | `trail_sparkle` | Sparkle | rare | level 7 |
 | trail | `trail_comet` | Comet | epic | purchase 20 diamonds |
@@ -60,12 +60,30 @@ reached): 2 → `frame_bronze`; 3 → `token_gem`, `emote_laugh`; 5 →
 `token_royal`; 12 → `victory_fireworks`; 15 → `title_dice_master`; 20 →
 `frame_gold`; 30 → `title_royal`.
 
+## Collection vs Shop (app)
+
+Both screens read the same server data (`GET /collection`, and the picture
+shelf below); the split is presentation only — the backend stays
+authoritative for ownership, prices and purchases.
+
+| | **Collection Room** (`/collection`) | **Shop** (`/shop`; `/store` redirects) |
+|---|---|---|
+| Cosmetics | Everything **owned** (starter, bought, earned) plus what can still be **earned** by playing (`level`, `mission`, `event`), shown locked with how to earn it ("Reach level 10", mission, event). Equip / reset as before. | Only items with `acquisition.type == "purchase"` (fixed price in **diamonds** — the Shop never sells for coins; the catalogue loader refuses a coin price) that the player does **not own yet**, one category per kind that has priced items: dice, tokens, Ludo boards, Snakes boards, trails, victory, frames, emotes (titles and badges are never sold). |
+| Profile pictures | **Pictures** tab: the owned pictures (`filter=owned`, paged), Apply / back to the classic avatar. | **Pictures** category: pictures not owned yet (`excludeOwned=true`; All / Animated / Static), bought with diamonds. |
+| After a purchase | The item appears here (equip / apply it any time). | The item leaves the Shop; its sheet offers Equip/Apply now and View in Collection. |
+
+An empty Collection tab, and every tab with items for sale, links to that
+Shop category (`/shop?category=dice`, `picture`, …). The Shop opens on the
+category chosen last in the running app. The lobby's **Shop** button is
+pinned at the top of Home.
+
 ## Profile pictures
 
-Players buy **profile pictures** in the **Store** (`/store` in the app) with
-**diamonds**. A bought picture is the player's **forever** (no expiry, no
-rental); the player can apply any picture they own, or go back to the
-built-in avatar. Pictures are cosmetic only. API:
+Players buy **profile pictures** in the app's **Shop** (`/shop`, Pictures
+category; the API keeps its `/store/…` paths) with **diamonds**. A bought
+picture is the player's **forever** (no expiry, no rental) and moves to the
+Collection's Pictures tab; the player can apply any picture they own, or go
+back to the built-in avatar. Pictures are cosmetic only. API:
 [`rest-api.md` → Store](rest-api.md#store-profile-pictures).
 
 **Catalogue** — `progression.profile_pictures` (owner-approved table,
@@ -119,7 +137,7 @@ once into app storage (`<applicationSupportDirectory>/profile_pictures/<path>`)
 and never downloads the same path again. Backend configuration (all four or
 none; only in `backend/.env` / the secret store): `R2_ACCOUNT_ID`,
 `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` (an R2 API token
-limited to this bucket). Without them the Store still lists, sells and
+limited to this bucket). Without them the Shop still lists, sells and
 applies pictures, and signing answers 503 `assets_unavailable`. Signed URLs
 and secrets are never logged.
 

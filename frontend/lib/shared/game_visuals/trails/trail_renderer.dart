@@ -35,15 +35,16 @@ abstract final class TrailRenderer {
     required double now,
     required double cell,
     required Offset origin,
+    double rowScale = 1,
     required Color color,
     double opacity = 1,
   }) {
     final id = TrailStyles.resolve(trailId);
     if (id == TrailStyles.none || history.length < 2) return;
     if (id == TrailStyles.comet) {
-      _comet(canvas, history, now, cell, origin, color, opacity);
+      _comet(canvas, history, now, cell, origin, rowScale, color, opacity);
     } else {
-      _sparkle(canvas, history, now, cell, origin, color, opacity);
+      _sparkle(canvas, history, now, cell, origin, rowScale, color, opacity);
     }
   }
 
@@ -53,6 +54,7 @@ abstract final class TrailRenderer {
     double now,
     double cell,
     Offset origin,
+    double rowScale,
     Color color,
     double opacity,
   ) {
@@ -65,11 +67,11 @@ abstract final class TrailRenderer {
         final life = 1 - age / lifetime;
         final p0 = Offset(
           origin.dx + h.xAt(i - 1) * cell,
-          origin.dy + h.yAt(i - 1) * cell,
+          origin.dy + h.yAt(i - 1) * cell * rowScale,
         );
         final p1 = Offset(
           origin.dx + h.xAt(i) * cell,
-          origin.dy + h.yAt(i) * cell,
+          origin.dy + h.yAt(i) * cell * rowScale,
         );
         if (pass == 0) {
           _paint
@@ -92,6 +94,7 @@ abstract final class TrailRenderer {
     double now,
     double cell,
     Offset origin,
+    double rowScale,
     Color color,
     double opacity,
   ) {
@@ -106,7 +109,7 @@ abstract final class TrailRenderer {
       final jy = (MotionCurves.hash(seed, 2) - 0.5) * 0.45 + 0.25 * (1 - life);
       final pos = Offset(
         origin.dx + (h.xAt(i) + jx) * cell,
-        origin.dy + (h.yAt(i) + jy) * cell,
+        origin.dy + (h.yAt(i) + jy) * cell * rowScale,
       );
       final twinkle = 0.6 + 0.4 * math.sin(age * 40 + seed);
       final r =

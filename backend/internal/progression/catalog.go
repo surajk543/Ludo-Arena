@@ -157,9 +157,9 @@ func ParseCatalog(raw []byte) (*Catalog, error) {
 				c.milestones[a.Level] = append(c.milestones[a.Level], it)
 			}
 		case AcqPurchase:
-			if a.Price == nil || a.Price.Coins < 0 || a.Price.Diamonds < 0 ||
-				(a.Price.Coins > 0) == (a.Price.Diamonds > 0) {
-				bad("item %s: purchase price must be positive in exactly one currency", it.ID)
+			// The Shop sells for diamonds only (owner, 21 Oct 2026).
+			if a.Price == nil || a.Price.Coins != 0 || a.Price.Diamonds <= 0 {
+				bad("item %s: purchase price must be a positive number of diamonds (no coins)", it.ID)
 			}
 		case AcqMission:
 			if a.Mission == "" {

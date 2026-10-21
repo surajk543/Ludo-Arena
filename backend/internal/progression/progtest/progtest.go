@@ -154,6 +154,16 @@ func (e *Env) NewAccount(t testing.TB) uuid.UUID {
 	return acct.UserID
 }
 
+// SetDiamonds sets the account's diamond balance (tests that buy Shop items,
+// which cost more than the welcome grant).
+func (e *Env) SetDiamonds(t testing.TB, id uuid.UUID, diamonds int64) {
+	t.Helper()
+	if _, err := e.Pool.Exec(context.Background(),
+		`UPDATE wallet.wallets SET diamonds = $2 WHERE user_id = $1`, id, diamonds); err != nil {
+		t.Fatalf("set diamonds: %v", err)
+	}
+}
+
 // Guest creates a guest through the real auth service and returns its access
 // token.
 func (e *Env) Guest(t testing.TB) (uuid.UUID, string) {

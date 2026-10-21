@@ -283,13 +283,20 @@ func (s *Service) pictureState(ctx context.Context, userID uuid.UUID) (owned map
 // StorePictures returns one page of the Store shelf for an account. filter
 // is all | animated | static | owned (default all); limit 1..50 (0 = 24);
 // cursor is the previous page's nextCursor. Retired (inactive) pictures are
-// listed only to their owners.
-func (s *Service) StorePictures(ctx context.Context, userID uuid.UUID, filter string, limit int, cursor string) (PicturePage, error) {
+// listed only to their owners. excludeOwned leaves out every picture the
+// account owns (the app's Shop sells only what is not owned yet); it is not
+// allowed with filter owned. Paging stays position based (sort_order, id),
+// so a purchase between two pages never repeats or skips an item.
+func (s *Service) StorePictures(ctx context.Context, userID uuid.UUID, filter string, excludeOwned bool, limit int, cursor string) (PicturePage, error) {
 	if filter == "" {
 		filter = FilterAll
 	}
 	switch filter {
-	case FilterAll, FilterAnimated, FilterStatic, FilterOwned:
+	case FilterAll, FilterAnimated, FilterStatic:
+	case FilterOwned:
+		if excludeOwned {
+			return PicturePage{}, ErrBadStoreQuery
+		}
 	default:
 		return PicturePage{}, ErrBadStoreQuery
 	}
@@ -328,6 +335,9 @@ func (s *Service) StorePictures(ctx context.Context, userID uuid.UUID, filter st
 			visible = visible && r.Format == assets.FormatImage
 		case FilterOwned:
 			visible = owned[r.ID]
+		}
+		if excludeOwned && owned[r.ID] {
+			visible = false
 		}
 		if !visible {
 			continue

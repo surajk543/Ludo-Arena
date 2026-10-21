@@ -31,7 +31,9 @@ class LoadoutSummaryCard extends ConsumerWidget {
     final user = ref.watch(sessionControllerProvider.select((s) => s.user));
     final lo = data.loadout;
     final owned = data.ownedCount;
-    final total = data.items.length;
+    // Out of what the Collection shows (owned + still to earn); items for
+    // sale count once bought.
+    final total = data.collectionCount;
 
     return SurfaceCard(
       elevation: AppElevation.medium,

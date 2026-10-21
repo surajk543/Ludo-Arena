@@ -59,7 +59,9 @@ Map<String, dynamic> storePageJson(
 };
 
 /// `GET /store/profile-pictures` over [shelf], paged by [pageSize] with
-/// cursors `c<offset>`, honouring the filter.
+/// cursors `c<offset>`, honouring the filter and `excludeOwned` (the
+/// Shop's shelf). `filter=owned&excludeOwned=true` is a 400 like the
+/// server.
 void routeStore(
   TestEnv env, {
   List<Map<String, dynamic>>? shelf,
@@ -72,14 +74,19 @@ void routeStore(
   ].firstOrNull;
   env.backend.on('GET', '/store/profile-pictures', (req) {
     final filter = req.query['filter'] ?? 'all';
+    final excludeOwned = req.query['excludeOwned'] == 'true';
+    if (excludeOwned && filter == 'owned') {
+      return FakeResponse.error(400, 'bad_request');
+    }
     final items = [
       for (final i in all)
-        if (switch (filter) {
-          'animated' => i['format'] == 'lottie',
-          'static' => i['format'] == 'image',
-          'owned' => i['owned'] == true,
-          _ => true,
-        })
+        if (!(excludeOwned && i['owned'] == true) &&
+            switch (filter) {
+              'animated' => i['format'] == 'lottie',
+              'static' => i['format'] == 'image',
+              'owned' => i['owned'] == true,
+              _ => true,
+            })
           i,
     ];
     final cursor = req.query['cursor'] as String?;

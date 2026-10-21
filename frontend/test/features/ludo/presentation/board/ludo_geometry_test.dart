@@ -335,14 +335,32 @@ void main() {
     });
   });
 
-  test('layout fits a centered square with a frame', () {
+  test('layout fits a centered, slightly taller board with a frame', () {
+    const h = LudoBoardLayout.rowHeight;
+    expect(h, greaterThan(1));
+    expect(LudoBoardLayout.aspectRatio, closeTo(1 / h, 1e-12));
+    // Height-limited: the board is 300 tall and 300 / h wide.
     final layout = LudoBoardLayout.fit(const Size(420, 300));
-    expect(layout.boardRect, const Rect.fromLTWH(60, 0, 300, 300));
-    expect(layout.cell, closeTo(300 / LudoBoardLayout.totalUnits, 1e-9));
+    expect(layout.boardRect.height, closeTo(300, 1e-9));
+    expect(layout.boardRect.width, closeTo(300 / h, 1e-9));
+    expect(layout.boardRect.center.dx, closeTo(210, 1e-9));
+    expect(layout.cell, closeTo(300 / (LudoBoardLayout.totalUnits * h), 1e-9));
+    expect(layout.cellY, closeTo(layout.cell * h, 1e-9));
     final p = layout.toPx(const Offset(7.5, 7.5));
     expect(p.dx, closeTo(210, 1e-9));
     expect(p.dy, closeTo(150, 1e-9));
-    expect(layout.toGrid(p), const Offset(7.5, 7.5));
+    final g = layout.toGrid(p);
+    expect(g.dx, closeTo(7.5, 1e-9));
+    expect(g.dy, closeTo(7.5, 1e-9));
+    // Width-limited: the same width as before, taller.
+    final wide = LudoBoardLayout.fit(const Size(300, 600));
+    expect(wide.boardRect.width, closeTo(300, 1e-9));
+    expect(wide.boardRect.height, closeTo(300 * h, 1e-9));
+    expect(wide.cell, closeTo(300 / LudoBoardLayout.totalUnits, 1e-9));
+    final r = wide.cellRect(const BoardCell(3, 4));
+    expect(r.width, closeTo(wide.cell, 1e-9));
+    expect(r.height, closeTo(wide.cell * h, 1e-9));
+    expect(r.center, wide.toPx(const BoardCell(3, 4).center));
   });
 }
 

@@ -4,22 +4,29 @@ import '../../../core/network/api_client.dart';
 import '../../../core/protocol/json_read.dart';
 import '../domain/store_models.dart';
 
-/// Store REST endpoints (profile pictures).
+/// Profile-picture REST endpoints (`/store/…`, shown as the Shop).
 class StoreApi {
   StoreApi(this._api);
 
   final ApiClient _api;
 
-  /// `GET /store/profile-pictures`. Throws [ApiException] (`bad_request`
-  /// for a stale cursor).
+  /// `GET /store/profile-pictures`. [excludeOwned] leaves out the pictures
+  /// the player owns (the Shop; not with [StoreFilter.owned]). Throws
+  /// [ApiException] (`bad_request` for a stale cursor).
   Future<StorePage> list({
     StoreFilter filter = StoreFilter.all,
+    bool excludeOwned = false,
     String? cursor,
     int limit = kStorePageSize,
   }) async => StorePage.fromJson(
     await _api.get(
       '/store/profile-pictures',
-      query: {'filter': filter.wire, 'limit': '$limit', 'cursor': ?cursor},
+      query: {
+        'filter': filter.wire,
+        if (excludeOwned) 'excludeOwned': 'true',
+        'limit': '$limit',
+        'cursor': ?cursor,
+      },
     ),
   );
 

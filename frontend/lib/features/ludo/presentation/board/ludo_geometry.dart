@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show Offset, Rect, Size;
 
 import 'package:flutter/foundation.dart';
@@ -390,24 +391,39 @@ class LudoBoardLayout {
   /// Decorative frame around the grid, in grid units.
   static const double frameInset = 0.3;
 
-  /// Total board side in grid units (grid + frame).
+  /// Total board width in grid units (grid + frame).
   static const double totalUnits = LudoGeometry.gridSize + 2 * frameInset;
 
-  /// Fits a square board centered in [size].
+  /// Height of a row relative to its width: the board is a little taller
+  /// than wide at the same width (owner, 21 Oct 2026). Grid units stay
+  /// square in [LudoGeometry]; only the pixel mapping stretches rows.
+  static const double rowHeight = 1.1;
+
+  /// Width / height of the whole board, for `AspectRatio`.
+  static const double aspectRatio = 1 / rowHeight;
+
+  /// Fits the board centered in [size].
   factory LudoBoardLayout.fit(Size size) {
-    final side = size.shortestSide;
-    final cell = side / totalUnits;
-    final left = (size.width - side) / 2;
-    final top = (size.height - side) / 2;
+    final cell = math.min(
+      size.width / totalUnits,
+      size.height / (totalUnits * rowHeight),
+    );
+    final w = totalUnits * cell;
+    final h = totalUnits * cell * rowHeight;
+    final left = (size.width - w) / 2;
+    final top = (size.height - h) / 2;
     return LudoBoardLayout._(
       cell,
-      Offset(left + frameInset * cell, top + frameInset * cell),
-      Rect.fromLTWH(left, top, side, side),
+      Offset(left + frameInset * cell, top + frameInset * cell * rowHeight),
+      Rect.fromLTWH(left, top, w, h),
     );
   }
 
-  /// Pixel size of one grid unit.
+  /// Pixel width of one grid unit (sizes of round things use this).
   final double cell;
+
+  /// Pixel height of one grid unit (rows are [rowHeight] times taller).
+  double get cellY => cell * rowHeight;
 
   /// Pixel position of grid point (0, 0).
   final Offset gridOrigin;
@@ -416,15 +432,15 @@ class LudoBoardLayout {
   final Rect boardRect;
 
   Offset toPx(Offset grid) =>
-      Offset(gridOrigin.dx + grid.dx * cell, gridOrigin.dy + grid.dy * cell);
+      Offset(gridOrigin.dx + grid.dx * cell, gridOrigin.dy + grid.dy * cellY);
 
   Offset toGrid(Offset px) =>
-      Offset((px.dx - gridOrigin.dx) / cell, (px.dy - gridOrigin.dy) / cell);
+      Offset((px.dx - gridOrigin.dx) / cell, (px.dy - gridOrigin.dy) / cellY);
 
   Rect cellRect(BoardCell c) => Rect.fromLTWH(
     gridOrigin.dx + c.col * cell,
-    gridOrigin.dy + c.row * cell,
+    gridOrigin.dy + c.row * cellY,
     cell,
-    cell,
+    cellY,
   );
 }

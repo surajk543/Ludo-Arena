@@ -39,6 +39,10 @@ abstract class MatchBoardBinding implements MatchAnimator {
   /// Builds the board widget (sized by its parent; keeps its own aspect).
   Widget buildBoard(BuildContext context, MatchBoardArgs args);
 
+  /// Width / height of the board widget, so the match layout can leave the
+  /// board its full width (boards are a little taller than wide).
+  double get boardAspectRatio => 1;
+
   /// Highlights the local player's legal tokens (no-op for games without
   /// choices).
   void showLegalMoves(RoomSnapshot room);

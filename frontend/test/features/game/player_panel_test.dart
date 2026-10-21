@@ -7,8 +7,11 @@ import 'package:ludo_royale/core/realtime/active_room_controller.dart';
 import 'package:ludo_royale/core/theme/app_theme.dart';
 import 'package:ludo_royale/features/game/presentation/game_route_screen.dart';
 import 'package:ludo_royale/features/game/presentation/widgets/player_panel.dart';
+import 'package:ludo_royale/features/ludo/presentation/board/ludo_board.dart';
+import 'package:ludo_royale/features/snakes_ladders/presentation/board/snakes_board.dart';
 import 'package:ludo_royale/features/social/application/muted_players.dart';
 import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
 import 'package:ludo_royale/shared/widgets/widgets.dart';
 
 import 'support/play_test_support.dart';
@@ -20,6 +23,7 @@ Future<void> _pumpPanel(
   WidgetTester tester, {
   required double width,
   bool stacked = true,
+  double? height,
   RoomSnapshot? room,
   RoomPlayer? p,
   bool isTurn = false,
@@ -64,6 +68,7 @@ Future<void> _pumpPanel(
                 isSelf: false,
                 isTurn: isTurn,
                 stacked: stacked,
+                height: height,
                 muted: muted,
               ),
             ),
@@ -79,6 +84,7 @@ Future<PlayHarness> _pumpGame(
   WidgetTester tester,
   RoomSnapshot room, {
   required Size size,
+  EdgeInsets safeArea = EdgeInsets.zero,
   double textScale = 1,
   Locale locale = const Locale('en'),
 }) async {
@@ -89,12 +95,32 @@ Future<PlayHarness> _pumpGame(
     tester,
     GameRouteScreen(roomId: room.id),
     size: size,
+    safeArea: safeArea,
     textScale: textScale,
     locale: locale,
   );
   await flush(tester);
   return h;
 }
+
+/// iPhone 17 Pro / 16 / 15-style insets (status bar + home indicator).
+const _iphoneInsets = EdgeInsets.only(top: 62, bottom: 34);
+
+/// The board itself (its aspect box), Ludo or Snakes.
+Rect _boardRect(WidgetTester tester) {
+  final ludo = find.byType(LudoBoard);
+  return tester.getRect(
+    find
+        .descendant(
+          of: ludo.evaluate().isEmpty ? find.byType(SnakesBoard) : ludo,
+          matching: find.byType(AspectRatio),
+        )
+        .first,
+  );
+}
+
+Finder _podOf(int seat) =>
+    find.byWidgetPredicate((w) => w is PlayerPanel && w.player.seat == seat);
 
 Size _podSize(WidgetTester tester) => tester.getSize(find.byType(PlayerPanel));
 
@@ -107,14 +133,14 @@ double _avatar(WidgetTester tester, [Finder? pod]) => tester
     )
     .width;
 
-Rect _panelRect(WidgetTester tester, int seat) => tester.getRect(
-  find.byWidgetPredicate((w) => w is PlayerPanel && w.player.seat == seat),
-);
+Rect _panelRect(WidgetTester tester, int seat) => tester.getRect(_podOf(seat));
 
 void main() {
   // Pod sizes measured before the progress column moved beside the avatar
   // (classic card: 56 dp avatar with the "★○○○ 0/4" line under the name).
-  // The redesign must keep every one of them.
+  // The redesign must keep every one of them. These are pods at their
+  // natural size (no fill height: the landscape side column, or portrait
+  // rows too short to fill); portrait pods fill their row (see below).
   group('the outer pod size is unchanged', () {
     for (final c in [
       // Card at the pod widths of 393, 360 and narrower phones.
@@ -157,44 +183,173 @@ void main() {
         }
       });
     }
+  });
 
+  // Portrait: the board keeps its full width (body − 12) and the two pod
+  // rows split the height it leaves:
+  //   area = body − top bar (56) − status line (40)
+  //   pod  = ⌊(area − 4 (top gap) − 12 (board padding) − board) / 2⌋
+  // with board = (width − 12) × 1.1 for Ludo, ÷ 0.8225 for Snakes. A filled
+  // card's avatar row is pod − 35 (paddings 2 × 5, turn border 2 × 2, gap 3,
+  // 18 dp name line), its avatar that minus a 10–12 dp turn-ring gap,
+  // within width − 58 and 96 dp. All four pods are the same size, on turn
+  // or not. Before this, these phones had 64–80 dp row pods (40–48 dp
+  // avatars) with up to 44 dp of empty space above and below the board.
+  group('portrait pods fill the height around the full-width board', () {
     for (final c in [
+      // iPhone 17 Pro (owner's report): body 778 → area 682; board 390 ×
+      // 429 → pods 118; avatar row 83 → 71 dp avatars (were 48 in 78 dp
+      // row pods). Pods need 129 dp of width, so the dice dock takes 8 dp
+      // of the rest (88 dp dock, pods 147 wide).
+      (
+        size: const Size(402, 874),
+        safeArea: _iphoneInsets,
+        snakes: false,
+        avatar: 71.0,
+        rects: {
+          1: const Rect.fromLTRB(8, 122, 155, 240),
+          2: const Rect.fromLTRB(247, 122, 394, 240),
+          0: const Rect.fromLTRB(8, 682, 155, 800),
+          3: const Rect.fromLTRB(247, 682, 394, 800),
+        },
+      ),
+      // Snakes' board is taller (390 × 474.2) → pods 95; avatar row 60 →
+      // 50 dp avatars (were 48), full names under them; 80 dp dock.
+      (
+        size: const Size(402, 874),
+        safeArea: _iphoneInsets,
+        snakes: true,
+        avatar: 50.0,
+        rects: {
+          1: const Rect.fromLTRB(8, 122, 159, 217),
+          2: const Rect.fromLTRB(243, 122, 394, 217),
+          0: const Rect.fromLTRB(8, 705, 159, 800),
+          3: const Rect.fromLTRB(243, 705, 394, 800),
+        },
+      ),
+      // No insets: area 756, board 381 × 419.1 → pods 160; the 146.5 dp
+      // width caps the avatar at 88 (was a 133 dp card with 74).
       (
         size: const Size(393, 852),
+        safeArea: EdgeInsets.zero,
+        snakes: false,
+        avatar: 88.0,
         rects: {
-          1: const Rect.fromLTRB(8, 60, 158.5, 193),
-          2: const Rect.fromLTRB(234.5, 60, 385, 193),
-          0: const Rect.fromLTRB(8, 677, 158.5, 812),
-          3: const Rect.fromLTRB(234.5, 678, 385, 811),
+          1: const Rect.fromLTRB(8, 60, 154.5, 220),
+          2: const Rect.fromLTRB(238.5, 60, 385, 220),
+          0: const Rect.fromLTRB(8, 652, 154.5, 812),
+          3: const Rect.fromLTRB(238.5, 652, 385, 812),
         },
       ),
+      // Area 644, board 348 × 382.8 → pods 122; 130 dp wide → 72 dp
+      // avatars (were 44 in 70 dp row pods).
       (
         size: const Size(360, 740),
+        safeArea: EdgeInsets.zero,
+        snakes: false,
+        avatar: 72.0,
         rects: {
-          1: const Rect.fromLTRB(8, 60, 142, 193),
-          2: const Rect.fromLTRB(218, 60, 352, 193),
-          0: const Rect.fromLTRB(8, 565, 142, 700),
-          3: const Rect.fromLTRB(218, 566, 352, 699),
+          1: const Rect.fromLTRB(8, 60, 138, 182),
+          2: const Rect.fromLTRB(222, 60, 352, 182),
+          0: const Rect.fromLTRB(8, 578, 138, 700),
+          3: const Rect.fromLTRB(222, 578, 352, 700),
         },
       ),
+      // Area 544, board 308 × 338.8 → pods 94; avatar row 59 → 49 dp
+      // avatars (were 40 in 64 dp row pods).
       (
         size: const Size(320, 640),
+        safeArea: EdgeInsets.zero,
+        snakes: false,
+        avatar: 49.0,
         rects: {
-          1: const Rect.fromLTRB(8, 60, 122, 124),
-          2: const Rect.fromLTRB(198, 60, 312, 124),
-          0: const Rect.fromLTRB(8, 531, 122, 597),
-          3: const Rect.fromLTRB(198, 532, 312, 596),
+          1: const Rect.fromLTRB(8, 60, 118, 154),
+          2: const Rect.fromLTRB(202, 60, 312, 154),
+          0: const Rect.fromLTRB(8, 506, 118, 600),
+          3: const Rect.fromLTRB(202, 506, 312, 600),
         },
       ),
     ]) {
-      testWidgets('4-player game at ${c.size.width}×${c.size.height}', (
-        tester,
-      ) async {
-        await _pumpGame(tester, ludoRoom(), size: c.size);
+      testWidgets('${c.snakes ? 'Snakes' : 'Ludo'} at '
+          '${c.size.width}×${c.size.height}, insets '
+          '${c.safeArea.top}/${c.safeArea.bottom}', (tester) async {
+        await _pumpGame(
+          tester,
+          c.snakes ? snakesRoom() : ludoRoom(),
+          size: c.size,
+          safeArea: c.safeArea,
+        );
         for (final MapEntry(key: seat, value: rect) in c.rects.entries) {
           expect(_panelRect(tester, seat), rect, reason: 'seat $seat');
+          expect(_avatar(tester, _podOf(seat)), c.avatar, reason: '$seat');
         }
       });
+    }
+
+    testWidgets('a portrait tablet (height-limited board): natural pods, '
+        'the default 80 dp dock', (tester) async {
+      // Area 928, a full-width board would be 756 × 831.6 → 40 dp rows:
+      // too short to fill, so the pods keep their natural row size and the
+      // board gives way, as before.
+      await _pumpGame(tester, ludoRoom(), size: const Size(768, 1024));
+      expect(_panelRect(tester, 1).size, const Size(334, 90));
+      expect(_panelRect(tester, 0).size, const Size(334, 92)); // turn
+      expect(tester.getSize(find.byType(DiceView)), const Size.square(56));
+      expect(_boardRect(tester).width, lessThan(768 - 12));
+    });
+
+    for (final c in [
+      (size: const Size(402, 874), safeArea: _iphoneInsets),
+      (size: const Size(390, 844), safeArea: _iphoneInsets),
+      // Android: status bar; gesture bar.
+      (size: const Size(360, 740), safeArea: const EdgeInsets.only(top: 24)),
+      (
+        size: const Size(412, 915),
+        safeArea: const EdgeInsets.only(top: 24, bottom: 24),
+      ),
+      (size: const Size(320, 640), safeArea: EdgeInsets.zero),
+    ]) {
+      for (final snakes in [false, true]) {
+        testWidgets('${snakes ? 'Snakes' : 'Ludo'} at '
+            '${c.size.width}×${c.size.height} (insets ${c.safeArea.top}/'
+            '${c.safeArea.bottom}): no gap, full-width board', (tester) async {
+          await _pumpGame(
+            tester,
+            snakes ? snakesRoom(positions: [0, 12, 34, 57]) : ludoRoom(),
+            size: c.size,
+            safeArea: c.safeArea,
+          );
+          final bodyBottom = c.size.height - c.safeArea.bottom;
+          final board = _boardRect(tester);
+          expect(board.width, c.size.width - 12);
+          final pods = {
+            for (final s in [0, 1, 2, 3]) s: _panelRect(tester, s),
+          };
+          // All four the same size (seat 0 has the turn).
+          for (final s in [1, 2, 3]) {
+            expect(pods[s]!.size, pods[0]!.size, reason: 'seat $s');
+          }
+          // Top pods (seats 1, 2) right above the board, bottom pods
+          // (0, 3) right below it: no more than the 6 dp board padding
+          // (plus rounding).
+          for (final s in [1, 2]) {
+            final gap = board.top - pods[s]!.bottom;
+            expect(gap, inInclusiveRange(0, 12), reason: 'top gap, seat $s');
+            expect(pods[s]!.top, greaterThanOrEqualTo(c.safeArea.top));
+          }
+          for (final s in [0, 3]) {
+            final gap = pods[s]!.top - board.bottom;
+            expect(gap, inInclusiveRange(0, 12), reason: 'bottom gap $s');
+            // Right above the 40 dp status line, inside the safe area.
+            expect(pods[s]!.bottom, bodyBottom - 40);
+          }
+          // The dice dock sits between the bottom pods, centered on them.
+          final dice = tester.getRect(find.byType(DiceView));
+          expect(dice.center.dy, moreOrLessEquals(pods[0]!.center.dy));
+          expect(dice.left, greaterThan(pods[0]!.right));
+          expect(dice.right, lessThan(pods[3]!.left));
+        });
+      }
     }
   });
 
@@ -203,23 +358,6 @@ void main() {
       for (final w in [150.5, 134.0]) {
         await _pumpPanel(tester, width: w);
         expect(_avatar(tester), 74);
-      }
-    });
-
-    testWidgets('all four cards of a game on a 393 × 852 phone', (
-      tester,
-    ) async {
-      await _pumpGame(tester, ludoRoom(), size: const Size(393, 852));
-      for (final seat in [0, 1, 2, 3]) {
-        expect(
-          _avatar(
-            tester,
-            find.byWidgetPredicate(
-              (w) => w is PlayerPanel && w.player.seat == seat,
-            ),
-          ),
-          74,
-        );
       }
     });
 
@@ -428,6 +566,132 @@ void main() {
     });
   });
 
+  group('filled pods (portrait rows)', () {
+    testWidgets('a card fills the height, the same on and off turn', (
+      tester,
+    ) async {
+      for (final turn in [false, true]) {
+        for (final p in [
+          player(1),
+          player(1, bot: true, name: 'Bot Riya', frame: 'frame_royal'),
+          player(1, connected: false, strikes: 2),
+          player(1, forfeited: true),
+        ]) {
+          await _pumpPanel(tester, width: 147, height: 118, p: p, isTurn: turn);
+          expect(_podSize(tester), const Size(147, 118), reason: p.name);
+          // Avatar row 118 − 35 = 83, minus the 12 dp turn-ring gap.
+          expect(_avatar(tester), 71, reason: p.name);
+        }
+      }
+      // Larger text: a taller name line, a smaller avatar, the same pod.
+      await _pumpPanel(tester, width: 147, height: 118, textScale: 1.35);
+      expect(_podSize(tester), const Size(147, 118));
+      expect(_avatar(tester), 65);
+    });
+
+    for (final (locale, rtl) in [
+      (const Locale('en'), false),
+      (const Locale('ar'), true),
+    ]) {
+      testWidgets('card: progress column on the avatar\'s '
+          '${rtl ? 'left (RTL)' : 'right'}, the full name under both', (
+        tester,
+      ) async {
+        await _pumpPanel(tester, width: 147, height: 118, locale: locale);
+        final avatar = tester.getRect(find.byType(PlayerAvatar));
+        final column = tester.getRect(find.byKey(_column));
+        final name = tester.getRect(find.text('Player1'));
+        if (rtl) {
+          expect(column.right, lessThan(avatar.left));
+        } else {
+          expect(column.left, greaterThan(avatar.right));
+        }
+        expect(
+          find.descendant(of: find.byKey(_column), matching: find.text('0/4')),
+          findsOneWidget,
+        );
+        expect(name.top, greaterThan(avatar.bottom));
+        expect(name.top, greaterThan(column.bottom));
+        // Centered in the pod, both ways.
+        final pod = tester.getRect(find.byType(PlayerPanel));
+        expect(avatar.top - pod.top, greaterThan(0));
+        expect(name.center.dx, moreOrLessEquals(pod.center.dx, epsilon: 12));
+      });
+    }
+
+    testWidgets('a short card keeps four marks and drops the count', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _pumpPanel(tester, width: 110, height: 94);
+      expect(_podSize(tester), const Size(110, 94));
+      expect(_avatar(tester), 49);
+      expect(
+        find.descendant(of: find.byKey(_column), matching: find.byType(Icon)),
+        findsNWidgets(4),
+      );
+      expect(find.text('0/4'), findsNothing);
+      expect(
+        find.bySemanticsLabel(RegExp(r'Player1, .*0 of 4 tokens home')),
+        findsOneWidget,
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('Snakes & Ladders: the square beside a 50 dp avatar', (
+      tester,
+    ) async {
+      await _pumpPanel(
+        tester,
+        width: 151,
+        height: 95,
+        room: snakesRoom(positions: [0, 12, 0, 0]),
+      );
+      expect(_podSize(tester), const Size(151, 95));
+      expect(_avatar(tester), 50);
+      expect(
+        find.descendant(of: find.byKey(_column), matching: find.text('12')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a wide pod stays a row; its avatar grows with the height', (
+      tester,
+    ) async {
+      // A row's avatar is 120 − 2 × 2 − 2 × 6 − 12 = 92; a card's would be
+      // 120 − 35 − 12 = 73.
+      await _pumpPanel(tester, width: 300, height: 120);
+      expect(_podSize(tester), const Size(300, 120));
+      expect(_avatar(tester), 92);
+      final avatar = tester.getRect(find.byType(PlayerAvatar));
+      final column = tester.getRect(find.byKey(_column));
+      final name = tester.getRect(find.text('Player1'));
+      expect(column.left, greaterThan(avatar.right));
+      expect(name.left, greaterThan(column.right));
+    });
+
+    testWidgets('shorter than a row pod: the natural row pod', (tester) async {
+      await _pumpPanel(tester, width: 151, height: 70, stacked: false);
+      expect(_podSize(tester), const Size(151, 78));
+      expect(_avatar(tester), 48);
+    });
+
+    testWidgets('at most 176 dp tall, 96 dp avatar', (tester) async {
+      await _pumpPanel(tester, width: 170, height: 400);
+      expect(_podSize(tester), const Size(170, 176));
+      expect(_avatar(tester), 96);
+    });
+
+    testWidgets('the turn ring wraps the filled avatar', (tester) async {
+      await _pumpPanel(tester, width: 147, height: 118, isTurn: true);
+      expect(tester.getSize(find.byType(CountdownRing)), const Size.square(83));
+      expect(
+        tester.getRect(find.byType(CountdownRing)).center,
+        tester.getRect(find.byType(PlayerAvatar)).center,
+      );
+    });
+  });
+
   group('presence and mute', () {
     Finder online(int seat) => find.byKey(ValueKey('pod-online-$seat'));
     Finder offline(int seat) => find.byKey(ValueKey('pod-offline-$seat'));
@@ -523,15 +787,37 @@ void main() {
   });
 
   group('no overflow', () {
+    const none = EdgeInsets.zero;
+    const android = EdgeInsets.only(top: 24, bottom: 24);
     for (final c in [
-      (size: const Size(320, 640), ts: 1.0, locale: const Locale('en')),
-      (size: const Size(320, 640), ts: 1.35, locale: const Locale('en')),
-      (size: const Size(393, 852), ts: 1.35, locale: const Locale('en')),
-      (size: const Size(360, 740), ts: 1.35, locale: const Locale('ar')),
-      (size: const Size(393, 852), ts: 1.0, locale: const Locale('ur')),
+      (size: const Size(320, 640), insets: none, ts: 1.0, locale: 'en'),
+      (size: const Size(320, 640), insets: none, ts: 1.35, locale: 'en'),
+      (size: const Size(393, 852), insets: none, ts: 1.35, locale: 'en'),
+      (size: const Size(360, 740), insets: none, ts: 1.35, locale: 'ar'),
+      (size: const Size(393, 852), insets: none, ts: 1.0, locale: 'ur'),
+      (
+        size: const Size(402, 874),
+        insets: _iphoneInsets,
+        ts: 1.35,
+        locale: 'ar',
+      ),
+      (
+        size: const Size(402, 874),
+        insets: _iphoneInsets,
+        ts: 1.35,
+        locale: 'ur',
+      ),
+      (
+        size: const Size(390, 844),
+        insets: _iphoneInsets,
+        ts: 1.35,
+        locale: 'en',
+      ),
+      (size: const Size(412, 915), insets: android, ts: 1.35, locale: 'ar'),
     ]) {
-      testWidgets('${c.size.width}×${c.size.height}, text ×${c.ts}, '
-          '${c.locale.languageCode}', (tester) async {
+      testWidgets('${c.size.width}×${c.size.height}'
+          '${c.insets == none ? '' : ' (insets)'}, text ×${c.ts}, '
+          '${c.locale}', (tester) async {
         await expectNoOverflow(tester, () async {
           final h = await _pumpGame(
             tester,
@@ -545,8 +831,9 @@ void main() {
               ],
             ),
             size: c.size,
+            safeArea: c.insets,
             textScale: c.ts,
-            locale: c.locale,
+            locale: Locale(c.locale),
           );
           // Muted opponents (online, offline and left): the icon by the name.
           final muted = h.container.read(mutedPlayersProvider.notifier);
@@ -559,8 +846,9 @@ void main() {
             tester,
             snakesRoom(positions: [0, 12, 100, 57]),
             size: c.size,
+            safeArea: c.insets,
             textScale: c.ts,
-            locale: c.locale,
+            locale: Locale(c.locale),
           );
         });
       });
@@ -586,6 +874,48 @@ void main() {
                 textScale: 1.35,
                 themeMode: ThemeMode.dark,
               );
+            }
+          }
+        }
+      });
+    });
+
+    // Every pod width a phone gives (110 dp on a 320 dp screen up to 430 dp
+    // screens, and a wide row) at row heights from a row pod's to the cap
+    // (shorter: the natural row pod): Ludo and Snakes, offline with strikes
+    // and muted on the turn, text ×1.35, RTL.
+    testWidgets('every filled pod, text ×1.35, dark, ar', (tester) async {
+      await expectNoOverflow(tester, () async {
+        for (final room in [
+          ludoRoom(),
+          snakesRoom(positions: [0, 100, 0, 0]),
+        ]) {
+          for (final w in [110.0, 112.0, 124.0, 130.0, 147.0, 151.0, 220.0]) {
+            for (final h in [
+              66.0,
+              76.0,
+              88.0,
+              95.0,
+              110.0,
+              118.0,
+              140.0,
+              176.0,
+            ]) {
+              for (final connected in [false, true]) {
+                await _pumpPanel(
+                  tester,
+                  width: w,
+                  stacked: false,
+                  height: h,
+                  room: room,
+                  p: player(1, connected: connected, strikes: 3, bot: true),
+                  isTurn: true,
+                  muted: true,
+                  textScale: 1.35,
+                  locale: const Locale('ar'),
+                  themeMode: ThemeMode.dark,
+                );
+              }
             }
           }
         }
