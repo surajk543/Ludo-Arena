@@ -9,10 +9,19 @@ import '../../../../shared/game_visuals/board_cell.dart';
 /// `backend/docs/game-rules.md` (10 × 10 grid, square 1 bottom-left,
 /// boustrophedon numbering, square 100 top-left).
 ///
-/// All positions are in *grid units*: one unit is one cell and `(0, 0)` is
-/// the top-left corner of the 10 × 10 grid. The whole board adds a frame of
-/// [frameInset] around the grid and a plinth strip of [plinthHeight] below
-/// it, where tokens wait at position 0 on a start pad beside square 1.
+/// Two coordinate spaces, both with `(0, 0)` at the top-left corner of the
+/// 10 × 10 grid:
+///
+/// - *Tile space*: one unit per cell in both directions. The static board
+///   art (frame, tiles, start pad, plinth) is drawn here, stretched
+///   vertically by [rowHeight].
+/// - *Grid units* (everything else: [centerOf], snakes, ladders, tokens,
+///   [SnakesBoardLayout]): one unit is one cell's width and rows are
+///   [rowHeight] units tall, so round things stay round on the taller board.
+///
+/// The whole board adds a frame of [frameInset] around the grid and a plinth
+/// strip of [plinthHeight] below it (tile space), where tokens wait at
+/// position 0 on a start pad beside square 1.
 abstract final class SnakesGeometry {
   /// Snakes, head → tail.
   static const Map<int, int> snakes = {
@@ -47,11 +56,19 @@ abstract final class SnakesGeometry {
   /// Height of the plinth strip under the grid that holds the start pad.
   static const double plinthHeight = 1.12;
 
+  /// Height of a row relative to its width: the board is a little taller
+  /// than wide at the same width (owner, 21 Oct 2026).
+  static const double rowHeight = 1.1;
+
   /// Whole board width in grid units (grid + frame).
   static const double boardWidth = 10 + 2 * frameInset;
 
   /// Whole board height in grid units (grid + plinth + frame).
-  static const double boardHeight = 10 + 2 * frameInset + plinthHeight;
+  static const double boardHeight =
+      (10 + 2 * frameInset + plinthHeight) * rowHeight;
+
+  /// Tile space → grid units.
+  static Offset fromTile(Offset tile) => Offset(tile.dx, tile.dy * rowHeight);
 
   /// Width / height of the whole board, for `AspectRatio`.
   static double get aspectRatio => boardWidth / boardHeight;
@@ -62,7 +79,7 @@ abstract final class SnakesGeometry {
   /// Token scale while waiting on the start pad.
   static const double startTokenScale = 0.8;
 
-  /// The start pad (grid units), directly under squares 1–4.
+  /// The start pad (tile space), directly under squares 1–4.
   static const Rect startPadRect = Rect.fromLTRB(0.06, 10.2, 3.62, 11.0);
 
   /// The cell of [square] (1..100). Throws [RangeError] otherwise.
@@ -84,13 +101,17 @@ abstract final class SnakesGeometry {
   }
 
   /// Cell center of [square] in grid units (1..100).
-  static Offset centerOf(int square) => cellFor(square).center;
+  static Offset centerOf(int square) => fromTile(cellFor(square).center);
 
-  /// Where [seat]'s token waits at position 0 (beside square 1).
-  static Offset startSlot(int seat) => Offset(
+  /// Where [seat]'s token waits at position 0 (beside square 1), in tile
+  /// space.
+  static Offset startSlotTile(int seat) => Offset(
     0.5 + seat.clamp(0, 3) * startSlotSpacing,
     startPadRect.center.dy - 0.02,
   );
+
+  /// Where [seat]'s token waits at position 0 (beside square 1).
+  static Offset startSlot(int seat) => fromTile(startSlotTile(seat));
 
   /// Resting point of a token at [square] (0 = start pad slot of [seat]).
   static Offset positionCenter(int square, {required int seat}) =>
@@ -160,7 +181,7 @@ class SnakesBoardLayout {
     final boardRect = Rect.fromLTWH(left, top, w, h);
     final origin = Offset(
       left + SnakesGeometry.frameInset * scale,
-      top + SnakesGeometry.frameInset * scale,
+      top + SnakesGeometry.frameInset * SnakesGeometry.rowHeight * scale,
     );
     return SnakesBoardLayout._(scale, origin, boardRect);
   }
@@ -182,9 +203,9 @@ class SnakesBoardLayout {
 
   Rect cellRect(BoardCell c) => Rect.fromLTWH(
     gridOrigin.dx + c.col * cell,
-    gridOrigin.dy + c.row * cell,
+    gridOrigin.dy + c.row * cell * SnakesGeometry.rowHeight,
     cell,
-    cell,
+    cell * SnakesGeometry.rowHeight,
   );
 
   @override
