@@ -4621,11 +4621,29 @@ abstract class AppLocalizations {
   /// **'Sound & haptics'**
   String get settingsSoundAndHaptics;
 
-  /// Toggle for sound effects.
+  /// Master sound switch (music and sound effects).
   ///
   /// In en, this message translates to:
-  /// **'Sound effects'**
+  /// **'Sound'**
   String get settingsSound;
+
+  /// Explains that the Sound switch covers music and sound effects.
+  ///
+  /// In en, this message translates to:
+  /// **'Music and sound effects'**
+  String get settingsSoundSubtitle;
+
+  /// Slider label: volume of the sound effects.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound effects volume'**
+  String get settingsSfxVolume;
+
+  /// Slider label: volume of the lobby music.
+  ///
+  /// In en, this message translates to:
+  /// **'Music volume'**
+  String get settingsMusicVolume;
 
   /// Toggle for haptic feedback.
   ///

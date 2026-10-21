@@ -2736,7 +2736,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSoundAndHaptics => 'Sound & haptics';
 
   @override
-  String get settingsSound => 'Sound effects';
+  String get settingsSound => 'Sound';
+
+  @override
+  String get settingsSoundSubtitle => 'Music and sound effects';
+
+  @override
+  String get settingsSfxVolume => 'Sound effects volume';
+
+  @override
+  String get settingsMusicVolume => 'Music volume';
 
   @override
   String get settingsHaptics => 'Vibration';

@@ -31,9 +31,21 @@
   "@settingsSoundAndHaptics": {
     "description": "Section header."
   },
-  "settingsSound": "Sound effects",
+  "settingsSound": "Sound",
   "@settingsSound": {
-    "description": "Toggle for sound effects."
+    "description": "Master sound switch (music and sound effects)."
+  },
+  "settingsSoundSubtitle": "Music and sound effects",
+  "@settingsSoundSubtitle": {
+    "description": "Explains that the Sound switch covers music and sound effects."
+  },
+  "settingsSfxVolume": "Sound effects volume",
+  "@settingsSfxVolume": {
+    "description": "Slider label: volume of the sound effects."
+  },
+  "settingsMusicVolume": "Music volume",
+  "@settingsMusicVolume": {
+    "description": "Slider label: volume of the lobby music."
   },
   "settingsHaptics": "Vibration",
   "@settingsHaptics": {

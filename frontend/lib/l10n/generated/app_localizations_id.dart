@@ -2729,7 +2729,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsSoundAndHaptics => 'Suara & getaran';
 
   @override
-  String get settingsSound => 'Efek suara';
+  String get settingsSound => 'Suara';
+
+  @override
+  String get settingsSoundSubtitle => 'Musik dan efek suara';
+
+  @override
+  String get settingsSfxVolume => 'Volume efek suara';
+
+  @override
+  String get settingsMusicVolume => 'Volume musik';
 
   @override
   String get settingsHaptics => 'Getaran';

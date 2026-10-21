@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ludo_royale/app/routes.dart';
 import 'package:ludo_royale/core/analytics/analytics_providers.dart';
+import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/links/external_link_launcher.dart';
 import 'package:ludo_royale/core/localization/language_controller.dart';
 import 'package:ludo_royale/core/settings/app_settings.dart';
@@ -92,7 +93,7 @@ void main() {
 
   testWidgets('toggles persist and report settings_changed', (tester) async {
     final (env, c) = await pumpSettings(tester);
-    await tester.tap(find.text('Sound effects'));
+    await tester.tap(find.text('Sound'));
     await tester.pump();
     expect(c.read(settingsControllerProvider).soundEnabled, isFalse);
     expect(
@@ -104,6 +105,63 @@ void main() {
     await tester.tap(find.text('Mute quick chat'));
     await tester.pump();
     expect(c.read(settingsControllerProvider).quickChatMuted, isTrue);
+  });
+
+  testWidgets('the Sound switch is the master mute; switching it on is '
+      'confirmed by one toggle sound, switching it off is silent', (
+    tester,
+  ) async {
+    final (env, c) = await pumpSettings(tester);
+    c.read(audioSettingsBinderProvider);
+    await tester.tap(find.text('Sound'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(env.audio.enabled, isFalse);
+    expect(env.audio.played, isEmpty);
+    // Volume sliders are disabled while muted.
+    for (final e in find.byType(Slider).evaluate()) {
+      expect((e.widget as Slider).onChanged, isNull);
+    }
+    await tester.tap(find.text('Sound'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(env.audio.enabled, isTrue);
+    expect(env.audio.played, [Sfx.uiToggle]);
+  });
+
+  testWidgets('volume sliders apply live, persist on release and the '
+      'effects slider previews a tick', (tester) async {
+    final (env, c) = await pumpSettings(tester);
+    c.read(audioSettingsBinderProvider); // as the app root does
+    final prefs = c.read(preferencesStoreProvider);
+    final sliders = find.byType(Slider);
+    expect(sliders, findsNWidgets(2));
+    expect(find.text('Sound effects volume'), findsOneWidget);
+    expect(find.text('Music volume'), findsOneWidget);
+    expect(find.text('80%'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+
+    // Effects: applied while dragging, persisted on release.
+    final drag = await tester.startGesture(tester.getCenter(sliders.first));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(c.read(settingsControllerProvider).sfxVolume, 0.5);
+    expect(env.audio.sfxVolume, 0.5);
+    expect(prefs.getInt(PrefKeys.sfxVolume), isNull);
+    expect(env.audio.played, [Sfx.uiTick]);
+    expect(env.audio.volumes.single, closeTo(0.5 * Sfx.uiTick.gain, 1e-9));
+    await drag.up();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(prefs.getInt(PrefKeys.sfxVolume), 50);
+    expect(find.text('50%'), findsNWidgets(2));
+
+    // Music: live volume (the music is the preview, no tick).
+    final musicSlider = sliders.last;
+    final box = tester.getRect(musicSlider);
+    await tester.tapAt(Offset(box.left + box.width * 0.85, box.center.dy));
+    await tester.pump(const Duration(milliseconds: 200));
+    final music = c.read(settingsControllerProvider).musicVolume;
+    expect(music, greaterThan(0.5));
+    expect(env.audio.musicVolume, music);
+    expect(prefs.getInt(PrefKeys.musicVolume), (music * 100).round());
+    expect(env.audio.played, [Sfx.uiTick]);
   });
 
   testWidgets('theme choice applies immediately and persists', (tester) async {
@@ -135,6 +193,8 @@ void main() {
     tester,
   ) async {
     await pumpSettings(tester);
+    // Below the Sound section (volume sliders): scroll to it.
+    await reveal(tester, find.text('Not available in this build'));
     expect(find.text('Not available in this build'), findsOneWidget);
   });
 
