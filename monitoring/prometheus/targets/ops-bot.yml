@@ -1,0 +1,2 @@
+# The ops bot (HTTP_ADDR): /metrics with delivery counters.
+- targets: ["ops-bot:9097"]

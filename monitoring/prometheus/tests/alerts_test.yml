@@ -1,0 +1,120 @@
+# promtool unit tests for the alert rules:
+#   promtool test rules monitoring/prometheus/tests/alerts_test.yml
+rule_files:
+  - ../rules/thresholds.yml
+  - ../rules/alerts.yml
+
+evaluation_interval: 15s
+
+tests:
+  - name: backend down for a minute
+    interval: 15s
+    input_series:
+      - series: 'up{job="backend",instance="b1:9090"}'
+        values: '1 1 0 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: BackendInstanceDown
+        exp_alerts: []
+      - eval_time: 105s
+        alertname: BackendInstanceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, job: backend, instance: "b1:9090"}
+            exp_annotations:
+              summary: "Backend b1:9090 is down"
+              description: "Prometheus has not been able to scrape this backend instance for 1 minute. Check the process, its logs and the host."
+
+  - name: host CPU above 85% for 5 minutes
+    interval: 15s
+    input_series:
+      # idle 1.5 s per 15 s => 10% idle, 90% busy; h2 is 50% busy
+      - series: 'node_cpu_seconds_total{job="node",instance="h1:9100",cpu="0",mode="idle"}'
+        values: '0+1.5x60'
+      - series: 'node_cpu_seconds_total{job="node",instance="h2:9100",cpu="0",mode="idle"}'
+        values: '0+7.5x60'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: HostCPUHigh
+        exp_alerts:
+          - exp_labels: {severity: warning, instance: "h1:9100"}
+            exp_annotations:
+              summary: "CPU usage on h1:9100 is 90%"
+              description: "Above 85% for 5 minutes."
+
+  - name: RAM on Linux and macOS formulas
+    interval: 1m
+    input_series:
+      - series: 'node_memory_MemAvailable_bytes{job="node",instance="linux:9100"}'
+        values: '5x10'
+      - series: 'node_memory_MemTotal_bytes{job="node",instance="linux:9100"}'
+        values: '100x10'
+      - series: 'node_memory_internal_bytes{job="node",instance="mac:9100"}'
+        values: '50x10'
+      - series: 'node_memory_purgeable_bytes{job="node",instance="mac:9100"}'
+        values: '0x10'
+      - series: 'node_memory_wired_bytes{job="node",instance="mac:9100"}'
+        values: '10x10'
+      - series: 'node_memory_compressed_bytes{job="node",instance="mac:9100"}'
+        values: '10x10'
+      - series: 'node_memory_total_bytes{job="node",instance="mac:9100"}'
+        values: '100x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: HostMemoryHigh
+        exp_alerts:
+          - exp_labels: {severity: warning, instance: "linux:9100"}
+            exp_annotations:
+              summary: "RAM usage on linux:9100 is 95%"
+              description: "Above 90% for 5 minutes. The macOS formula (app + wired + compressed memory) is used for local runs."
+
+  - name: first wallet settlement failure fires immediately
+    interval: 1m
+    input_series:
+      - series: 'wallet_settlement_failures_total{job="backend",instance="b1:9090",op="payout"}'
+        values: '_ _ _ _ 1 1 1'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: WalletSettlementFailures
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: WalletSettlementFailures
+        exp_alerts:
+          - exp_labels: {severity: critical, op: payout}
+            exp_annotations:
+              summary: "Wallet settlement failures (payout)"
+              description: "Entry-fee, refund or payout operations failed in the last 15 minutes. Check backend logs for the affected rooms; coins may need reconciliation."
+
+  - name: game stats stale only while the backend is up
+    interval: 1m
+    input_series:
+      - series: 'game_stats_refreshed_timestamp_seconds{job="backend",instance="b1:9090"}'
+        values: '0x10'
+      - series: 'up{job="backend",instance="b1:9090"}'
+        values: '1x10'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: GameStatsStale
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: GameStatsStale
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "Game stats are 300 s old"
+              description: "The cluster-wide players/rooms gauges (players_in_game, rooms_in_game, players_in_lobby) are not being refreshed, so status reports show stale numbers."
+
+  - name: 5xx share needs both the ratio and a minimum rate
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{job="backend",route="/api/v1/x",class="2xx"}'
+        values: '0+600x20'
+      - series: 'http_requests_total{job="backend",route="/api/v1/x",class="5xx"}'
+        values: '0+60x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: HTTP5xxRateHigh
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "Backend HTTP 5xx at 9.1% of requests"
+              description: "Server errors stayed above the threshold for 5 minutes. Check backend logs, PostgreSQL and Redis."

@@ -1,0 +1,69 @@
+# Ludo Royale monitoring stack: Prometheus, Alertmanager, node_exporter and
+# the Telegram ops bot. Works locally against the dev backend on the Docker
+# host and is the template for production (see monitoring/README.md).
+#
+#   cd monitoring
+#   cp .env.example .env        # fill in TELEGRAM_* (never commit .env)
+#   docker compose up -d --build
+#
+# Every port is bound to 127.0.0.1: metrics, Prometheus and Alertmanager must
+# never be reachable from the internet.
+name: ludo-royale-monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${PROM_RETENTION:-45d}
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - ${PROM_TARGETS_DIR:-./prometheus/targets}:/etc/prometheus/targets:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9095:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    restart: unless-stopped
+
+  # Host CPU / RAM / disk. In this base file it reports the machine Docker
+  # runs on (on macOS: Docker's VM). On a Linux server add
+  # docker-compose.host.yml so it reads the real host.
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    restart: unless-stopped
+
+  ops-bot:
+    build:
+      context: ./ops-bot
+    env_file: .env
+    environment:
+      PROM_URL: http://prometheus:9090
+      HTTP_ADDR: 0.0.0.0:9097
+    volumes:
+      # Optional Google service-account key for Play/GA4 KPIs; set
+      # GOOGLE_APPLICATION_CREDENTIALS=/secrets/<file>.json in .env.
+      - ${GOOGLE_CREDENTIALS_DIR:-./secrets}:/secrets:ro
+    ports:
+      - "127.0.0.1:9097:9097"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  alertmanager-data:

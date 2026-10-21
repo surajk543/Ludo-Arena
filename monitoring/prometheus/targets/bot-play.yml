@@ -1,0 +1,5 @@
+# bot-play metrics endpoint (metrics.listen_addr in its YAML config).
+# Production: e.g. - targets: ["10.0.1.21:9091"]
+- targets: ["host.docker.internal:9091"]
+  labels:
+    env: development

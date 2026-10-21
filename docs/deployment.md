@@ -1,12 +1,13 @@
 # Deployment & Local Development
 
-Three independent projects, each with its own dependencies:
+Four independent projects, each with its own dependencies:
 
 | Directory | Stack | Build | Config |
 |---|---|---|---|
 | `frontend/` | Flutter 3.44 / Dart 3.12 | `flutter build apk` / `flutter build ipa` | `--dart-define`s (public ids only) + gitignored `config/firebase.json` |
 | `backend/` | Go 1.27 | `go build ./cmd/server` or `backend/Dockerfile` | environment variables (`backend/.env.example`), policy files in `backend/config/` |
 | `bot-play/` | Go 1.27 (separate module) | `go build ./cmd/bot-play` or `bot-play/Dockerfile` | YAML in `bot-play/configs/` + env for the service key |
+| `monitoring/` | Prometheus 3, Alertmanager, node_exporter; ops bot in Go 1.27 (separate module) | `monitoring/docker-compose.yml`; `go build ./cmd/ops-bot` or `monitoring/ops-bot/Dockerfile` | env (`monitoring/.env.example`), targets and thresholds in `monitoring/prometheus/` |
 
 Backend secrets (`JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `FACEBOOK_APP_SECRET`,
 database/Redis passwords, the bot service key) are provided only through the
@@ -41,6 +42,8 @@ TEST_DATABASE_URL=postgres://…/ludo_royale_test TEST_REDIS_ADDR=127.0.0.1:6379
 
 cd ../frontend && flutter analyze && flutter test
 cd ../bot-play && go test -race ./...
+cd ../monitoring/ops-bot && go test -race ./...
+cd .. && promtool test rules prometheus/tests/alerts_test.yml
 ```
 
 Integration tests use a dedicated test database and Redis logical DB 13/14,
@@ -64,6 +67,17 @@ which they flush.
   `time() - max(game_stats_refreshed_timestamp_seconds) > 120` (recount every
   `GAME_STATS_INTERVAL`, default 15 s). See
   [architecture.md](architecture.md#observability-live-player-counts).
+- Monitoring and alerting: run the `monitoring/` stack (Prometheus,
+  Alertmanager, node_exporter on every host, Telegram ops bot) on the same
+  private network. List every backend instance's `METRICS_ADDR`, bot-play's
+  metrics address and each host's node_exporter in
+  `monitoring/prometheus/targets/*.yml`; use `docker-compose.host.yml` on Linux
+  so node_exporter reads the real host; keep ≥ 31 days of Prometheus retention
+  for the 30-day trends. Prometheus (9095), Alertmanager (9093), the ops bot
+  (9097) and all metrics ports stay private; the bot needs outbound HTTPS to
+  `api.telegram.org` (and Google APIs for Play/GA4 KPIs). The Telegram token
+  and the optional Google service-account key come only from the environment
+  or a secret store. Setup: [monitoring/README.md](../monitoring/README.md).
 - Run ≥ 2 instances; any instance can serve any player (state + timers in
   Redis, events via Redis pub/sub). Rolling deploys: instances close
   WebSockets with `1001`; clients reconnect and resync.

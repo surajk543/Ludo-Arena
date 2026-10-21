@@ -1,0 +1,9 @@
+# Backend metrics endpoints (METRICS_ADDR), one entry per instance.
+# Development default: the backend on the Docker host (127.0.0.1:9090).
+# Production: the private addresses of every instance, for example
+#   - targets: ["10.0.1.11:9090", "10.0.1.12:9090"]
+#     labels: {env: production}
+# Never expose these ports publicly.
+- targets: ["host.docker.internal:9090"]
+  labels:
+    env: development
