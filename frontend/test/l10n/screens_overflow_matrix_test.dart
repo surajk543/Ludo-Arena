@@ -11,6 +11,7 @@ import 'package:ludo_royale/features/authentication/application/session_controll
 import 'package:ludo_royale/features/authentication/presentation/language_onboarding_screen.dart';
 import 'package:ludo_royale/features/authentication/presentation/link_account_screen.dart';
 import 'package:ludo_royale/features/authentication/presentation/login_screen.dart';
+import 'package:ludo_royale/features/home/presentation/games_screen.dart';
 import 'package:ludo_royale/features/home/presentation/home_screen.dart';
 import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
 import 'package:ludo_royale/features/settings/presentation/settings_screen.dart';
@@ -51,6 +52,7 @@ void main() {
         'onboarding': (const LanguageOnboardingScreen(), null, null),
         'login': (const LoginScreen(), null, null),
         'home': (const HomeScreen(), signedIn, null),
+        'games': (const GamesScreen(), signedIn, null),
         'settings': (const SettingsScreen(), signedIn, null),
         'profile': (const ProfileScreen(), signedIn, null),
         'link': (const LinkAccountScreen(), signedIn, null),
