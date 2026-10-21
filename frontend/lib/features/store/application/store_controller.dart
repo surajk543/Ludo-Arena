@@ -11,10 +11,10 @@ import '../../wallet/wallet_controller.dart';
 import '../data/store_api.dart';
 import '../domain/store_models.dart';
 
-/// Analytics `item_kind` of Store profile pictures.
+/// Analytics `item_kind` of profile pictures.
 const String kProfilePictureItemKind = 'profile_picture';
 
-/// The Store shelf of one filter, loaded page by page.
+/// A picture shelf of one filter, loaded page by page.
 @immutable
 class StoreState {
   const StoreState({
@@ -110,14 +110,25 @@ final class StoreFailed extends StoreOutcome {
   String get code => error.code;
 }
 
-/// The Store: paginated shelf per filter, purchases with an Idempotency-Key
-/// (a retry of the same intent reuses the key) and applying a picture
-/// (`PUT /me/profile-picture`), which updates the signed-in user at once.
+/// A profile-picture shelf: paginated per filter, purchases with an
+/// Idempotency-Key (a retry of the same intent reuses the key) and applying
+/// a picture (`PUT /me/profile-picture`), which updates the signed-in user at
+/// once.
+///
+/// The Shop's shelf ([excludeOwned]) lists only pictures not owned yet: a
+/// bought picture leaves it and joins the owned shelf (Collection, Profile
+/// picker), which is reloaded.
 class StoreController extends Notifier<StoreState> {
-  StoreController([this.initialFilter = StoreFilter.all]);
+  StoreController({
+    this.initialFilter = StoreFilter.all,
+    this.excludeOwned = false,
+  });
 
-  /// Shelf loaded first (the Profile picker starts on [StoreFilter.owned]).
+  /// Shelf loaded first (the owned shelf uses [StoreFilter.owned]).
   final StoreFilter initialFilter;
+
+  /// Leave out owned pictures (`excludeOwned=true`; the Shop).
+  final bool excludeOwned;
 
   /// Bumped on every new first-page load; stale responses are dropped.
   int _generation = 0;
@@ -159,7 +170,7 @@ class StoreController extends Notifier<StoreState> {
   /// Returns the failure (also stored in the state when nothing is shown).
   Future<ApiException?> _loadFirst(StoreFilter filter, int gen) async {
     try {
-      final page = await _api.list(filter: filter);
+      final page = await _api.list(filter: filter, excludeOwned: excludeOwned);
       if (!ref.mounted || gen != _generation) return null;
       state = StoreState(
         filter: filter,
@@ -194,7 +205,11 @@ class StoreController extends Notifier<StoreState> {
     final gen = _generation;
     state = s.copyWith(loadingMore: true, moreError: null);
     try {
-      final page = await _api.list(filter: s.filter, cursor: cursor);
+      final page = await _api.list(
+        filter: s.filter,
+        excludeOwned: excludeOwned,
+        cursor: cursor,
+      );
       if (!ref.mounted || gen != _generation) return;
       final known = {for (final p in state.items) p.id};
       state = state.copyWith(
@@ -232,7 +247,7 @@ class StoreController extends Notifier<StoreState> {
       _purchaseKeys.remove(picture.id);
       if (!ref.mounted) return const StoreSucceeded();
       ref.read(walletControllerProvider.notifier).setFromServer(wallet);
-      _replace(
+      _owned(
         (bought.id.isEmpty ? picture : bought).copyWith(
           owned: true,
           equipped: state.equippedId == picture.id,
@@ -247,7 +262,7 @@ class StoreController extends Notifier<StoreState> {
       if (ref.mounted) {
         if (e.code == 'already_owned') {
           // The server says it is ours: show it as owned.
-          _replace(picture.copyWith(owned: true));
+          _owned(picture.copyWith(owned: true));
         } else if (e.code == 'insufficient_funds') {
           unawaited(
             ref
@@ -284,6 +299,8 @@ class StoreController extends Notifier<StoreState> {
         session.updateUser(user.copyWith(picture: equipped?.picture));
       }
       _analytics.cosmeticEquipped(kProfilePictureItemKind);
+      // The owned shelf shows the equipped picture.
+      if (excludeOwned) ref.invalidate(ownedPicturesProvider);
       return const StoreSucceeded();
     } on ApiException catch (e) {
       if (ref.mounted && e.code == 'item_locked' && picture != null) {
@@ -295,6 +312,25 @@ class StoreController extends Notifier<StoreState> {
     }
   }
 
+  /// [item] is now owned: it leaves the Shop's shelf (and the owned shelf
+  /// reloads with it), or shows as owned on any other shelf.
+  void _owned(ProfilePicture item) {
+    if (!excludeOwned) {
+      _replace(item);
+      return;
+    }
+    final left = [
+      for (final p in state.items)
+        if (p.id != item.id) p,
+    ];
+    final removed = state.items.length - left.length;
+    state = state.copyWith(
+      items: List.unmodifiable(left),
+      total: (state.total - removed).clamp(0, state.total),
+    );
+    ref.invalidate(ownedPicturesProvider);
+  }
+
   void _replace(ProfilePicture item) {
     state = state.copyWith(
       items: List.unmodifiable([
@@ -304,15 +340,16 @@ class StoreController extends Notifier<StoreState> {
   }
 }
 
+/// The Shop's picture shelf: pictures not owned yet (`excludeOwned=true`).
 final storeProvider = NotifierProvider<StoreController, StoreState>(
-  StoreController.new,
+  () => StoreController(excludeOwned: true),
   isAutoDispose: true,
 );
 
 /// The pictures the player owns (`filter=owned`), page by page, for the
-/// Profile picture picker. Applying through it updates the session user
-/// like the Store does.
+/// Collection's Pictures category and the Profile picture picker. Applying
+/// through it updates the session user like the Shop does.
 final ownedPicturesProvider = NotifierProvider<StoreController, StoreState>(
-  () => StoreController(StoreFilter.owned),
+  () => StoreController(initialFilter: StoreFilter.owned),
   isAutoDispose: true,
 );

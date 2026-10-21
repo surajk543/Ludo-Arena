@@ -960,10 +960,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get homeEventsSubtitle => 'सीमित समय के कप';
 
   @override
-  String get homeStore => 'स्टोर';
-
-  @override
-  String get homeStoreSubtitle => 'प्रोफ़ाइल तस्वीरें';
+  String get homeShop => 'शॉप';
 
   @override
   String get homeExploreHeader => 'और भी एक्सप्लोर करें';
@@ -1556,6 +1553,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get metaTabEmotes => 'इमोट';
 
   @override
+  String get metaTabPictures => 'तस्वीरें';
+
+  @override
   String get metaFilterAll => 'सभी';
 
   @override
@@ -1703,6 +1703,16 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get metaNothingOwnedInKind =>
       'यहाँ अभी कुछ नहीं — और अनलॉक करने के लिए खेलते रहें।';
+
+  @override
+  String get metaKindEmptyMessage =>
+      'यहाँ अभी इकट्ठा करने को कुछ नहीं है। शॉप में देखें!';
+
+  @override
+  String get metaGoToShop => 'शॉप पर जाएँ';
+
+  @override
+  String get metaFindMoreInShop => 'शॉप में और देखें';
 
   @override
   String get metaCollectionFairNote =>
@@ -2789,13 +2799,13 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get profilePictureEmptyMessage =>
-      'स्टोर से खरीदी गई तस्वीरें यहाँ दिखेंगी।';
+      'शॉप से खरीदी गई तस्वीरें यहाँ दिखेंगी।';
 
   @override
-  String get profilePictureOpenStore => 'स्टोर पर जाएँ';
+  String get profilePictureOpenShop => 'शॉप पर जाएँ';
 
   @override
-  String get profilePictureGetMore => 'स्टोर से और पाएँ';
+  String get profilePictureGetMore => 'शॉप से और पाएँ';
 
   @override
   String get profilePictureShowMore => 'और दिखाएँ';
@@ -3152,7 +3162,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get storeTitle => 'स्टोर';
+  String get storeTitle => 'शॉप';
 
   @override
   String get storeHeroTitle => 'प्रोफ़ाइल तस्वीरें';
@@ -3160,6 +3170,10 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get storeHeroSubtitle =>
       'हीरों से एक बार खरीदें और हमेशा के लिए अपनी बना लें।';
+
+  @override
+  String get storeCosmeticsHeroSubtitle =>
+      'तय कीमत, कुछ भी रैंडम नहीं। सिर्फ़ लुक के लिए, और हमेशा के लिए आपका।';
 
   @override
   String get storeFilterAnimated => 'एनिमेटेड';
@@ -3175,6 +3189,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get storeApply => 'लगाएँ';
+
+  @override
+  String get storeApplyNow => 'अभी लगाएँ';
 
   @override
   String get storeRemove => 'क्लासिक अवतार लगाएँ';
@@ -3198,17 +3215,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get storeEmptyOwnedTitle => 'अभी कोई तस्वीर नहीं';
 
   @override
-  String get storeEmptyOwnedMessage =>
-      'आप जो तस्वीरें खरीदते हैं, वे हमेशा आपकी रहती हैं।';
-
-  @override
   String get storeEmptyTitle => 'यहाँ अभी कुछ नहीं है';
 
   @override
   String get storeEmptyMessage => 'नई तस्वीरें जल्द आ रही हैं।';
 
   @override
-  String get storeBrowseAll => 'सभी देखें';
+  String get storeAllOwnedTitle => 'सब आपके पास हैं!';
+
+  @override
+  String get storeAllOwnedMessage =>
+      'यहाँ का सब कुछ पहले से आपके कलेक्शन में है।';
+
+  @override
+  String get storeViewInCollection => 'कलेक्शन में देखें';
 
   @override
   String get storeLoadMoreFailed => 'और तस्वीरें लोड नहीं हो सकीं।';

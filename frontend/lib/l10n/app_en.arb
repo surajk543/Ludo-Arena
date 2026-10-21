@@ -1258,13 +1258,9 @@
   "@homeEventsSubtitle": {
     "description": "Entry tile subtitle."
   },
-  "homeStore": "Store",
-  "@homeStore": {
-    "description": "Entry tile: the Store (profile pictures bought with diamonds)."
-  },
-  "homeStoreSubtitle": "Profile pictures",
-  "@homeStoreSubtitle": {
-    "description": "Entry tile subtitle."
+  "homeShop": "Shop",
+  "@homeShop": {
+    "description": "Lobby: the Shop button pinned at the top of Home (stays visible while the lobby scrolls)."
   },
   "homeExploreHeader": "More to Explore",
   "@homeExploreHeader": {
@@ -2090,6 +2086,10 @@
   "@metaTabEmotes": {
     "description": "Collection tab."
   },
+  "metaTabPictures": "Pictures",
+  "@metaTabPictures": {
+    "description": "Category of profile pictures (Shop category pill and Collection Room tab)."
+  },
   "metaFilterAll": "All",
   "@metaFilterAll": {
     "description": "Collection filter."
@@ -2303,6 +2303,18 @@
   "metaNothingOwnedInKind": "Nothing here yet — keep playing to unlock more.",
   "@metaNothingOwnedInKind": {
     "description": "Owned filter is empty."
+  },
+  "metaKindEmptyMessage": "Nothing to collect here yet. Take a look in the Shop!",
+  "@metaKindEmptyMessage": {
+    "description": "Collection Room tab with nothing owned or to earn (its items are only sold in the Shop)."
+  },
+  "metaGoToShop": "Go to Shop",
+  "@metaGoToShop": {
+    "description": "Collection Room empty state: button that opens the Shop."
+  },
+  "metaFindMoreInShop": "Find more in the Shop",
+  "@metaFindMoreInShop": {
+    "description": "Collection Room, below a tab: more items of it are for sale in the Shop."
   },
   "metaCollectionFairNote": "Every item is cosmetic and has a fixed way to get it — no random boxes, no gameplay advantage.",
   "@metaCollectionFairNote": {
@@ -3833,19 +3845,19 @@
   },
   "profilePictureClassic": "Classic avatar",
   "@profilePictureClassic": {
-    "description": "Picker choice: the built-in avatar (no Store picture)."
+    "description": "Picker choice: the built-in avatar (no Shop picture)."
   },
-  "profilePictureEmptyMessage": "Pictures you buy in the Store show up here.",
+  "profilePictureEmptyMessage": "Pictures you buy in the Shop show up here.",
   "@profilePictureEmptyMessage": {
-    "description": "Picker empty state: the player owns no Store pictures yet."
+    "description": "Picker empty state: the player owns no profile pictures yet (they are bought in the Shop)."
   },
-  "profilePictureOpenStore": "Visit the Store",
-  "@profilePictureOpenStore": {
-    "description": "Picker empty-state button: opens the Store."
+  "profilePictureOpenShop": "Visit the Shop",
+  "@profilePictureOpenShop": {
+    "description": "Picker empty-state button: opens the Shop."
   },
-  "profilePictureGetMore": "Get more in the Store",
+  "profilePictureGetMore": "Get more in the Shop",
   "@profilePictureGetMore": {
-    "description": "Picker link: opens the Store to buy more pictures."
+    "description": "Picker link: opens the Shop to buy more pictures."
   },
   "profilePictureShowMore": "Show more",
   "@profilePictureShowMore": {
@@ -4360,25 +4372,29 @@
       }
     }
   },
-  "storeTitle": "Store",
+  "storeTitle": "Shop",
   "@storeTitle": {
-    "description": "Title of the Store screen (profile pictures bought with diamonds)."
+    "description": "Title of the Shop screen (profile pictures and cosmetics for sale that the player does not own yet)."
   },
   "storeHeroTitle": "Profile pictures",
   "@storeHeroTitle": {
-    "description": "Store header card title."
+    "description": "Shop header card title."
   },
   "storeHeroSubtitle": "Buy once with diamonds and keep it forever.",
   "@storeHeroSubtitle": {
-    "description": "Store header card text: pictures are bought once and owned forever."
+    "description": "Shop header card text: pictures are bought once and owned forever."
+  },
+  "storeCosmeticsHeroSubtitle": "Fixed prices, nothing random. Cosmetic only, and yours forever.",
+  "@storeCosmeticsHeroSubtitle": {
+    "description": "Shop header card of a cosmetic category (dice, tokens, boards, ...): fixed prices, no randomness, cosmetic only, owned forever."
   },
   "storeFilterAnimated": "Animated",
   "@storeFilterAnimated": {
-    "description": "Store filter pill: animated (Lottie) pictures."
+    "description": "Shop filter pill: animated (Lottie) pictures."
   },
   "storeFilterStatic": "Static",
   "@storeFilterStatic": {
-    "description": "Store filter pill: still images."
+    "description": "Shop filter pill: still images."
   },
   "storeKindAnimated": "Animated picture",
   "@storeKindAnimated": {
@@ -4391,6 +4407,10 @@
   "storeApply": "Apply",
   "@storeApply": {
     "description": "Button: use this owned picture as your profile picture."
+  },
+  "storeApplyNow": "Apply now",
+  "@storeApplyNow": {
+    "description": "Picture sheet, right after buying in the Shop: use the new picture now."
   },
   "storeRemove": "Use classic avatar",
   "@storeRemove": {
@@ -4421,29 +4441,33 @@
   "@storeEmptyOwnedTitle": {
     "description": "Empty state of the Owned filter."
   },
-  "storeEmptyOwnedMessage": "Pictures you buy are yours forever.",
-  "@storeEmptyOwnedMessage": {
-    "description": "Empty state of the Owned filter."
-  },
   "storeEmptyTitle": "Nothing here yet",
   "@storeEmptyTitle": {
-    "description": "Empty state of a Store filter."
+    "description": "Empty state of a Shop filter."
   },
   "storeEmptyMessage": "New pictures are on their way.",
   "@storeEmptyMessage": {
-    "description": "Empty state of a Store filter."
+    "description": "Empty state of a Shop filter."
   },
-  "storeBrowseAll": "Browse all",
-  "@storeBrowseAll": {
-    "description": "Button in the empty Owned filter: show every picture."
+  "storeAllOwnedTitle": "You own them all!",
+  "@storeAllOwnedTitle": {
+    "description": "Shop category where the player already owns every item for sale."
+  },
+  "storeAllOwnedMessage": "Everything here is already in your Collection.",
+  "@storeAllOwnedMessage": {
+    "description": "Shop category where the player already owns every item for sale: they are in the Collection."
+  },
+  "storeViewInCollection": "View in Collection",
+  "@storeViewInCollection": {
+    "description": "Button after buying in the Shop (or when a Shop category is all owned): open that category of the Collection Room."
   },
   "storeLoadMoreFailed": "Couldn't load more pictures.",
   "@storeLoadMoreFailed": {
-    "description": "Inline error at the end of the Store grid (next page failed)."
+    "description": "Inline error at the end of the Shop grid (next page failed)."
   },
   "storeTileSemantics": "{name}, {status}",
   "@storeTileSemantics": {
-    "description": "Screen-reader label of a Store tile: picture name and its price or state.",
+    "description": "Screen-reader label of a Shop tile: picture name and its price or state.",
     "placeholders": {
       "name": {
         "type": "String"

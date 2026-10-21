@@ -47,7 +47,7 @@ class RoomActions extends StatelessWidget {
 }
 
 /// Two-column grid (four columns on wide screens) of entry tiles with equal
-/// heights per row. A short last row (e.g. the fifth tile on phones) is
+/// heights per row. A short last row (an odd tile count on phones) is
 /// stretched across the full width, so the grid never shows a hole.
 class ExploreGrid extends StatelessWidget {
   const ExploreGrid({super.key, required this.tiles});

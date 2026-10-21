@@ -959,10 +959,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEventsSubtitle => 'Limited-time cups';
 
   @override
-  String get homeStore => 'Store';
-
-  @override
-  String get homeStoreSubtitle => 'Profile pictures';
+  String get homeShop => 'Shop';
 
   @override
   String get homeExploreHeader => 'More to Explore';
@@ -1555,6 +1552,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get metaTabEmotes => 'Emotes';
 
   @override
+  String get metaTabPictures => 'Pictures';
+
+  @override
   String get metaFilterAll => 'All';
 
   @override
@@ -1703,6 +1703,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get metaNothingOwnedInKind =>
       'Nothing here yet — keep playing to unlock more.';
+
+  @override
+  String get metaKindEmptyMessage =>
+      'Nothing to collect here yet. Take a look in the Shop!';
+
+  @override
+  String get metaGoToShop => 'Go to Shop';
+
+  @override
+  String get metaFindMoreInShop => 'Find more in the Shop';
 
   @override
   String get metaCollectionFairNote =>
@@ -2788,13 +2798,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profilePictureEmptyMessage =>
-      'Pictures you buy in the Store show up here.';
+      'Pictures you buy in the Shop show up here.';
 
   @override
-  String get profilePictureOpenStore => 'Visit the Store';
+  String get profilePictureOpenShop => 'Visit the Shop';
 
   @override
-  String get profilePictureGetMore => 'Get more in the Store';
+  String get profilePictureGetMore => 'Get more in the Shop';
 
   @override
   String get profilePictureShowMore => 'Show more';
@@ -3147,13 +3157,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storeTitle => 'Store';
+  String get storeTitle => 'Shop';
 
   @override
   String get storeHeroTitle => 'Profile pictures';
 
   @override
   String get storeHeroSubtitle => 'Buy once with diamonds and keep it forever.';
+
+  @override
+  String get storeCosmeticsHeroSubtitle =>
+      'Fixed prices, nothing random. Cosmetic only, and yours forever.';
 
   @override
   String get storeFilterAnimated => 'Animated';
@@ -3169,6 +3183,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeApply => 'Apply';
+
+  @override
+  String get storeApplyNow => 'Apply now';
 
   @override
   String get storeRemove => 'Use classic avatar';
@@ -3192,16 +3209,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeEmptyOwnedTitle => 'No pictures yet';
 
   @override
-  String get storeEmptyOwnedMessage => 'Pictures you buy are yours forever.';
-
-  @override
   String get storeEmptyTitle => 'Nothing here yet';
 
   @override
   String get storeEmptyMessage => 'New pictures are on their way.';
 
   @override
-  String get storeBrowseAll => 'Browse all';
+  String get storeAllOwnedTitle => 'You own them all!';
+
+  @override
+  String get storeAllOwnedMessage =>
+      'Everything here is already in your Collection.';
+
+  @override
+  String get storeViewInCollection => 'View in Collection';
 
   @override
   String get storeLoadMoreFailed => 'Couldn\'t load more pictures.';

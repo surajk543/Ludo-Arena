@@ -4,6 +4,7 @@ import 'package:ludo_royale/app/shell/main_shell.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/home/presentation/games_screen.dart';
 import 'package:ludo_royale/features/home/presentation/home_screen.dart';
+import 'package:ludo_royale/features/home/presentation/widgets/no_ads_ribbon.dart';
 import 'package:ludo_royale/features/home/presentation/widgets/quick_play_card.dart';
 
 import '../../helpers/harness.dart';
@@ -66,11 +67,28 @@ void main() {
           Directionality.of(tester.element(find.byType(screen.runtimeType))),
           rtl ? TextDirection.rtl : TextDirection.ltr,
         );
+        final shop = find.byKey(const ValueKey('lobby-shop'));
+        Rect? shopRect;
         if (name == 'lobby') {
           expect(find.byType(QuickPlayCard), findsOneWidget);
+          // The pinned Shop button: a ≥ 48 dp target above the header, clear
+          // of its buttons and the No Ads ribbon.
+          shopRect = tester.getRect(shop);
+          expect(shopRect.height, greaterThanOrEqualTo(48));
+          for (final below in [
+            find.byType(NoAdsRibbon),
+            find.byTooltip(rtl ? 'الإعدادات' : 'Settings'),
+          ]) {
+            expect(below, findsOneWidget);
+            expect(
+              shopRect.bottom,
+              lessThanOrEqualTo(tester.getRect(below).top),
+            );
+          }
         }
         await scrollThrough(tester);
         expect(tester.takeException(), isNull);
+        if (shopRect != null) expect(tester.getRect(shop), shopRect);
       });
     }
 

@@ -20,17 +20,28 @@ import '../../domain/collection_texts.dart';
 import 'item_preview.dart';
 
 /// Opens the item detail sheet (large preview, description, acquisition,
-/// equip / purchase).
-Future<void> showCollectionItemSheet(BuildContext context, String itemId) =>
-    AppBottomSheet.show<void>(
-      context,
-      builder: (_) => CollectionItemSheet(itemId: itemId),
-    );
+/// equip / purchase). [inShop]: opened from the Shop, so once bought the
+/// sheet also offers View in Collection.
+Future<void> showCollectionItemSheet(
+  BuildContext context,
+  String itemId, {
+  bool inShop = false,
+}) => AppBottomSheet.show<void>(
+  context,
+  builder: (_) => CollectionItemSheet(itemId: itemId, inShop: inShop),
+);
 
 class CollectionItemSheet extends ConsumerWidget {
-  const CollectionItemSheet({super.key, required this.itemId});
+  const CollectionItemSheet({
+    super.key,
+    required this.itemId,
+    this.inShop = false,
+  });
 
   final String itemId;
+
+  /// Opened from the Shop (a bought item leaves the Shop for the Collection).
+  final bool inShop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -109,6 +120,21 @@ class CollectionItemSheet extends ConsumerWidget {
         ],
         const SizedBox(height: AppSpacing.xl),
         ..._actions(context, ref, item),
+        if (inShop && item.owned) ...[
+          const SizedBox(height: AppSpacing.sm),
+          PremiumButton(
+            key: const ValueKey('view-in-collection'),
+            label: l10n.storeViewInCollection,
+            icon: Icons.diamond_rounded,
+            size: PremiumButtonSize.medium,
+            variant: PremiumButtonVariant.ghost,
+            onPressed: () {
+              final router = GoRouter.maybeOf(context);
+              Navigator.of(context).pop();
+              router?.push(MetaRoutes.collectionFor(kind: item.kind));
+            },
+          ),
+        ],
       ],
     );
   }

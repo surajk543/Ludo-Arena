@@ -17,9 +17,11 @@ import 'package:ludo_royale/features/home/presentation/games_screen.dart';
 import 'package:ludo_royale/features/home/presentation/home_screen.dart';
 import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
 import 'package:ludo_royale/features/settings/presentation/settings_screen.dart';
-import 'package:ludo_royale/features/store/presentation/store_screen.dart';
+import 'package:ludo_royale/features/store/application/shop_category.dart';
+import 'package:ludo_royale/features/store/presentation/shop_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import '../features/progression/meta_test_support.dart' show collectionJson;
 import '../features/store/store_test_support.dart';
 import '../helpers/fake_backend.dart';
 import '../helpers/harness.dart';
@@ -81,12 +83,12 @@ void main() {
           'offline',
         ),
         'not-found': (const NotFoundScreen(location: '/missions'), null, null),
-        'store': (const StoreScreen(), signedIn, 'store'),
+        'shop': (const ShopScreen(), signedIn, 'shop'),
       };
 
-  // The Store also at the largest text scale the app allows, in every
-  // language and both themes.
-  final storeConfigs = [
+  // The Shop (every category) also at the largest text scale the app
+  // allows, in every language and both themes.
+  final shopConfigs = [
     for (final l in const ['en', 'hi', 'ur', 'id', 'ar'])
       for (final m in const [ThemeMode.light, ThemeMode.dark])
         (Locale(l), m, 1.35),
@@ -95,7 +97,7 @@ void main() {
   for (final entry in screens.entries) {
     for (final (locale, mode, scale) in [
       ...configs,
-      if (entry.key == 'store') ...storeConfigs,
+      if (entry.key == 'shop') ...shopConfigs,
     ]) {
       final name =
           '${entry.key} ${locale.languageCode} ${mode.name} x$scale @320x640';
@@ -141,8 +143,9 @@ void main() {
             );
           case 'offline':
             env.backend.offline = true;
-          case 'store':
+          case 'shop':
             routeStore(env);
+            env.backend.json('GET', '/collection', collectionJson());
         }
         await pumpScreen(
           tester,
@@ -163,6 +166,41 @@ void main() {
         );
         final rtl = locale.languageCode == 'ar' || locale.languageCode == 'ur';
         expect(dir, rtl ? TextDirection.rtl : TextDirection.ltr);
+
+        if (entry.key == 'shop') {
+          // Every Shop category: tap its pill, then scroll it through.
+          final count = shopCategories(null).length;
+          for (var i = 1; i < count; i++) {
+            final pill = find
+                .descendant(
+                  of: find.byKey(
+                    const ValueKey('shop-categories'),
+                    skipOffstage: false,
+                  ),
+                  matching: find.byType(InkWell, skipOffstage: false),
+                  skipOffstage: false,
+                )
+                .at(i);
+            await tester.ensureVisible(pill);
+            await tester.pump(const Duration(milliseconds: 300));
+            await tester.tap(pill);
+            await drain(tester);
+            expect(tester.takeException(), isNull, reason: 'category $i');
+            // The category's items are shown (not an error or spinner).
+            expect(
+              find.byWidgetPredicate(
+                (w) =>
+                    w.key is ValueKey<String> &&
+                    (w.key! as ValueKey<String>).value.startsWith('shop-item-'),
+                skipOffstage: false,
+              ),
+              findsWidgets,
+              reason: 'category $i',
+            );
+            await scrollThrough(tester);
+            expect(tester.takeException(), isNull, reason: 'category $i');
+          }
+        }
 
         // Stop timers (maintenance auto-check) before teardown.
         await tester.pumpWidget(const SizedBox());

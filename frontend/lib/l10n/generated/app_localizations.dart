@@ -1766,17 +1766,11 @@ abstract class AppLocalizations {
   /// **'Limited-time cups'**
   String get homeEventsSubtitle;
 
-  /// Entry tile: the Store (profile pictures bought with diamonds).
+  /// Lobby: the Shop button pinned at the top of Home (stays visible while the lobby scrolls).
   ///
   /// In en, this message translates to:
-  /// **'Store'**
-  String get homeStore;
-
-  /// Entry tile subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Profile pictures'**
-  String get homeStoreSubtitle;
+  /// **'Shop'**
+  String get homeShop;
 
   /// Section header above the entry tiles (missions, collection, friends, events).
   ///
@@ -2642,6 +2636,12 @@ abstract class AppLocalizations {
   /// **'Emotes'**
   String get metaTabEmotes;
 
+  /// Category of profile pictures (Shop category pill and Collection Room tab).
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures'**
+  String get metaTabPictures;
+
   /// Collection filter.
   ///
   /// In en, this message translates to:
@@ -2886,6 +2886,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing here yet — keep playing to unlock more.'**
   String get metaNothingOwnedInKind;
+
+  /// Collection Room tab with nothing owned or to earn (its items are only sold in the Shop).
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to collect here yet. Take a look in the Shop!'**
+  String get metaKindEmptyMessage;
+
+  /// Collection Room empty state: button that opens the Shop.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Shop'**
+  String get metaGoToShop;
+
+  /// Collection Room, below a tab: more items of it are for sale in the Shop.
+  ///
+  /// In en, this message translates to:
+  /// **'Find more in the Shop'**
+  String get metaFindMoreInShop;
 
   /// Fairness note in the Collection Room.
   ///
@@ -4711,28 +4729,28 @@ abstract class AppLocalizations {
   /// **'Choose your picture'**
   String get profilePictureTitle;
 
-  /// Picker choice: the built-in avatar (no Store picture).
+  /// Picker choice: the built-in avatar (no Shop picture).
   ///
   /// In en, this message translates to:
   /// **'Classic avatar'**
   String get profilePictureClassic;
 
-  /// Picker empty state: the player owns no Store pictures yet.
+  /// Picker empty state: the player owns no profile pictures yet (they are bought in the Shop).
   ///
   /// In en, this message translates to:
-  /// **'Pictures you buy in the Store show up here.'**
+  /// **'Pictures you buy in the Shop show up here.'**
   String get profilePictureEmptyMessage;
 
-  /// Picker empty-state button: opens the Store.
+  /// Picker empty-state button: opens the Shop.
   ///
   /// In en, this message translates to:
-  /// **'Visit the Store'**
-  String get profilePictureOpenStore;
+  /// **'Visit the Shop'**
+  String get profilePictureOpenShop;
 
-  /// Picker link: opens the Store to buy more pictures.
+  /// Picker link: opens the Shop to buy more pictures.
   ///
   /// In en, this message translates to:
-  /// **'Get more in the Store'**
+  /// **'Get more in the Shop'**
   String get profilePictureGetMore;
 
   /// Picker button: loads the next page of owned pictures.
@@ -5323,31 +5341,37 @@ abstract class AppLocalizations {
   /// **'Status: {status}'**
   String socialReportStatusA11y(String status);
 
-  /// Title of the Store screen (profile pictures bought with diamonds).
+  /// Title of the Shop screen (profile pictures and cosmetics for sale that the player does not own yet).
   ///
   /// In en, this message translates to:
-  /// **'Store'**
+  /// **'Shop'**
   String get storeTitle;
 
-  /// Store header card title.
+  /// Shop header card title.
   ///
   /// In en, this message translates to:
   /// **'Profile pictures'**
   String get storeHeroTitle;
 
-  /// Store header card text: pictures are bought once and owned forever.
+  /// Shop header card text: pictures are bought once and owned forever.
   ///
   /// In en, this message translates to:
   /// **'Buy once with diamonds and keep it forever.'**
   String get storeHeroSubtitle;
 
-  /// Store filter pill: animated (Lottie) pictures.
+  /// Shop header card of a cosmetic category (dice, tokens, boards, ...): fixed prices, no randomness, cosmetic only, owned forever.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed prices, nothing random. Cosmetic only, and yours forever.'**
+  String get storeCosmeticsHeroSubtitle;
+
+  /// Shop filter pill: animated (Lottie) pictures.
   ///
   /// In en, this message translates to:
   /// **'Animated'**
   String get storeFilterAnimated;
 
-  /// Store filter pill: still images.
+  /// Shop filter pill: still images.
   ///
   /// In en, this message translates to:
   /// **'Static'**
@@ -5370,6 +5394,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get storeApply;
+
+  /// Picture sheet, right after buying in the Shop: use the new picture now.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply now'**
+  String get storeApplyNow;
 
   /// Button: stop using the applied picture and go back to the built-in avatar.
   ///
@@ -5407,37 +5437,43 @@ abstract class AppLocalizations {
   /// **'No pictures yet'**
   String get storeEmptyOwnedTitle;
 
-  /// Empty state of the Owned filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Pictures you buy are yours forever.'**
-  String get storeEmptyOwnedMessage;
-
-  /// Empty state of a Store filter.
+  /// Empty state of a Shop filter.
   ///
   /// In en, this message translates to:
   /// **'Nothing here yet'**
   String get storeEmptyTitle;
 
-  /// Empty state of a Store filter.
+  /// Empty state of a Shop filter.
   ///
   /// In en, this message translates to:
   /// **'New pictures are on their way.'**
   String get storeEmptyMessage;
 
-  /// Button in the empty Owned filter: show every picture.
+  /// Shop category where the player already owns every item for sale.
   ///
   /// In en, this message translates to:
-  /// **'Browse all'**
-  String get storeBrowseAll;
+  /// **'You own them all!'**
+  String get storeAllOwnedTitle;
 
-  /// Inline error at the end of the Store grid (next page failed).
+  /// Shop category where the player already owns every item for sale: they are in the Collection.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything here is already in your Collection.'**
+  String get storeAllOwnedMessage;
+
+  /// Button after buying in the Shop (or when a Shop category is all owned): open that category of the Collection Room.
+  ///
+  /// In en, this message translates to:
+  /// **'View in Collection'**
+  String get storeViewInCollection;
+
+  /// Inline error at the end of the Shop grid (next page failed).
   ///
   /// In en, this message translates to:
   /// **'Couldn\'t load more pictures.'**
   String get storeLoadMoreFailed;
 
-  /// Screen-reader label of a Store tile: picture name and its price or state.
+  /// Screen-reader label of a Shop tile: picture name and its price or state.
   ///
   /// In en, this message translates to:
   /// **'{name}, {status}'**
