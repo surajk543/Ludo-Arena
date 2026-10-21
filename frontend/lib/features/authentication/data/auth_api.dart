@@ -43,7 +43,16 @@ abstract interface class AuthApi {
 
   /// `POST /account/link/{provider}`.
   Future<MeResponse> link(ProviderCredential credential);
+
+  /// `DELETE /account` `{"confirm":"DELETE"}` → 204: permanently deletes the
+  /// current account (wallet, progress, items, friends, sign-in methods and
+  /// device binding) and ends its session. 401 when the session or the
+  /// account no longer exists; never version-gated.
+  Future<void> deleteAccount();
 }
+
+/// The literal confirmation `DELETE /account` requires (never localized).
+const deleteAccountConfirmation = 'DELETE';
 
 class RestAuthApi implements AuthApi {
   RestAuthApi(this._api);
@@ -118,6 +127,14 @@ class RestAuthApi implements AuthApi {
       MeResponse.fromJson(
         await _api.patch('/me', body: {'displayName': displayName}),
       );
+
+  @override
+  Future<void> deleteAccount() async {
+    await _api.delete(
+      '/account',
+      body: const {'confirm': deleteAccountConfirmation},
+    );
+  }
 
   @override
   Future<MeResponse> link(ProviderCredential credential) async =>

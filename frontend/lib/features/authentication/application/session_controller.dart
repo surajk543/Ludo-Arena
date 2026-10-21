@@ -30,6 +30,11 @@ enum SignOutReason {
   /// The app never signs back in on its own after this (not even on the
   /// next launch) until the user signs in explicitly.
   replaced,
+
+  /// The account was deleted (Settings → Delete account, or the server
+  /// closed the socket with `account deleted`). Nothing is restored on the
+  /// next launch; signing in again creates a new account.
+  accountDeleted,
 }
 
 @immutable
@@ -133,6 +138,27 @@ final class LinkFailed extends LinkOutcome {
   final String code;
 }
 
+/// Result of Settings → Delete account (`DELETE /account`).
+@immutable
+sealed class DeleteAccountOutcome {
+  const DeleteAccountOutcome();
+}
+
+/// The account is gone (204, or 401: it was already deleted) and this
+/// device was signed out.
+final class DeleteAccountSucceeded extends DeleteAccountOutcome {
+  const DeleteAccountSucceeded();
+}
+
+/// Nothing was deleted (network, 5xx, `rate_limited`, …) and the session is
+/// unchanged, or the account was signed in elsewhere (`session_replaced`,
+/// handled like any replaced session). [retryAfter]: `Retry-After` on 429.
+final class DeleteAccountFailed extends DeleteAccountOutcome {
+  const DeleteAccountFailed(this.code, {this.retryAfter});
+  final String code;
+  final Duration? retryAfter;
+}
+
 /// Result of a display-name change (`PATCH /me`).
 @immutable
 sealed class DisplayNameOutcome {
@@ -176,6 +202,10 @@ class SessionController extends Notifier<SessionState> {
   /// The account a `PUT /account/device` is in flight for.
   String? _bindingUid;
 
+  /// A `DELETE /account` is in flight: session-expiry and socket signals it
+  /// causes are handled by [deleteAccount] itself.
+  bool _deleting = false;
+
   @override
   SessionState build() {
     // Creating the ApiClient wires TokenManager.refreshCall (`/auth/refresh`).
@@ -184,6 +214,10 @@ class SessionController extends Notifier<SessionState> {
     final subs = <StreamSubscription<dynamic>>[
       tokens.onRefreshed.listen(_onTokensRefreshed),
       tokens.onExpired.listen((end) => unawaited(_onSessionExpired(end))),
+      ref
+          .read(accountDeletedSignalProvider)
+          .events
+          .listen((_) => unawaited(accountDeletedRemotely())),
     ];
     ref.onDispose(() {
       for (final s in subs) {
@@ -498,6 +532,77 @@ class SessionController extends Notifier<SessionState> {
     _signedOut(SignOutReason.userAction, hasStoredGuest: hasGuest);
   }
 
+  // ---------------------------------------------------------------- delete
+
+  /// Settings → Delete account: `DELETE /account` `{"confirm":"DELETE"}`.
+  ///
+  /// - 204: logs `account_deleted` (server-confirmed, while the actor is
+  ///   still the human user), then forgets everything this device holds for
+  ///   the account and signs out with [SignOutReason.accountDeleted].
+  /// - 401 (not `session_replaced`): the session or account is already gone
+  ///   (e.g. an earlier attempt succeeded but its answer was lost) — same
+  ///   local sign-out, no analytics (nothing was confirmed).
+  /// - `session_replaced`: the usual "signed in on another device" sign-out.
+  /// - anything else: nothing changed; the user can retry.
+  ///
+  /// Never throws.
+  Future<DeleteAccountOutcome> deleteAccount() async {
+    if (!state.isSignedIn) return const DeleteAccountFailed('unauthorized');
+    if (_deleting) return const DeleteAccountFailed('cancelled');
+    _deleting = true;
+    try {
+      try {
+        await _api.deleteAccount();
+        _analytics.accountDeleted();
+      } on ApiException catch (e) {
+        if (e.code == 'session_replaced') {
+          _deleting = false;
+          await _onSessionExpired(SessionEnd.replaced);
+          return DeleteAccountFailed(e.code);
+        }
+        if (e.status != 401) {
+          return DeleteAccountFailed(e.code, retryAfter: e.retryAfter);
+        }
+        // 401: already deleted.
+      }
+      await _forgetDeletedAccount();
+      _signedOut(SignOutReason.accountDeleted, hasStoredGuest: false);
+      return const DeleteAccountSucceeded();
+    } finally {
+      _deleting = false;
+    }
+  }
+
+  /// The server closed the socket because the account was deleted (e.g. the
+  /// delete finished while this app was not waiting for the answer): signs
+  /// out like [deleteAccount] would. No analytics.
+  Future<void> accountDeletedRemotely() async {
+    if (_deleting || !state.isSignedIn) return;
+    _deleting = true;
+    try {
+      await _forgetDeletedAccount();
+      _signedOut(SignOutReason.accountDeleted, hasStoredGuest: false);
+    } finally {
+      _deleting = false;
+    }
+  }
+
+  /// Forgets everything this device holds for a deleted account, so nothing
+  /// is restored on the next launch: tokens, guest secret, device-binding
+  /// marker, provider SDK sessions, and the "replaced" flag. Automatic
+  /// sign-in stays blocked until the user signs in (a new account).
+  Future<void> _forgetDeletedAccount() async {
+    await ref.read(tokenManagerProvider).clear();
+    for (final c in ref.read(identityProviderClientsProvider).values) {
+      unawaited(c.signOut());
+    }
+    await _store.clearGuestSecret();
+    await _store.clearDeviceBoundUid();
+    await _store.writeLastSessionWasGuest(false);
+    await _store.clearSessionReplaced();
+    await _store.markSignedOut();
+  }
+
   // ---------------------------------------------------------------- internals
 
   Future<ProviderCredential?> _obtain(LinkedProvider provider) {
@@ -600,7 +705,8 @@ class SessionController extends Notifier<SessionState> {
   }
 
   Future<void> _onSessionExpired(SessionEnd end) async {
-    if (!state.isSignedIn) return;
+    // During a delete the refresh after its 401 fails on purpose.
+    if (_deleting || !state.isSignedIn) return;
     final secret = await _store.readGuestSecret();
     if (end == SessionEnd.replaced) {
       // Signed in on another device: never sign back in automatically, not

@@ -171,6 +171,24 @@ func PresenceKey(userID uuid.UUID) string { return "presence:" + userID.String()
 // RecentKey is the ZSET of recent human opponents (score = unix ms).
 func RecentKey(userID uuid.UUID) string { return "recent:" + userID.String() }
 
+// existingAccounts reports which ids are accounts (have a wallet row).
+func existingAccounts(ctx context.Context, q querier, ids []uuid.UUID) (map[uuid.UUID]bool, error) {
+	rows, err := q.Query(ctx, `SELECT user_id FROM wallet.wallets WHERE user_id = ANY($1)`, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[uuid.UUID]bool, len(ids))
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
+}
+
 // ------------------------------------------------------------ relationships
 
 func order(a, b uuid.UUID) (uuid.UUID, uuid.UUID) {
@@ -552,11 +570,30 @@ func (s *Service) Remove(ctx context.Context, me uuid.UUID, uid string) error {
 // ---------------------------------------------------------- recent players
 
 // recordOpponents stores each human's human opponents (idempotent: a ZSET
-// member is re-scored, never duplicated).
+// member is re-scored, never duplicated). Players whose account no longer
+// exists (deleted while the match ran) are left out, so a deleted account
+// never reappears in anyone's recent players.
 func (s *Service) recordOpponents(ctx context.Context, rec gameevents.MatchRecord) {
 	humans := rec.Humans()
 	if len(humans) < 2 {
 		return
+	}
+	ids := make([]uuid.UUID, len(humans))
+	for i, h := range humans {
+		ids[i] = h.UserID
+	}
+	if live, err := existingAccounts(ctx, s.pool, ids); err == nil {
+		kept := humans[:0:0]
+		for _, h := range humans {
+			if live[h.UserID] {
+				kept = append(kept, h)
+			}
+		}
+		if humans = kept; len(humans) < 2 {
+			return
+		}
+	} else {
+		s.log.Warn("recent opponents: account check failed", "error", err.Error())
 	}
 	at := rec.FinishedAt
 	if at.IsZero() {
@@ -601,6 +638,26 @@ func (s *Service) Recent(ctx context.Context, me uuid.UUID) ([]Friend, error) {
 		}
 	}
 	if len(ids) == 0 {
+		return []Friend{}, nil
+	}
+	// Deleted accounts are dropped (and forgotten), never shown.
+	live, err := existingAccounts(ctx, s.pool, ids)
+	if err != nil {
+		return nil, err
+	}
+	kept := ids[:0]
+	var gone []any
+	for _, id := range ids {
+		if live[id] {
+			kept = append(kept, id)
+		} else {
+			gone = append(gone, id.String())
+		}
+	}
+	if len(gone) > 0 {
+		_ = s.rdb.ZRem(ctx, RecentKey(me), gone...).Err()
+	}
+	if ids = kept; len(ids) == 0 {
 		return []Friend{}, nil
 	}
 	rels, err := relations(ctx, s.pool, me)

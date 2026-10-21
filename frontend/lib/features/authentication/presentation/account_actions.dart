@@ -7,6 +7,7 @@ import '../../../core/errors/error_messages.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../application/session_controller.dart';
+import 'delete_account_dialog.dart';
 
 enum _SignOutChoice { saveFirst, signOut, cancel }
 
@@ -62,6 +63,14 @@ abstract final class AccountActions {
         break;
     }
   }
+
+  /// Settings → "Delete account" (guests too: their data is deleted as
+  /// well). See [DeleteAccountDialog]; on success the gate routes to login,
+  /// which confirms the deletion.
+  static Future<void> confirmDeleteAccount(
+    BuildContext context,
+    WidgetRef ref,
+  ) => DeleteAccountDialog.show(context);
 
   /// Settings → "Switch back to guest" (guest secret kept on device after a
   /// Save-Progress conflict sign-in).

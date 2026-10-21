@@ -32,11 +32,16 @@ class ChoiceChips<T> extends ConsumerWidget {
     required this.options,
     required this.value,
     required this.onChanged,
+    this.minTileWidth = 84,
   });
 
   final List<ChoiceOption<T>> options;
   final T value;
   final ValueChanged<T> onChanged;
+
+  /// Narrowest tile (at text scale 1) that keeps all options in one row;
+  /// below it they wrap into two columns. Raise it for long labels.
+  final double minTileWidth;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,7 +57,7 @@ class ChoiceChips<T> extends ConsumerWidget {
         final n = options.length;
         final perItem = n == 0 ? 0.0 : (constraints.maxWidth - (n - 1) * 8) / n;
         final scale = MediaQuery.textScalerOf(context).scale(1);
-        final row = perItem >= 84 * scale;
+        final row = perItem >= minTileWidth * scale;
         final tiles = [
           for (final o in options)
             _ChoiceTile<T>(
@@ -157,7 +162,8 @@ class _ChoiceTile<T> extends StatelessWidget {
                       Flexible(
                         child: Text(
                           option.label,
-                          maxLines: 1,
+                          // Long names ("Snakes & Ladders") wrap, not cut.
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                           style: context.textTheme.titleSmall?.copyWith(

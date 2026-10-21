@@ -41,7 +41,10 @@ session** closes the older one with close code `4409` (e.g. the app opened a
 second socket). Another device can no longer hold a valid session at the same
 time: an account has one live human session, and signing in on another device
 revokes the previous one, whose socket is closed at once with `4401` (see
-`authentication.md` → "One active device per account").
+`authentication.md` → "One active device per account"). Deleting the account
+(`DELETE /api/v1/account`) closes its socket at once with `4401` and the
+close reason `account deleted` (see `authentication.md` → "Deleting an
+account").
 
 ### Close codes (after upgrade)
 
@@ -51,7 +54,7 @@ revokes the previous one, whose socket is closed at once with `4401` (see
 | 1001 | Server shutting down | Reconnect with backoff |
 | 1008 | Policy violation (message too large / malformed frames) | Reconnect with backoff |
 | 4400 | Protocol violation (repeated invalid messages) | Reconnect with backoff |
-| 4401 | Session revoked or expired — **or the account signed in on another device** (reason `session replaced`, sent immediately) | Refresh token; if refresh fails → sign-in screen. If the refresh fails with `session_replaced`: show "Your account was signed in on another device", clear the session, go to sign-in **without** automatic re-login |
+| 4401 | Session revoked or expired — **or the account signed in on another device** (reason `session replaced`, sent immediately) — **or the account was deleted** (reason `account deleted`, sent immediately after `DELETE /api/v1/account`; human sockets only) | Refresh token; if refresh fails → sign-in screen. If the refresh fails with `session_replaced`: show "Your account was signed in on another device", clear the session, go to sign-in **without** automatic re-login. Reason `account deleted`: do **not** refresh or reconnect and do **not** show the "another device" popup — forget the local session (tokens, guest secret, device-binding marker) and go to sign-in ("Your account was deleted") |
 | 4409 | Replaced by a newer connection of the **same session** (another socket opened by the same signed-in app) | Do **not** auto-reconnect; offer a Reconnect button (not the "another device" popup — that is `4401` + `session_replaced`) |
 | 4426 | Client version no longer supported | Policy re-check → force-update screen |
 | 4429 | Rate limit abuse | Reconnect after ≥ 10 s |

@@ -117,6 +117,9 @@ class GatedAnalyticsService implements AnalyticsService {
   void accountLinkSucceeded(LoginMethod method) =>
       _log('account_link_succeeded', {'method': method.name});
 
+  @override
+  void accountDeleted() => _log('account_deleted');
+
   // Profile -------------------------------------------------------------------
 
   @override

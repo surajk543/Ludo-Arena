@@ -8,10 +8,12 @@ import '../network/api_client.dart';
 import '../protocol/protocol.dart';
 import '../telemetry/telemetry_reporter.dart';
 import '../time/server_clock.dart';
+import 'account_deleted_signal.dart';
 import 'active_room_controller.dart';
 import 'realtime_connection.dart';
 import 'realtime_status.dart';
 
+export 'account_deleted_signal.dart';
 export 'active_room_controller.dart';
 export 'realtime_connection.dart';
 export 'realtime_status.dart';
@@ -27,6 +29,7 @@ final realtimeConnectionProvider = Provider<RealtimeConnection>((ref) {
   final clock = ref.watch(serverClockProvider);
   final telemetry = ref.watch(telemetryReporterProvider);
   final statusNotifier = ref.read(realtimeStatusProvider.notifier);
+  final accountDeleted = ref.watch(accountDeletedSignalProvider);
 
   final connection = RealtimeConnection(
     uri: config.webSocketUri,
@@ -44,6 +47,7 @@ final realtimeConnectionProvider = Provider<RealtimeConnection>((ref) {
     onPolicySignal: policy.notify,
     onServerTime: (ms, rtt) => clock.sample(ms, roundTrip: rtt),
     onTelemetry: telemetry.record,
+    onAccountDeleted: accountDeleted.notify,
     lifecycle: ref.watch(appLifecycleProvider),
   );
   ref.onDispose(connection.dispose);

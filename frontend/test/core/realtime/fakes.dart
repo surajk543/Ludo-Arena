@@ -16,6 +16,7 @@ class FakeSocket implements RealtimeSocket {
   final _controller = StreamController<dynamic>(sync: true);
   final sent = <String>[];
   int? _closeCode;
+  String? _closeReason;
   int? clientCloseCode;
   bool closedByClient = false;
 
@@ -36,7 +37,7 @@ class FakeSocket implements RealtimeSocket {
   int? get closeCode => _closeCode;
 
   @override
-  String? get closeReason => null;
+  String? get closeReason => _closeReason;
 
   List<Map<String, dynamic>> get sentJson => [
     for (final s in sent) (jsonDecode(s) as Map).cast<String, dynamic>(),
@@ -64,8 +65,9 @@ class FakeSocket implements RealtimeSocket {
     });
   }
 
-  void serverClose(int? code) {
+  void serverClose(int? code, [String? reason]) {
     _closeCode = code;
+    _closeReason = reason;
     _controller.close();
   }
 }
@@ -129,6 +131,7 @@ class Harness {
       onPolicySignal: policy.add,
       onServerTime: (ms, rtt) => serverTimes.add(ms),
       onTelemetry: telemetry.add,
+      onAccountDeleted: () => accountDeletedCalls++,
       lifecycle: lifecycle,
       random: random ?? Random(7),
       backoff: ReconnectBackoff(random: random ?? Random(7)),
@@ -146,6 +149,7 @@ class Harness {
   String? token = 'tok1';
   int tokenCalls = 0;
   int refreshCalls = 0;
+  int accountDeletedCalls = 0;
   bool refreshResult = true;
   bool refreshThrows = false;
   late final RealtimeConnection connection;

@@ -168,8 +168,12 @@ class SecureSessionStore {
   /// Signed out because the account signed in on another device.
   Future<void> markSessionReplaced() => _kv.write(_replaced, '1');
 
-  /// Signed out by the user.
+  /// Signed out by the user (or the account was deleted).
   Future<void> markSignedOut() => _kv.write(_signedOut, '1');
+
+  /// Forgets a `session_replaced` sign-out (e.g. after the account was
+  /// deleted: there is no other device to explain any more).
+  Future<void> clearSessionReplaced() => _deleteQuietly(_replaced);
 
   /// True after a `session_replaced` sign-out or a user sign-out: the app
   /// must not sign in on its own (no guest or device resume) until the user

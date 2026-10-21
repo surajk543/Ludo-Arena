@@ -34,6 +34,9 @@ var (
 	BotServicePerIP  = Rule{"bot_service_ip", 600, time.Minute}
 	TelemetryPerIP   = Rule{"telemetry_ip", 60, time.Minute}
 	LegalPerIP       = Rule{"legal_ip", 60, time.Minute}
+	// AccountDeletePerUser limits DELETE /api/v1/account (wrong confirmations
+	// included) per account.
+	AccountDeletePerUser = Rule{"account_delete_user", 5, time.Hour}
 )
 
 var script = redis.NewScript(`
@@ -74,4 +77,22 @@ func (l *Limiter) Allow(ctx context.Context, rule Rule, key string) (bool, time.
 		return false, retry
 	}
 	return true, 0
+}
+
+// Forget deletes the counters of key under rules for the current and the
+// previous window (account deletion: no per-account counter outlives the
+// account). Older windows have already expired.
+func (l *Limiter) Forget(ctx context.Context, key string, rules ...Rule) error {
+	if l == nil || len(rules) == 0 {
+		return nil
+	}
+	now := l.now().UnixMilli()
+	keys := make([]string, 0, 2*len(rules))
+	for _, rule := range rules {
+		window := now / rule.Window.Milliseconds()
+		for _, w := range []int64{window, window - 1} {
+			keys = append(keys, "rl:"+rule.Name+":"+key+":"+strconv.FormatInt(w, 10))
+		}
+	}
+	return l.rdb.Del(ctx, keys...).Err()
 }

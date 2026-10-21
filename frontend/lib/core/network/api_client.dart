@@ -123,8 +123,13 @@ class ApiClient {
     bool auth = true,
   }) => _send('PATCH', path, body: body ?? const {}, auth: auth);
 
-  Future<Map<String, dynamic>> delete(String path, {bool auth = true}) =>
-      _send('DELETE', path, auth: auth);
+  /// [body] is sent as JSON when given (e.g. `DELETE /account`'s
+  /// confirmation); never retried automatically.
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Object? body,
+    bool auth = true,
+  }) => _send('DELETE', path, body: body, auth: auth);
 
   /// `POST /auth/refresh` without the auth interceptor.
   Future<AuthResponse> refreshTokens(String refreshToken) async {

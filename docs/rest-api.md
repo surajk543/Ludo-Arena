@@ -26,7 +26,7 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 
 | HTTP | Typical codes |
 |---|---|
-| 400 | `bad_request`, `client_version_required`, `environment_mismatch`, `invalid_name` (details = `{"reason"}`) |
+| 400 | `bad_request`, `client_version_required`, `environment_mismatch`, `invalid_name` (details = `{"reason"}`), `confirmation_required` (`DELETE /account`) |
 | 401 | `unauthorized`, `invalid_credential`, `refresh_reused`, `session_replaced` |
 | 403 | `forbidden` |
 | 404 | `not_found`, `invalid_code`, `room_not_found` |
@@ -201,6 +201,22 @@ gate → 400 `client_version_required`. The same `deviceId` on `android` and
 | `POST /auth/device/resume` | none | `{"deviceId"}` | 200 AuthResponse / 404 `not_found` |
 | `PUT /account/device` | human | `{"deviceId"}` | **200 `{}`**: bound to the caller's account. Idempotent if already bound to the caller. If the caller had a different device bound, that binding is **replaced** (moved to a new phone). **409 `identity_conflict`** (no `details`) if the device is bound to **another** account — it is never moved. Rate limited 10/min/account (shared with linking). |
 | `DELETE /account/device` | human | — | **204**, idempotent: removes the caller's device binding (e.g. "forget this guest" on logout). The account itself is untouched. Like logout, **not version-gated**. Rate limited 10/min/account (shared with linking). |
+
+### Deleting the account
+
+`DELETE /account` — app: **Settings → Delete account**. Permanently deletes
+the caller's account and everything tied to it; see
+[`authentication.md` → Deleting an account](authentication.md#deleting-an-account)
+for exactly what is deleted and what remains.
+
+| | |
+|---|---|
+| Auth | Human access token only (`Authorization: Bearer`); bot and bot-controller tokens → **403** `forbidden` |
+| Body | Exactly `{"confirm":"DELETE"}` — the literal `DELETE`, never localized. Missing, different (e.g. `"delete"`) or extra fields → **400** `confirmation_required` (nothing deleted) |
+| Success | **204**, no body. The account leaves its active room (a game in progress is forfeited and continues for the others), every PostgreSQL row of it is deleted in one transaction (wallet, all sign-in identities incl. the device binding, XP/level/display name, missions and claims, receipts, inventory, loadout, friendships on both sides, reports filed by and against it), every session is revoked and its WebSocket is closed with `4401` reason `account deleted` |
+| Afterwards | The same token (or the loser of two concurrent calls) → **401** `unauthorized`; refresh → 401 `invalid_credential`; `POST /auth/device/resume` on that device → 404; `POST /auth/guest {"deviceId"}` there or a provider sign-in with the same provider account → a **new** account with a new welcome grant |
+| Errors | 401 `unauthorized` / `session_replaced`, 403 `forbidden`, 429 `rate_limited` (5 requests/h/account, wrong confirmations included; `Retry-After`), 5xx = nothing was deleted (retry) |
+| Gate | **Not version-gated** (works on every app version, like logout); `X-App-*` headers optional |
 
 ### Profile & wallet
 

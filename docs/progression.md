@@ -25,7 +25,11 @@ payouts, and there are no random rewards.
 
 Same database as `wallet` and `identity`. Every `user_id` references
 `wallet.wallets(user_id)` (the account) with `ON DELETE CASCADE`, so erasing
-an account erases its progression data. **No match history, no currency
+an account erases its progression data. Account deletion
+(`backend/internal/account`) also deletes every table's rows explicitly in
+one transaction, locking the `player_progress` row before the wallet like
+every progression write; a write that was waiting for that lock then finds no
+account (`ErrUnknownUser` → 404, or skipped by match recording). **No match history, no currency
 ledger, no profile table** — the only profile data is the optional
 player-chosen display name (one nullable column, below).
 
@@ -252,6 +256,12 @@ currency for `purchase` items). Level milestones are derived from the
 | `rl:invite_user:…`, `rl:friend_request_user:…`, `rl:report_user:…`, `rl:report_read_user:…`, `rl:admin_ip:…` | counter | window | rate limits |
 | read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}` | | | set by the gateway / profile service / room engine (reports verify seats) |
 
+Account deletion purges the account's `seat:`, `emotes:`, `recent:` keys,
+its member in other players' `recent:` sets and in the weekly `lb:xp:` sets,
+and its rate-limit counters. A match recorded after the deletion never
+re-adds the deleted account to anyone's recent players (`recent` ignores ids
+without an account), and `GET /social/recent` drops such ids.
+
 **If Redis is lost:** recent opponents and the current weekly leaderboard
 reset, pending invites disappear (the sender can re-invite), idempotency
 replays are unavailable for the past 24 h (a retried claim/purchase gets the
@@ -290,6 +300,7 @@ several instances):
 | `mission_progress` | 60 days after the last update, never for a running period |
 | `mission_claims` | 60 days after the claim, never for a running period |
 | `player_progress`, `inventory`, `loadout`, `friendships`, `player_reports` | for the life of the account (reports are removed with either account) |
+| everything above, for one account | until the player deletes the account (Settings → Delete account, `DELETE /api/v1/account`): one transaction deletes all of its rows in every table here — friendships on both sides, reports it filed **and** reports filed against it — together with its wallet and identities; its Redis keys (seat/emote caches, recent players on both sides, weekly leaderboard entries, rate-limit counters) are purged right after. See [authentication.md → Deleting an account](authentication.md#deleting-an-account) |
 | `profile_pictures` | catalogue rows; retired with `active = false`, never deleted |
 
 Deletes run in batches of 5,000 rows.

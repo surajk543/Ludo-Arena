@@ -55,6 +55,7 @@ void main() {
     'insufficient_funds',
     'item_locked',
     'invalid_name',
+    'confirmation_required',
     'update_required',
     'rate_limited',
     'maintenance',

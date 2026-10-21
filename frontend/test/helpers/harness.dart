@@ -147,6 +147,7 @@ class TestEnv {
         accessToken: () async => 'at',
         refreshSession: () async => true,
         connector: wsConnector ?? (uri, headers) => never(),
+        onAccountDeleted: ref.watch(accountDeletedSignalProvider).notify,
         lifecycle: ref.watch(appLifecycleProvider),
         onStatus: (s) {
           try {

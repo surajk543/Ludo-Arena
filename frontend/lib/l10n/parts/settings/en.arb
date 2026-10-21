@@ -124,6 +124,14 @@
   "@settingsSignOut": {
     "description": "Sign out entry."
   },
+  "settingsDeleteAccount": "Delete account",
+  "@settingsDeleteAccount": {
+    "description": "Settings → Account: opens the delete-account confirmation (destructive)."
+  },
+  "settingsDeleteAccountSubtitle": "Permanently delete your account and its data",
+  "@settingsDeleteAccountSubtitle": {
+    "description": "Subtitle of the Delete account row."
+  },
   "settingsAbout": "About",
   "@settingsAbout": {
     "description": "Section header."

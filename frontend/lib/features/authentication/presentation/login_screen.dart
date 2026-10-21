@@ -36,6 +36,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_explainReplaced());
       });
+    } else if (reason == SignOutReason.accountDeleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        AppToast.show(
+          context,
+          AppLocalizations.of(context).authAccountDeleted,
+          kind: ToastKind.success,
+        );
+      });
     }
   }
 
@@ -102,6 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final banner = switch (reason) {
       SignOutReason.expired => l10n.authSessionExpiredBanner,
       SignOutReason.replaced => l10n.authSignedInElsewhereBanner,
+      SignOutReason.accountDeleted => l10n.authAccountDeleted,
       _ => null,
     };
     final locale = ref.watch(languageControllerProvider);

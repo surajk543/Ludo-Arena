@@ -29,6 +29,8 @@
   "settingsSwitchToGuest": "العودة إلى حساب الضيف",
   "settingsSwitchToGuestSubtitle": "عُد إلى حساب الضيف المحفوظ على هذا الجهاز",
   "settingsSignOut": "تسجيل الخروج",
+  "settingsDeleteAccount": "حذف الحساب",
+  "settingsDeleteAccountSubtitle": "احذف حسابك وبياناته نهائيًا",
   "settingsAbout": "حول التطبيق",
   "settingsVersion": "الإصدار",
   "settingsLegalNotices": "الإشعارات القانونية",
