@@ -869,7 +869,7 @@ class _MatchLayout extends StatelessWidget {
     return null;
   }
 
-  Widget _panel(BuildContext context, RoomPlayer? p, {required bool compact}) {
+  Widget _panel(BuildContext context, RoomPlayer? p, {bool stacked = false}) {
     if (p == null) return const SizedBox.shrink();
     final ambient = Directionality.of(context);
     final link = links.putIfAbsent(p.seat, LayerLink.new);
@@ -884,7 +884,7 @@ class _MatchLayout extends StatelessWidget {
           isSelf: p.seat == selfSeat,
           isTurn: isTurn,
           turnTotalMs: isTurn ? turnTotal(room) : 20000,
-          compact: compact,
+          stacked: stacked,
         ),
       ),
     );
@@ -902,8 +902,14 @@ class _MatchLayout extends StatelessWidget {
   }
 
   Widget _portrait(BuildContext context, BoxConstraints constraints) {
-    final compact = constraints.maxWidth < 380;
     const diceSlot = 76.0;
+    // Large card pods when two rows of them fit around a full-width board
+    // (most phones have spare height there); otherwise compact row pods.
+    const stackedPodHeight = 136.0;
+    const chromeHeight = 116.0; // top bar + status line + paddings
+    final stacked =
+        constraints.maxHeight - chromeHeight - 2 * stackedPodHeight >=
+        (constraints.maxWidth - 12) * 0.96;
     final ambient = Directionality.of(context);
     Widget row(_Corner start, _Corner end, Widget middle) => Directionality(
       // Panels follow the board's physical corners (the board is LTR).
@@ -911,9 +917,9 @@ class _MatchLayout extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(child: _panel(context, _at(start), compact: compact)),
+          Expanded(child: _panel(context, _at(start), stacked: stacked)),
           Directionality(textDirection: ambient, child: middle),
-          Expanded(child: _panel(context, _at(end), compact: compact)),
+          Expanded(child: _panel(context, _at(end), stacked: stacked)),
         ],
       ),
     );
@@ -926,7 +932,9 @@ class _MatchLayout extends StatelessWidget {
           child: row(
             _Corner.topLeft,
             _Corner.topRight,
-            const SizedBox(width: AppSpacing.sm),
+            // Same middle width as the dice slot below, so all four pods
+            // get the same width (and size tier).
+            const SizedBox(width: diceSlot),
           ),
         ),
         Expanded(
@@ -974,7 +982,7 @@ class _MatchLayout extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       for (final p in players) ...[
-                        _panel(context, p, compact: false),
+                        _panel(context, p),
                         const SizedBox(height: AppSpacing.sm),
                       ],
                       const SizedBox(height: AppSpacing.sm),
