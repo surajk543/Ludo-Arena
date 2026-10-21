@@ -339,17 +339,24 @@ any other completed match. Bots have no wallet, XP or collection.
 ## 8. Rematch policy
 
 - When a game finishes, `rematch.open=true` for `REMATCH_SECONDS` (default
-  30 s). Each non-forfeited, connected player may accept or decline.
-- Private rooms: when **all** eligible players accepted (minimum 2), the
-  **same room and code** reset to a new round (`round+1`, fresh `turnSeq`,
-  board, dice and deadlines; a new entry fee is charged). Players who declined
-  or left are removed; the host passes to the next seat if needed.
-- Public rooms: a rematch creates a **new private room** containing the
-  accepting players (minimum 2) once every eligible player has answered or the
-  deadline passes.
-- No rematch starts without each participant's explicit acceptance.
-- A player who leaves (`room.leave`) or disconnects past the deadline counts as
-  declined.
+  30 s). Each eligible player (a human who did not forfeit or leave) may
+  accept or decline; bots never vote.
+- Voting closes when every eligible player has answered or the deadline
+  passes. Only players who **accepted** are carried into the next round.
+- **Private rooms:** the **same room and code** return to the lobby
+  (`room.updated` reason `rematch_started`, `round+1`, fresh `turnSeq`, board,
+  dice and deadlines; no game state is reused). Players who declined or left
+  are removed; the host passes to the next seat if the host did not accept.
+  Nothing starts automatically: the host starts the round (≥ 2 connected
+  players) and may invite friends or add bots to fill seats. If nobody
+  accepted, the room closes.
+- **Practice rooms:** if the human accepted, the room returns to the lobby
+  with fresh bot seats requested; it starts when the bots are seated.
+- **Public rooms:** if ≥ 2 players accepted, a **new private room** with a new
+  code is created for them and `room.rematch` carries `newRoomId`; otherwise
+  no rematch happens.
+- A player who leaves (`room.leave`) or starts matchmaking (Play Again) counts
+  as declined. No rematch round starts without each participant's acceptance.
 
 ## 9. Error codes
 

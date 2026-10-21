@@ -41,3 +41,6 @@ __pycache__/
 # Local build output
 backend/server
 bot-play/bot-play
+
+# Flutter golden-test failure output (never commit)
+frontend/test/**/failures/
