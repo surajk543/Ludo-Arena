@@ -45,9 +45,13 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]; then
   exit 1
 fi
 
-symbols=build/symbols/android
+# A new symbols directory per run: it is an input of Flutter's Dart compile
+# task, so the task always reruns and writes fresh symbols (with the same
+# directory, an up-to-date Gradle build would skip it and write none).
+rm -rf build/symbols/android-*
+symbols="build/symbols/android-$(date +%Y%m%d%H%M%S)"
 mapping=build/app/outputs/mapping/release/mapping.txt
-rm -rf "$symbols" "$mapping"
+rm -f "$mapping"
 
 flutter build "$target" --release --obfuscate --split-debug-info="$symbols" "$@"
 
