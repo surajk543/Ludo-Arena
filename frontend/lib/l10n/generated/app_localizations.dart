@@ -3439,7 +3439,7 @@ abstract class AppLocalizations {
   /// **'Add friends to see how you compare. Friendly competition, no pressure.'**
   String get metaLeaderboardAlone;
 
-  /// Indian numbering unit 100,000 (lakh), used for large coin amounts in en/hi/ur. {value} is already formatted (e.g. 10 or 12.5).
+  /// Indian numbering unit 100,000 (lakh), used for large coin amounts in the Indian number format. {value} is already formatted (e.g. 10 or 12.5).
   ///
   /// In en, this message translates to:
   /// **'{value} Lakh'**
@@ -3450,6 +3450,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value} Crore'**
   String numberCrore(String value);
+
+  /// Short international unit 1,000 (thousand) for compact coin amounts in the International number format, e.g. 54.32K. Keep it as short as the locale's compact form; use a non-breaking space if the unit is separated. {value} is already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}K'**
+  String numberThousand(String value);
+
+  /// Short international unit 1,000,000 (million), e.g. 1M or 1.5M. {value} is already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}M'**
+  String numberMillion(String value);
+
+  /// Short international unit 1,000,000,000 (billion), e.g. 1B. {value} is already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}B'**
+  String numberBillion(String value);
 
   /// First-run language picker title.
   ///
@@ -4746,6 +4764,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get settingsLanguage;
+
+  /// Setting label and sheet title: how large amounts are grouped and abbreviated (Indian lakh/crore vs international million/billion).
+  ///
+  /// In en, this message translates to:
+  /// **'Number format'**
+  String get settingsNumberSystem;
+
+  /// Short explanation at the top of the number format picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how coin amounts are shown.'**
+  String get settingsNumberSystemHint;
+
+  /// Number format option: Indian grouping and lakh/crore (1,00,000 · 10 Lakh).
+  ///
+  /// In en, this message translates to:
+  /// **'Indian'**
+  String get settingsNumberSystemIndian;
+
+  /// Number format option: international grouping and million/billion (100,000 · 1M).
+  ///
+  /// In en, this message translates to:
+  /// **'International'**
+  String get settingsNumberSystemInternational;
+
+  /// Live example of a number format: one lakh in full and ten lakh compact, e.g. '1,00,000 · 10 Lakh' or '100,000 · 1M'. Both values are already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{full} · {compact}'**
+  String settingsNumberSystemExample(String full, String compact);
+
+  /// Subtitle of the Number format row: the chosen format's name and its example, e.g. 'Indian (1,00,000 · 10 Lakh)'.
+  ///
+  /// In en, this message translates to:
+  /// **'{system} ({example})'**
+  String settingsNumberSystemSummary(String system, String example);
 
   /// Section header.
   ///

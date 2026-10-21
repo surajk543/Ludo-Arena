@@ -15,6 +15,9 @@ abstract final class PrefKeys {
   static const hapticsEnabled = 'settings.haptics';
   static const reducedMotion = 'settings.reduced_motion';
   static const quickChatMuted = 'settings.quick_chat_muted';
+
+  /// `indian` | `international`; absent follows the app language.
+  static const numberSystem = 'settings.number_system';
   static const analyticsConsent = 'analytics.consent';
   static const cachedPolicy = 'policy.cached';
   static const optionalUpdateDeferredUntil = 'policy.optional_deferred_until';

@@ -78,6 +78,7 @@ abstract final class AnalyticsValues {
     'haptics',
     'reduced_motion',
     'quick_chat_mute',
+    'international_numbers',
   };
   static const periods = {'daily', 'weekly', 'event'};
   static const itemKinds = {

@@ -220,8 +220,14 @@ Adding a language: add it to `SupportedLocales.all`, to `locales` in
 
 Server error codes → text: `localizedErrorMessage(l10n, code)`
 (`lib/core/errors/error_messages.dart`). Coins: `formatCoins`,
-`formatCoinsCompact`, `formatNumberFull` (Indian lakh/crore grouping and
-words for en/hi/ur, locale compact formats for id/ar).
+`formatCoinsCompact`, `formatNumberFull` (`lib/core/localization/number_format.dart`).
+Settings → Number format picks the `NumberSystem`: Indian (`1,00,000`,
+`10 Lakh`) or international (`100,000`, `1M`); until the user chooses, en/hi/ur
+use Indian and id/ar international. The locale still decides digits,
+separators and unit words. The choice reaches every caller through
+`NumberSystemDelegate` in `MaterialApp.localizationsDelegates`
+(`appLocalizationsDelegates`), so callers only pass
+`Localizations.localeOf(context)` and never branch on the system.
 
 ### RTL
 
