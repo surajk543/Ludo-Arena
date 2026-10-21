@@ -17,6 +17,7 @@
   "profileTotalXp": "إجمالي الخبرة",
   "profileStatsSection": "التقدّم",
   "profileEditNameTooltip": "تعديل الاسم",
+  "profileChangePicture": "تغيير الصورة",
   "profileEditNameTitle": "غيّر اسمك",
   "profileNameLabel": "الاسم المعروض",
   "profileNameRules": "من 3 إلى 16 حرفًا. يُسمح بالحروف والأرقام والمسافات و_ . و-.",

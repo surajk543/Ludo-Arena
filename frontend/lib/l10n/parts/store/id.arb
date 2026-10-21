@@ -1,0 +1,22 @@
+{
+  "storeTitle": "Toko",
+  "storeHeroTitle": "Foto profil",
+  "storeHeroSubtitle": "Beli sekali dengan berlian dan jadi milikmu selamanya.",
+  "storeFilterAnimated": "Animasi",
+  "storeFilterStatic": "Statis",
+  "storeKindAnimated": "Foto animasi",
+  "storeKindStatic": "Foto",
+  "storeApply": "Pakai",
+  "storeRemove": "Pakai avatar klasik",
+  "storeAppliedToast": "Foto dipakai!",
+  "storeRemovedToast": "Kembali ke avatar klasikmu.",
+  "storePurchasedToast": "{name} jadi milikmu selamanya!",
+  "storeNextMatchNote": "Langsung tampil di profilmu, dan terlihat pemain lain mulai pertandingan berikutnya.",
+  "storeEmptyOwnedTitle": "Belum ada foto",
+  "storeEmptyOwnedMessage": "Foto yang kamu beli jadi milikmu selamanya.",
+  "storeEmptyTitle": "Belum ada apa-apa di sini",
+  "storeEmptyMessage": "Foto baru segera hadir.",
+  "storeBrowseAll": "Lihat semua",
+  "storeLoadMoreFailed": "Tidak dapat memuat foto lainnya.",
+  "storeTileSemantics": "{name}, {status}"
+}

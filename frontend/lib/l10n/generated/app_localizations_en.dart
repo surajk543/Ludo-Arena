@@ -692,6 +692,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorItemLocked => 'This item is still locked.';
 
   @override
+  String get errorAssetsUnavailable =>
+      'Pictures can\'t be downloaded right now. Please try again later.';
+
+  @override
   String get errorProviderUnavailable =>
       'The sign-in service is unavailable right now. Please try again later.';
 
@@ -916,6 +920,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeEventsSubtitle => 'Limited-time cups';
+
+  @override
+  String get homeStore => 'Store';
+
+  @override
+  String get homeStoreSubtitle => 'Profile pictures';
 
   @override
   String get homeExploreHeader => 'More to Explore';
@@ -2713,6 +2723,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileEditNameTooltip => 'Edit name';
 
   @override
+  String get profileChangePicture => 'Change picture';
+
+  @override
   String get profileEditNameTitle => 'Change your name';
 
   @override
@@ -3028,6 +3041,71 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String socialReportStatusA11y(String status) {
     return 'Status: $status';
+  }
+
+  @override
+  String get storeTitle => 'Store';
+
+  @override
+  String get storeHeroTitle => 'Profile pictures';
+
+  @override
+  String get storeHeroSubtitle => 'Buy once with diamonds and keep it forever.';
+
+  @override
+  String get storeFilterAnimated => 'Animated';
+
+  @override
+  String get storeFilterStatic => 'Static';
+
+  @override
+  String get storeKindAnimated => 'Animated picture';
+
+  @override
+  String get storeKindStatic => 'Picture';
+
+  @override
+  String get storeApply => 'Apply';
+
+  @override
+  String get storeRemove => 'Use classic avatar';
+
+  @override
+  String get storeAppliedToast => 'Picture applied!';
+
+  @override
+  String get storeRemovedToast => 'Back to your classic avatar.';
+
+  @override
+  String storePurchasedToast(String name) {
+    return '$name is yours forever!';
+  }
+
+  @override
+  String get storeNextMatchNote =>
+      'Shows on your profile now, and to other players from your next match.';
+
+  @override
+  String get storeEmptyOwnedTitle => 'No pictures yet';
+
+  @override
+  String get storeEmptyOwnedMessage => 'Pictures you buy are yours forever.';
+
+  @override
+  String get storeEmptyTitle => 'Nothing here yet';
+
+  @override
+  String get storeEmptyMessage => 'New pictures are on their way.';
+
+  @override
+  String get storeBrowseAll => 'Browse all';
+
+  @override
+  String get storeLoadMoreFailed => 'Couldn\'t load more pictures.';
+
+  @override
+  String storeTileSemantics(String name, String status) {
+    return '$name, $status';
   }
 
   @override

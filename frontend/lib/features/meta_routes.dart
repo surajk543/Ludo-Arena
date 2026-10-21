@@ -5,6 +5,7 @@ import 'collection/presentation/collection_screen.dart';
 import 'events/presentation/events_screen.dart';
 import 'leaderboard/presentation/leaderboard_screen.dart';
 import 'progression/presentation/progression_screen.dart';
+import 'store/presentation/store_screen.dart';
 
 /// Meta paths not (yet) in `AppRoutes`.
 abstract final class MetaRoutes {
@@ -34,10 +35,14 @@ abstract final class MetaRoutes {
 }
 
 /// Routes of the meta experience shown above the tab shell (events,
-/// collection, leaderboard, level road). Spread into `featureRoutes` by the
-/// app. Missions (`/missions`) and Friends (`/friends?tab=`) are
+/// collection, store, leaderboard, level road). Spread into `featureRoutes`
+/// by the app. Missions (`/missions`) and Friends (`/friends?tab=`) are
 /// bottom-navigation tabs mounted by `app/shell/main_shell.dart`.
 final List<RouteBase> metaRoutes = [
+  GoRoute(
+    path: AppRoutes.store,
+    builder: (context, state) => const StoreScreen(),
+  ),
   GoRoute(
     path: AppRoutes.events,
     builder: (context, state) => const EventsScreen(),

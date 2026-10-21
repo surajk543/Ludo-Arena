@@ -1,0 +1,22 @@
+{
+  "storeTitle": "اسٹور",
+  "storeHeroTitle": "پروفائل تصویریں",
+  "storeHeroSubtitle": "ہیروں سے ایک بار خریدیں اور ہمیشہ کے لیے اپنی بنا لیں۔",
+  "storeFilterAnimated": "اینیمیٹڈ",
+  "storeFilterStatic": "ساکن",
+  "storeKindAnimated": "اینیمیٹڈ تصویر",
+  "storeKindStatic": "تصویر",
+  "storeApply": "لگائیں",
+  "storeRemove": "کلاسک اوتار لگائیں",
+  "storeAppliedToast": "تصویر لگا دی گئی!",
+  "storeRemovedToast": "آپ کا کلاسک اوتار واپس آ گیا۔",
+  "storePurchasedToast": "{name} اب ہمیشہ کے لیے آپ کی ہے!",
+  "storeNextMatchNote": "یہ ابھی آپ کی پروفائل پر نظر آئے گی، اور دوسرے کھلاڑیوں کو آپ کے اگلے میچ سے۔",
+  "storeEmptyOwnedTitle": "ابھی کوئی تصویر نہیں",
+  "storeEmptyOwnedMessage": "آپ جو تصویریں خریدتے ہیں وہ ہمیشہ آپ کی رہتی ہیں۔",
+  "storeEmptyTitle": "یہاں ابھی کچھ نہیں",
+  "storeEmptyMessage": "نئی تصویریں جلد آ رہی ہیں۔",
+  "storeBrowseAll": "سب دیکھیں",
+  "storeLoadMoreFailed": "مزید تصویریں لوڈ نہیں ہو سکیں۔",
+  "storeTileSemantics": "{name}، {status}"
+}

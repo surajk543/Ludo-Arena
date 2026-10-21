@@ -91,6 +91,8 @@ abstract final class AnalyticsValues {
     'emote',
     'victory',
     'trail',
+    // Store profile pictures (bought with diamonds; no rarity).
+    'profile_picture',
   };
   static const rarities = {'common', 'rare', 'epic', 'legendary'};
   static const updateModes = {'optional_update', 'force_update'};

@@ -77,10 +77,26 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         PlayerAvatar(
                           avatarIndex: user.avatar,
+                          picture: user.picture,
                           frameId: user.loadout.frame,
                           size: 104,
                         ),
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(height: AppSpacing.xs),
+                        // Opens the Store (profile pictures), above the tabs.
+                        TextButton.icon(
+                          key: const ValueKey('profile-change-picture'),
+                          onPressed: () {
+                            playUiSound(context, Sfx.uiTap);
+                            context.push(AppRoutes.store);
+                          },
+                          icon: const Icon(Icons.face_retouching_natural),
+                          label: Text(
+                            l10n.profileChangePicture,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
                         _NameRow(name: user.displayName),
                         const SizedBox(height: AppSpacing.sm),
                         TitleChip(titleId: progression.title),

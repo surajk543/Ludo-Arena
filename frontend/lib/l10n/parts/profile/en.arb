@@ -84,6 +84,10 @@
   "@profileEditNameTooltip": {
     "description": "Tooltip and screen-reader label of the pencil button next to the player name."
   },
+  "profileChangePicture": "Change picture",
+  "@profileChangePicture": {
+    "description": "Profile button under the avatar: opens the Store to pick a profile picture."
+  },
   "profileEditNameTitle": "Change your name",
   "@profileEditNameTitle": {
     "description": "Title of the change-display-name sheet."

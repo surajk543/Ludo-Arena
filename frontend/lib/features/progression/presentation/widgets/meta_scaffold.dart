@@ -15,6 +15,7 @@ class MetaScaffold extends StatelessWidget {
     this.onRefresh,
     this.actions = const [],
     this.maxWidth = 640,
+    this.controller,
   });
 
   final String title;
@@ -23,11 +24,15 @@ class MetaScaffold extends StatelessWidget {
   final List<Widget> actions;
   final double maxWidth;
 
+  /// Scroll controller of the body (e.g. for infinite scrolling).
+  final ScrollController? controller;
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final bottom = MediaQuery.paddingOf(context).bottom;
     Widget scroll = CustomScrollView(
+      controller: controller,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         ...slivers,
