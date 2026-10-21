@@ -32,7 +32,12 @@ sessions and cross-instance pub/sub live in **Redis**; durable data lives in
 account mappings, plus the internal `device` binding that restores an account
 after an app update or reinstall) and `progression`. There are no match-history, ledger or
 profile tables (a player-chosen display name is one nullable
-`progression.player_progress` column; other display data is a Redis cache). Identity providers only prove identity: **Firebase
+`progression.player_progress` column; other display data is a Redis cache).
+Profile pictures sold in the Store are catalogued in
+`progression.profile_pictures` (paths, formats, prices) and stored as Lottie
+/ PNG files in a **private Cloudflare R2 bucket**; the backend hands the app
+10-minute SigV4-presigned URLs for catalogue paths only
+([cosmetics-catalog.md](cosmetics-catalog.md#profile-pictures)). Identity providers only prove identity: **Firebase
 Authentication is not used**, and Firebase is in the app for consent-gated
 Analytics only. A separate Go service, **bot-play**, plays as server-marked
 bots through the same protocol with room-scoped bot tokens.
@@ -117,14 +122,16 @@ calls on latency-sensitive paths and how each one is handled:
 | | wallet pre-check (`checkFunds`, one primary-key read) | synchronous | UX guard so a player who cannot pay never waits in a lobby; the authoritative check is `DebitAll` at start + `removeBroke` |
 | Lobby fills, host starts | `wallet.DebitAll` (+ refunds) | synchronous | all-or-nothing before the game starts ([settlement guarantees](#wallet-settlement-guarantees)) |
 | `chat.emote` (non-starter emote) | inventory ownership | **Redis set** `emotes:{userId}` (1 h); overlaps the room load | |
+| Seat / friends / leaderboard picture, `POST /assets/sign` | profile-picture catalogue (id → format, path) | **in-memory snapshot** per instance, loaded at start and reloaded every minute; the seat cache carries only the equipped id | ~160 small rows; purchases and applies read the authoritative row |
 | Game end | payout credit, match record (XP, missions, unlocks) | asynchronous `sched` jobs with bounded retries | |
 | REST (`/me`, wallet, missions/claims, collection/purchases, social, leaderboards) | reads and writes | synchronous | the response is the database result |
 
 **Invalidation rules** (always *after* the PostgreSQL commit):
 
 - `seat:{userId}` and its fill lease are deleted (`progression.Service.InvalidateSeat`)
-  by a level-up in a recorded match, a level-up from a mission claim, and every
-  equip (including a reset to the starter item). Purchases and item grants
+  by a level-up in a recorded match, a level-up from a mission claim, every
+  equip (including a reset to the starter item) and every profile-picture
+  apply (`PUT /me/profile-picture`, including `null`). Purchases and item grants
   change ownership, not the loadout, so they do not touch it. A miss takes a
   5 s lease atomically with the read and stores its PostgreSQL result only if
   the lease is still its own, so a fill that raced a commit can never store
@@ -172,7 +179,8 @@ concurrency and with a remote database.
   30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config
   120/min/IP · telemetry 60/min/IP · account linking 10/min/account ·
   WebSocket connects 30/min/account · room codes 10/min/account · matchmaking
-  20/min/account · wallet operations 30/min/account · social 30/min/account ·
+  20/min/account · wallet operations 30/min/account (incl. Store purchases) ·
+  asset signing 120/min/account · social 30/min/account ·
   device bind/unbind 10/min/account (linking budget) · device resume 30/min/IP
   (sign-in budget) · legal notices page 60/min/IP · `PATCH /me` 20/min/account ·
   bot service 600/min/IP. Per socket: 10 commands/s (burst 20); quick chat
@@ -208,6 +216,13 @@ concurrency and with a remote database.
   (404) unless `ADMIN_API_KEY_SHA256` is set; requests need `X-Admin-Key`
   (constant-time sha256 comparison, 401 otherwise). Expose it only on the
   private network — block `/api/v1/admin/` at the public load balancer.
+- **Private assets**: the profile-picture bucket (R2) is private; the app
+  never holds storage credentials. `POST /api/v1/assets/sign` presigns GETs
+  (SigV4 query auth, `ASSET_URL_TTL`, default 10 min) only for paths named by
+  a catalogue row; signed URLs and the R2 secret are never logged. R2 config
+  is all-or-none (`R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`,
+  `R2_SECRET_ACCESS_KEY`); a partial set refuses to start, and the
+  `R2_ENDPOINT` test hook is refused in production.
 - **Network and secrets**: TLS at the load balancer; PostgreSQL and Redis on a
   private network only; secrets only via environment or a secret manager;
   production startup refuses `RATE_LIMIT_DISABLED`, `BOT_LOADTEST_ENABLED`,

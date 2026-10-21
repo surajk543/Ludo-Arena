@@ -34,7 +34,7 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 | 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `cannot_report_self`, `cannot_report_bot`, `not_in_room`, `idempotency_key_reused` |
 | 426 | `update_required` (details = policy) |
 | 429 | `rate_limited`, `report_limit` (`Retry-After` header; `report_limit` details = `Limit`) |
-| 503 | `maintenance` (details = policy), `provider_unavailable` |
+| 503 | `maintenance` (details = policy), `provider_unavailable`, `assets_unavailable` |
 
 ---
 
@@ -122,9 +122,17 @@ All return **AuthResponse**:
   "title": "title_rookie",
   "loadout": {"dice": "dice_classic", "token": "token_classic", "ludo_board": "ludo_board_classic",
               "snakes_board": "snakes_board_classic", "frame": "frame_none", "title": "title_rookie",
-              "victory": "victory_confetti"}
+              "victory": "victory_confetti"},
+  "picture": {"id": "pp_wolf", "format": "image", "path": "profile_pictures/image/wolf.png"}   // PlayerPicture or null
 }
 ```
+
+**PlayerPicture** (public, also on friends, leaderboard rows, report
+targets and WebSocket seats): `{"id":"pp_wolf","format":"image|lottie","path":"profile_pictures/image/wolf.png"}`
+or `null` (the built-in avatar `avatar` is shown). `path` names an object in
+the private asset bucket; get a download URL with
+[`POST /assets/sign`](#store-profile-pictures). The equipped picture is not
+part of `loadout`.
 
 **Wallet**: `{"coins": 1000000, "diamonds": 50}`
 
@@ -301,7 +309,7 @@ pushes `wallet.updated` (`reason: "mission"`, when coins/diamonds changed) and
 `progression.updated`. Finished matches push `progression.updated` with the
 changed missions.
 
-**Idempotency-Key** (claim, purchase): 8–64 characters `[A-Za-z0-9-_.:]`,
+**Idempotency-Key** (claim, Collection and Store purchases): 8–64 characters `[A-Za-z0-9-_.:]`,
 scoped to the account. A successful response is stored for 24 h and replayed
 byte-for-byte (header `Idempotent-Replayed: true`, no second credit or push).
 Errors are not stored. A concurrent request with the same key waits for the
@@ -323,6 +331,54 @@ Emotes and badges are owned, not equipped. Every item is cosmetic only.
 A purchase debits the fixed price and adds the item in one transaction; an
 insufficient balance changes nothing.
 
+## Store (profile pictures)
+
+Profile pictures (Lottie animations and PNG images) bought with **diamonds**
+and owned **forever**; the owner applies any picture they own. Catalogue,
+storage and privacy model: [`cosmetics-catalog.md`](cosmetics-catalog.md#profile-pictures).
+
+All routes: authenticated humans, version gated. Rate limits per account:
+list 120/min (shared with progression reads), purchase 30/min (shared with
+claims and purchases), apply 60/min (shared with the loadout), sign 120/min.
+
+| Method & path | Body | Response |
+|---|---|---|
+| `GET /store/profile-pictures?filter=&limit=&cursor=` | – | `{"items":[ProfilePicture],"nextCursor":"…"\|null,"total":160,"equipped":"pp_x"\|null}` |
+| `POST /store/profile-pictures/{id}/purchase` | – (`Idempotency-Key`) | `{"item": ProfilePicture, "wallet": Wallet}`; 409 `already_owned`, 422 `insufficient_funds`, 404 `not_found` (unknown or retired picture). Pushes `wallet.updated` (`reason: "purchase"`, `delta.diamonds` = −price). |
+| `PUT /me/profile-picture` | `{"id":"pp_x"}` or `{"id":null}` | `{"equipped": ProfilePicture\|null}`; 422 `item_locked` (not owned), 404 `not_found` (unknown id), 400 `bad_request` (missing `id`, `""`, wrong type, unknown field). `null` = back to the built-in avatar. |
+| `POST /assets/sign` | `{"paths":["profile_pictures/…", …]}` (1–50) | `{"urls":{"<path>":"https://…"},"expiresAt":1792588328065}`; 400 `bad_request` (0 or > 50 paths, empty or > 255-character path), 503 `assets_unavailable` (asset storage not configured on this server). |
+
+**ProfilePicture**: `{"id":"pp_wolf","name":"Wolf","format":"image|lottie","path":"profile_pictures/image/wolf.png","price":{"diamonds":10},"owned":false,"equipped":false}`
+
+**List**: `filter` = `all` (default) \| `animated` (Lottie) \| `static`
+(images) \| `owned`; `limit` 1–50 (default 24); order `sort_order`, then
+`id`. `cursor` is the previous page's opaque `nextCursor` (`null` on the last
+page); paging continues after the last item seen, so rows added or retired
+meanwhile never repeat or skip an item. `total` = items matching the filter
+(for the caller). `equipped` = the caller's equipped picture id. Retired
+pictures (`active = false`) are listed only to their owners. Any other
+`filter`/`limit`/`cursor` → 400 `bad_request`.
+
+**Purchase** — like the Collection purchase: one transaction locks the
+progression row, then adds the inventory row and debits the wallet (same
+lock order), so a picture is paid **exactly once** even under concurrent
+requests (the others get 409 `already_owned`); an insufficient balance
+changes nothing. The price charged is the catalogue row's price at that
+moment. `Idempotency-Key` works as for claims (below): a replay returns the
+original body with `Idempotent-Replayed: true` and no second debit or push.
+
+**Apply** takes effect for **rooms joined afterwards** (seats already taken
+keep the picture they joined with), `GET /me` and every list at once. A
+retired picture the caller owns can still be applied.
+
+**Sign** returns SigV4 query-presigned GET URLs for the private bucket, valid
+`ASSET_URL_TTL` (default **10 minutes**; `expiresAt` = unix ms). Only paths
+that some catalogue row names are signed; any other path is silently left
+out of `urls` (never an error, never signed). Duplicates are signed once.
+Download each URL once and keep the file (objects are immutable:
+`Cache-Control: private, max-age=31536000, immutable`); never cache the URL
+itself. Signed URLs are never logged by the server.
+
 ## Social
 
 Authenticated humans, version gated. Rate limits per account: reads 120/min,
@@ -335,9 +391,11 @@ writes 30/min, new friend requests 60/hour.
 | `POST /friends/requests/{uid}/accept` | – | `{"friend"}`; 404 `not_found` (no pending request from `uid`), 422 `friend_limit` (either side has `maxFriends` friends); accepting an existing friend returns it |
 | `DELETE /friends/{uid}` | – | 204 (removes friend or declines/cancels request; no-op if none); 404 `not_found` for an unknown uid |
 | `GET /social/recent` | – | `{"players":[Friend]}` last 20 human opponents (14 days), newest first |
-| `GET /leaderboards/friends` | – | `{"periodKey":"w2026-W43","entries":[{"uid","name","avatar","level","weeklyXp","rank","isMe"}]}` |
+| `GET /leaderboards/friends` | – | `{"periodKey":"w2026-W43","entries":[{"uid","name","avatar","picture","level","weeklyXp","rank","isMe"}]}` |
 
-**Friend**: `{"uid","name","avatar","level","title","online","status":"friend|incoming|outgoing|none"}`
+**Friend**: `{"uid","name","avatar","picture","level","title","online","status":"friend|incoming|outgoing|none"}`
+(`picture` = PlayerPicture or `null`; also in friend requests and
+`GET /social/recent`)
 
 - Friend codes are the public uid, case-insensitive. Limits: `FRIENDS_MAX`
   accepted friends (default **20**), 100 pending sent, 100 pending received.
@@ -368,7 +426,7 @@ Authenticated humans, version gated. Rate limits per account: `POST` 20/min,
 `reason`: `cheating` \| `offensive_name` \| `abusive_behavior` \|
 `leaving_or_stalling` \| `other`.
 
-**Report**: `{"id","player":{"uid","name","avatar","level"},"reason","game","roomId","status":"submitted|reviewing|action_taken|dismissed","createdAt","updatedAt"}`
+**Report**: `{"id","player":{"uid","name","avatar","picture","level"},"reason","game","roomId","status":"submitted|reviewing|action_taken|dismissed","createdAt","updatedAt"}`
 (`player` is the reported player's public profile; reporter ids and operator
 notes are never returned).
 
