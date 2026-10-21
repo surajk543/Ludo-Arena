@@ -14,7 +14,8 @@ func minimalEnv(t *testing.T) {
 		"APP_ENV": EnvDevelopment, "DATABASE_URL": "postgres://unused",
 		"JWT_SIGNING_KEY": strings.Repeat("k", 40), "PUBLIC_ID_KEY": strings.Repeat("p", 40),
 		"ENTRY_FEE_LUDO": "", "ENTRY_FEE_SNAKES": "", "WELCOME_COINS": "", "WELCOME_DIAMONDS": "",
-		"GAME_STATS_INTERVAL": "",
+		"GAME_STATS_INTERVAL": "", "R2_ACCOUNT_ID": "", "R2_BUCKET": "", "R2_ACCESS_KEY_ID": "",
+		"R2_SECRET_ACCESS_KEY": "", "R2_ENDPOINT": "", "ASSET_URL_TTL": "", "BOT_PICTURE_SHARE": "",
 	} {
 		t.Setenv(k, v)
 	}
@@ -224,5 +225,96 @@ func TestLegalNoticesFile(t *testing.T) {
 	t.Setenv("LEGAL_NOTICES_FILE", "/srv/legal/notices.html")
 	if cfg, err = Load(); err != nil || cfg.LegalNoticesFile != "/srv/legal/notices.html" {
 		t.Fatalf("override = %v, %v", cfg, err)
+	}
+}
+
+func TestAssetsConfig(t *testing.T) {
+	full := map[string]string{"R2_ACCOUNT_ID": "0123456789abcdef0123456789abcdef", "R2_BUCKET": "ludo-royale",
+		"R2_ACCESS_KEY_ID": "AKIDTEST", "R2_SECRET_ACCESS_KEY": "s3cr3t-value-not-real"}
+	cases := []struct {
+		name    string
+		env     map[string]string
+		enabled bool
+		ttl     time.Duration
+		wantErr string
+	}{
+		{"none", nil, false, 10 * time.Minute, ""},
+		{"all four", full, true, 10 * time.Minute, ""},
+		{"ttl", map[string]string{"ASSET_URL_TTL": "30m"}, false, 30 * time.Minute, ""},
+		{"ttl too long", map[string]string{"ASSET_URL_TTL": "2h"}, false, 0, "ASSET_URL_TTL must be between"},
+		{"ttl too short", map[string]string{"ASSET_URL_TTL": "10s"}, false, 0, "ASSET_URL_TTL must be between"},
+		{"partial", map[string]string{"R2_BUCKET": "ludo-royale", "R2_ACCESS_KEY_ID": "AKIDTEST"}, false, 0,
+			"R2 is partially configured"},
+		{"secret only", map[string]string{"R2_SECRET_ACCESS_KEY": "s3cr3t-value-not-real"}, false, 0, "R2_ACCOUNT_ID"},
+		{"endpoint without r2", map[string]string{"R2_ENDPOINT": "http://127.0.0.1:9"}, false, 0, "R2_ENDPOINT requires"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			for k, v := range c.env {
+				t.Setenv(k, v)
+			}
+			if c.name == "all four" {
+				for k, v := range full {
+					t.Setenv(k, v)
+				}
+			}
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				if strings.Contains(err.Error(), "s3cr3t-value-not-real") {
+					t.Fatal("error leaks the secret")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Assets.Enabled() != c.enabled || cfg.Assets.URLTTL != c.ttl {
+				t.Fatalf("assets %+v enabled=%v", cfg.Assets.URLTTL, cfg.Assets.Enabled())
+			}
+		})
+	}
+	t.Run("endpoint refused in production", func(t *testing.T) {
+		minimalEnv(t)
+		for k, v := range full {
+			t.Setenv(k, v)
+		}
+		t.Setenv("APP_ENV", EnvProduction)
+		t.Setenv("R2_ENDPOINT", "http://127.0.0.1:9")
+		if _, err := Load(); err == nil || !strings.Contains(err.Error(), "R2_ENDPOINT is a test hook") {
+			t.Fatalf("err = %v", err)
+		}
+	})
+}
+
+func TestBotPictureShare(t *testing.T) {
+	cases := []struct {
+		raw     string
+		want    float64
+		wantErr string
+	}{
+		{"", 0.3, ""}, {"0", 0, ""}, {"1", 1, ""}, {"0.5", 0.5, ""},
+		{"1.5", 0, "BOT_PICTURE_SHARE must be between 0 and 1"},
+		{"-0.1", 0, "BOT_PICTURE_SHARE must be between 0 and 1"},
+		{"lots", 0, "BOT_PICTURE_SHARE: not a number"},
+	}
+	for _, c := range cases {
+		t.Run(c.raw, func(t *testing.T) {
+			minimalEnv(t)
+			t.Setenv("BOT_PICTURE_SHARE", c.raw)
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil || cfg.Bots.PictureShare != c.want {
+				t.Fatalf("share %v err %v", cfg, err)
+			}
+		})
 	}
 }

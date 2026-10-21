@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"hash/fnv"
+	mrand "math/rand/v2"
 	"net/http"
 	"strconv"
 	"strings"
@@ -263,7 +264,8 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 		}
 		r.Players = append(r.Players, Player{UserID: sess.BotID.String(), UID: uid, Name: display,
 			Avatar: int(sess.BotID[15]) % 12, Level: starter.Level, Title: starter.Title, Cosmetics: cos,
-			Bot: true, BotProfile: profile.SanitizeName(profileName), BotSID: sess.SessionID, JoinedAt: s.nowMs()})
+			Picture: s.botPicture(), Bot: true, BotProfile: profile.SanitizeName(profileName),
+			BotSID: sess.SessionID, JoinedAt: s.nowMs()})
 		m.setPointer(sess.BotID.String())
 		full := len(r.Players) == r.Capacity
 		start = full && (r.Mode == ModePractice || r.Mode == ModePublic)
@@ -285,6 +287,16 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 		}()
 	}
 	return sess, room, uid, nil
+}
+
+// botPicture returns the profile picture of a new bot seat: with probability
+// BOT_PICTURE_SHARE a random active catalogue picture (no wallet, no
+// ownership: bots only look like players who bought one), else nil.
+func (s *Service) botPicture() *playerinfo.Picture {
+	if s.Pictures == nil || s.Bots.PictureShare <= 0 || mrand.Float64() >= s.Bots.PictureShare {
+		return nil
+	}
+	return s.Pictures.RandomPicture()
 }
 
 // neutralBotNames are fallback display names for bots whose requested name

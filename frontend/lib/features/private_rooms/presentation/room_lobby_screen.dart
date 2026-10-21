@@ -614,6 +614,7 @@ class _SeatTile extends StatelessWidget {
                 children: [
                   PlayerAvatar(
                     avatarIndex: player.avatar,
+                    picture: player.picture,
                     frameId: player.cosmetics.frame,
                     size: 56,
                     seatColor: seat,

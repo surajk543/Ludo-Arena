@@ -31,6 +31,8 @@ var allowedTables = []string{
 	"progression.loadout",
 	"progression.friendships",
 	"progression.player_reports",
+	// Profile-picture catalogue (owner-approved 2026-10-21; no player data).
+	"progression.profile_pictures",
 }
 
 // gameplayWords are column-name words (split on "_") that indicate stored

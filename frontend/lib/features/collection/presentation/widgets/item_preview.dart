@@ -40,8 +40,17 @@ class CosmeticItemPreview extends ConsumerWidget {
     final avatar = ref.watch(
       sessionControllerProvider.select((s) => s.user?.avatar ?? 0),
     );
+    final picture = ref.watch(
+      sessionControllerProvider.select((s) => s.user?.picture),
+    );
     Widget art = switch (k) {
-      'frame' => PlayerAvatar(avatarIndex: avatar, frameId: id, size: size),
+      'frame' => PlayerAvatar(
+        avatarIndex: avatar,
+        picture: picture,
+        frameId: id,
+        size: size,
+        animatePicture: anim,
+      ),
       'title' when size < 48 => Icon(
         Icons.military_tech_rounded,
         size: size * 0.72,

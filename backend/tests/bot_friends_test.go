@@ -24,7 +24,7 @@ func outgoingUIDs(t *testing.T, r resp) []string {
 // 201 outgoing with the bot's profile, listed under outgoing, idempotent,
 // cancellable, never accepted, and it lapses after 72 h.
 func TestFriendRequestToBotStaysPendingThenLapses(t *testing.T) {
-	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(11)})
+	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(11), botPictureShare: "1"})
 	ctx := context.Background()
 	human := e.guest()
 	_, _, bots := e.practiceWithBots(t, human, []string{"Rizky", "Layla"})
@@ -36,6 +36,7 @@ func TestFriendRequestToBotStaysPendingThenLapses(t *testing.T) {
 	r := e.friendRequest(human, strings.ToUpper(bots[0].UID))
 	f, _ := r.Body["friend"].(map[string]any)
 	if r.Status != 201 || f["uid"] != bots[0].UID || f["name"] != bots[0].Name || num(f["avatar"]) != int64(bots[0].Avatar) ||
+		bots[0].PictureID == "" || pictureID(f["picture"]) != bots[0].PictureID ||
 		num(f["level"]) < 1 || f["status"] != "outgoing" || f["online"] != false {
 		t.Fatalf("request to a bot: %d %s", r.Status, r.Raw)
 	}

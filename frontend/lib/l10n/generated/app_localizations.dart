@@ -1382,6 +1382,12 @@ abstract class AppLocalizations {
   /// **'This item is still locked.'**
   String get errorItemLocked;
 
+  /// Error code assets_unavailable (picture storage unavailable).
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures can\'t be downloaded right now. Please try again later.'**
+  String get errorAssetsUnavailable;
+
   /// Error code provider_unavailable.
   ///
   /// In en, this message translates to:
@@ -1760,6 +1766,18 @@ abstract class AppLocalizations {
   /// **'Limited-time cups'**
   String get homeEventsSubtitle;
 
+  /// Entry tile: the Store (profile pictures bought with diamonds).
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get homeStore;
+
+  /// Entry tile subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile pictures'**
+  String get homeStoreSubtitle;
+
   /// Section header above the entry tiles (missions, collection, friends, events).
   ///
   /// In en, this message translates to:
@@ -2017,6 +2035,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile'**
   String get homeNavProfile;
+
+  /// Text on the decorative diagonal ribbon in the lobby header's top corner: the app shows no ads. Keep it very short; screen readers also read it.
+  ///
+  /// In en, this message translates to:
+  /// **'No Ads'**
+  String get homeNoAdsRibbon;
 
   /// Missions screen title.
   ///
@@ -3439,7 +3463,7 @@ abstract class AppLocalizations {
   /// **'Add friends to see how you compare. Friendly competition, no pressure.'**
   String get metaLeaderboardAlone;
 
-  /// Indian numbering unit 100,000 (lakh), used for large coin amounts in en/hi/ur. {value} is already formatted (e.g. 10 or 12.5).
+  /// Indian numbering unit 100,000 (lakh), used for large coin amounts in the Indian number format. {value} is already formatted (e.g. 10 or 12.5).
   ///
   /// In en, this message translates to:
   /// **'{value} Lakh'**
@@ -3450,6 +3474,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value} Crore'**
   String numberCrore(String value);
+
+  /// Short international unit 1,000 (thousand) for compact coin amounts in the International number format, e.g. 54.32K. Keep it as short as the locale's compact form; use a non-breaking space if the unit is separated. {value} is already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}K'**
+  String numberThousand(String value);
+
+  /// Short international unit 1,000,000 (million), e.g. 1M or 1.5M. {value} is already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}M'**
+  String numberMillion(String value);
+
+  /// Short international unit 1,000,000,000 (billion), e.g. 1B. {value} is already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}B'**
+  String numberBillion(String value);
 
   /// First-run language picker title.
   ///
@@ -4669,6 +4711,48 @@ abstract class AppLocalizations {
   /// **'Edit name'**
   String get profileEditNameTooltip;
 
+  /// Profile: label / tooltip of the tappable avatar that opens the picture picker (owned pictures or the classic avatar).
+  ///
+  /// In en, this message translates to:
+  /// **'Change picture'**
+  String get profileChangePicture;
+
+  /// Title of the Profile sheet to pick one of the owned profile pictures (or the classic avatar).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your picture'**
+  String get profilePictureTitle;
+
+  /// Picker choice: the built-in avatar (no Store picture).
+  ///
+  /// In en, this message translates to:
+  /// **'Classic avatar'**
+  String get profilePictureClassic;
+
+  /// Picker empty state: the player owns no Store pictures yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures you buy in the Store show up here.'**
+  String get profilePictureEmptyMessage;
+
+  /// Picker empty-state button: opens the Store.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit the Store'**
+  String get profilePictureOpenStore;
+
+  /// Picker link: opens the Store to buy more pictures.
+  ///
+  /// In en, this message translates to:
+  /// **'Get more in the Store'**
+  String get profilePictureGetMore;
+
+  /// Picker button: loads the next page of owned pictures.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get profilePictureShowMore;
+
   /// Title of the change-display-name sheet.
   ///
   /// In en, this message translates to:
@@ -4758,6 +4842,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get settingsLanguage;
+
+  /// Setting label and sheet title: how large amounts are grouped and abbreviated (Indian lakh/crore vs international million/billion).
+  ///
+  /// In en, this message translates to:
+  /// **'Number format'**
+  String get settingsNumberSystem;
+
+  /// Short explanation at the top of the number format picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how coin amounts are shown.'**
+  String get settingsNumberSystemHint;
+
+  /// Number format option: Indian grouping and lakh/crore (1,00,000 · 10 Lakh).
+  ///
+  /// In en, this message translates to:
+  /// **'Indian'**
+  String get settingsNumberSystemIndian;
+
+  /// Number format option: international grouping and million/billion (100,000 · 1M).
+  ///
+  /// In en, this message translates to:
+  /// **'International'**
+  String get settingsNumberSystemInternational;
+
+  /// Live example of a number format: one lakh in full and ten lakh compact, e.g. '1,00,000 · 10 Lakh' or '100,000 · 1M'. Both values are already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'{full} · {compact}'**
+  String settingsNumberSystemExample(String full, String compact);
+
+  /// Subtitle of the Number format row: the chosen format's name and its example, e.g. 'Indian (1,00,000 · 10 Lakh)'.
+  ///
+  /// In en, this message translates to:
+  /// **'{system} ({example})'**
+  String settingsNumberSystemSummary(String system, String example);
 
   /// Section header.
   ///
@@ -5232,6 +5352,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status: {status}'**
   String socialReportStatusA11y(String status);
+
+  /// Title of the Store screen (profile pictures bought with diamonds).
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get storeTitle;
+
+  /// Store header card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile pictures'**
+  String get storeHeroTitle;
+
+  /// Store header card text: pictures are bought once and owned forever.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy once with diamonds and keep it forever.'**
+  String get storeHeroSubtitle;
+
+  /// Store filter pill: animated (Lottie) pictures.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated'**
+  String get storeFilterAnimated;
+
+  /// Store filter pill: still images.
+  ///
+  /// In en, this message translates to:
+  /// **'Static'**
+  String get storeFilterStatic;
+
+  /// Detail sheet subtitle for an animated profile picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated picture'**
+  String get storeKindAnimated;
+
+  /// Detail sheet subtitle for a still profile picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture'**
+  String get storeKindStatic;
+
+  /// Button: use this owned picture as your profile picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get storeApply;
+
+  /// Button: stop using the applied picture and go back to the built-in avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Use classic avatar'**
+  String get storeRemove;
+
+  /// Toast after the server applied a profile picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture applied!'**
+  String get storeAppliedToast;
+
+  /// Toast after going back to the built-in avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to your classic avatar.'**
+  String get storeRemovedToast;
+
+  /// Toast after buying a profile picture.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is yours forever!'**
+  String storePurchasedToast(String name);
+
+  /// Note under Apply: rooms already joined keep the previous picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows on your profile now, and to other players from your next match.'**
+  String get storeNextMatchNote;
+
+  /// Empty state of the Owned filter.
+  ///
+  /// In en, this message translates to:
+  /// **'No pictures yet'**
+  String get storeEmptyOwnedTitle;
+
+  /// Empty state of the Owned filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures you buy are yours forever.'**
+  String get storeEmptyOwnedMessage;
+
+  /// Empty state of a Store filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get storeEmptyTitle;
+
+  /// Empty state of a Store filter.
+  ///
+  /// In en, this message translates to:
+  /// **'New pictures are on their way.'**
+  String get storeEmptyMessage;
+
+  /// Button in the empty Owned filter: show every picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse all'**
+  String get storeBrowseAll;
+
+  /// Inline error at the end of the Store grid (next page failed).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load more pictures.'**
+  String get storeLoadMoreFailed;
+
+  /// Screen-reader label of a Store tile: picture name and its price or state.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {status}'**
+  String storeTileSemantics(String name, String status);
 
   /// Wallet sheet title.
   ///

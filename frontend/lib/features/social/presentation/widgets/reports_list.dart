@@ -167,7 +167,11 @@ class ReportTile extends ConsumerWidget {
           children: [
             Row(
               children: [
-                PlayerAvatar(avatarIndex: p.avatar, size: 44),
+                PlayerAvatar(
+                  avatarIndex: p.avatar,
+                  picture: p.picture,
+                  size: 44,
+                ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(

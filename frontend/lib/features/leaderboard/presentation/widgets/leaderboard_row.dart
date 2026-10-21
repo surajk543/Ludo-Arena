@@ -77,7 +77,11 @@ class LeaderboardRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            PlayerAvatar(avatarIndex: entry.avatar, size: 42),
+            PlayerAvatar(
+              avatarIndex: entry.avatar,
+              picture: entry.picture,
+              size: 42,
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(

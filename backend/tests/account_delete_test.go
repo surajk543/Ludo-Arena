@@ -42,10 +42,16 @@ var accountRowQueries = map[string]string{
 		WHERE reporter_id = $1 OR reported_id = $1`,
 }
 
+// catalogueTables hold shared configuration with no per-account rows (a
+// player's purchases of them live in progression.inventory and loadout).
+var catalogueTables = map[string]bool{
+	"progression.profile_pictures": true,
+}
+
 func (e *env) accountRows(t *testing.T, userID string) map[string]int {
 	t.Helper()
 	for _, tb := range allowedTables {
-		if _, ok := accountRowQueries[tb]; !ok {
+		if _, ok := accountRowQueries[tb]; !ok && !catalogueTables[tb] {
 			t.Fatalf("table %s has no account-deletion check: add it to accountRowQueries and to account.eraseOnce", tb)
 		}
 	}

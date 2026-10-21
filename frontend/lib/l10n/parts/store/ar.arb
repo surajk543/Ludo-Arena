@@ -1,0 +1,22 @@
+{
+  "storeTitle": "المتجر",
+  "storeHeroTitle": "صور الملف الشخصي",
+  "storeHeroSubtitle": "اشترِها مرة واحدة بالماس واحتفظ بها إلى الأبد.",
+  "storeFilterAnimated": "متحركة",
+  "storeFilterStatic": "ثابتة",
+  "storeKindAnimated": "صورة متحركة",
+  "storeKindStatic": "صورة",
+  "storeApply": "استخدام",
+  "storeRemove": "استخدام الصورة الكلاسيكية",
+  "storeAppliedToast": "تم تطبيق الصورة!",
+  "storeRemovedToast": "عدت إلى صورتك الكلاسيكية.",
+  "storePurchasedToast": "{name} أصبحت لك إلى الأبد!",
+  "storeNextMatchNote": "تظهر في ملفك الشخصي الآن، وللاعبين الآخرين بدءًا من مباراتك القادمة.",
+  "storeEmptyOwnedTitle": "لا توجد صور بعد",
+  "storeEmptyOwnedMessage": "الصور التي تشتريها تبقى لك إلى الأبد.",
+  "storeEmptyTitle": "لا شيء هنا بعد",
+  "storeEmptyMessage": "صور جديدة في الطريق.",
+  "storeBrowseAll": "عرض الكل",
+  "storeLoadMoreFailed": "تعذّر تحميل المزيد من الصور.",
+  "storeTileSemantics": "{name}، {status}"
+}

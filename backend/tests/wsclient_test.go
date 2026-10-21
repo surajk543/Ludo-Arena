@@ -38,15 +38,18 @@ type roomState struct {
 	EntryFee int64  `json:"entryFee"`
 	Pot      int64  `json:"pot"`
 	Players  []struct {
-		Seat      int    `json:"seat"`
-		UID       string `json:"uid"`
-		Name      string `json:"name"`
-		Avatar    int    `json:"avatar"`
-		Level     int    `json:"level"`
-		Bot       bool   `json:"bot"`
-		Connected bool   `json:"connected"`
-		Forfeited bool   `json:"forfeited"`
-		Strikes   int    `json:"strikes"`
+		Seat    int    `json:"seat"`
+		UID     string `json:"uid"`
+		Name    string `json:"name"`
+		Avatar  int    `json:"avatar"`
+		Level   int    `json:"level"`
+		Picture *struct {
+			ID string `json:"id"`
+		} `json:"picture"`
+		Bot       bool `json:"bot"`
+		Connected bool `json:"connected"`
+		Forfeited bool `json:"forfeited"`
+		Strikes   int  `json:"strikes"`
 	} `json:"players"`
 	HostSeat int `json:"hostSeat"`
 	Turn     struct {

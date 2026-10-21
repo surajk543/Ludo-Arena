@@ -18,11 +18,13 @@ import '../../../shared/widgets/widgets.dart';
 import '../../authentication/application/session_controller.dart';
 import '../../authentication/presentation/account_actions.dart';
 import 'language_picker.dart';
+import 'number_system_picker.dart';
 import 'settings_widgets.dart';
 
-/// Settings: appearance, language, sound/haptics/motion, quick chat, privacy
-/// (analytics consent), account (Save Progress, switch back to guest, sign
-/// out, delete account) and about (version, legal notices).
+/// Settings: appearance, language, number format, sound/haptics/motion,
+/// quick chat, privacy (analytics consent), account (Save Progress, switch
+/// back to guest, sign out, delete account) and about (version, legal
+/// notices).
 ///
 /// Changing theme or language never touches the session, socket or a match.
 class SettingsScreen extends ConsumerWidget {
@@ -69,6 +71,7 @@ class SettingsScreen extends ConsumerWidget {
     final systemReduced = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     final uiLocale = Localizations.localeOf(context);
+    final numberSystem = effectiveNumberSystem(ref, uiLocale);
     String percent(double v) =>
         AppNumberFormat.percent((v * 100).round(), uiLocale);
     void volume(VolumeKey key, double v, {bool persist = false}) => ref
@@ -154,6 +157,16 @@ class SettingsScreen extends ConsumerWidget {
                         title: l10n.settingsLanguage,
                         subtitle: nativeLanguageName(locale),
                         onTap: () => LanguageSheet.show(context),
+                      ),
+                      SettingsNavTile(
+                        key: const ValueKey('settings.numberSystem'),
+                        icon: Icons.numbers_rounded,
+                        title: l10n.settingsNumberSystem,
+                        subtitle: l10n.settingsNumberSystemSummary(
+                          numberSystemName(l10n, numberSystem),
+                          numberSystemExample(l10n, uiLocale, numberSystem),
+                        ),
+                        onTap: () => NumberSystemSheet.show(context),
                       ),
                     ],
                   ),
@@ -254,6 +267,7 @@ class SettingsScreen extends ConsumerWidget {
                         ListTile(
                           leading: PlayerAvatar(
                             avatarIndex: user.avatar,
+                            picture: user.picture,
                             frameId: user.loadout.frame,
                             size: 40,
                           ),

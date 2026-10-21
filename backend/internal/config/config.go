@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"ludoroyale/internal/apppolicy"
+	"ludoroyale/internal/assets"
 )
 
 // Environment names accepted by APP_ENV.
@@ -66,6 +67,8 @@ type Config struct {
 	Wallet           WalletConfig
 	Telemetry        TelemetryConfig
 	Social           SocialConfig
+	// Assets is the private R2 bucket holding the profile pictures.
+	Assets AssetsConfig
 
 	// AdminKeySHA256 is the sha256 of the operator key sent as X-Admin-Key
 	// to /api/v1/admin/*; empty disables the admin API (routes answer 404).
@@ -153,7 +156,28 @@ type BotConfig struct {
 	LoadTestEnabled   bool
 	SessionTTL        time.Duration
 	AssignmentTTL     time.Duration
+	// PictureShare is the share of bot seats (0..1) that wear a random
+	// active profile picture (BOT_PICTURE_SHARE, default 0.3).
+	PictureShare float64
 }
+
+// DefaultBotPictureShare is the default BOT_PICTURE_SHARE.
+const DefaultBotPictureShare = 0.3
+
+// AssetsConfig configures the private Cloudflare R2 bucket of the profile
+// pictures (R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY:
+// all four or none). Without it the Store still lists, sells and applies
+// pictures, and POST /assets/sign answers 503 assets_unavailable. The
+// secret is never logged.
+type AssetsConfig struct {
+	R2 assets.Config
+	// URLTTL is how long signed GET URLs stay valid (ASSET_URL_TTL, default
+	// 10m, 1m..1h).
+	URLTTL time.Duration
+}
+
+// Enabled reports whether R2 is configured.
+func (a AssetsConfig) Enabled() bool { return a.R2.Configured() }
 
 // WalletConfig configures the welcome grant fallbacks (WELCOME_* or the
 // built-in defaults). A "welcome" object in the app-policy file overrides
@@ -240,6 +264,18 @@ func Load() (*Config, error) {
 			return def
 		}
 		return d
+	}
+	getFloat := func(key string, def float64) float64 {
+		raw := get(key, "")
+		if raw == "" {
+			return def
+		}
+		f, err := strconv.ParseFloat(raw, 64)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: not a number", key))
+			return def
+		}
+		return f
 	}
 	getList := func(key string) []string {
 		var out []string
@@ -394,6 +430,10 @@ func Load() (*Config, error) {
 		LoadTestEnabled:   getBool("BOT_LOADTEST_ENABLED", false),
 		SessionTTL:        getDur("BOT_SESSION_TTL", 2*time.Hour),
 		AssignmentTTL:     getDur("BOT_ASSIGNMENT_TTL", 30*time.Second),
+		PictureShare:      getFloat("BOT_PICTURE_SHARE", DefaultBotPictureShare),
+	}
+	if c.Bots.PictureShare < 0 || c.Bots.PictureShare > 1 {
+		errs = append(errs, errors.New("BOT_PICTURE_SHARE must be between 0 and 1"))
 	}
 	if c.Bots.MaxPerRoom < 1 || c.Bots.MaxPerRoom > 3 {
 		errs = append(errs, errors.New("BOT_MAX_PER_ROOM must be between 1 and 3"))
@@ -430,6 +470,31 @@ func Load() (*Config, error) {
 			errs = append(errs, errors.New("ADMIN_API_KEY_SHA256 must be 64 hex characters"))
 		} else {
 			c.AdminKeySHA256 = b
+		}
+	}
+
+	c.Assets = AssetsConfig{
+		R2: assets.Config{
+			AccountID: get("R2_ACCOUNT_ID", ""), Bucket: get("R2_BUCKET", ""),
+			AccessKeyID: get("R2_ACCESS_KEY_ID", ""), SecretAccessKey: get("R2_SECRET_ACCESS_KEY", ""),
+			// Test hook (fake R2); never set in production.
+			Endpoint: get("R2_ENDPOINT", ""),
+		},
+		URLTTL: getDur("ASSET_URL_TTL", assets.DefaultURLTTL),
+	}
+	if c.Assets.URLTTL < assets.MinURLTTL || c.Assets.URLTTL > assets.MaxURLTTL {
+		errs = append(errs, fmt.Errorf("ASSET_URL_TTL must be between %s and %s", assets.MinURLTTL, assets.MaxURLTTL))
+	}
+	if c.Assets.R2.Endpoint != "" && c.Env == EnvProduction {
+		errs = append(errs, errors.New("R2_ENDPOINT is a test hook and is not allowed in production"))
+	}
+	if c.Assets.R2.Endpoint != "" && !c.Assets.Enabled() {
+		errs = append(errs, errors.New("R2_ENDPOINT requires the four R2_* variables"))
+	}
+	if c.Assets.Enabled() {
+		// All four or none: refuse a partial configuration at startup.
+		if err := c.Assets.R2.Validate(); err != nil {
+			errs = append(errs, err)
 		}
 	}
 

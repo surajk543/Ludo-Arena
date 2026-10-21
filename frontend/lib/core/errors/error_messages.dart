@@ -53,6 +53,7 @@ abstract final class KnownErrorCodes {
     'invalid_name',
     'confirmation_required',
     'provider_unavailable',
+    'assets_unavailable',
     'network_error',
     'timeout',
     'bad_response',
@@ -67,6 +68,7 @@ abstract final class KnownErrorCodes {
     'maintenance',
     'internal',
     'provider_unavailable',
+    'assets_unavailable',
     'network_error',
     'timeout',
     'bad_response',
@@ -148,6 +150,7 @@ String localizedErrorMessage(
     // DELETE /account without {"confirm":"DELETE"}: a client bug.
     'confirmation_required' => l10n.errorBadRequest,
     'provider_unavailable' => l10n.errorProviderUnavailable,
+    'assets_unavailable' => l10n.errorAssetsUnavailable,
     'network_error' => l10n.errorNetwork,
     'timeout' => l10n.errorTimeout,
     'bad_response' => l10n.errorBadResponse,

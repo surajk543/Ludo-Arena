@@ -11,7 +11,7 @@
 --   * reported_bot marks rows whose reported_id is a bot. The operator queue
 --     (GET /admin/reports) leaves them out;
 --   * reported_profile keeps the bot's public profile at report time
---     ({"uid","name","avatar","level"}) because there is no account to read
+--     ({"uid","name","avatar","picture","level"}) because there is no account to read
 --     it from later; NULL for accounts (their live profile is shown).
 --
 -- Idempotent: applied on every start. Every change runs only while it is

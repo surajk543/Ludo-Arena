@@ -111,9 +111,10 @@ type Seat struct {
 	UID    string // public id
 	Bot    bool
 	// Public profile shown in the room; stored with a report against a bot.
-	Name   string
-	Avatar int
-	Level  int
+	Name    string
+	Avatar  int
+	Picture *playerinfo.Picture
+	Level   int
 }
 
 // RoomInfo is the part of a live room that reports need.
@@ -165,10 +166,11 @@ func New(pool *pgxpool.Pool, profiles *profile.Service, players Players, rooms R
 
 // PlayerRef is the public profile of the reported player.
 type PlayerRef struct {
-	UID    string `json:"uid"`
-	Name   string `json:"name"`
-	Avatar int    `json:"avatar"`
-	Level  int    `json:"level"`
+	UID     string              `json:"uid"`
+	Name    string              `json:"name"`
+	Avatar  int                 `json:"avatar"`
+	Picture *playerinfo.Picture `json:"picture"`
+	Level   int                 `json:"level"`
 }
 
 // Report is what the reporter sees about one of their reports.
@@ -364,7 +366,8 @@ func (s *Service) seats(ctx context.Context, me uuid.UUID, uid, roomID string) (
 		}
 		target = id
 		if seat.Bot {
-			bot = &PlayerRef{UID: seat.UID, Name: seat.Name, Avatar: seat.Avatar, Level: max(seat.Level, 1)}
+			bot = &PlayerRef{UID: seat.UID, Name: seat.Name, Avatar: seat.Avatar, Picture: seat.Picture,
+				Level: max(seat.Level, 1)}
 		}
 	}
 	if !mine {
@@ -463,7 +466,8 @@ func (s *Service) render(ctx context.Context, rows []row) ([]Report, error) {
 			player = *r.bot
 		} else {
 			p := profs[r.reported]
-			player = PlayerRef{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: sums[r.reported].Level}
+			player = PlayerRef{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Picture: sums[r.reported].Picture,
+				Level: sums[r.reported].Level}
 		}
 		out = append(out, Report{ID: r.id.String(), Player: player,
 			Reason: r.reason, Game: r.game, RoomID: r.roomID, Status: r.status,

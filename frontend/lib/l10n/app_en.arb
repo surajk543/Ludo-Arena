@@ -966,6 +966,10 @@
   "@errorItemLocked": {
     "description": "Error code item_locked."
   },
+  "errorAssetsUnavailable": "Pictures can't be downloaded right now. Please try again later.",
+  "@errorAssetsUnavailable": {
+    "description": "Error code assets_unavailable (picture storage unavailable)."
+  },
   "errorProviderUnavailable": "The sign-in service is unavailable right now. Please try again later.",
   "@errorProviderUnavailable": {
     "description": "Error code provider_unavailable."
@@ -1254,6 +1258,14 @@
   "@homeEventsSubtitle": {
     "description": "Entry tile subtitle."
   },
+  "homeStore": "Store",
+  "@homeStore": {
+    "description": "Entry tile: the Store (profile pictures bought with diamonds)."
+  },
+  "homeStoreSubtitle": "Profile pictures",
+  "@homeStoreSubtitle": {
+    "description": "Entry tile subtitle."
+  },
   "homeExploreHeader": "More to Explore",
   "@homeExploreHeader": {
     "description": "Section header above the entry tiles (missions, collection, friends, events)."
@@ -1465,6 +1477,10 @@
   "homeNavProfile": "Profile",
   "@homeNavProfile": {
     "description": "Bottom navigation label: the player's profile."
+  },
+  "homeNoAdsRibbon": "No Ads",
+  "@homeNoAdsRibbon": {
+    "description": "Text on the decorative diagonal ribbon in the lobby header's top corner: the app shows no ads. Keep it very short; screen readers also read it."
   },
   "metaMissionsTitle": "Missions",
   "@metaMissionsTitle": {
@@ -2735,7 +2751,7 @@
   },
   "numberLakh": "{value} Lakh",
   "@numberLakh": {
-    "description": "Indian numbering unit 100,000 (lakh), used for large coin amounts in en/hi/ur. {value} is already formatted (e.g. 10 or 12.5).",
+    "description": "Indian numbering unit 100,000 (lakh), used for large coin amounts in the Indian number format. {value} is already formatted (e.g. 10 or 12.5).",
     "placeholders": {
       "value": {
         "type": "String"
@@ -2745,6 +2761,33 @@
   "numberCrore": "{value} Crore",
   "@numberCrore": {
     "description": "Indian numbering unit 10,000,000 (crore). {value} is already formatted.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "numberThousand": "{value}K",
+  "@numberThousand": {
+    "description": "Short international unit 1,000 (thousand) for compact coin amounts in the International number format, e.g. 54.32K. Keep it as short as the locale's compact form; use a non-breaking space if the unit is separated. {value} is already formatted.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "numberMillion": "{value}M",
+  "@numberMillion": {
+    "description": "Short international unit 1,000,000 (million), e.g. 1M or 1.5M. {value} is already formatted.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "numberBillion": "{value}B",
+  "@numberBillion": {
+    "description": "Short international unit 1,000,000,000 (billion), e.g. 1B. {value} is already formatted.",
     "placeholders": {
       "value": {
         "type": "String"
@@ -3788,6 +3831,34 @@
   "@profileEditNameTooltip": {
     "description": "Tooltip and screen-reader label of the pencil button next to the player name."
   },
+  "profileChangePicture": "Change picture",
+  "@profileChangePicture": {
+    "description": "Profile: label / tooltip of the tappable avatar that opens the picture picker (owned pictures or the classic avatar)."
+  },
+  "profilePictureTitle": "Choose your picture",
+  "@profilePictureTitle": {
+    "description": "Title of the Profile sheet to pick one of the owned profile pictures (or the classic avatar)."
+  },
+  "profilePictureClassic": "Classic avatar",
+  "@profilePictureClassic": {
+    "description": "Picker choice: the built-in avatar (no Store picture)."
+  },
+  "profilePictureEmptyMessage": "Pictures you buy in the Store show up here.",
+  "@profilePictureEmptyMessage": {
+    "description": "Picker empty state: the player owns no Store pictures yet."
+  },
+  "profilePictureOpenStore": "Visit the Store",
+  "@profilePictureOpenStore": {
+    "description": "Picker empty-state button: opens the Store."
+  },
+  "profilePictureGetMore": "Get more in the Store",
+  "@profilePictureGetMore": {
+    "description": "Picker link: opens the Store to buy more pictures."
+  },
+  "profilePictureShowMore": "Show more",
+  "@profilePictureShowMore": {
+    "description": "Picker button: loads the next page of owned pictures."
+  },
   "profileEditNameTitle": "Change your name",
   "@profileEditNameTitle": {
     "description": "Title of the change-display-name sheet."
@@ -3865,6 +3936,46 @@
   "settingsLanguage": "Language",
   "@settingsLanguage": {
     "description": "Language setting label."
+  },
+  "settingsNumberSystem": "Number format",
+  "@settingsNumberSystem": {
+    "description": "Setting label and sheet title: how large amounts are grouped and abbreviated (Indian lakh/crore vs international million/billion)."
+  },
+  "settingsNumberSystemHint": "Choose how coin amounts are shown.",
+  "@settingsNumberSystemHint": {
+    "description": "Short explanation at the top of the number format picker."
+  },
+  "settingsNumberSystemIndian": "Indian",
+  "@settingsNumberSystemIndian": {
+    "description": "Number format option: Indian grouping and lakh/crore (1,00,000 · 10 Lakh)."
+  },
+  "settingsNumberSystemInternational": "International",
+  "@settingsNumberSystemInternational": {
+    "description": "Number format option: international grouping and million/billion (100,000 · 1M)."
+  },
+  "settingsNumberSystemExample": "{full} · {compact}",
+  "@settingsNumberSystemExample": {
+    "description": "Live example of a number format: one lakh in full and ten lakh compact, e.g. '1,00,000 · 10 Lakh' or '100,000 · 1M'. Both values are already formatted.",
+    "placeholders": {
+      "full": {
+        "type": "String"
+      },
+      "compact": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNumberSystemSummary": "{system} ({example})",
+  "@settingsNumberSystemSummary": {
+    "description": "Subtitle of the Number format row: the chosen format's name and its example, e.g. 'Indian (1,00,000 · 10 Lakh)'.",
+    "placeholders": {
+      "system": {
+        "type": "String"
+      },
+      "example": {
+        "type": "String"
+      }
+    }
   },
   "settingsSoundAndHaptics": "Sound & haptics",
   "@settingsSoundAndHaptics": {
@@ -4264,6 +4375,99 @@
   "@socialReportStatusA11y": {
     "description": "Screen-reader text for a report status chip.",
     "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "storeTitle": "Store",
+  "@storeTitle": {
+    "description": "Title of the Store screen (profile pictures bought with diamonds)."
+  },
+  "storeHeroTitle": "Profile pictures",
+  "@storeHeroTitle": {
+    "description": "Store header card title."
+  },
+  "storeHeroSubtitle": "Buy once with diamonds and keep it forever.",
+  "@storeHeroSubtitle": {
+    "description": "Store header card text: pictures are bought once and owned forever."
+  },
+  "storeFilterAnimated": "Animated",
+  "@storeFilterAnimated": {
+    "description": "Store filter pill: animated (Lottie) pictures."
+  },
+  "storeFilterStatic": "Static",
+  "@storeFilterStatic": {
+    "description": "Store filter pill: still images."
+  },
+  "storeKindAnimated": "Animated picture",
+  "@storeKindAnimated": {
+    "description": "Detail sheet subtitle for an animated profile picture."
+  },
+  "storeKindStatic": "Picture",
+  "@storeKindStatic": {
+    "description": "Detail sheet subtitle for a still profile picture."
+  },
+  "storeApply": "Apply",
+  "@storeApply": {
+    "description": "Button: use this owned picture as your profile picture."
+  },
+  "storeRemove": "Use classic avatar",
+  "@storeRemove": {
+    "description": "Button: stop using the applied picture and go back to the built-in avatar."
+  },
+  "storeAppliedToast": "Picture applied!",
+  "@storeAppliedToast": {
+    "description": "Toast after the server applied a profile picture."
+  },
+  "storeRemovedToast": "Back to your classic avatar.",
+  "@storeRemovedToast": {
+    "description": "Toast after going back to the built-in avatar."
+  },
+  "storePurchasedToast": "{name} is yours forever!",
+  "@storePurchasedToast": {
+    "description": "Toast after buying a profile picture.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storeNextMatchNote": "Shows on your profile now, and to other players from your next match.",
+  "@storeNextMatchNote": {
+    "description": "Note under Apply: rooms already joined keep the previous picture."
+  },
+  "storeEmptyOwnedTitle": "No pictures yet",
+  "@storeEmptyOwnedTitle": {
+    "description": "Empty state of the Owned filter."
+  },
+  "storeEmptyOwnedMessage": "Pictures you buy are yours forever.",
+  "@storeEmptyOwnedMessage": {
+    "description": "Empty state of the Owned filter."
+  },
+  "storeEmptyTitle": "Nothing here yet",
+  "@storeEmptyTitle": {
+    "description": "Empty state of a Store filter."
+  },
+  "storeEmptyMessage": "New pictures are on their way.",
+  "@storeEmptyMessage": {
+    "description": "Empty state of a Store filter."
+  },
+  "storeBrowseAll": "Browse all",
+  "@storeBrowseAll": {
+    "description": "Button in the empty Owned filter: show every picture."
+  },
+  "storeLoadMoreFailed": "Couldn't load more pictures.",
+  "@storeLoadMoreFailed": {
+    "description": "Inline error at the end of the Store grid (next page failed)."
+  },
+  "storeTileSemantics": "{name}, {status}",
+  "@storeTileSemantics": {
+    "description": "Screen-reader label of a Store tile: picture name and its price or state.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
       "status": {
         "type": "String"
       }

@@ -277,6 +277,14 @@ func (e *env) spawnNamedBots(t *testing.T, ctl string, names []string) []*client
 type botSeat struct {
 	UID, Name     string
 	Avatar, Level int
+	PictureID     string // "" = no profile picture
+}
+
+// pictureID is the id of a JSON profile picture ("" for null).
+func pictureID(v any) string {
+	m, _ := v.(map[string]any)
+	id, _ := m["id"].(string)
+	return id
 }
 
 // practiceWithBots starts a Ludo practice game of human against bots named
@@ -295,7 +303,11 @@ func (e *env) practiceWithBots(t *testing.T, human account, names []string) (*cl
 	var bots []botSeat
 	for _, p := range s.Players {
 		if p.Bot {
-			bots = append(bots, botSeat{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level})
+			b := botSeat{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level}
+			if p.Picture != nil {
+				b.PictureID = p.Picture.ID
+			}
+			bots = append(bots, b)
 		}
 	}
 	if len(bots) != len(names) {
@@ -310,7 +322,8 @@ func (e *env) practiceWithBots(t *testing.T, human account, names []string) (*cl
 // (flagged reported_bot) but kept out of the operator queue.
 func TestReportBotSeatAndUnlabelledBotNames(t *testing.T) {
 	t.Setenv("ADMIN_API_KEY_SHA256", adminHash())
-	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(9)})
+	// Every bot wears a Store picture, which the report must keep too.
+	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(9), botPictureShare: "1"})
 	human := e.guest()
 	_, roomID, bots := e.practiceWithBots(t, human, []string{"Bot Asha", ""})
 	asha := -1
@@ -333,6 +346,9 @@ func TestReportBotSeatAndUnlabelledBotNames(t *testing.T) {
 	}
 	rep := r.Body["report"].(map[string]any)
 	player := rep["player"].(map[string]any)
+	if bots[0].PictureID == "" || pictureID(player["picture"]) != bots[0].PictureID {
+		t.Fatalf("bot report picture: seat %q, report %s", bots[0].PictureID, r.Raw)
+	}
 	if player["uid"] != bots[0].UID || player["name"] != bots[0].Name || num(player["avatar"]) != int64(bots[0].Avatar) ||
 		num(player["level"]) != int64(max(bots[0].Level, 1)) || rep["status"] != "submitted" || rep["roomId"] != roomID ||
 		rep["game"] != "ludo" || rep["reason"] != "abusive_behavior" || num(limitOf(t, r)["remaining"]) != 1 {
@@ -370,7 +386,8 @@ func TestReportBotSeatAndUnlabelledBotNames(t *testing.T) {
 	}
 	for i, want := range []botSeat{bots[1], bots[0]} {
 		p := list[i].(map[string]any)["player"].(map[string]any)
-		if p["uid"] != want.UID || p["name"] != want.Name || num(p["avatar"]) != int64(want.Avatar) {
+		if p["uid"] != want.UID || p["name"] != want.Name || num(p["avatar"]) != int64(want.Avatar) ||
+			pictureID(p["picture"]) != want.PictureID {
 			t.Fatalf("my report %d: %v want %+v", i, p, want)
 		}
 	}

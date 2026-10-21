@@ -36,12 +36,17 @@ class SnakesBoardPainter extends CustomPainter {
     final layout = SnakesBoardLayout.fit(size);
     canvas.save();
     canvas.translate(layout.gridOrigin.dx, layout.gridOrigin.dy);
-    canvas.scale(layout.cell);
+    // Static art in tile space, stretched to the taller rows.
+    canvas.save();
+    canvas.scale(layout.cell, layout.cell * SnakesGeometry.rowHeight);
     _paintFrame(canvas);
     _paintCells(canvas);
     _paintFinishSquare(canvas);
     _paintStartPad(canvas);
     if (detailed) _paintPlinthDecor(canvas);
+    canvas.restore();
+    // Ladders, snakes and the finish ring in grid units (unstretched).
+    canvas.scale(layout.cell);
     for (final ladder in SnakesGeometry.allLadders) {
       _paintLadder(canvas, _LadderArt.of(ladder));
     }
@@ -411,14 +416,18 @@ class SnakesBoardPainter extends CustomPainter {
       canvas.drawPath(p, _paint);
     }
     canvas.restore();
-    // Star.
-    final star = _starPath(c + const Offset(0, 0.04), 0.4, 0.17);
+    // Star (undo the row stretch so it keeps its shape).
+    canvas.save();
+    canvas.translate(c.dx, c.dy + 0.04);
+    canvas.scale(1, 1 / SnakesGeometry.rowHeight);
+    final star = _starPath(Offset.zero, 0.4, 0.17);
     _paint.color = Colors.white.withValues(alpha: 0.92);
     canvas.drawPath(star, _paint);
     _stroke
       ..strokeWidth = 0.035
       ..color = style.finishDeep;
     canvas.drawPath(star, _stroke);
+    canvas.restore();
     _stroke
       ..strokeWidth = 0.04
       ..color = Color.lerp(style.finishDeep, Colors.black, 0.25)!;
@@ -429,11 +438,12 @@ class SnakesBoardPainter extends CustomPainter {
   /// reads clearly.
   void _paintFinishRing(Canvas canvas) {
     final cell = SnakesGeometry.cellFor(100);
+    const h = SnakesGeometry.rowHeight;
     final rect = Rect.fromLTWH(
       cell.col.toDouble(),
-      cell.row.toDouble(),
+      cell.row * h,
       1,
-      1,
+      h,
     ).deflate(0.035);
     final ring = RRect.fromRectAndRadius(
       rect,
@@ -482,7 +492,7 @@ class SnakesBoardPainter extends CustomPainter {
     // Seat wells.
     _paint.color = style.padEdge.withValues(alpha: 0.22);
     for (var seat = 0; seat < 4; seat++) {
-      final s = SnakesGeometry.startSlot(seat);
+      final s = SnakesGeometry.startSlotTile(seat);
       canvas.drawOval(
         Rect.fromCenter(
           center: s + const Offset(0, 0.2),
@@ -493,7 +503,7 @@ class SnakesBoardPainter extends CustomPainter {
       );
     }
     // Arrow pointing up into square 1.
-    final first = SnakesGeometry.centerOf(1);
+    final first = SnakesGeometry.cellFor(1).center;
     final arrow = Path()
       ..moveTo(first.dx, 10.03)
       ..lineTo(first.dx + 0.26, pad.top + 0.06)

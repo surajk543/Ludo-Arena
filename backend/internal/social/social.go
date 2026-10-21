@@ -9,7 +9,7 @@
 // pending requests to bots (bots.go) are ephemeral Redis data (lost on a
 // Redis wipe without affecting anything durable). Responses never contain
 // account ids, emails or provider ids of other players: only public uid,
-// display name, avatar, level and title.
+// display name, avatar, profile picture, level and title.
 //
 // Dependency: social uses *progression.Service for summaries (level, title),
 // durable public-id resolution and per-account row locks, and registers
@@ -34,6 +34,7 @@ import (
 
 	"ludoroyale/internal/gameevents"
 	"ludoroyale/internal/metrics"
+	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/profile"
 	"ludoroyale/internal/progression"
 	"ludoroyale/internal/ratelimit"
@@ -142,10 +143,12 @@ type Friend struct {
 	UID    string `json:"uid"`
 	Name   string `json:"name"`
 	Avatar int    `json:"avatar"`
-	Level  int    `json:"level"`
-	Title  string `json:"title"`
-	Online bool   `json:"online"`
-	Status string `json:"status"`
+	// Picture is the player's profile picture (null: the built-in avatar).
+	Picture *playerinfo.Picture `json:"picture"`
+	Level   int                 `json:"level"`
+	Title   string              `json:"title"`
+	Online  bool                `json:"online"`
+	Status  string              `json:"status"`
 }
 
 // FriendsView is the GET /friends response.
@@ -319,8 +322,8 @@ func (s *Service) views(ctx context.Context, ids []uuid.UUID, status map[uuid.UU
 		if st == "" {
 			st = StatusNone
 		}
-		out = append(out, Friend{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: sum.Level, Title: sum.Title,
-			Online: online[id], Status: st})
+		out = append(out, Friend{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Picture: sum.Picture, Level: sum.Level,
+			Title: sum.Title, Online: online[id], Status: st})
 	}
 	return out, nil
 }
@@ -703,13 +706,14 @@ func (s *Service) Recent(ctx context.Context, me uuid.UUID) ([]Friend, error) {
 
 // LeaderboardEntry is one row of the friends leaderboard.
 type LeaderboardEntry struct {
-	UID      string `json:"uid"`
-	Name     string `json:"name"`
-	Avatar   int    `json:"avatar"`
-	Level    int    `json:"level"`
-	WeeklyXP int64  `json:"weeklyXp"`
-	Rank     int    `json:"rank"`
-	IsMe     bool   `json:"isMe"`
+	UID      string              `json:"uid"`
+	Name     string              `json:"name"`
+	Avatar   int                 `json:"avatar"`
+	Picture  *playerinfo.Picture `json:"picture"`
+	Level    int                 `json:"level"`
+	WeeklyXP int64               `json:"weeklyXp"`
+	Rank     int                 `json:"rank"`
+	IsMe     bool                `json:"isMe"`
 }
 
 // Leaderboard is the GET /leaderboards/friends response.
@@ -744,8 +748,8 @@ func (s *Service) FriendsLeaderboard(ctx context.Context, me uuid.UUID) (Leaderb
 	entries := make([]LeaderboardEntry, len(ids))
 	for i, id := range ids {
 		p := profs[id]
-		entries[i] = LeaderboardEntry{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: sums[id].Level,
-			WeeklyXP: int64(cmds[i].Val()), IsMe: id == me}
+		entries[i] = LeaderboardEntry{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Picture: sums[id].Picture,
+			Level: sums[id].Level, WeeklyXP: int64(cmds[i].Val()), IsMe: id == me}
 	}
 	sort.SliceStable(entries, func(i, j int) bool {
 		a, b := entries[i], entries[j]

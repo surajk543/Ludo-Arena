@@ -60,6 +60,7 @@ void main() {
     'rate_limited',
     'maintenance',
     'provider_unavailable',
+    'assets_unavailable',
     'internal',
   ];
   const clientCodes = [

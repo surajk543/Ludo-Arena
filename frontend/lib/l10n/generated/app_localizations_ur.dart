@@ -729,6 +729,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get errorItemLocked => 'یہ آئٹم ابھی لاک ہے۔';
 
   @override
+  String get errorAssetsUnavailable =>
+      'تصویریں ابھی ڈاؤن لوڈ نہیں ہو سکتیں۔ براہِ کرم بعد میں کوشش کریں۔';
+
+  @override
   String get errorProviderUnavailable =>
       'سائن اِن سروس ابھی دستیاب نہیں ہے۔ براہِ کرم بعد میں کوشش کریں۔';
 
@@ -955,6 +959,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get homeEventsSubtitle => 'محدود وقت کے کپ';
 
   @override
+  String get homeStore => 'اسٹور';
+
+  @override
+  String get homeStoreSubtitle => 'پروفائل تصویریں';
+
+  @override
   String get homeExploreHeader => 'مزید دریافت کریں';
 
   @override
@@ -1107,6 +1117,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get homeNavProfile => 'پروفائل';
+
+  @override
+  String get homeNoAdsRibbon => 'اشتہار نہیں';
 
   @override
   String get metaMissionsTitle => 'مشنز';
@@ -2033,6 +2046,21 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String numberThousand(String value) {
+    return '$value ہزار';
+  }
+
+  @override
+  String numberMillion(String value) {
+    return '$value ملین';
+  }
+
+  @override
+  String numberBillion(String value) {
+    return '$value بلین';
+  }
+
+  @override
   String get onboardingLanguageTitle => 'اپنی زبان منتخب کریں';
 
   @override
@@ -2757,6 +2785,28 @@ class AppLocalizationsUr extends AppLocalizations {
   String get profileEditNameTooltip => 'نام بدلیں';
 
   @override
+  String get profileChangePicture => 'تصویر بدلیں';
+
+  @override
+  String get profilePictureTitle => 'اپنی تصویر چنیں';
+
+  @override
+  String get profilePictureClassic => 'کلاسک اوتار';
+
+  @override
+  String get profilePictureEmptyMessage =>
+      'اسٹور سے خریدی گئی تصویریں یہاں نظر آئیں گی۔';
+
+  @override
+  String get profilePictureOpenStore => 'اسٹور پر جائیں';
+
+  @override
+  String get profilePictureGetMore => 'اسٹور سے مزید حاصل کریں';
+
+  @override
+  String get profilePictureShowMore => 'مزید دکھائیں';
+
+  @override
   String get profileEditNameTitle => 'اپنا نام بدلیں';
 
   @override
@@ -2809,6 +2859,29 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'زبان';
+
+  @override
+  String get settingsNumberSystem => 'نمبر فارمیٹ';
+
+  @override
+  String get settingsNumberSystemHint =>
+      'منتخب کریں کہ سکوں کی رقم کیسے دکھائی جائے۔';
+
+  @override
+  String get settingsNumberSystemIndian => 'ہندوستانی';
+
+  @override
+  String get settingsNumberSystemInternational => 'بین الاقوامی';
+
+  @override
+  String settingsNumberSystemExample(String full, String compact) {
+    return '$full · $compact';
+  }
+
+  @override
+  String settingsNumberSystemSummary(String system, String example) {
+    return '$system ($example)';
+  }
 
   @override
   String get settingsSoundAndHaptics => 'آواز اور وائبریشن';
@@ -3093,6 +3166,73 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String socialReportStatusA11y(String status) {
     return 'صورتحال: $status';
+  }
+
+  @override
+  String get storeTitle => 'اسٹور';
+
+  @override
+  String get storeHeroTitle => 'پروفائل تصویریں';
+
+  @override
+  String get storeHeroSubtitle =>
+      'ہیروں سے ایک بار خریدیں اور ہمیشہ کے لیے اپنی بنا لیں۔';
+
+  @override
+  String get storeFilterAnimated => 'اینیمیٹڈ';
+
+  @override
+  String get storeFilterStatic => 'ساکن';
+
+  @override
+  String get storeKindAnimated => 'اینیمیٹڈ تصویر';
+
+  @override
+  String get storeKindStatic => 'تصویر';
+
+  @override
+  String get storeApply => 'لگائیں';
+
+  @override
+  String get storeRemove => 'کلاسک اوتار لگائیں';
+
+  @override
+  String get storeAppliedToast => 'تصویر لگا دی گئی!';
+
+  @override
+  String get storeRemovedToast => 'آپ کا کلاسک اوتار واپس آ گیا۔';
+
+  @override
+  String storePurchasedToast(String name) {
+    return '$name اب ہمیشہ کے لیے آپ کی ہے!';
+  }
+
+  @override
+  String get storeNextMatchNote =>
+      'یہ ابھی آپ کی پروفائل پر نظر آئے گی، اور دوسرے کھلاڑیوں کو آپ کے اگلے میچ سے۔';
+
+  @override
+  String get storeEmptyOwnedTitle => 'ابھی کوئی تصویر نہیں';
+
+  @override
+  String get storeEmptyOwnedMessage =>
+      'آپ جو تصویریں خریدتے ہیں وہ ہمیشہ آپ کی رہتی ہیں۔';
+
+  @override
+  String get storeEmptyTitle => 'یہاں ابھی کچھ نہیں';
+
+  @override
+  String get storeEmptyMessage => 'نئی تصویریں جلد آ رہی ہیں۔';
+
+  @override
+  String get storeBrowseAll => 'سب دیکھیں';
+
+  @override
+  String get storeLoadMoreFailed => 'مزید تصویریں لوڈ نہیں ہو سکیں۔';
+
+  @override
+  String storeTileSemantics(String name, String status) {
+    return '$name، $status';
   }
 
   @override

@@ -8,8 +8,28 @@ import (
 	"github.com/google/uuid"
 )
 
-// Equip slots.
+// Equip slots of the Collection Room (catalog cosmetics).
 var Slots = []string{"dice", "token", "ludo_board", "snakes_board", "frame", "title", "victory", "trail"}
+
+// PictureSlot is the progression.loadout slot of the equipped profile
+// picture (Store, PUT /me/profile-picture). It is not a Collection slot: it
+// never appears in Summary.Loadout, only as Summary.Picture.
+const PictureSlot = "avatar"
+
+// Picture is a player's public profile picture (API PlayerPicture): the
+// catalogue id, the format ("image" | "lottie") and the object path in the
+// private asset bucket (signed via POST /assets/sign).
+type Picture struct {
+	ID     string `json:"id"`
+	Format string `json:"format"`
+	Path   string `json:"path"`
+}
+
+// PictureSource picks profile pictures for bot seats (implemented by
+// progression). RandomPicture returns nil when there is none.
+type PictureSource interface {
+	RandomPicture() *Picture
+}
 
 // StarterLoadout is the default equipped item per slot.
 func StarterLoadout() map[string]string {
@@ -28,6 +48,8 @@ type Summary struct {
 	NextLevelXP int64             `json:"nextLevelXp"` // XP needed to reach the next level
 	Title       string            `json:"title"`
 	Loadout     map[string]string `json:"loadout"`
+	// Picture is the equipped profile picture (nil: the built-in avatar).
+	Picture *Picture `json:"picture"`
 }
 
 // Starter returns the summary of a brand-new player.

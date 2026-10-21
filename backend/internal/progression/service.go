@@ -13,6 +13,7 @@ package progression
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"regexp"
 	"sync"
@@ -71,6 +72,12 @@ type Options struct {
 	// MinMatchDuration overrides the anti-farming minimum match length
 	// (default MinMatchDuration; set PROGRESSION_MIN_MATCH_DURATION).
 	MinMatchDuration *time.Duration
+	// Assets presigns profile-picture paths (POST /assets/sign); nil when R2
+	// is not configured (the route then answers 503 assets_unavailable).
+	Assets AssetSigner
+	// PictureReload is how often Run reloads the profile-picture catalogue
+	// (default PictureReload).
+	PictureReload time.Duration
 }
 
 // MatchObserver is called after a finished match was recorded (social uses
@@ -91,6 +98,10 @@ type Service struct {
 	missions *MissionConfig
 	purgeInt time.Duration
 	minMatch time.Duration
+
+	pics      pictures      // profile-picture catalogue snapshot (pictures.go)
+	picReload time.Duration // catalogue reload interval
+	signer    AssetSigner   // nil: asset signing unavailable
 
 	mu        sync.RWMutex
 	observers []MatchObserver
@@ -118,6 +129,9 @@ func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, notif
 	if opts.PurgeInterval <= 0 {
 		opts.PurgeInterval = time.Hour
 	}
+	if opts.PictureReload <= 0 {
+		opts.PictureReload = PictureReload
+	}
 	if log == nil {
 		log = slog.Default()
 	}
@@ -135,8 +149,19 @@ func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, notif
 	if opts.MinMatchDuration != nil {
 		minMatch = *opts.MinMatchDuration
 	}
-	return &Service{pool: pool, rdb: rdb, profiles: profiles, notifier: notifier, log: log, now: opts.Now,
-		catalog: cat, missions: ms, purgeInt: opts.PurgeInterval, minMatch: minMatch}, nil
+	s := &Service{pool: pool, rdb: rdb, profiles: profiles, notifier: notifier, log: log, now: opts.Now,
+		catalog: cat, missions: ms, purgeInt: opts.PurgeInterval, minMatch: minMatch,
+		picReload: opts.PictureReload, signer: opts.Assets}
+	// The profile-picture catalogue is loaded once here (migrations have
+	// seeded it) and reloaded by Run.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := s.ReloadPictures(ctx); err != nil {
+		return nil, fmt.Errorf("load profile-picture catalogue: %w", err)
+	}
+	log.Info("profile-picture catalogue loaded", "pictures", len(s.pics.get().rows),
+		"active", len(s.pics.get().active), "assetSigning", s.signer != nil)
+	return s, nil
 }
 
 // Catalog returns the cosmetics catalog.
@@ -330,7 +355,7 @@ func (s *Service) Summaries(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 			return nil, err
 		}
 	}
-	loadouts, err := s.loadouts(ctx, s.pool, ids)
+	loadouts, pics, err := s.loadoutRows(ctx, s.pool, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +366,7 @@ func (s *Service) Summaries(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 		}
 		l := loadouts[id]
 		out[id] = playerinfo.Summary{Level: p.level, XP: p.xp, LevelXP: LevelStartXP(p.level),
-			NextLevelXP: XPToNext(p.level), Title: l["title"], Loadout: l}
+			NextLevelXP: XPToNext(p.level), Title: l["title"], Loadout: l, Picture: s.pictureRef(pics[id])}
 	}
 	return out, nil
 }
@@ -354,26 +379,39 @@ type querier interface {
 // loadouts returns the effective loadout per account (starter fallback for
 // missing slots and for stale rows that no longer match the catalog).
 func (s *Service) loadouts(ctx context.Context, q querier, ids []uuid.UUID) (map[uuid.UUID]map[string]string, error) {
+	lo, _, err := s.loadoutRows(ctx, q, ids)
+	return lo, err
+}
+
+// loadoutRows returns loadouts() and, separately, the equipped profile
+// picture id per account (loadout slot playerinfo.PictureSlot; never part of
+// the Collection loadout).
+func (s *Service) loadoutRows(ctx context.Context, q querier, ids []uuid.UUID) (map[uuid.UUID]map[string]string, map[uuid.UUID]string, error) {
 	out := make(map[uuid.UUID]map[string]string, len(ids))
+	pics := map[uuid.UUID]string{}
 	for _, id := range ids {
 		out[id] = playerinfo.StarterLoadout()
 	}
 	rows, err := q.Query(ctx, `SELECT user_id, slot, item_id FROM progression.loadout WHERE user_id = ANY($1)`, ids)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var id uuid.UUID
 		var slot, item string
 		if err := rows.Scan(&id, &slot, &item); err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+		if slot == playerinfo.PictureSlot {
+			pics[id] = item
+			continue
 		}
 		if it := s.catalog.Get(item); it != nil && it.Kind == slot && out[id] != nil {
 			out[id][slot] = item
 		}
 	}
-	return out, rows.Err()
+	return out, pics, rows.Err()
 }
 
 // ---------------------------------------------------------------- inventory
@@ -579,9 +617,11 @@ func (s *Service) purgeBatches(ctx context.Context, sql string, args ...any) (in
 	}
 }
 
-// Run executes the periodic retention purge until ctx is cancelled. Running
-// it on several instances is harmless.
+// Run executes the periodic retention purge (and the profile-picture
+// catalogue reload) until ctx is cancelled. Running it on several instances
+// is harmless.
 func (s *Service) Run(ctx context.Context) {
+	go s.runPictureReload(ctx)
 	t := time.NewTimer(time.Minute)
 	defer t.Stop()
 	for {

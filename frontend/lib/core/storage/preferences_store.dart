@@ -20,6 +20,9 @@ abstract final class PrefKeys {
 
   /// JSON list of muted players' public uids, oldest first (at most 200).
   static const mutedPlayers = 'social.muted_players';
+
+  /// `indian` | `international`; absent follows the app language.
+  static const numberSystem = 'settings.number_system';
   static const analyticsConsent = 'analytics.consent';
   static const cachedPolicy = 'policy.cached';
   static const optionalUpdateDeferredUntil = 'policy.optional_deferred_until';

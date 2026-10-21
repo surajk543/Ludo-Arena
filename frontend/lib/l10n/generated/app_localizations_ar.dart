@@ -728,6 +728,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errorItemLocked => 'هذا العنصر ما زال مقفلًا.';
 
   @override
+  String get errorAssetsUnavailable =>
+      'لا يمكن تنزيل الصور الآن. يُرجى المحاولة لاحقًا.';
+
+  @override
   String get errorProviderUnavailable =>
       'خدمة تسجيل الدخول غير متاحة الآن. يُرجى المحاولة لاحقًا.';
 
@@ -954,6 +958,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeEventsSubtitle => 'كؤوس لفترة محدودة';
 
   @override
+  String get homeStore => 'المتجر';
+
+  @override
+  String get homeStoreSubtitle => 'صور الملف الشخصي';
+
+  @override
   String get homeExploreHeader => 'استكشف المزيد';
 
   @override
@@ -1108,6 +1118,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeNavProfile => 'ملفي';
+
+  @override
+  String get homeNoAdsRibbon => 'بلا إعلانات';
 
   @override
   String get metaMissionsTitle => 'المهام';
@@ -2052,6 +2065,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String numberThousand(String value) {
+    return '$value ألف';
+  }
+
+  @override
+  String numberMillion(String value) {
+    return '$value مليون';
+  }
+
+  @override
+  String numberBillion(String value) {
+    return '$value مليار';
+  }
+
+  @override
   String get onboardingLanguageTitle => 'اختر لغتك';
 
   @override
@@ -2784,6 +2812,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileEditNameTooltip => 'تعديل الاسم';
 
   @override
+  String get profileChangePicture => 'تغيير الصورة';
+
+  @override
+  String get profilePictureTitle => 'اختر صورتك';
+
+  @override
+  String get profilePictureClassic => 'الصورة الكلاسيكية';
+
+  @override
+  String get profilePictureEmptyMessage =>
+      'الصور التي تشتريها من المتجر تظهر هنا.';
+
+  @override
+  String get profilePictureOpenStore => 'زيارة المتجر';
+
+  @override
+  String get profilePictureGetMore => 'احصل على المزيد من المتجر';
+
+  @override
+  String get profilePictureShowMore => 'عرض المزيد';
+
+  @override
   String get profileEditNameTitle => 'غيّر اسمك';
 
   @override
@@ -2836,6 +2886,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'اللغة';
+
+  @override
+  String get settingsNumberSystem => 'تنسيق الأرقام';
+
+  @override
+  String get settingsNumberSystemHint => 'اختر طريقة عرض مبالغ العملات.';
+
+  @override
+  String get settingsNumberSystemIndian => 'هندي';
+
+  @override
+  String get settingsNumberSystemInternational => 'دولي';
+
+  @override
+  String settingsNumberSystemExample(String full, String compact) {
+    return '$full · $compact';
+  }
+
+  @override
+  String settingsNumberSystemSummary(String system, String example) {
+    return '$system ($example)';
+  }
 
   @override
   String get settingsSoundAndHaptics => 'الصوت والاهتزاز';
@@ -3114,6 +3186,72 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String socialReportStatusA11y(String status) {
     return 'الحالة: $status';
+  }
+
+  @override
+  String get storeTitle => 'المتجر';
+
+  @override
+  String get storeHeroTitle => 'صور الملف الشخصي';
+
+  @override
+  String get storeHeroSubtitle =>
+      'اشترِها مرة واحدة بالماس واحتفظ بها إلى الأبد.';
+
+  @override
+  String get storeFilterAnimated => 'متحركة';
+
+  @override
+  String get storeFilterStatic => 'ثابتة';
+
+  @override
+  String get storeKindAnimated => 'صورة متحركة';
+
+  @override
+  String get storeKindStatic => 'صورة';
+
+  @override
+  String get storeApply => 'استخدام';
+
+  @override
+  String get storeRemove => 'استخدام الصورة الكلاسيكية';
+
+  @override
+  String get storeAppliedToast => 'تم تطبيق الصورة!';
+
+  @override
+  String get storeRemovedToast => 'عدت إلى صورتك الكلاسيكية.';
+
+  @override
+  String storePurchasedToast(String name) {
+    return '$name أصبحت لك إلى الأبد!';
+  }
+
+  @override
+  String get storeNextMatchNote =>
+      'تظهر في ملفك الشخصي الآن، وللاعبين الآخرين بدءًا من مباراتك القادمة.';
+
+  @override
+  String get storeEmptyOwnedTitle => 'لا توجد صور بعد';
+
+  @override
+  String get storeEmptyOwnedMessage => 'الصور التي تشتريها تبقى لك إلى الأبد.';
+
+  @override
+  String get storeEmptyTitle => 'لا شيء هنا بعد';
+
+  @override
+  String get storeEmptyMessage => 'صور جديدة في الطريق.';
+
+  @override
+  String get storeBrowseAll => 'عرض الكل';
+
+  @override
+  String get storeLoadMoreFailed => 'تعذّر تحميل المزيد من الصور.';
+
+  @override
+  String storeTileSemantics(String name, String status) {
+    return '$name، $status';
   }
 
   @override

@@ -7,6 +7,8 @@ import 'package:ludo_royale/features/app_update/presentation/maintenance_screen.
 import 'package:ludo_royale/features/app_update/presentation/not_found_screen.dart';
 import 'package:ludo_royale/features/app_update/presentation/splash_screen.dart';
 import 'package:ludo_royale/features/app_update/presentation/unreachable_screen.dart';
+import 'package:ludo_royale/core/localization/number_format.dart';
+import 'package:ludo_royale/core/settings/app_settings.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/authentication/presentation/language_onboarding_screen.dart';
 import 'package:ludo_royale/features/authentication/presentation/link_account_screen.dart';
@@ -15,8 +17,10 @@ import 'package:ludo_royale/features/home/presentation/games_screen.dart';
 import 'package:ludo_royale/features/home/presentation/home_screen.dart';
 import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
 import 'package:ludo_royale/features/settings/presentation/settings_screen.dart';
+import 'package:ludo_royale/features/store/presentation/store_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import '../features/store/store_test_support.dart';
 import '../helpers/fake_backend.dart';
 import '../helpers/harness.dart';
 import '../helpers/screen_harness.dart';
@@ -77,10 +81,22 @@ void main() {
           'offline',
         ),
         'not-found': (const NotFoundScreen(location: '/missions'), null, null),
+        'store': (const StoreScreen(), signedIn, 'store'),
       };
 
+  // The Store also at the largest text scale the app allows, in every
+  // language and both themes.
+  final storeConfigs = [
+    for (final l in const ['en', 'hi', 'ur', 'id', 'ar'])
+      for (final m in const [ThemeMode.light, ThemeMode.dark])
+        (Locale(l), m, 1.35),
+  ];
+
   for (final entry in screens.entries) {
-    for (final (locale, mode, scale) in configs) {
+    for (final (locale, mode, scale) in [
+      ...configs,
+      if (entry.key == 'store') ...storeConfigs,
+    ]) {
       final name =
           '${entry.key} ${locale.languageCode} ${mode.name} x$scale @320x640';
       testWidgets(name, (tester) async {
@@ -125,6 +141,8 @@ void main() {
             );
           case 'offline':
             env.backend.offline = true;
+          case 'store':
+            routeStore(env);
         }
         await pumpScreen(
           tester,
@@ -149,6 +167,75 @@ void main() {
         // Stop timers (maintenance auto-check) before teardown.
         await tester.pumpWidget(const SizedBox());
       });
+    }
+  }
+
+  // Settings → Number format: the row (live example in its subtitle) and the
+  // picker sheet, for each system, at the app's maximum text scale (1.35).
+  for (final locale in const [
+    Locale('en'),
+    Locale('hi'),
+    Locale('ur'),
+    Locale('ar'),
+    Locale('id'),
+  ]) {
+    for (final mode in const [ThemeMode.light, ThemeMode.dark]) {
+      for (final system in NumberSystem.values) {
+        final name =
+            'settings number format ${system.name} ${locale.languageCode} '
+            '${mode.name} x1.35 @320x640';
+        testWidgets(name, (tester) async {
+          addTearDown(() => AppNumberFormat.preferredSystem = null);
+          final env = await TestEnv.create();
+          env.routeHappyPath();
+          await pumpScreen(
+            tester,
+            env,
+            const SettingsScreen(),
+            locale: locale,
+            themeMode: mode,
+            size: Viewports.small,
+            textScale: 1.35,
+            prepare: (c) async {
+              await signedIn(c);
+              await c
+                  .read(settingsControllerProvider.notifier)
+                  .setNumberSystem(system);
+            },
+          );
+          expect(tester.takeException(), isNull);
+          await scrollThrough(tester);
+          expect(tester.takeException(), isNull);
+
+          final row = find.byKey(const ValueKey('settings.numberSystem'));
+          // Back up to the Appearance section (the list builds lazily).
+          await tester.scrollUntilVisible(
+            row,
+            -200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.ensureVisible(row);
+          await tester.pumpAndSettle();
+          await tester.tap(row);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          for (final s in NumberSystem.values) {
+            final tile = find.byKey(ValueKey('numberSystem.${s.name}'));
+            expect(tile, findsOneWidget);
+            expect(
+              tester.getSemantics(tile),
+              isSemantics(isSelected: s == system, isButton: true),
+            );
+          }
+          final dir = Directionality.of(
+            tester.element(find.byKey(const ValueKey('numberSystem.indian'))),
+          );
+          final rtl =
+              locale.languageCode == 'ar' || locale.languageCode == 'ur';
+          expect(dir, rtl ? TextDirection.rtl : TextDirection.ltr);
+          await tester.pumpWidget(const SizedBox());
+        });
+      }
     }
   }
 }

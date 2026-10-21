@@ -13,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"ludoroyale/internal/metrics"
+	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/progression"
 )
 
@@ -30,11 +31,12 @@ const DefaultBotRequestTTL = 72 * time.Hour
 
 // BotProfile is a bot seat's public profile as the room shows it.
 type BotProfile struct {
-	UID    string
-	Name   string
-	Avatar int
-	Level  int
-	Title  string
+	UID     string
+	Name    string
+	Avatar  int
+	Picture *playerinfo.Picture
+	Level   int
+	Title   string
 }
 
 // BotLookup returns the live bot with public id uid as seen by me (wired to
@@ -47,11 +49,12 @@ func BotRequestsKey(userID uuid.UUID) string { return "botfr:" + userID.String()
 
 // botRequest is the stored profile of the requested bot and when it was sent.
 type botRequest struct {
-	Name   string `json:"name"`
-	Avatar int    `json:"avatar"`
-	Level  int    `json:"level"`
-	Title  string `json:"title"`
-	At     int64  `json:"at"` // unix ms
+	Name    string              `json:"name"`
+	Avatar  int                 `json:"avatar"`
+	Picture *playerinfo.Picture `json:"picture,omitempty"`
+	Level   int                 `json:"level"`
+	Title   string              `json:"title"`
+	At      int64               `json:"at"` // unix ms
 }
 
 type pendingBot struct {
@@ -60,8 +63,8 @@ type pendingBot struct {
 }
 
 func (p pendingBot) friend() Friend {
-	return Friend{UID: p.uid, Name: p.req.Name, Avatar: p.req.Avatar, Level: max(p.req.Level, 1), Title: p.req.Title,
-		Status: StatusOutgoing}
+	return Friend{UID: p.uid, Name: p.req.Name, Avatar: p.req.Avatar, Picture: p.req.Picture, Level: max(p.req.Level, 1),
+		Title: p.req.Title, Status: StatusOutgoing}
 }
 
 // liveBotRequests splits raw hash entries into live requests (newest first)
@@ -165,8 +168,8 @@ func (s *Service) requestBot(ctx context.Context, me uuid.UUID, uid string) (Fri
 		metrics.FriendRequests.WithLabelValues("rejected").Inc()
 		return Friend{}, ErrFriendLimit
 	}
-	p := pendingBot{uid: bot.UID, req: botRequest{Name: bot.Name, Avatar: bot.Avatar, Level: bot.Level, Title: bot.Title,
-		At: s.opts.Now().UnixMilli()}}
+	p := pendingBot{uid: bot.UID, req: botRequest{Name: bot.Name, Avatar: bot.Avatar, Picture: bot.Picture,
+		Level: bot.Level, Title: bot.Title, At: s.opts.Now().UnixMilli()}}
 	raw, err := json.Marshal(p.req)
 	if err != nil {
 		return Friend{}, err

@@ -51,6 +51,10 @@ abstract final class AppRoutes {
   static const String friends = '/friends';
   static const String events = '/events';
 
+  /// Store (profile pictures for diamonds). Full screen above the tabs:
+  /// `context.push(AppRoutes.store)`.
+  static const String store = '/store';
+
   // ---------------------------------------------------------- query keys
   static const String qGame = 'game';
   static const String qVariant = 'variant';

@@ -5,7 +5,9 @@ import '../core/audio_haptics/audio_service.dart';
 import '../core/audio_haptics/reduced_motion.dart';
 import '../core/lifecycle/app_lifecycle.dart';
 import '../core/localization/language_controller.dart';
+import '../core/localization/number_system_delegate.dart';
 import '../core/localization/supported_locales.dart';
+import '../core/settings/app_settings.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_controller.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -59,6 +61,9 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
     final locale = ref.watch(languageControllerProvider);
+    final numberSystem = ref.watch(
+      settingsControllerProvider.select((s) => s.numberSystem),
+    );
 
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
@@ -70,7 +75,8 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
       themeAnimationCurve: Curves.easeInOutCubic,
       locale: locale,
       supportedLocales: SupportedLocales.all,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      // Includes the number system: changing it reformats every amount.
+      localizationsDelegates: appLocalizationsDelegates(numberSystem),
       routerConfig: router,
       builder: (context, child) => MediaQuery.withClampedTextScaling(
         maxScaleFactor: 1.35,
