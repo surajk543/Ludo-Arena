@@ -806,7 +806,7 @@ abstract class AppLocalizations {
   /// **'Entry {amount}'**
   String commonEntryFee(String amount);
 
-  /// No entry fee (e.g. practice vs bots).
+  /// No entry fee (e.g. practice).
   ///
   /// In en, this message translates to:
   /// **'Free'**
@@ -3604,7 +3604,7 @@ abstract class AppLocalizations {
   /// Entry fee explanation on the private room setup.
   ///
   /// In en, this message translates to:
-  /// **'Entry fee: {fee} coins per player, charged when the game starts. The winner takes the pot. Free when a bot is seated.'**
+  /// **'Entry fee: {fee} coins per player, charged when the game starts. The winner takes the pot.'**
   String playEntryFeeNote(String fee);
 
   /// Title when the user cannot afford the entry fee.
@@ -3886,7 +3886,7 @@ abstract class AppLocalizations {
   /// Explains bot seats in private rooms.
   ///
   /// In en, this message translates to:
-  /// **'Fill empty seats with computer players. Matches with bots are free and pay no coins.'**
+  /// **'Fill empty seats with computer players. Everyone pays the entry fee, computer players too.'**
   String get playAllowBotsHint;
 
   /// Host button: seat a bot.
@@ -3906,12 +3906,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove {name}'**
   String playRemoveBotA11y(String name);
-
-  /// Note shown when a bot is seated in a private room.
-  ///
-  /// In en, this message translates to:
-  /// **'A bot is seated: this match is free and pays no coins.'**
-  String get playBotsFreeNote;
 
   /// Button: invite friends to the room.
   ///
@@ -4471,7 +4465,7 @@ abstract class AppLocalizations {
   /// **'Wallet: {amount} coins'**
   String playRewardCoinsBalance(String amount);
 
-  /// No coins from this match (a computer player was seated, or practice).
+  /// No coins from this match (the server reported no pot, e.g. practice).
   ///
   /// In en, this message translates to:
   /// **'This match doesn\'t pay coins.'**
