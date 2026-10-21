@@ -58,7 +58,11 @@ void main() {
     final h = await _pumpGame(tester, ludoRoom());
     expect(find.byType(LudoGameScreen), findsOneWidget);
     expect(h.container.read(inMatchProvider), isTrue);
+  });
 
+  testWidgets('routes Snakes & Ladders rooms to the Snakes screen', (
+    tester,
+  ) async {
     await _pumpGame(tester, snakesRoom());
     expect(find.byType(SnakesGameScreen), findsOneWidget);
   });

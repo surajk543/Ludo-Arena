@@ -177,25 +177,29 @@ class _QuickChatSheetState extends ConsumerState<QuickChatSheet> {
         const SizedBox(height: AppSpacing.md),
         const Divider(height: 1),
         const SizedBox(height: AppSpacing.xs),
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          value: _muted || widget.settingsMuted,
-          onChanged: widget.settingsMuted
-              ? null
-              : (v) {
-                  setState(() => _muted = v);
-                  widget.onMuteChanged(v);
-                },
-          title: Text(
-            l10n.playChatMuteOthers,
-            style: context.textTheme.bodyLarge,
+        // Own Material: the sheet frame paints a colored DecoratedBox.
+        Material(
+          type: MaterialType.transparency,
+          child: SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: _muted || widget.settingsMuted,
+            onChanged: widget.settingsMuted
+                ? null
+                : (v) {
+                    setState(() => _muted = v);
+                    widget.onMuteChanged(v);
+                  },
+            title: Text(
+              l10n.playChatMuteOthers,
+              style: context.textTheme.bodyLarge,
+            ),
+            subtitle: widget.settingsMuted
+                ? Text(
+                    l10n.playChatMutedBySettings,
+                    style: context.textTheme.bodySmall,
+                  )
+                : null,
           ),
-          subtitle: widget.settingsMuted
-              ? Text(
-                  l10n.playChatMutedBySettings,
-                  style: context.textTheme.bodySmall,
-                )
-              : null,
         ),
       ],
     );

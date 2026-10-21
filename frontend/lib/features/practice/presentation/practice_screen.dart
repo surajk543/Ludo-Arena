@@ -42,8 +42,10 @@ class _PracticeScreenState extends ConsumerState<PracticeScreen> {
   void initState() {
     super.initState();
     final live = ref.read(activeRoomControllerProvider).room;
-    if (live != null && !live.isPlaying && !live.isLobby)
+    if (live != null && !live.isPlaying && !live.isLobby) {
+      // A finished room from the previous match: ignore it here.
       _staleRoomId = live.id;
+    }
     _sub = ref
         .read(activeRoomControllerProvider.notifier)
         .events

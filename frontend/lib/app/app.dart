@@ -13,6 +13,7 @@ import 'gate/app_gate_controller.dart';
 import 'realtime_binder.dart';
 import 'router.dart';
 import 'shell/app_shell_host.dart';
+import '../features/private_rooms/presentation/invite_banner_host.dart';
 import '../features/progression/presentation/meta_shell_host.dart';
 
 /// Root widget. Theme mode and locale are restored synchronously from
@@ -68,11 +69,15 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
         maxScaleFactor: 1.35,
         child: ReducedMotionScope(
           child: AppShellHost(
-            // Global level-up celebration (deferred during matches) and the
-            // app-wide friend-request banner.
-            child: MetaShellHost(
-              navigatorKey: rootNavigatorKey,
-              child: child ?? const SizedBox.shrink(),
+            // Incoming private-room invites from friends.
+            child: PlayInviteHost(
+              router: router,
+              // Global level-up celebration (deferred during matches) and the
+              // app-wide friend-request banner.
+              child: MetaShellHost(
+                navigatorKey: rootNavigatorKey,
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
           ),
         ),

@@ -126,9 +126,14 @@ class PlayerAvatar extends StatelessWidget {
                 start: -size * 0.1,
                 end: -size * 0.1,
                 child: Center(
-                  child: BotBadge(
-                    height: (size * 0.28).clamp(16.0, 24.0),
-                    showLabel: size >= 36,
+                  // Scale the pill down rather than overflow on mid-size
+                  // avatars (the label appears from 36 dp).
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: BotBadge(
+                      height: (size * 0.28).clamp(16.0, 24.0),
+                      showLabel: size >= 36,
+                    ),
                   ),
                 ),
               ),

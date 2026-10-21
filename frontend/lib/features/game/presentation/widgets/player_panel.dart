@@ -47,7 +47,10 @@ class PlayerPanel extends StatelessWidget {
     final out = player.forfeited;
     final offline = !player.connected && !out;
     final name = PlayText.playerName(l10n, player);
-    final avatarSize = compact ? 34.0 : 40.0;
+    // ≤ 34 dp: the avatar's BOT badge shows its robot glyph only; the
+    // textual BOT badge is shown next to the name instead (the shared badge
+    // overflows at 36–44 dp avatars).
+    const avatarSize = 34.0;
     final reduce = ReducedMotion.of(context);
 
     Widget avatar = PlayerAvatar(
@@ -145,6 +148,7 @@ class PlayerPanel extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Flexible(
+                        flex: 3,
                         child: Text(
                           isSelf ? l10n.commonYou : name,
                           maxLines: 1,
@@ -155,6 +159,17 @@ class PlayerPanel extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (player.bot) ...[
+                        const SizedBox(width: 3),
+                        const Flexible(
+                          flex: 2,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: AlignmentDirectional.centerStart,
+                            child: BotBadge(height: 16),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 2),

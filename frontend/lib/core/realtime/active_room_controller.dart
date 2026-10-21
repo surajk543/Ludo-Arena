@@ -71,7 +71,13 @@ class ActiveRoomState {
       isMyTurn && room!.turn.awaitingRoll && !rollInFlight && !moveInFlight;
 
   /// UI hint: tokens in `room.turn.legal` may be tapped.
-  bool get canMove => isMyTurn && room!.turn.awaitingMove && !moveInFlight;
+  /// The player chooses a token only when there are at least two legal
+  /// tokens; with exactly one the server applies the move itself.
+  bool get canMove =>
+      isMyTurn &&
+      room!.turn.awaitingMove &&
+      room!.turn.legal.length >= 2 &&
+      !moveInFlight;
 
   ActiveRoomState copyWith({
     Object? room = _unset,
