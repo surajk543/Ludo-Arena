@@ -9,6 +9,9 @@
 //   - assignment rooms start when every bot seat is taken AND connected;
 //   - "human" seats are played by the fake itself after HumanDelay;
 //   - rematch only records answers.
+//
+// Like the backend, snapshots never say which seats are bots (no
+// players[].bot) and bot names carry no "Bot" label.
 package fakebackend
 
 import (
@@ -46,6 +49,36 @@ type Options struct {
 	OmitPublicFillFlag bool
 	MaxBotsPerRoom     int // BOT_MAX_PER_ROOM (default 3)
 	Seed               uint64
+	// Emotes is the "emotes" list of POST /bot/sessions (nil: the default
+	// starter emotes; set OmitEmotes to leave the field out like an older
+	// backend).
+	Emotes     []string
+	OmitEmotes bool
+	// StableUIDs gives every session of the same bot name the same uid,
+	// like the backend's persistent bot personas (message ids must then
+	// stay unique across sessions: the fake never forgets an id).
+	StableUIDs bool
+	// RefuseChat, when set, refuses every chat message with this error code
+	// (e.g. "rate_limited").
+	RefuseChat string
+}
+
+// DefaultEmotes are the starter emotes every bot session may send.
+var DefaultEmotes = []string{"emote_wave", "emote_thumbs"}
+
+// ChatRecord is one chat.quick / chat.emote accepted by the fake.
+type ChatRecord struct {
+	UID    string
+	RoomID string
+	Type   string // chat.quick | chat.emote
+	Value  string // quick-chat id or emote id
+	At     time.Time
+}
+
+// quickChatIDs is the backend's quick-chat catalogue.
+var quickChatIDs = map[string]bool{
+	"gg": true, "nice_move": true, "well_played": true, "rematch": true,
+	"again": true, "good_luck": true, "oops": true, "thanks": true,
 }
 
 // Envelope is a server -> client message (hooks may mutate P).
@@ -97,6 +130,9 @@ type Server struct {
 	fills        []FillRecord
 	revoked      []string
 	sessionBodys []map[string]any
+	chats        []ChatRecord
+	chatTimes    map[string][]time.Time // uid -> accepted chat times (rate limits)
+	chatRejects  map[string]int         // error code -> count
 
 	maintenance atomic.Bool
 	closed      atomic.Bool
@@ -116,6 +152,7 @@ type session struct {
 	loadtest  bool
 	roomID    string
 	expiresAt time.Time
+	emotes    []string
 }
 
 type assignment struct {
@@ -155,7 +192,8 @@ func New(o Options) *Server {
 		opts: o, ctlTokens: map[string]time.Time{}, sessions: map[string]*session{}, byUID: map[string]*session{},
 		assignments: map[string]*assignment{}, queueCh: make(chan struct{}, 1), rooms: map[string]*room{},
 		conns: map[string]*wsConn{}, seenIDs: map[string]bool{}, clientMsgs: map[string][]string{},
-		syncCount: map[string]int{}, dice: newDice(o.Seed),
+		syncCount: map[string]int{}, dice: newDice(o.Seed), chatTimes: map[string][]time.Time{},
+		chatRejects: map[string]int{},
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/v1/bot/controller/token", s.handleControllerToken)
@@ -396,14 +434,16 @@ func (s *Server) handleFill(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"requested": body.Count})
 }
 
-// botName mirrors the backend: a visible "Bot" label, at most 20 runes.
+// botName mirrors the backend: a leading "Bot" label word is stripped (bots
+// look like people), an empty name becomes a neutral first name, at most 20
+// runes.
 func botName(name string) string {
 	name = strings.TrimSpace(name)
-	if name == "" {
-		name = "Bot"
+	for len(name) >= 3 && strings.EqualFold(name[:3], "bot") && (len(name) == 3 || strings.ContainsRune(" -_:.", rune(name[3]))) {
+		name = strings.TrimLeft(name[3:], " -_:.")
 	}
-	if !strings.HasPrefix(strings.ToLower(name), "bot") {
-		name = "Bot " + name
+	if name == "" {
+		name = "Aarav"
 	}
 	if r := []rune(name); len(r) > 20 {
 		name = string(r[:20])
@@ -426,7 +466,19 @@ func (s *Server) handleCreateSession(w http.ResponseWriter, r *http.Request) {
 	s.sessionBodys = append(s.sessionBodys, body)
 	name, _ := body["name"].(string)
 	name = botName(name)
-	sess := &session{token: randToken("bt_"), uid: s.nextIDLocked("u_bot"), name: name, expiresAt: time.Now().Add(2 * time.Hour)}
+	uid := s.nextIDLocked("u_bot")
+	if s.opts.StableUIDs {
+		uid = "u_persona" + strings.ToLower(strings.ReplaceAll(name, " ", ""))
+		if old := s.byUID[uid]; old != nil {
+			writeErr(w, http.StatusConflict, "room_unavailable", "persona busy")
+			return
+		}
+	}
+	emotes := DefaultEmotes
+	if s.opts.Emotes != nil {
+		emotes = s.opts.Emotes
+	}
+	sess := &session{token: randToken("bt_"), uid: uid, name: name, expiresAt: time.Now().Add(2 * time.Hour), emotes: emotes}
 	if mode, _ := body["mode"].(string); mode == "loadtest" {
 		if !s.opts.AllowLoadtest {
 			writeErr(w, http.StatusForbidden, "loadtest_disabled", "Load-test sessions are not allowed on this server.")
@@ -455,7 +507,11 @@ func (s *Server) handleCreateSession(w http.ResponseWriter, r *http.Request) {
 	}
 	s.sessions[sess.token] = sess
 	s.byUID[sess.uid] = sess
-	writeJSON(w, http.StatusOK, map[string]any{"accessToken": sess.token, "expiresAt": sess.expiresAt.UnixMilli(), "uid": sess.uid, "roomId": sess.roomID})
+	resp := map[string]any{"accessToken": sess.token, "expiresAt": sess.expiresAt.UnixMilli(), "uid": sess.uid, "roomId": sess.roomID}
+	if !s.opts.OmitEmotes {
+		resp["emotes"] = sess.emotes
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *Server) handleRevoke(w http.ResponseWriter, r *http.Request) {
@@ -585,6 +641,30 @@ func (s *Server) SyncCount(uid string) int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.syncCount[uid]
+}
+
+// Chats returns accepted chat.quick / chat.emote messages (uid "" = all).
+func (s *Server) Chats(uid string) []ChatRecord {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var out []ChatRecord
+	for _, c := range s.chats {
+		if uid == "" || c.UID == uid {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
+// ChatRejects returns how many chat messages were refused, by error code.
+func (s *Server) ChatRejects() map[string]int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := make(map[string]int, len(s.chatRejects))
+	for k, v := range s.chatRejects {
+		out[k] = v
+	}
+	return out
 }
 
 // Fills returns recorded fill requests.

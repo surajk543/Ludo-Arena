@@ -399,8 +399,11 @@ class ActiveRoomController extends Notifier<ActiveRoomState> {
     gameType: AnalyticsGameType.parse(room.game),
     matchType: AnalyticsMatchType.parse(room.mode),
     seatCount: room.players.length,
-    opponentMix: OpponentMix.from(
-      room.players.where((p) => p.uid != state.selfUid).map((p) => p.bot),
+    opponentMix: OpponentMix.forRoom(
+      mode: room.mode,
+      opponentIsComputer: room.players
+          .where((p) => p.uid != state.selfUid)
+          .map((p) => room.isComputerSeat(p.seat)),
     ),
     variant: room.isLudo ? room.variant : null,
     dedupeKey: '${room.id}#${room.round}',

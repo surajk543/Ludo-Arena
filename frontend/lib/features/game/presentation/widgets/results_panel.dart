@@ -417,7 +417,7 @@ class _Rewards extends StatelessWidget {
           )
         : _RewardRow(
             leading: Icon(Icons.toll_rounded, color: c.textMuted, size: 22),
-            text: view.botMatch
+            text: view.noCoinMatch
                 ? l10n.playRewardNoCoinsMatch
                 : l10n.playRewardNoCoins,
             muted: true,

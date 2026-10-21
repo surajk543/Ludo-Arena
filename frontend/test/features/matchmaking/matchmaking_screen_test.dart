@@ -63,11 +63,7 @@ void main() {
     expect(find.text('Looking for opponents…'), findsOneWidget);
 
     h.controller.pushSnapshot(
-      _lobby([
-        player(0),
-        player(1, name: 'Ravi'),
-        player(2, name: 'Bo', bot: true),
-      ]),
+      _lobby([player(0), player(1, name: 'Ravi'), player(2, name: 'Bo')]),
       reason: 'joined',
     );
     await tester.pump(const Duration(milliseconds: 500));
@@ -145,7 +141,7 @@ void main() {
           h.controller.pushSnapshot(
             _lobby([
               player(0, name: 'Asha Kumari Sharma'),
-              player(1, name: 'Ravi', bot: true),
+              player(1, name: 'Ravi'),
               player(2, name: 'محمد'),
             ]),
           );

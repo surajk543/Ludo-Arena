@@ -119,8 +119,8 @@ func TestSnakesBotRollsOnlyAndFinishes(t *testing.T) {
 
 // Auth: controller token via Bot-Service key; bot WS with Bearer bot token,
 // subprotocol, X-App-Platform: bot and version headers. The service key and
-// tokens never appear in logs. Bots never send a bot flag; the server's
-// players[].bot labels them.
+// tokens never appear in logs. Bots never send a bot flag (and snapshots
+// carry none: bots look like people).
 func TestAuthHeadersAndSecretsNeverLogged(t *testing.T) {
 	t.Parallel()
 	f := newFake(t, fakebackend.Options{})
@@ -196,15 +196,6 @@ func TestAuthHeadersAndSecretsNeverLogged(t *testing.T) {
 				t.Fatalf("bot sent a bot flag: %s", raw)
 			}
 		}
-	}
-	r, _ := f.Room(roomID)
-	for _, p := range r.Players {
-		if strings.HasPrefix(p.Name, "Bot ") && !p.Bot {
-			t.Fatal("server should label the bot seat")
-		}
-	}
-	if h.metricValue("bot_label_missing_total", nil) != 0 {
-		t.Fatal("bot label reported missing")
 	}
 }
 

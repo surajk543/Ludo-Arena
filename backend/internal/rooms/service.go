@@ -71,8 +71,10 @@ type Deps struct {
 	Wallets     *wallet.Store
 	Profiles    *profile.Service
 	Progression playerinfo.Provider
-	// Pictures picks profile pictures for bot seats (nil: bots wear none).
-	Pictures  playerinfo.PictureSource
+	// Pictures picks profile pictures for bot personas (nil: bots wear none).
+	Pictures playerinfo.PictureSource
+	// Catalog lists the cosmetics bot personas may show (nil: starter look).
+	Catalog   playerinfo.CatalogSource
 	Recorder  gameevents.Recorder
 	Inviter   gameevents.Inviter
 	Inventory gameevents.Inventory

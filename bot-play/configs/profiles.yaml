@@ -20,11 +20,15 @@
 #   random_jitter         amplitude of seeded uniform noise in [-w, +w]
 # Ties: higher destination progress, then lower token index (deterministic).
 # Weights are magnitudes in 0..1000. Changes apply at the next decision point.
+#
+# chattiness (optional, 0..5, default 1) multiplies every bots.chat.probability
+# (quick chat / emote reactions); 0 makes the profile silent.
 
 profiles:
   beginner:
     description: Slow and casual; mostly pushes tokens forward, barely notices danger.
     think_time_ms: {min: 1500, max: 5000}
+    chattiness: 1.3
     weights:
       enter_from_base: 20
       capture_opponent: 15
@@ -38,6 +42,7 @@ profiles:
   balanced:
     description: Default. Takes captures, values safety and finishing, small randomness.
     think_time_ms: {min: 800, max: 3000}
+    chattiness: 1.0
     weights:
       enter_from_base: 30
       capture_opponent: 45
@@ -51,6 +56,7 @@ profiles:
   advanced:
     description: Quick and careful; strongly prefers captures and avoids exposure.
     think_time_ms: {min: 500, max: 2000}
+    chattiness: 0.7
     weights:
       enter_from_base: 35
       capture_opponent: 60

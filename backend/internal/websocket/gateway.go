@@ -232,10 +232,8 @@ func (g *Gateway) serve(c *conn) {
 	go c.writeLoop()
 	go c.heartbeat()
 
-	uid := c.userID
-	if !c.principal.IsBot() {
-		uid = g.rooms.Profiles.PublicID(c.principal.UserID)
-	}
+	// Bots get their seat's public uid too (same format as a person's).
+	uid := g.rooms.Profiles.PublicID(c.principal.UserID)
 	compression := c.compression
 	if compression == "" {
 		compression = "none"

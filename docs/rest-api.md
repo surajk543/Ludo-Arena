@@ -245,7 +245,7 @@ Rules, checked in this order → **400 `invalid_name`** with
 | `too_short` | fewer than 3 characters (Unicode code points, after normalization) |
 | `too_long` | more than 16 characters |
 | `invalid_characters` | only Unicode letters, combining marks (Mn/Mc, e.g. Hindi matras, Arabic harakat; directly after a letter, at most 4 in a row), decimal digits, space, `_`, `.`, `-`; at least one letter. Rejected: emoji and other symbols, punctuation, control and format characters (zero-width joiner/space, bidi controls), enclosing marks (keycaps), variation selectors, invisible fillers (e.g. U+3164). |
-| `reserved` | after lower-casing, removing spaces/`_`/`.`/`-`, folding look-alikes (`0→o`, `1→i`, `4→a`, `ａ→a`, Cyrillic `а→a`, …) and accents: starts with `bot` (bots are shown as "Bot …"), or contains `admin`, `moderator`, `support`, `official`, `system`, `ludoroyale` (also "Ludo Royale") |
+| `reserved` | after lower-casing, removing spaces/`_`/`.`/`-`, folding look-alikes (`0→o`, `1→i`, `4→a`, `ａ→a`, Cyrillic `а→a`, …) and accents: starts with `bot`, or contains `admin`, `moderator`, `support`, `official`, `system`, `ludoroyale` (also "Ludo Royale") |
 | `inappropriate` | contains an entry of the server blocklist (same folding; a starting list in English and Hindi/Urdu, Indonesian and Arabic transliterations that operators extend: `backend/internal/profile/blocklist.txt`) |
 
 Example: `{"error":{"code":"invalid_name","message":"This name is reserved. Please choose another one.","details":{"reason":"reserved"}}}`.
@@ -418,7 +418,7 @@ writes 30/min, new friend requests 60/hour.
 | `POST /friends/requests` | `{"friendCode":"u_3f9a1c2b7d"}` | 201 `{"friend"}`; auto-accepts if they already requested you (`status: "friend"`); repeating a pending request returns it again (`status: "outgoing"`). 404 `not_found` (unknown code), 409 `already_friends`, 422 `cannot_friend_self`, 422 `friend_limit` (you **or** they already have `maxFriends` friends, or a pending-request cap is reached) |
 | `POST /friends/requests/{uid}/accept` | – | `{"friend"}`; 404 `not_found` (no pending request from `uid`), 422 `friend_limit` (either side has `maxFriends` friends); accepting an existing friend returns it |
 | `DELETE /friends/{uid}` | – | 204 (removes friend or declines/cancels request; no-op if none); 404 `not_found` for an unknown uid |
-| `GET /social/recent` | – | `{"players":[Friend]}` last 20 human opponents (14 days), newest first |
+| `GET /social/recent` | – | `{"players":[Friend]}` last 20 opponents (14 days), newest first: people, and the bots of public matches shown exactly like people (see below) |
 | `GET /leaderboards/friends` | – | `{"periodKey":"w2026-W43","entries":[{"uid","name","avatar","picture","level","weeklyXp","rank","isMe"}]}` |
 
 **Friend**: `{"uid","name","avatar","picture","level","title","online","status":"friend|incoming|outgoing|none"}`
@@ -439,11 +439,18 @@ writes 30/min, new friend requests 60/hour.
   week (Monday 00:00 UTC; matches and mission rewards); equal XP share a rank.
 - A new request pushes `social.friend_request` to the recipient. Invites are
   sent over WebSocket (`room.invite`, friends only, 10/min per sender).
-- Bots look like people: the code of a bot seat the caller can see (in their
-  room) is accepted like a person's — same checks and limits (it counts
-  toward the 100 pending sent), `201` `status: "outgoing"`, listed under
-  `outgoing`, cancellable with `DELETE /friends/{uid}`. A bot never accepts;
-  its pending request disappears after 72 h.
+- Bots look like people: their uids have the people's `u_` format, no
+  response says which players are bots, and a bot's code is accepted like a
+  person's — while its seat is live or its public card exists (15 days after
+  it was last seated) — with the same checks and limits (it counts toward the
+  100 pending sent), `201` `status: "outgoing"`, listed under `outgoing`,
+  cancellable with `DELETE /friends/{uid}`. A bot never accepts; its pending
+  request disappears after 72 h. After that the code answers 404 like a
+  deleted account.
+- Recent players include the bots met in **public** matches, from the bot's
+  public card (name, avatar, picture, level, title; `online` false; `status`
+  `outgoing` while a request to it is pending). Computer players of practice
+  and private rooms (chosen by the player or host) are not recorded.
 
 ## Player reports
 
@@ -530,8 +537,8 @@ Service-to-service endpoints, **not** version-gated, disabled unless
 | `GET /bot/assignments?wait=20` | controller JWT | – | Long-poll. `{"assignments":[{"id","roomId","game","variant","kind":"practice\|private\|public_fill","expiresAt"}]}`; each assignment is handed out once. During maintenance: `{"assignments":[],"maintenance":true}` |
 | `GET /bot/lobbies` | controller JWT | – | `{"lobbies":[{"roomId","game","variant","capacity","humans","bots","pendingBots","waitingMs"}],"publicFillEnabled":bool}` open public lobbies |
 | `POST /bot/lobbies/{roomId}/fill` | controller JWT | `{"count":2}` | `{"requested":2}` — the assignments are delivered through `GET /bot/assignments`; 409 when the lobby changed, is full, or already has pending bots; 403 when public fill is disabled |
-| `POST /bot/sessions` | controller JWT | `{"assignmentId","name","profile"}` or `{"mode":"loadtest","name"}` | `{"accessToken","expiresAt","uid","roomId"}` — seats the bot (assignment) or scopes it to the isolated load-test pool. Load-test sessions are refused when `APP_ENV=production` or `BOT_LOADTEST_ENABLED` is false. The display name is `name` sanitized (≤ 20 runes) with any leading `Bot` label stripped (empty → a neutral first name); bots are identified by `players[].bot`, never by their name. |
-| `DELETE /bot/sessions/{uid}` | controller JWT | – | 204, revokes the bot session (bot leaves its room) |
+| `POST /bot/sessions` | controller JWT | `{"assignmentId","name","profile"}` or `{"mode":"loadtest","name"}` | `{"accessToken","expiresAt","uid","roomId","emotes"}` — seats the bot (assignment) or scopes it to the isolated load-test pool. Load-test sessions are refused when `APP_ENV=production` or `BOT_LOADTEST_ENABLED` is false. The display name is `name` sanitized (≤ 20 runes) with any leading `Bot` label stripped (empty → a neutral first name). `uid` has the people's format (`u_` + 12 characters): an assignment bot wears a persona of its name (stable id, look and uid across sessions; one live session per persona), a load-test bot a fresh one. `emotes` lists the emote ids this bot may send with `chat.emote`. Nothing sent to players says which seats are bots. |
+| `DELETE /bot/sessions/{uid}` | controller JWT | – | 204, revokes the bot session (bot leaves its room) and frees its persona for the next session |
 
 ## Legal notices (outside `/api/v1`)
 

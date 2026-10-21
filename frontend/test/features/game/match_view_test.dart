@@ -188,7 +188,7 @@ void main() {
         turnSeat: 1,
         players: [
           player(0),
-          player(1, name: 'Bolt', bot: true),
+          player(1, name: 'Bolt'),
         ],
       ),
     );
@@ -461,7 +461,8 @@ void main() {
     expect(find.text('You won!'), findsOneWidget);
     expect(find.text('+4,000 coins'), findsOneWidget);
     expect(find.text('Calculating XP…'), findsOneWidget);
-    expect(h.analytics.events, ['game_result_viewed:ludo:public:human_only']);
+    // Public seats carry no bot flag: the opponent mix is unknown.
+    expect(h.analytics.events, ['game_result_viewed:ludo:public:unknown']);
 
     h.progression.add(
       const ProgressionUpdatedEvent(xp: 140, level: 2, xpGained: 35),
@@ -477,6 +478,49 @@ void main() {
     expect(find.textContaining('MATCHMAKING'), findsOneWidget);
     expect(find.textContaining('capacity=4'), findsOneWidget);
   });
+
+  for (final (capacity, bots) in [(4, 3), (3, 2), (2, 1)]) {
+    testWidgets('practice Play again asks for $bots computer players '
+        '(capacity $capacity)', (tester) async {
+      final room = ludoRoom(
+        turnSeat: 0,
+        mode: RoomModes.practice,
+        capacity: capacity,
+        players: [for (var s = 0; s < capacity; s++) player(s)],
+        computerSeats: [for (var s = 1; s < capacity; s++) s],
+        pot: 0,
+      );
+      final h = await _pumpGame(tester, room);
+      final finished = room.copyWith(
+        v: 11,
+        status: RoomStatuses.finished,
+        turn: room.turn.copyWith(phase: TurnPhases.finished),
+        result: RoomResult(
+          winnerSeat: 0,
+          placements: [for (var s = 0; s < capacity; s++) s],
+          payout: 0,
+        ),
+        rematch: RematchState(open: true, deadline: kNowMs + 30000),
+      );
+      h.controller.pushDelta(
+        GameFinishedEvent(
+          roomId: _roomId,
+          v: 11,
+          result: finished.result!,
+          rematch: finished.rematch!,
+        ),
+        finished,
+      );
+      await settleAnimations(tester);
+      expect(h.analytics.events, ['game_result_viewed:ludo:practice:bot_only']);
+      await scrollTo(tester, find.text('Play again'));
+      await tester.tap(find.text('Play again'));
+      await flush(tester, 8);
+      expect(h.controller.calls, contains('room.leave'));
+      expect(find.textContaining('PRACTICE'), findsOneWidget);
+      expect(find.textContaining('bots=$bots'), findsOneWidget);
+    });
+  }
 
   testWidgets('a snapshot (resync) mid-animation snaps the board', (
     tester,

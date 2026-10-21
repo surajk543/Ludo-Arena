@@ -19,6 +19,8 @@ bots:
   max_room_joins_per_second: 50
   max_connection_attempts_per_second: 50
   lobby_wait_timeout_seconds: 60
+  chat:
+    in_loadtest: false           # load-test bots stay silent (set true to load the chat path too)
   shutdown:
     graceful_timeout_seconds: 120
     policy: finish_games

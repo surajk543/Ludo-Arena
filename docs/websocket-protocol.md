@@ -189,6 +189,8 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
   "pot": 400000,
   "round": 1,                     // increments on each rematch in the same room
   "fillDeadline": 0,              // public lobby: unix ms when it starts/times out
+  "pendingBots": 0,               // practice and private rooms: computer players on their way (always 0 in public rooms)
+  "computerSeats": [2],           // practice and private rooms only: seats filled with computer players; omitted in public rooms
   "players": [
     {
       "seat": 0,
@@ -202,7 +204,6 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
       "picture": {"id": "pp_wolf", "format": "image", "path": "profile_pictures/image/wolf.png"},  // or null
       "color": "red",
       "connected": true,
-      "bot": false,               // server-determined from the session; the app shows no bot badge (names carry no label) and offers the same pod actions on every opponent
       "forfeited": false,
       // "forfeitWhy": "timeouts", // only on forfeited seats: "left" | "timeouts" (not in the state hash)
       "strikes": 0                // consecutive missed turns (MAX_STRIKES, default 5, forfeits)
@@ -248,8 +249,24 @@ the room: `PUT /me/profile-picture` applies from the next room joined, so the
 value never changes inside a room and no delta carries it. Download the art
 through `POST /assets/sign` (cache the file forever; the path is immutable).
 Like every player field, `picture` is **not** part of the state hash `h`.
-Bots wear a random catalogue picture with probability `BOT_PICTURE_SHARE`
-(default 0.3) and `null` otherwise, so bot seats look like players' seats.
+
+**Bots are indistinguishable from people.** No message says which seats are
+bots: seats have no bot flag, bot uids have the people's `u_` + 12-character
+format, and public lobbies get no event when the server requests bot seats
+(`pendingBots` stays 0 there; bots appear as players joining, reason
+`joined`). Only practice rooms and private rooms — where the player or the
+host asked for computer players — list them in `computerSeats` (the private
+host needs it for `room.remove_bot`). A bot wears a remembered **persona**
+(backend `internal/rooms/persona.go`): a level weighted toward 1–25 with the
+title and the cosmetics a player of that level could own (starter items,
+level unlocks up to its level, Store items), its own emotes and a picture
+wardrobe — it keeps its picture (or none) for `BOT_PICTURE_KEEP_MIN`..`MAX`
+matches (default 2–5), then changes to another active catalogue picture or,
+occasionally, back to none; about `BOT_PICTURE_SHARE` (default 0.3) of bot
+seats wear a picture. A bot met again (same name) is usually the same
+persona, with the same uid. Bots send `chat.quick` / `chat.emote` sparingly
+(bot-play, `docs/bot-play.md`). Practice and private-room personas never
+appear in public lobbies.
 
 ---
 
@@ -273,8 +290,8 @@ Bots wear a random catalogue picture with probability `BOT_PICTURE_SHARE`
 | `game.make_move` | `{"roomId":"r_…","turnSeq":13,"token":2}` | `game.move_applied` (broadcast) | Ludo only |
 | `game.request_sync` | `{"roomId":"r_…"}` (optional) | `game.state` | Without `roomId` → the user's active room |
 | `game.rematch` | `{"roomId":"r_…","accept":true}` | `room.rematch` (broadcast) | Only while `rematch.open` |
-| `chat.quick` | `{"roomId":"r_…","msg":"gg"}` | broadcast `chat.quick` | Predefined ids only; 1 per 3 s, 10 per minute |
-| `chat.emote` | `{"roomId":"r_…","emote":"emote_wave"}` | broadcast `chat.emote` | Emote must be owned (Collection Room); same limits |
+| `chat.quick` | `{"roomId":"r_…","msg":"gg"}` | broadcast `chat.quick` | Predefined ids only; 1 per 3 s, 10 per minute (bots too) |
+| `chat.emote` | `{"roomId":"r_…","emote":"emote_wave"}` | broadcast `chat.emote` | Emote must be owned (Collection Room; a bot: its persona's emotes, else `item_not_owned`); same limits |
 
 Quick-chat ids: `gg` (Good game!), `nice_move` (Nice move!), `well_played`
 (Well played!), `rematch` (Rematch?), `again` (Let's play again.), `good_luck`
@@ -355,14 +372,17 @@ Typical event sequence for one Ludo turn with a single legal move:
    `bot-play`, it may request bot seats for a lobby that has waited
    `fill_after_seconds` (and has at least `minimum_humans` humans). The backend
    validates the request (lobby still open, capacity, `BOT_MAX_PER_ROOM`,
-   `BOT_PUBLIC_FILL_ENABLED`) and the bots appear with `bot: true`.
+   `BOT_PUBLIC_FILL_ENABLED`). The lobby receives no event for the request;
+   the bots join like players (`room.updated` reason `joined`) and are not
+   marked in any message (§4).
 
 ### Bots and coins
 
 Any room that contains a bot seat at game start is played with **entry fee 0
-and no coin payout**. XP and mission progress for the human players work as in
-any other completed match. Bots have no wallet, XP or collection (a bot's
-profile `picture` is chosen at seating, never bought).
+and no coin payout** (`pot` 0). XP and mission progress for the human players
+work as in any other completed match. Bots have no wallet, XP or collection (a
+bot's level, title, cosmetics, emotes and `picture` come from its persona,
+never from a purchase).
 
 ## 8. Rematch policy
 
@@ -406,9 +426,14 @@ Differences enforced by the server:
   policy does not apply to bots, maintenance mode does.
 - A bot token is scoped to one room assignment (or to the load-test pool) and
   expires after at most 2 hours. Bots cannot call wallet, progression,
-  collection, social or account endpoints, cannot create or join rooms by code,
-  and cannot send `chat.*` messages.
+  collection, social or account endpoints, and cannot create or join rooms by
+  code.
 - Bots submit `game.roll_dice` / `game.make_move` like humans and are subject
-  to the same turn, phase, `turnSeq` and rate-limit checks.
+  to the same turn, phase, `turnSeq` and rate-limit checks. They may send
+  `chat.quick` and `chat.emote` in their own room (same limits; emotes from
+  the session's `emotes`, see `rest-api.md` → `POST /bot/sessions`).
+- `connection.ready.uid` is the bot's public seat uid (`u_…`). A bot's user
+  id is its persona's and outlives the session, so message ids must stay
+  unique per bot across sessions (bot-play uses a random per-bot prefix).
 
 `retry: true` means the same command may succeed later without user action.

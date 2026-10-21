@@ -55,12 +55,26 @@ type Weights struct {
 	RandomJitter float64 `yaml:"random_jitter" json:"random_jitter"`
 }
 
+// MaxChattiness bounds a profile's chattiness multiplier.
+const MaxChattiness = 5.0
+
 // Profile is one named behaviour profile.
 type Profile struct {
 	Name        string    `yaml:"-" json:"name"`
 	Description string    `yaml:"description" json:"description"`
 	ThinkTime   ThinkTime `yaml:"think_time_ms" json:"think_time_ms"`
 	Weights     Weights   `yaml:"weights" json:"weights"`
+	// Chattiness multiplies every bots.chat.probability (0 = never chats;
+	// omitted = 1).
+	Chattiness *float64 `yaml:"chattiness,omitempty" json:"chattiness,omitempty"`
+}
+
+// ChatMultiplier returns the profile's chattiness (1 when unset or p is nil).
+func (p *Profile) ChatMultiplier() float64 {
+	if p == nil || p.Chattiness == nil {
+		return 1
+	}
+	return *p.Chattiness
 }
 
 // Set is the parsed profiles file.
@@ -136,6 +150,9 @@ func (s *Set) Validate() error {
 		}
 		if tt.MinMS > tt.MaxMS {
 			errs = append(errs, fmt.Errorf("profiles.%s.think_time_ms: min (%d) > max (%d)", name, tt.MinMS, tt.MaxMS))
+		}
+		if c := p.Chattiness; c != nil && (*c < 0 || *c > MaxChattiness || *c != *c) {
+			errs = append(errs, fmt.Errorf("profiles.%s.chattiness: must be in 0..%g", name, MaxChattiness))
 		}
 		w := p.Weights
 		for _, f := range []struct {

@@ -271,8 +271,13 @@ func (s *Service) rankCandidates(ctx context.Context, ids []string, level int) [
 func (s *Service) newSeat(ctx context.Context, c Caller) Player {
 	var p Player
 	if c.Bot {
-		p = Player{UserID: c.UserID, UID: "b_" + strings.ReplaceAll(c.UserID, "-", "")[:10], Name: botName(c.BotName, c.UserID), Bot: true,
-			Level: 1, Cosmetics: map[string]string{}, Picture: s.botPicture(), JoinedAt: s.nowMs()}
+		// Load-test bots (matchmaking.join): a fresh, unremembered persona
+		// look on the session's own id; the uid has the people's format.
+		rng, items, o := newRNG(), s.catalogItems(), s.wardrobe()
+		look := newPersona(rng, items, o)
+		look.nextMatch(rng, items, o)
+		look.ID = parseUUID(c.UserID)
+		p = s.botSeat(look, s.Profiles.PublicID(look.ID), botName(c.BotName, c.UserID))
 	} else {
 		p = s.playerFor(ctx, c.UserID)
 	}

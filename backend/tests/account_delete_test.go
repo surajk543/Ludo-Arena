@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+
 	"ludoroyale/internal/progression"
 	"ludoroyale/internal/rooms"
 )
@@ -164,12 +166,17 @@ func TestDeleteAccountErasesEverything(t *testing.T) {
 	// pending friend request A sent to a bot.
 	if _, err := e.app.PG.Exec(ctx, `INSERT INTO progression.player_reports
 		(reporter_id, reported_id, reason, room_id, game, reported_bot, reported_profile)
-		VALUES ($1, gen_random_uuid(), 'other', 'r_seededbot', 'ludo', TRUE, '{"uid":"b_0123456789","name":"Asha"}')`,
+		VALUES ($1, gen_random_uuid(), 'other', 'r_seededbot', 'ludo', TRUE, '{"uid":"u_abcdefghjkmn","name":"Asha"}')`,
 		a.UserID); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.rdb.HSet(ctx, "botfr:"+a.UserID, "b_0123456789",
+	if err := e.rdb.HSet(ctx, "botfr:"+a.UserID, "u_abcdefghjkmn",
 		fmt.Sprintf(`{"name":"Asha","avatar":1,"level":1,"title":"","at":%d}`, time.Now().UnixMilli())).Err(); err != nil {
+		t.Fatal(err)
+	}
+	// A bot met in a public match is in A's recent players too.
+	if err := e.rdb.ZAdd(ctx, "recent:"+a.UserID, redis.Z{Score: float64(time.Now().UnixMilli()),
+		Member: "bot:u_abcdefghjkmn"}).Err(); err != nil {
 		t.Fatal(err)
 	}
 

@@ -188,7 +188,7 @@ func (rm *room) snapshot() map[string]any {
 		players = append(players, map[string]any{
 			"seat": p.seat, "uid": p.uid, "name": p.name, "avatar": 1, "level": 1, "title": "title_rookie",
 			"cosmetics": map[string]any{"dice": "dice_classic"}, "color": p.colour,
-			"connected": p.connected, "bot": p.bot, "forfeited": p.forfeited, "strikes": p.strikes,
+			"connected": p.connected, "forfeited": p.forfeited, "strikes": p.strikes,
 		})
 		if p.forfeited {
 			players[len(players)-1]["forfeitWhy"] = p.forfeitWhy

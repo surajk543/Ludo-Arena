@@ -652,7 +652,8 @@ class _MatchViewState extends ConsumerState<MatchView> {
   Future<void> _playAgain() async {
     final room = _stage?.sequencer.presented.value;
     if (room == null) return _leaveTo(AppRoutes.home);
-    final bots = room.players.where((p) => p.bot).length.clamp(1, 3);
+    // Practice: every seat but the player's own is a computer player.
+    final bots = (room.capacity - 1).clamp(1, 3);
     final target = room.isPractice
         ? AppRoutes.practiceFor(
             game: room.game,

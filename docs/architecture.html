@@ -583,7 +583,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Provider / generated display name, avatar</td><td>Redis cache (non-authoritative, refreshed on sign-in, regenerated)</td><td><code>profile:{userId}</code>; public id <code>u_…</code> = HMAC of the account id with <code>PUBLIC_ID_KEY</code></td></tr>
           <tr><td>Online presence</td><td>WebSocket gateway</td><td><code>presence:{userId}</code> (60 s, refreshed)</td></tr>
           <tr><td>App version / maintenance policy</td><td>Go backend</td><td><code>APP_POLICY_FILE</code> + <code>APP_MAINTENANCE_FLAG_FILE</code></td></tr>
-          <tr><td>Bot status (<code>players[].bot</code>, <code>actorType</code>)</td><td>Go backend, from the session token</td><td><code>auth.BotAuth</code>; bots never send a bot flag</td></tr>
+          <tr><td>Bot status (server-internal; clients only see their own <code>actorType</code>)</td><td>Go backend, from the session token</td><td><code>auth.BotAuth</code>; bots never send a bot flag and no message to players marks a seat as a bot (only practice/private rooms list chosen <code>computerSeats</code>)</td></tr>
           <tr><td>Which listed token a bot picks</td><td>bot-play (advisory; server re-validates)</td><td><code>bot-play/internal/strategy</code>, <code>internal/ludo</code> evaluator</td></tr>
           <tr><td>Rendering, animation, theme, language, analytics consent</td><td>Flutter app</td><td><code>core/theme</code>, <code>core/localization</code>, <code>core/analytics</code></td></tr>
           <tr><td>Human-readable error text</td><td>Flutter app</td><td><code>core/errors/error_messages.dart</code> maps language-neutral codes</td></tr>
@@ -693,7 +693,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Sessions</td><td><code>sess:{sid}</code> (session family), <code>rt:{sha256}</code> (refresh-token hashes, reuse tombstones), <code>usess:{userId}</code> (the account's one live human session), <code>sessrep:{sid}</code> (replaced-by-newer-sign-in tombstone)</td></tr>
           <tr><td>Presence, dedup, limits</td><td><code>presence:{userId}</code>, <code>dedup:{userId}:{msgId}</code> (2 min), <code>rl:{rule}:{key}:{window}</code></td></tr>
           <tr><td>Pub/sub</td><td><code>ev:room:{roomId}</code>, <code>ev:user:{userId}</code></td></tr>
-          <tr><td>Bots</td><td><code>bot:assignments</code>, <code>botasg:{id}</code>, <code>botsess:{uid}</code></td></tr>
+          <tr><td>Bots</td><td><code>bot:assignments</code>, <code>botasg:{id}</code>, <code>botsess:{uid}</code>, <code>botpersona:*</code>, <code>botlease:*</code>, <code>botprof:{uid}</code></td></tr>
           <tr><td>Progression/social/analytics caches</td><td><code>lb:xp:{weekKey}</code>, <code>recent:{userId}</code>, <code>invite:*</code>, <code>idem:{userId}:{key}</code>, <code>au:d:*</code>/<code>au:w:*</code> (HyperLogLog)</td></tr>
           <tr><td>Hot-path caches (<a href="architecture.md#postgresql-on-the-hot-path">PostgreSQL on the hot path</a>)</td><td><code>seat:{userId}</code> + <code>seat:{userId}:lease</code> (seat summary for room joins incl. the equipped profile-picture id, 1 h, deleted on level-up/equip/picture apply), <code>emotes:{userId}</code> (owned emotes for chat, 1 h); the profile-picture catalogue is an in-memory snapshot per instance (reloaded every minute)</td></tr>
         </tbody>
@@ -1069,7 +1069,7 @@ td code { font-size: 0.8rem; }
   BE--&gt;&gt;FA: room.updated joined
   opt Host allows bots
     HA-&gt;&gt;BE: room.allow_bots,&lt;br/&gt;room.add_bot
-    BE-&gt;&gt;R: Queue bot assignment&lt;br/&gt;(seat marked bot:true)
+    BE-&gt;&gt;R: Queue bot assignment&lt;br/&gt;(bot wears a persona; seat not marked)
   end
   HA-&gt;&gt;BE: game.start (host only,&lt;br/&gt;2+ connected, no pending bots)
   BE--&gt;&gt;HA: game.started
@@ -1098,7 +1098,7 @@ td code { font-size: 0.8rem; }
     <ul>
       <li>Leaving a lobby frees the seat; if the host leaves, host passes to the next seat. When no humans remain the room closes (<code>empty</code>) and its bot sessions are revoked. <code>closeRoom</code> deletes the code mapping (only if it still points to this room), removes the open-lobby entry and clears every player pointer.</li>
       <li>Leaving during play is a forfeit; leaving after the game counts as declining the rematch.</li>
-      <li>Bots: the host must enable <code>room.allow_bots</code>; seats respect capacity and <code>BOT_MAX_PER_ROOM</code>. Bot seats are labelled <code>bot: true</code> by the server and the game is played with entry fee 0 and no payout.</li>
+      <li>Bots: the host must enable <code>room.allow_bots</code>; seats respect capacity and <code>BOT_MAX_PER_ROOM</code>. The room lists them in <code>computerSeats</code> (practice and private rooms only; public rooms never reveal bots) and the game is played with entry fee 0 and no payout.</li>
       <li>Room TTLs are refreshed on every commit: lobby 30 min, playing 3 h, finished 10 min + rematch window, closed 2 min.</li>
     </ul>
   </section>
@@ -1280,7 +1280,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Bot boundary</td><td><code>BOT_SERVICE_KEY_SHA256</code> (hash only; empty disables <code>/bot/*</code>), <code>BOT_PUBLIC_FILL_ENABLED</code>, <code>BOT_MAX_PER_ROOM</code>, <code>BOT_LOADTEST_ENABLED</code> (refused in production), <code>BOT_SESSION_TTL</code>, <code>BOT_ASSIGNMENT_TTL</code></td></tr>
           <tr><td>Progression</td><td><code>PROGRESSION_MIN_MATCH_DURATION</code> (≥ 10 s in production), <code>CATALOG_FILE</code>, <code>MISSIONS_FILE</code></td></tr>
           <tr><td>Profile</td><td><code>NAME_CHANGES_PER_DAY</code> (successful display-name changes per account per rolling 24 h; default 3, ≥ 1)</td></tr>
-          <tr><td>Profile pictures (private R2 bucket)</td><td><code>R2_ACCOUNT_ID</code>, <code>R2_BUCKET</code>, <code>R2_ACCESS_KEY_ID</code>, <code>R2_SECRET_ACCESS_KEY</code> (<strong>secret</strong>; all four or none, a partial set refuses to start; without them <code>POST /assets/sign</code> answers 503 <code>assets_unavailable</code>), <code>ASSET_URL_TTL</code> (presigned URL lifetime, default 10m, 1m–1h), <code>BOT_PICTURE_SHARE</code> (share of bots wearing a random picture, default 0.3)</td></tr>
+          <tr><td>Profile pictures (private R2 bucket)</td><td><code>R2_ACCOUNT_ID</code>, <code>R2_BUCKET</code>, <code>R2_ACCESS_KEY_ID</code>, <code>R2_SECRET_ACCESS_KEY</code> (<strong>secret</strong>; all four or none, a partial set refuses to start; without them <code>POST /assets/sign</code> answers 503 <code>assets_unavailable</code>), <code>ASSET_URL_TTL</code> (presigned URL lifetime, default 10m, 1m–1h), <code>BOT_PICTURE_SHARE</code> (long-run share of bot seats wearing a picture, default 0.3), <code>BOT_PICTURE_KEEP_MIN</code>/<code>MAX</code> (matches a bot persona keeps its picture, default 2–5), <code>BOT_PERSONA_TTL</code> (default 720h)</td></tr>
           <tr><td>Load tests / tests only</td><td><code>RATE_LIMIT_DISABLED</code> (refused in production); <code>GOOGLE_JWKS_URL</code>, <code>APPLE_JWKS_URL</code>, <code>FACEBOOK_JWKS_URL</code>, <code>FACEBOOK_GRAPH_URL</code>, <code>R2_ENDPOINT</code> (test hooks, refused in production); <code>TEST_DATABASE_URL</code>, <code>TEST_REDIS_ADDR</code> (integration tests)</td></tr>
         </tbody>
       </table>
@@ -1598,7 +1598,7 @@ td code { font-size: 0.8rem; }
       end
     end
   end
-  PR-&gt;&gt;R: Recent opponents&lt;br/&gt;(all humans)
+  PR-&gt;&gt;R: Recent opponents&lt;br/&gt;(humans + public-match bots)
   Note over SCH,PR: Errors: retried (attempt x 3 s, max 10).&lt;br/&gt;Safe: receipts make it exactly-once.
 </pre>
 </figure>
@@ -1687,7 +1687,7 @@ td code { font-size: 0.8rem; }
     </div>
     <h3 id="profile-pictures">Profile-picture Store<a class="heading-anchor" href="#profile-pictures" aria-label="Link to this heading">#</a></h3>
     <p>Players buy profile pictures (145 Lottie animations, 15 PNG images; 5–50 diamonds) in the app's Shop (Pictures category, only pictures not owned yet; the API keeps its /store paths) and own them forever; owned pictures move to the Collection's Pictures tab, where they apply any owned picture or go back to the built-in avatar. The catalogue is <code>progression.profile_pictures</code> (path, format, price, order, <code>active</code>; seeded from <code>backend/config/profile_pictures.tsv</code>), ownership is <code>progression.inventory</code> and the equipped picture is <code>progression.loadout</code> slot <code>avatar</code>. Purchases follow the Collection rules (one transaction, progression row then wallet, <code>Idempotency-Key</code>, <code>wallet.updated</code>). The picture is shown as <code>picture</code> on <code>User</code>, friends, requests, recent players, the leaderboard, report targets and room seats (not hashed). The files live in a <strong>private Cloudflare R2 bucket</strong>; the app downloads each one once through a 10-minute SigV4-presigned URL from <code>POST /api/v1/assets/sign</code>, which signs catalogue paths only. Code: <code>backend/internal/progression/pictures*.go</code>, <code>backend/internal/assets</code>, <code>backend/cmd/r2-import-pictures</code>. Docs: <a href="cosmetics-catalog.md#profile-pictures">cosmetics-catalog.md</a>, <a href="rest-api.md#store-profile-pictures">rest-api.md</a>.</p>
-    <p class="small">Social (friends by public-id friend code, requests that auto-accept when reciprocal, invites to private rooms for accepted friends only, recent human opponents, weekly friends leaderboard) is implemented in <code>backend/internal/social</code>; <code>online</code> is reported only for accepted friends, and <code>GET /friends</code> adds <code>onlineCount</code>, <code>friendCount</code> and <code>maxFriends</code>. At most <code>FRIENDS_MAX</code> (default 20) accepted friends per account, enforced for both players atomically. Player reports (<code>backend/internal/reports</code>): a human reports a human seated in the same room (from the player pod), at most <code>REPORTS_PER_DAY</code> (default 2) per rolling 24 h and once per player, enforced under a per-reporter advisory lock; operators review them through the key-protected <code>/api/v1/admin/reports</code> API (private network only). Retention: <code>match_receipts</code> 14 days, mission progress/claims 60 days after the period, the rest for the life of the account.</p>
+    <p class="small">Social (friends by public-id friend code, requests that auto-accept when reciprocal, invites to private rooms for accepted friends only, recent opponents — people, and bots met in public matches shown like people, weekly friends leaderboard) is implemented in <code>backend/internal/social</code>; <code>online</code> is reported only for accepted friends, and <code>GET /friends</code> adds <code>onlineCount</code>, <code>friendCount</code> and <code>maxFriends</code>. At most <code>FRIENDS_MAX</code> (default 20) accepted friends per account, enforced for both players atomically. Player reports (<code>backend/internal/reports</code>): a human reports a human seated in the same room (from the player pod), at most <code>REPORTS_PER_DAY</code> (default 2) per rolling 24 h and once per player, enforced under a per-reporter advisory lock; operators review them through the key-protected <code>/api/v1/admin/reports</code> API (private network only). Retention: <code>match_receipts</code> 14 days, mission progress/claims 60 days after the period, the rest for the life of the account.</p>
   </section>
 
   <!-- ============================================================ 14 -->
@@ -1714,7 +1714,7 @@ td code { font-size: 0.8rem; }
     WS["/api/v1/ws&lt;br/&gt;same ludo-royale.v1 protocol"]
     RM["rooms: assignments, seats,&lt;br/&gt;rules, dice"]
   end
-  R[("Redis&lt;br/&gt;bot:assignments, botasg:{id},&lt;br/&gt;botsess:{uid}, mm:open:loadtest:*")]
+  R[("Redis&lt;br/&gt;bot:assignments, botasg:{id},&lt;br/&gt;botsess:{uid}, botpersona:*, botprof:{uid},&lt;br/&gt;mm:open:loadtest:*")]
   PG[("PostgreSQL&lt;br/&gt;humans only")]
   H --&gt;|"practice.start, room.add_bot"| WS
   CFG -.-&gt; CTRL
@@ -1750,7 +1750,7 @@ td code { font-size: 0.8rem; }
   API--&gt;&gt;BP: Bot token (max 2 h,&lt;br/&gt;this room only), uid, roomId
   Bot-&gt;&gt;WS: Connect with bot token,&lt;br/&gt;platform bot
   WS--&gt;&gt;Bot: connection.ready,&lt;br/&gt;game.state
-  Note over WS: Seat labelled bot: true by the server.&lt;br/&gt;Entry fee 0, no payout.
+  Note over WS: Seat looks like a person (persona look,&lt;br/&gt;u_ uid, no bot flag). Entry fee 0, no payout.
   Bot-&gt;&gt;WS: game.roll_dice,&lt;br/&gt;game.make_move
   WS--&gt;&gt;Bot: game.finished
   Bot-&gt;&gt;WS: room.leave, close 1000

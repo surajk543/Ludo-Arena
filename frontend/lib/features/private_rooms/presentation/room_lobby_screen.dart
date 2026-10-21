@@ -77,7 +77,7 @@ class _RoomLobbyScreenState extends ConsumerState<RoomLobbyScreen> {
   }
 
   static int _botsIn(RoomSnapshot room) =>
-      room.players.where((p) => p.bot).length;
+      room.players.where((p) => room.isComputerSeat(p.seat)).length;
 
   int _pendingBots(RoomSnapshot room) =>
       math.max(0, _targetBots - _botsIn(room));
@@ -359,7 +359,7 @@ class _LobbyBody extends StatelessWidget {
                 ),
                 _InfoPill(
                   leading: const CoinIcon(size: 16),
-                  text: room.hasBots
+                  text: room.hasComputerPlayers
                       ? l10n.commonFree
                       : l10n.playEntryFee(formatCoins(room.entryFee, locale)),
                 ),
@@ -385,7 +385,9 @@ class _LobbyBody extends StatelessWidget {
                                 player: players[i],
                                 isSelf: players[i].uid == selfUid,
                                 isHost: players[i].seat == room.hostSeat,
-                                onRemove: p.canRemoveBots && players[i].bot
+                                onRemove:
+                                    p.canRemoveBots &&
+                                        room.isComputerSeat(players[i].seat)
                                     ? () => onRemoveBot(players[i].seat)
                                     : null,
                               )
@@ -398,7 +400,7 @@ class _LobbyBody extends StatelessWidget {
                 );
               },
             ),
-            if (room.hasBots) ...[
+            if (room.hasComputerPlayers) ...[
               const SizedBox(height: AppSpacing.md),
               PlayNote(
                 icon: Icons.smart_toy_rounded,

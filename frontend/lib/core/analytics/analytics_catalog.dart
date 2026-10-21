@@ -58,7 +58,7 @@ class BoolRule implements ParamRule {
 abstract final class AnalyticsValues {
   static const gameTypes = {'ludo', 'snakes_ladders'};
   static const matchTypes = {'public', 'private', 'practice'};
-  static const opponentMixes = {'human_only', 'mixed', 'bot_only'};
+  static const opponentMixes = {'human_only', 'mixed', 'bot_only', 'unknown'};
   static const variants = {'classic', 'quick'};
   static const outcomes = {'win', 'loss', 'forfeit'};
   static const durationBuckets = {

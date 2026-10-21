@@ -373,9 +373,28 @@ void main() {
     expect(DurationBucket.of(const Duration(minutes: 45)), 'gt_20m');
   });
 
-  test('opponent mix from server bot flags', () {
+  test('opponent mix from known computer seats', () {
     expect(OpponentMix.from([false, false]), OpponentMix.humanOnly);
     expect(OpponentMix.from([true, false]), OpponentMix.mixed);
     expect(OpponentMix.from([true, true, true]), OpponentMix.botOnly);
+  });
+
+  test('opponent mix per room mode (public is unknown)', () {
+    for (final (mode, opponents, want) in [
+      ('practice', const <bool>[], OpponentMix.botOnly),
+      ('practice', const [false, false], OpponentMix.botOnly),
+      ('private', const [false], OpponentMix.humanOnly),
+      ('private', const [true, false], OpponentMix.mixed),
+      ('private', const [true, true], OpponentMix.botOnly),
+      ('public', const [false, false, false], OpponentMix.unknown),
+      ('public', const [true], OpponentMix.unknown),
+    ]) {
+      expect(
+        OpponentMix.forRoom(mode: mode, opponentIsComputer: opponents),
+        want,
+        reason: '$mode $opponents',
+      );
+    }
+    expect(AnalyticsValues.opponentMixes, contains('unknown'));
   });
 }

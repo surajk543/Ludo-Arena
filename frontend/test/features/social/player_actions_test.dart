@@ -22,8 +22,9 @@ import '../game/support/play_test_support.dart';
 import '../progression/meta_test_support.dart'
     show friendJson, friendsJson, limitJson, reportJson, reportsJson, routeMeta;
 
-/// The bot's public id has the server's bot shape (`b_` + 10 hex).
-const _botUid = 'b_0a1b2c3d4e';
+/// A computer opponent's public id has exactly the shape of a person's
+/// (`u_` + 12 base32): nothing in the seat tells them apart.
+const _botUid = 'u_abcdefghjkmn';
 
 /// A Ludo match: me (`u_0`, seat 0), a human opponent (`u_1`, "Ravi"), a
 /// bot (seat 2, "Bolt") and another human (seat 3).
@@ -34,7 +35,7 @@ RoomSnapshot _room({int turnSeat = 0, String status = RoomStatuses.playing}) =>
       players: [
         player(0),
         player(1, name: 'Ravi', level: 9),
-        player(2, uid: _botUid, name: 'Bolt', bot: true),
+        player(2, uid: _botUid, name: 'Bolt'),
         player(3, name: 'Meera'),
       ],
     );

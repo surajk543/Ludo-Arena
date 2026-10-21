@@ -215,7 +215,6 @@ class RoomPlayer with JsonValueEquality {
     this.picture,
     this.color = 'red',
     this.connected = true,
-    this.bot = false,
     this.forfeited = false,
     this.forfeitWhy = '',
     this.strikes = 0,
@@ -238,10 +237,6 @@ class RoomPlayer with JsonValueEquality {
   /// `red` | `green` | `yellow` | `blue`.
   final String color;
   final bool connected;
-
-  /// Server-determined. Bots are never labelled in the UI (no badge or
-  /// "bot" wording); they only get no Add friend / Report actions.
-  final bool bot;
   final bool forfeited;
 
   /// Why a forfeited seat is out ([ForfeitReasons]: `left` | `timeouts`);
@@ -263,7 +258,6 @@ class RoomPlayer with JsonValueEquality {
     picture: PlayerPicture.tryParse(j['picture']),
     color: readString(j['color'], 'red'),
     connected: readBool(j['connected'], true),
-    bot: readBool(j['bot']),
     forfeited: readBool(j['forfeited']),
     forfeitWhy: readString(j['forfeitWhy']),
     strikes: readInt(j['strikes']),
@@ -281,7 +275,6 @@ class RoomPlayer with JsonValueEquality {
     if (picture != null) 'picture': picture!.toJson(),
     'color': color,
     'connected': connected,
-    'bot': bot,
     'forfeited': forfeited,
     if (forfeitWhy.isNotEmpty) 'forfeitWhy': forfeitWhy,
     'strikes': strikes,
@@ -303,7 +296,6 @@ class RoomPlayer with JsonValueEquality {
     picture: picture,
     color: color,
     connected: connected ?? this.connected,
-    bot: bot,
     forfeited: forfeited ?? this.forfeited,
     forfeitWhy: forfeitWhy ?? this.forfeitWhy,
     strikes: strikes ?? this.strikes,
@@ -444,7 +436,7 @@ class RoomResult with JsonValueEquality {
   /// Seats in finishing order.
   final List<int> placements;
 
-  /// Coins paid to the winner (0 when a bot was seated).
+  /// Coins paid to the winner (0 when the match pays no coins).
   final int payout;
 
   factory RoomResult.fromJson(Map<String, dynamic> j) => RoomResult(
@@ -517,6 +509,7 @@ class RoomSnapshot with JsonValueEquality {
     this.round = 1,
     this.fillDeadline = 0,
     this.players = const [],
+    this.computerSeats = const [],
     this.turn = const TurnState(),
     this.board = const BoardState(),
     this.result,
@@ -557,6 +550,12 @@ class RoomSnapshot with JsonValueEquality {
   /// Public lobby: unix ms when it starts/times out.
   final int fillDeadline;
   final List<RoomPlayer> players;
+
+  /// Practice and private rooms only: seats the player (practice) or the
+  /// host (private, `room.add_bot`) filled with computer players. Always
+  /// empty in public rooms — the server never reveals who is a computer
+  /// player there, and seats carry no bot flag anywhere.
+  final List<int> computerSeats;
   final TurnState turn;
   final BoardState board;
   final RoomResult? result;
@@ -573,7 +572,12 @@ class RoomSnapshot with JsonValueEquality {
   bool get isClosed => status == RoomStatuses.closed;
   bool get isPrivate => mode == RoomModes.private;
   bool get isPractice => mode == RoomModes.practice;
-  bool get hasBots => players.any((p) => p.bot);
+
+  /// A computer player sits in this practice or private room.
+  bool get hasComputerPlayers => computerSeats.isNotEmpty;
+
+  /// Whether [seat] was filled with a computer player (practice / private).
+  bool isComputerSeat(int seat) => computerSeats.contains(seat);
 
   RoomPlayer? playerAtSeat(int seat) =>
       players.firstWhereOrNull((p) => p.seat == seat);
@@ -599,6 +603,7 @@ class RoomSnapshot with JsonValueEquality {
     players: List<RoomPlayer>.unmodifiable(
       readList(j['players']).map((p) => RoomPlayer.fromJson(readMap(p))),
     ),
+    computerSeats: readIntList(j['computerSeats']),
     turn: TurnState.fromJson(readMap(j['turn'])),
     board: BoardState.fromJson(readMap(j['board'])),
     result: readMapOrNull(j['result']) == null
@@ -627,6 +632,7 @@ class RoomSnapshot with JsonValueEquality {
     'round': round,
     'fillDeadline': fillDeadline,
     'players': [for (final p in players) p.toJson()],
+    if (computerSeats.isNotEmpty) 'computerSeats': computerSeats,
     'turn': turn.toJson(),
     'board': board.toJson(),
     if (result != null) 'result': result!.toJson(),
@@ -638,6 +644,7 @@ class RoomSnapshot with JsonValueEquality {
     int? v,
     String? status,
     List<RoomPlayer>? players,
+    List<int>? computerSeats,
     TurnState? turn,
     BoardState? board,
     Object? result = _unset,
@@ -661,6 +668,9 @@ class RoomSnapshot with JsonValueEquality {
     players: players == null
         ? this.players
         : List<RoomPlayer>.unmodifiable(players),
+    computerSeats: computerSeats == null
+        ? this.computerSeats
+        : List<int>.unmodifiable(computerSeats),
     turn: turn ?? this.turn,
     board: board ?? this.board,
     result: identical(result, _unset) ? this.result : result as RoomResult?,

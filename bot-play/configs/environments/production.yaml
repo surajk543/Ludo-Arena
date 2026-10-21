@@ -30,6 +30,13 @@ bots:
   behavior:
     default_profile: balanced
     disconnect_simulation_enabled: false
+  chat:                          # production defaults: on, at most 2 reactions per bot per match
+    enabled: true
+    max_per_match: 2
+    min_interval_ms: 10000
+    reaction_delay_ms: {min: 800, max: 3000}
+    emote_share: 0.5
+    probability: {game_start: 0.05, six: 0.02, capture: 0.12, captured: 0.1, other_capture: 0.02, win: 0.3, loss: 0.15}
   shutdown:
     graceful_timeout_seconds: 300
     policy: finish_games

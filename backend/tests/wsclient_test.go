@@ -2,6 +2,8 @@ package tests
 
 import (
 	"context"
+	cryptorand "crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,14 +48,17 @@ type roomState struct {
 		Picture *struct {
 			ID string `json:"id"`
 		} `json:"picture"`
-		Bot        bool   `json:"bot"`
-		Connected  bool   `json:"connected"`
-		Forfeited  bool   `json:"forfeited"`
-		ForfeitWhy string `json:"forfeitWhy"`
-		Strikes    int    `json:"strikes"`
+		Title      string            `json:"title"`
+		Cosmetics  map[string]string `json:"cosmetics"`
+		Connected  bool              `json:"connected"`
+		Forfeited  bool              `json:"forfeited"`
+		ForfeitWhy string            `json:"forfeitWhy"`
+		Strikes    int               `json:"strikes"`
 	} `json:"players"`
-	HostSeat int `json:"hostSeat"`
-	Turn     struct {
+	HostSeat      int   `json:"hostSeat"`
+	PendingBots   int   `json:"pendingBots"`
+	ComputerSeats []int `json:"computerSeats"`
+	Turn          struct {
 		Seat      int    `json:"seat"`
 		Phase     string `json:"phase"`
 		TurnSeq   int    `json:"turnSeq"`
@@ -119,6 +124,8 @@ type client struct {
 	ctx    context.Context
 	stop   context.CancelFunc
 	nextID atomic.Int64
+	// idPrefix is random per connection (see send).
+	idPrefix string
 
 	mu        sync.Mutex
 	room      *roomState
@@ -160,7 +167,7 @@ func (e *env) dial(name string, acct account, headers map[string]string) (*clien
 		return nil, res, err
 	}
 	conn.SetReadLimit(1 << 20)
-	c := &client{t: e.t, name: name, acct: acct, conn: conn, ctx: ctx, stop: cancel,
+	c := &client{t: e.t, name: name, acct: acct, conn: conn, ctx: ctx, stop: cancel, idPrefix: randomHex(4),
 		replies: map[string]msg{}, closed: make(chan struct{}), notify: make(chan struct{}, 1)}
 	go c.readLoop()
 	e.t.Cleanup(c.close)
@@ -206,6 +213,12 @@ func (c *client) readLoop() {
 			// (regression: an internal control message once leaked here).
 			c.t.Errorf("%s: invalid server frame %s", c.name, data)
 			continue
+		}
+		// Bots are indistinguishable from people: no frame says which
+		// seats are bots.
+		var generic any
+		if json.Unmarshal(data, &generic) == nil && hasJSONKey(generic, "bot") {
+			c.t.Errorf("%s: frame marks a bot: %s", c.name, data)
 		}
 		c.mu.Lock()
 		c.apply(m)
@@ -352,9 +365,36 @@ func (c *client) requestSyncLocked() {
 	go c.send("game.request_sync", map[string]any{"roomId": c.room.ID})
 }
 
-// send writes a command and returns its id.
+// hasJSONKey reports whether decoded JSON v contains key at any depth.
+func hasJSONKey(v any, key string) bool {
+	switch x := v.(type) {
+	case map[string]any:
+		for k, e := range x {
+			if k == key || hasJSONKey(e, key) {
+				return true
+			}
+		}
+	case []any:
+		for _, e := range x {
+			if hasJSONKey(e, key) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func randomHex(n int) string {
+	b := make([]byte, n)
+	_, _ = cryptorand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+// send writes a command and returns its id. The random per-connection
+// prefix keeps ids unique per user across connections, as the server
+// requires (a bot persona's user id outlives its session).
 func (c *client) send(t string, payload any) string {
-	id := fmt.Sprintf("%s-%d", c.name, c.nextID.Add(1))
+	id := fmt.Sprintf("%s-%s-%d", c.name, c.idPrefix, c.nextID.Add(1))
 	raw, _ := json.Marshal(map[string]any{"t": t, "id": id, "p": payload})
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

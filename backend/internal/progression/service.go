@@ -167,6 +167,11 @@ func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, notif
 // Catalog returns the cosmetics catalog.
 func (s *Service) Catalog() *Catalog { return s.catalog }
 
+// CatalogItems implements playerinfo.CatalogSource (bot personas).
+func (s *Service) CatalogItems() []playerinfo.CatalogItem { return s.catalog.BotItems() }
+
+var _ playerinfo.CatalogSource = (*Service)(nil)
+
 // MissionConfig returns the missions configuration.
 func (s *Service) MissionConfig() *MissionConfig { return s.missions }
 

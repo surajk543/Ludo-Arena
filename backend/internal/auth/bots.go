@@ -60,9 +60,13 @@ type BotSession struct {
 }
 
 // IssueBot creates a bot player session scoped to roomID (or the load-test
-// pool when loadTest is true).
-func (b *BotAuth) IssueBot(ctx context.Context, roomID string, loadTest bool, name, profile string, ttl time.Duration) (BotSession, error) {
-	botID := uuid.New()
+// pool when loadTest is true) for bot user id botID (uuid.Nil: a new random
+// id). The rooms engine passes a bot persona's stable id, leased to one live
+// session at a time.
+func (b *BotAuth) IssueBot(ctx context.Context, botID uuid.UUID, roomID string, loadTest bool, name, profile string, ttl time.Duration) (BotSession, error) {
+	if botID == uuid.Nil {
+		botID = uuid.New()
+	}
 	sid, err := b.sessions.CreateBot(ctx, botID, ttl, map[string]any{"kind": KindBot, "room": roomID})
 	if err != nil {
 		return BotSession{}, err

@@ -44,8 +44,8 @@ func TestPlayerForfeitedReasonAndStrikes(t *testing.T) {
 
 func TestSnapshotForfeitWhy(t *testing.T) {
 	raw := `{"id":"r1","v":3,"game":"ludo","status":"playing","capacity":2,
-		"players":[{"seat":0,"uid":"a","color":"red","connected":true,"bot":true,"forfeited":false,"strikes":0},
-		           {"seat":1,"uid":"b","color":"yellow","connected":true,"bot":false,"forfeited":true,"forfeitWhy":"timeouts","strikes":5}],
+		"players":[{"seat":0,"uid":"a","color":"red","connected":true,"forfeited":false,"strikes":0},
+		           {"seat":1,"uid":"b","color":"yellow","connected":true,"forfeited":true,"forfeitWhy":"timeouts","strikes":5}],
 		"turn":{"seat":0,"phase":"awaiting_roll","turnSeq":9,"deadline":1,"dice":0,"legal":[],"sixStreak":0},
 		"board":{"tokens":[[-1,-1,-1,-1],[-1,-1,-1,-1]]}}`
 	var r Room
