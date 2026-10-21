@@ -60,9 +60,15 @@ void main() {
       expect(() => SnakesGeometry.cellFor(-1), throwsRangeError);
     });
 
-    test('centerOf is the cell center in grid units', () {
-      expect(SnakesGeometry.centerOf(1), const Offset(0.5, 9.5));
-      expect(SnakesGeometry.centerOf(100), const Offset(0.5, 0.5));
+    test('centerOf is the cell center in grid units (taller rows)', () {
+      const h = SnakesGeometry.rowHeight;
+      expect(h, greaterThan(1));
+      expect(SnakesGeometry.centerOf(1), const Offset(0.5, 9.5 * h));
+      expect(SnakesGeometry.centerOf(100), const Offset(0.5, 0.5 * h));
+      expect(
+        SnakesGeometry.centerOf(1),
+        SnakesGeometry.fromTile(SnakesGeometry.cellFor(1).center),
+      );
     });
   });
 
@@ -110,14 +116,22 @@ void main() {
     test('slots sit on the plinth beside square 1, side by side', () {
       final one = SnakesGeometry.centerOf(1);
       final slot0 = SnakesGeometry.startSlot(0);
+      const h = SnakesGeometry.rowHeight;
       expect(slot0.dx, closeTo(one.dx, 1e-9));
-      expect(slot0.dy, greaterThan(10));
-      expect(slot0.dy, lessThan(10 + SnakesGeometry.plinthHeight));
+      expect(slot0.dy, greaterThan(10 * h));
+      expect(slot0.dy, lessThan((10 + SnakesGeometry.plinthHeight) * h));
       for (var seat = 1; seat < 4; seat++) {
         final s = SnakesGeometry.startSlot(seat);
         expect(s.dy, slot0.dy);
         expect(s.dx, greaterThan(SnakesGeometry.startSlot(seat - 1).dx));
-        expect(SnakesGeometry.startPadRect.contains(s), isTrue);
+        // The pad is drawn in tile space.
+        expect(
+          SnakesGeometry.startPadRect.contains(
+            SnakesGeometry.startSlotTile(seat),
+          ),
+          isTrue,
+        );
+        expect(s, SnakesGeometry.fromTile(SnakesGeometry.startSlotTile(seat)));
       }
       expect(
         SnakesGeometry.positionCenter(0, seat: 2),
@@ -129,18 +143,32 @@ void main() {
       );
     });
 
-    test('aspect ratio includes frame and plinth', () {
+    test('aspect ratio includes frame, plinth and the taller rows', () {
       expect(
         SnakesGeometry.aspectRatio,
         closeTo(
           (10 + 2 * SnakesGeometry.frameInset) /
-              (10 +
-                  2 * SnakesGeometry.frameInset +
-                  SnakesGeometry.plinthHeight),
+              ((10 +
+                      2 * SnakesGeometry.frameInset +
+                      SnakesGeometry.plinthHeight) *
+                  SnakesGeometry.rowHeight),
           1e-12,
         ),
       );
       expect(SnakesGeometry.aspectRatio, lessThan(1));
+    });
+
+    test('cells are taller than wide; cellRect matches centerOf', () {
+      final layout = SnakesBoardLayout.fit(const Size(300, 600));
+      final rect = layout.cellRect(SnakesGeometry.cellFor(57));
+      expect(rect.width, closeTo(layout.cell, 1e-9));
+      expect(
+        rect.height,
+        closeTo(layout.cell * SnakesGeometry.rowHeight, 1e-9),
+      );
+      final c = layout.toPx(SnakesGeometry.centerOf(57));
+      expect(c.dx, closeTo(rect.center.dx, 1e-9));
+      expect(c.dy, closeTo(rect.center.dy, 1e-9));
     });
 
     test('layout fits and centers the board', () {
