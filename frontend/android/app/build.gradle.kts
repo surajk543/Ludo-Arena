@@ -19,6 +19,29 @@ fun configValue(name: String): String =
 val facebookAppId = configValue("FACEBOOK_APP_ID")
 val facebookClientToken = configValue("FACEBOOK_CLIENT_TOKEN")
 
+/**
+ * Release builds are always obfuscated (owner's rule, 22 Oct 2026): Dart with
+ * `--obfuscate --split-debug-info=<dir>`, Java/Kotlin with R8 (the Flutter
+ * Gradle plugin's default shrinking, never `-Pshrink=false`). Any other
+ * release build stops here. Build with `tool/build_android_release.sh`, which
+ * also collects the symbols for the release PR (docs/deployment.md).
+ */
+val releaseRequested = gradle.startParameter.taskNames.any {
+    it.substringAfterLast(':').endsWith("Release")
+}
+if (releaseRequested) {
+    val dartObfuscated = project.findProperty("dart-obfuscation")?.toString().toBoolean()
+    val symbolsDir = project.findProperty("split-debug-info")?.toString().orEmpty()
+    val shrink = project.findProperty("shrink")?.toString()?.toBoolean() ?: true
+    if (!dartObfuscated || symbolsDir.isBlank() || !shrink) {
+        throw GradleException(
+            "Android release builds must be obfuscated. Use " +
+                "tool/build_android_release.sh apk|appbundle [options], or pass " +
+                "--obfuscate --split-debug-info=<dir> (and keep R8 shrinking on)."
+        )
+    }
+}
+
 android {
     namespace = "com.ludoroyale.app"
     compileSdk = flutter.compileSdkVersion
@@ -51,6 +74,10 @@ android {
             // TODO(release): add a real signing config. Debug keys keep
             // `flutter run --release` working locally.
             signingConfig = signingConfigs.getByName("debug")
+            // R8: shrink, optimize and obfuscate Java/Kotlin (the Flutter
+            // plugin adds its keep rules; mapping.txt goes with the release PR).
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
     }
 }
