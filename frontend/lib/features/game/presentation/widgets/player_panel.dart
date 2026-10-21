@@ -20,7 +20,7 @@ class PlayerPanel extends StatelessWidget {
     required this.isSelf,
     required this.isTurn,
     this.turnTotalMs = 20000,
-    this.compact = false,
+    this.stacked = false,
   });
 
   final RoomPlayer player;
@@ -33,13 +33,25 @@ class PlayerPanel extends StatelessWidget {
   /// Full duration of the current turn (for the ring fraction).
   final int turnTotalMs;
 
-  /// Narrow layout (≤ 120 dp wide).
-  final bool compact;
+  /// Card layout (large avatar on top, full-width name and progress below),
+  /// used when the screen has spare height around the board.
+  final bool stacked;
 
   SeatColor get _seat => SeatColor.tryFromName(player.color) ?? SeatColor.red;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => _buildPod(
+      context,
+      stacked
+          ? _PodMetrics.stacked
+          : _PodMetrics.forWidth(
+              constraints.maxWidth.isFinite ? constraints.maxWidth : 240,
+            ),
+    ),
+  );
+
+  Widget _buildPod(BuildContext context, _PodMetrics m) {
     final c = context.colors;
     final l10n = AppLocalizations.of(context);
     final palette = GamePalette.of(context);
@@ -47,10 +59,7 @@ class PlayerPanel extends StatelessWidget {
     final out = player.forfeited;
     final offline = !player.connected && !out;
     final name = PlayText.playerName(l10n, player);
-    // ≤ 34 dp: the avatar's BOT badge shows its robot glyph only; the
-    // textual BOT badge is shown next to the name instead (the shared badge
-    // overflows at 36–44 dp avatars).
-    const avatarSize = 34.0;
+    final avatarSize = m.avatar;
     final reduce = ReducedMotion.of(context);
 
     Widget avatar = PlayerAvatar(
@@ -62,7 +71,7 @@ class PlayerPanel extends StatelessWidget {
       dimmed: out || offline,
       semanticLabel: name,
     );
-    final ring = avatarSize + 10;
+    final ring = avatarSize + m.ringGap;
     avatar = SizedBox.square(
       dimension: ring,
       child: isTurn && room.isPlaying && room.turn.deadline > 0
@@ -70,15 +79,15 @@ class PlayerPanel extends StatelessWidget {
               deadlineMs: room.turn.deadline,
               totalMs: turnTotalMs,
               size: ring,
-              strokeWidth: 3.5,
+              strokeWidth: m.ringStroke,
               color: shades.base,
               child: avatar,
             )
           : Center(child: avatar),
     );
 
-    final progress = _progress(context, l10n);
-    final status = _statusChip(context, l10n, offline: offline, out: out);
+    final progress = _progress(context, l10n, m);
+    final status = _statusChip(context, l10n, m, offline: offline, out: out);
 
     final semantics = [
       name,
@@ -97,6 +106,77 @@ class PlayerPanel extends StatelessWidget {
               ? Colors.white.withValues(alpha: 0.08)
               : c.outline.withValues(alpha: 0.7));
 
+    // In the compact row layout the avatar's own badge already reads
+    // "BOT", so a leading "Bot " in the name is dropped to make room.
+    final shownName = isSelf
+        ? l10n.commonYou
+        : (!stacked && player.bot && avatarSize >= 36)
+        ? _withoutBotPrefix(name)
+        : name;
+
+    Widget nameLine({required bool center}) => Row(
+      mainAxisAlignment: center
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.start,
+      children: [
+        Container(
+          width: m.dot,
+          height: m.dot,
+          decoration: BoxDecoration(
+            color: shades.base,
+            shape: BoxShape.circle,
+            border: Border.all(color: shades.outline, width: 1),
+          ),
+        ),
+        SizedBox(width: m.dot * 0.6),
+        Flexible(
+          child: Text(
+            shownName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.textTheme.labelLarge?.copyWith(
+              fontSize: m.nameFont,
+              color: out ? c.textMuted : c.textPrimary,
+            ),
+          ),
+        ),
+        // Below 36 dp the avatar badge shows only a glyph: repeat the label.
+        if (player.bot && avatarSize < 36) ...[
+          const SizedBox(width: 3),
+          const FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: BotBadge(height: 16),
+          ),
+        ],
+      ],
+    );
+
+    Widget detailLine({required bool center}) => Row(
+      mainAxisAlignment: center
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.start,
+      children: [
+        // Scale down rather than overflow in the narrowest pods.
+        if (status != null)
+          Flexible(child: status)
+        else if (progress != null)
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: center
+                  ? Alignment.center
+                  : AlignmentDirectional.centerStart,
+              child: progress.$1,
+            ),
+          ),
+        if (player.strikes > 0) ...[
+          const SizedBox(width: 4),
+          _Strikes(count: player.strikes),
+        ],
+      ],
+    );
+
     return Semantics(
       container: true,
       label: semantics,
@@ -104,11 +184,12 @@ class PlayerPanel extends StatelessWidget {
       child: AnimatedContainer(
         duration: reduce ? Duration.zero : AppDurations.medium,
         curve: AppCurves.standard,
+        constraints: BoxConstraints(minHeight: m.minHeight),
         padding: EdgeInsetsDirectional.fromSTEB(
-          compact ? 4 : 6,
-          compact ? 4 : 6,
-          compact ? 6 : 10,
-          compact ? 4 : 6,
+          m.padStart,
+          m.padVertical,
+          m.padEnd,
+          m.padVertical,
         ),
         decoration: BoxDecoration(
           color: isTurn
@@ -126,81 +207,51 @@ class PlayerPanel extends StatelessWidget {
                 ]
               : c.shadow(AppElevation.low),
         ),
-        child: Row(
-          children: [
-            avatar,
-            SizedBox(width: compact ? 4 : 6),
-            Expanded(
-              child: Column(
+        child: stacked
+            ? Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: shades.base,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: shades.outline, width: 1),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        flex: 3,
-                        child: Text(
-                          isSelf ? l10n.commonYou : name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.textTheme.labelLarge?.copyWith(
-                            fontSize: compact ? 13 : 14,
-                            color: out ? c.textMuted : c.textPrimary,
-                          ),
-                        ),
-                      ),
-                      if (player.bot) ...[
-                        const SizedBox(width: 3),
-                        const Flexible(
-                          flex: 2,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: AlignmentDirectional.centerStart,
-                            child: BotBadge(height: 16),
-                          ),
-                        ),
+                  avatar,
+                  SizedBox(height: m.lineGap + 2),
+                  nameLine(center: true),
+                  SizedBox(height: m.lineGap),
+                  detailLine(center: true),
+                ],
+              )
+            : Row(
+                children: [
+                  avatar,
+                  SizedBox(width: m.gap),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        nameLine(center: false),
+                        SizedBox(height: m.lineGap),
+                        detailLine(center: false),
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      if (status != null)
-                        Flexible(child: status)
-                      else if (progress != null)
-                        Flexible(child: progress.$1),
-                      if (player.strikes > 0) ...[
-                        const SizedBox(width: 4),
-                        _Strikes(count: player.strikes),
-                      ],
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   /// (widget, accessibility text)
-  (Widget, String)? _progress(BuildContext context, AppLocalizations l10n) {
+  (Widget, String)? _progress(
+    BuildContext context,
+    AppLocalizations l10n,
+    _PodMetrics m,
+  ) {
     final c = context.colors;
-    final style = context.textTheme.labelSmall?.copyWith(
-      color: c.textSecondary,
-      fontFeatures: const [FontFeature.tabularFigures()],
-    );
+    final style = m
+        .detailStyle(context)
+        ?.copyWith(
+          color: c.textSecondary,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        );
     if (room.isLudo) {
       final tokens = room.board.ludoTokens;
       if (tokens == null || player.seat >= tokens.length) return null;
@@ -217,19 +268,21 @@ class PlayerPanel extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: 2),
                 child: Icon(
                   i < home ? Icons.star_rounded : Icons.circle_outlined,
-                  size: 10,
+                  size: m.detailIcon,
                   color: i < home ? c.gold : c.textMuted,
                 ),
               ),
-            const SizedBox(width: 2),
-            Flexible(
-              child: Text(
-                '$home/$total',
-                maxLines: 1,
-                overflow: TextOverflow.clip,
-                style: style,
+            if (m.showCount) ...[
+              const SizedBox(width: 2),
+              Flexible(
+                child: Text(
+                  '$home/$total',
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: style,
+                ),
               ),
-            ),
+            ],
           ],
         ),
         text,
@@ -247,7 +300,8 @@ class PlayerPanel extends StatelessWidget {
 
   Widget? _statusChip(
     BuildContext context,
-    AppLocalizations l10n, {
+    AppLocalizations l10n,
+    _PodMetrics m, {
     required bool offline,
     required bool out,
   }) {
@@ -259,7 +313,7 @@ class PlayerPanel extends StatelessWidget {
       children: [
         Icon(
           out ? Icons.logout_rounded : Icons.wifi_off_rounded,
-          size: 12,
+          size: m.detailIcon + 2,
           color: color,
         ),
         const SizedBox(width: 2),
@@ -268,12 +322,149 @@ class PlayerPanel extends StatelessWidget {
             out ? l10n.playPlayerForfeited : l10n.playPlayerDisconnected,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: context.textTheme.labelSmall?.copyWith(color: color),
+            style: m.detailStyle(context)?.copyWith(color: color),
           ),
         ),
       ],
     );
   }
+}
+
+String _withoutBotPrefix(String name) {
+  final m = RegExp(r'^bot\s+', caseSensitive: false).firstMatch(name);
+  if (m == null) return name;
+  final rest = name.substring(m.end).trim();
+  return rest.isEmpty ? name : rest;
+}
+
+/// Pod dimensions by available width: the pod grows on roomy layouts
+/// (most phones in portrait, landscape side column, tablets) and stays
+/// compact on the narrowest screens.
+class _PodMetrics {
+  const _PodMetrics({
+    required this.avatar,
+    required this.ringGap,
+    required this.ringStroke,
+    required this.nameFont,
+    required this.padStart,
+    required this.padEnd,
+    required this.padVertical,
+    required this.gap,
+    required this.dot,
+    required this.lineGap,
+    required this.minHeight,
+    required this.detailIcon,
+    required this.largeDetail,
+    this.showCount = false,
+  });
+
+  final double avatar;
+  final double ringGap;
+  final double ringStroke;
+  final double nameFont;
+  final double padStart;
+  final double padEnd;
+  final double padVertical;
+  final double gap;
+  final double dot;
+  final double lineGap;
+  final double minHeight;
+  final double detailIcon;
+  final bool largeDetail;
+
+  /// Show the numeric "home/total" next to the token stars.
+  final bool showCount;
+
+  /// Card layout preset (see [PlayerPanel.stacked]).
+  static const stacked = _PodMetrics(
+    avatar: 56,
+    ringGap: 12,
+    ringStroke: 4,
+    nameFont: 16,
+    padStart: 8,
+    padEnd: 8,
+    padVertical: 10,
+    gap: 0,
+    dot: 10,
+    lineGap: 3,
+    minHeight: 0,
+    detailIcon: 13,
+    largeDetail: true,
+    showCount: true,
+  );
+
+  static _PodMetrics forWidth(double width) {
+    if (width >= 220) {
+      return const _PodMetrics(
+        avatar: 56,
+        ringGap: 12,
+        ringStroke: 4,
+        nameFont: 17,
+        padStart: 10,
+        padEnd: 14,
+        padVertical: 10,
+        gap: 12,
+        dot: 10,
+        lineGap: 4,
+        minHeight: 84,
+        detailIcon: 13,
+        largeDetail: true,
+      );
+    }
+    if (width >= 150) {
+      return const _PodMetrics(
+        avatar: 48,
+        ringGap: 12,
+        ringStroke: 4,
+        nameFont: 16,
+        padStart: 8,
+        padEnd: 12,
+        padVertical: 8,
+        gap: 10,
+        dot: 10,
+        lineGap: 3,
+        minHeight: 74,
+        detailIcon: 12,
+        largeDetail: true,
+      );
+    }
+    if (width >= 124) {
+      return const _PodMetrics(
+        avatar: 44,
+        ringGap: 10,
+        ringStroke: 3.5,
+        nameFont: 15,
+        padStart: 6,
+        padEnd: 10,
+        padVertical: 7,
+        gap: 8,
+        dot: 9,
+        lineGap: 3,
+        minHeight: 66,
+        detailIcon: 11,
+        largeDetail: false,
+      );
+    }
+    return const _PodMetrics(
+      avatar: 40,
+      ringGap: 10,
+      ringStroke: 3.5,
+      nameFont: 14,
+      padStart: 5,
+      padEnd: 7,
+      padVertical: 6,
+      gap: 6,
+      dot: 8,
+      lineGap: 2,
+      minHeight: 60,
+      detailIcon: 10,
+      largeDetail: false,
+    );
+  }
+
+  TextStyle? detailStyle(BuildContext context) => largeDetail
+      ? context.textTheme.labelMedium
+      : context.textTheme.labelSmall;
 }
 
 /// Missed-turn strikes (3 → forfeit).
