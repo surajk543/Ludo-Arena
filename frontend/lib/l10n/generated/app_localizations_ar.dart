@@ -3298,6 +3298,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get storeEmotesHeroTitle => 'تعبيرات متحركة';
+
+  @override
+  String get storeEmotesHeroSubtitle =>
+      'أرسلها في أي مباراة. اشترِها مرة واحدة بالماس واحتفظ بها إلى الأبد.';
+
+  @override
+  String get storeEmoteKind => 'تعبير متحرك';
+
+  @override
+  String get storeEmoteUseInMatchNote => 'أرسله من زر الدردشة أثناء المباراة.';
+
+  @override
+  String get storeEmotesLoadMoreFailed => 'تعذّر تحميل المزيد من التعبيرات.';
+
+  @override
+  String get storeEmotesOwnedEmpty =>
+      'ستظهر هنا التعبيرات المتحركة التي تشتريها من المتجر.';
+
+  @override
   String get walletTitle => 'محفظتك';
 
   @override

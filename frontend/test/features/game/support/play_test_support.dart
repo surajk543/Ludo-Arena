@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ludo_royale/core/analytics/analytics_providers.dart';
 import 'package:ludo_royale/core/analytics/noop_analytics_service.dart';
+import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
 import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/audio_haptics/reduced_motion.dart';
 import 'package:ludo_royale/core/protocol/protocol.dart';
@@ -15,13 +16,14 @@ import 'package:ludo_royale/core/storage/preferences_store.dart';
 import 'package:ludo_royale/core/theme/app_theme.dart';
 import 'package:ludo_royale/core/time/server_clock.dart';
 import 'package:ludo_royale/features/game/application/owned_emotes.dart';
-import 'package:ludo_royale/features/game/application/quick_chat.dart';
 import 'package:ludo_royale/features/game/application/viewer_loadout.dart';
 import 'package:ludo_royale/features/home/application/play_options.dart';
 import 'package:ludo_royale/features/private_rooms/application/room_share.dart';
 import 'package:ludo_royale/features/private_rooms/application/rooms_repository.dart';
 import 'package:ludo_royale/l10n/generated/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../helpers/picture_fixtures.dart';
 
 /// Fixed "now" for server-clock based widgets (deadlines are relative).
 final DateTime kTestNow = DateTime(2026, 10, 21, 12);
@@ -390,6 +392,7 @@ class PlayHarness {
   final StreamController<ServerEvent> social =
       StreamController<ServerEvent>.broadcast();
   final List<String> shared = [];
+  final FakeProfilePictureCache emotes = FakeProfilePictureCache();
   late ProviderContainer container;
 
   Future<List<Override>> overrides() async {
@@ -405,7 +408,9 @@ class PlayHarness {
       walletUpdatesProvider.overrideWith((ref) => wallet.stream),
       progressionUpdatesProvider.overrideWith((ref) => progression.stream),
       socialEventsProvider.overrideWith((ref) => social.stream),
-      ownedEmotesProvider.overrideWith((ref) async => kStarterEmotes),
+      ownedEmotesProvider.overrideWith((ref) async => kStarterOwnedEmotes),
+      // Store emote art: none resolves unless a test adds it to `ready`.
+      emoteAssetCacheProvider.overrideWithValue(emotes),
       viewerBoardThemesProvider.overrideWithValue((ludo: null, snakes: null)),
       roomsRepositoryProvider.overrideWithValue(rooms),
       roomShareProvider.overrideWithValue((text, {subject, origin}) async {

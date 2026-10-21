@@ -272,6 +272,37 @@ void main() {
     });
   });
 
+  test('a Store emote carries its art to EmoteReceived; sending one sends '
+      'its em_ id', () {
+    fakeAsync((async) {
+      final r = rig(async);
+      final s = open(r.h, async);
+      s.serverSend('game.state', {'room': ludoRoomJson()});
+      async.flushMicrotasks();
+      s.serverSend('chat.emote', {
+        'roomId': 'r_1',
+        'seat': 1,
+        'emote': 'em_angry',
+        'asset': {'path': 'emotes/angry.json', 'format': 'lottie'},
+      });
+      async.flushMicrotasks();
+      final got = r.events.whereType<EmoteReceived>().single.emote;
+      expect(got.emote, 'em_angry');
+      expect(
+        got.asset,
+        const EmoteAsset(format: 'lottie', path: 'emotes/angry.json'),
+      );
+
+      ctl(r.c).sendEmote('em_angry').ignore();
+      async.flushMicrotasks();
+      final sent = s.sentOfType('chat.emote').single;
+      expect(sent['p'], {'roomId': 'r_1', 'emote': 'em_angry'});
+      s.serverSend('ack', {}, sent['id'] as String);
+      async.flushMicrotasks();
+      r.c.dispose();
+    });
+  });
+
   test('commands without a room throw not_in_room', () {
     fakeAsync((async) {
       final r = rig(async);

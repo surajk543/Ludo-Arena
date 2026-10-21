@@ -17,17 +17,21 @@ import '../../progression/presentation/widgets/meta_scaffold.dart';
 import '../../progression/presentation/widgets/pill_tabs.dart';
 import '../../wallet/presentation/wallet_sheet.dart';
 import '../../wallet/wallet_controller.dart';
+import '../application/emote_shelf_controller.dart';
 import '../application/shop_category.dart';
 import '../application/store_controller.dart';
 import '../domain/store_models.dart';
+import 'widgets/emote_shelf.dart';
 import 'widgets/picture_shelf.dart';
 
 /// The Shop: everything for sale that the player does not own yet, by
 /// category. "Pictures" is the profile-picture shelf (diamonds; filter
-/// pills, infinite scroll); every other category is a cosmetic kind with
-/// fixed-price items (coins or diamonds) opened in the Collection's item
-/// sheet. A bought item leaves the Shop and shows in the Collection. The
-/// last category is remembered while the app runs.
+/// pills, infinite scroll); "Emotes" is the catalogue's priced emotes plus
+/// the Store's animated emotes (diamonds; infinite scroll); every other
+/// category is a cosmetic kind with fixed-price items (coins or diamonds)
+/// opened in the Collection's item sheet. A bought item leaves the Shop and
+/// shows in the Collection. The last category is remembered while the app
+/// runs.
 class ShopScreen extends ConsumerStatefulWidget {
   const ShopScreen({super.key, this.initialCategory});
 
@@ -73,10 +77,15 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   }
 
   bool get _onPictures => _category == kPictureCategory;
+  bool get _onEmotes => _category == kShopEmoteCategory;
 
   void _maybeLoadMore() {
-    if (!mounted || !_onPictures) return;
-    maybeLoadMorePictures(ref, _scroll, storeProvider);
+    if (!mounted) return;
+    if (_onPictures) {
+      maybeLoadMorePictures(ref, _scroll, storeProvider);
+    } else if (_onEmotes) {
+      maybeLoadMoreEmotes(ref, _scroll, shopEmotesProvider);
+    }
   }
 
   /// A page shorter than the screen never scrolls: check after layout.
@@ -87,6 +96,11 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     try {
       if (_onPictures) {
         await ref.read(storeProvider.notifier).refresh();
+      } else if (_onEmotes) {
+        await Future.wait([
+          ref.read(shopEmotesProvider.notifier).refresh(),
+          ref.read(collectionProvider.notifier).refresh(),
+        ]);
       } else {
         await ref.read(collectionProvider.notifier).refresh();
       }
@@ -116,6 +130,18 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     final category = categories.contains(_category)
         ? _category
         : kPictureCategory;
+    // The Store's emotes load when their category is shown.
+    final emotes = category == kShopEmoteCategory
+        ? ref.watch(shopEmotesProvider)
+        : null;
+    if (emotes != null) {
+      ref.listen(shopEmotesProvider, (prev, next) {
+        if (prev?.items.length != next.items.length ||
+            prev?.loading != next.loading) {
+          _checkAfterLayout();
+        }
+      });
+    }
 
     return MetaScaffold(
       title: l10n.storeTitle,
@@ -150,6 +176,8 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         ),
         if (category == kPictureCategory)
           ..._pictures(context, pictures)
+        else if (emotes != null)
+          ..._emotes(context, collection, emotes)
         else
           ..._cosmetics(context, collection, category),
       ],
@@ -308,6 +336,97 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       default:
         return const [MetaLoadingSliver()];
     }
+  }
+
+  /// The Emotes category: the catalogue's priced emotes (Collection item
+  /// sheet) on top, then the Store's animated emotes not owned yet, page by
+  /// page.
+  List<Widget> _emotes(
+    BuildContext context,
+    AsyncValue<CollectionData> collection,
+    EmoteShelfState shelf,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final catalogue =
+        collection.value?.shopItems(kShopEmoteCategory) ?? const [];
+    final width = MediaQuery.sizeOf(context).width.clamp(0.0, _maxWidth);
+    final columns = width >= 760
+        ? 5
+        : (width >= 600 ? 4 : (width >= 420 ? 3 : 2));
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: _ShopHero(
+            leading: const _KindBadge(kind: kShopEmoteCategory),
+            title: CollectionTexts.tab(l10n, kShopEmoteCategory),
+            subtitle: l10n.storeEmotesHeroSubtitle,
+          ),
+        ),
+      ),
+      if (catalogue.isNotEmpty) ...[
+        SliverPadding(
+          padding: kMetaPagePadding,
+          sliver: SliverGrid.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisSpacing: AppSpacing.md,
+              crossAxisSpacing: AppSpacing.md,
+              childAspectRatio: textScale > 1.15 ? 0.66 : 0.74,
+            ),
+            itemCount: catalogue.length,
+            itemBuilder: (context, i) {
+              final item = catalogue[i];
+              return CollectionItemCard(
+                key: ValueKey('shop-item-${item.id}'),
+                item: item,
+                onTap: () =>
+                    showCollectionItemSheet(context, item.id, inShop: true),
+              );
+            },
+          ),
+        ),
+        if (shelf.loading || shelf.items.isNotEmpty || shelf.error != null)
+          SliverToBoxAdapter(
+            child: EmoteSectionTitle(title: l10n.storeEmotesHeroTitle),
+          ),
+      ],
+      ...emoteShelfSlivers(
+        context,
+        state: shelf,
+        shelf: shopEmotesProvider,
+        maxWidth: _maxWidth,
+        onRetry: () => ref.read(shopEmotesProvider.notifier).refresh(),
+        empty: catalogue.isNotEmpty || collection.isLoading
+            ? null
+            : MetaEmptySliver(
+                title: l10n.storeAllOwnedTitle,
+                message: l10n.storeAllOwnedMessage,
+                action: _viewInCollection(l10n, kShopEmoteCategory),
+              ),
+      ),
+      if (catalogue.isNotEmpty || shelf.items.isNotEmpty)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            0,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: MetaNote(
+              icon: Icons.verified_rounded,
+              text: l10n.metaCollectionFairNote,
+            ),
+          ),
+        ),
+    ];
   }
 
   /// "View in Collection" (that category of the Collection Room).

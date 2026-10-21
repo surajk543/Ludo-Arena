@@ -25,6 +25,46 @@ mixin JsonValueEquality {
 /// Sentinel for nullable `copyWith` parameters.
 const Object _unset = Object();
 
+/// Catalogue asset formats (profile pictures and Store emotes).
+abstract final class AssetFormats {
+  static const String image = 'image';
+  static const String lottie = 'lottie';
+}
+
+/// A downloadable catalogue object in the private asset bucket: a profile
+/// picture or the art of a Store emote. [path] is an immutable object key
+/// (new art = new path); the app downloads it once through a short-lived
+/// signed URL (`POST /assets/sign`) and keeps it on disk (see
+/// `core/assets/profile_picture_cache.dart`).
+abstract interface class CatalogAsset {
+  /// [AssetFormats.image] | [AssetFormats.lottie].
+  String get format;
+
+  /// Object key, e.g. `emotes/angry.json`.
+  String get path;
+
+  bool get isLottie;
+
+  /// Whether [path] is a safe, relative key the app may store on disk.
+  bool get hasSafePath;
+}
+
+final RegExp _assetSegment = RegExp(r'^[A-Za-z0-9._-]+$');
+
+/// Whether [path] is a relative key under [prefix] (`<folder>/`) of only
+/// `[A-Za-z0-9._-]` segments, without `.`/`..`, at most 255 characters.
+bool isSafeAssetPath(String path, String prefix) {
+  if (path.length > 255 || !path.startsWith(prefix)) return false;
+  final segments = path.split('/');
+  if (segments.length < 2) return false;
+  for (final s in segments) {
+    if (s.isEmpty || s == '.' || s == '..' || !_assetSegment.hasMatch(s)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /// A player's profile picture (`PlayerPicture`: `{"id","format","path"}`),
 /// bought in the Store. `null` everywhere means the built-in avatar.
 ///
@@ -33,7 +73,7 @@ const Object _unset = Object();
 /// through a short-lived signed URL (`POST /assets/sign`) and keeps it on
 /// disk (see `core/assets/profile_picture_cache.dart`).
 @immutable
-class PlayerPicture with JsonValueEquality {
+class PlayerPicture with JsonValueEquality implements CatalogAsset {
   const PlayerPicture({
     required this.id,
     required this.format,
@@ -44,33 +84,26 @@ class PlayerPicture with JsonValueEquality {
   final String id;
 
   /// [formatImage] | [formatLottie].
+  @override
   final String format;
 
   /// Object key under `profile_pictures/`.
+  @override
   final String path;
 
-  static const String formatImage = 'image';
-  static const String formatLottie = 'lottie';
+  static const String formatImage = AssetFormats.image;
+  static const String formatLottie = AssetFormats.lottie;
 
+  @override
   bool get isLottie => format == formatLottie;
+
+  @override
+  bool get hasSafePath => isSafePath(path);
 
   /// Whether [path] is a safe, relative key the app may store on disk:
   /// `profile_pictures/…`, only `[A-Za-z0-9._-]` segments, no `.`/`..`.
-  static bool isSafePath(String path) {
-    if (path.length > 255 || !path.startsWith('profile_pictures/')) {
-      return false;
-    }
-    final segments = path.split('/');
-    if (segments.length < 2) return false;
-    for (final s in segments) {
-      if (s.isEmpty || s == '.' || s == '..' || !_segment.hasMatch(s)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  static final RegExp _segment = RegExp(r'^[A-Za-z0-9._-]+$');
+  static bool isSafePath(String path) =>
+      isSafeAssetPath(path, 'profile_pictures/');
 
   /// Parses a wire `picture`: null (the built-in avatar) for `null`, a
   /// missing field or anything malformed (unknown format, unsafe path).
@@ -90,6 +123,47 @@ class PlayerPicture with JsonValueEquality {
 
   @override
   Map<String, dynamic> toJson() => {'id': id, 'format': format, 'path': path};
+}
+
+/// The art of a Store emote (`chat.emote` `asset`: `{"path","format"}`).
+/// Built-in emotes (`emote_wave`, …) are painted by the app and have none.
+@immutable
+class EmoteAsset with JsonValueEquality implements CatalogAsset {
+  const EmoteAsset({required this.format, required this.path});
+
+  /// [AssetFormats.lottie] | [AssetFormats.image].
+  @override
+  final String format;
+
+  /// Object key under `emotes/`, e.g. `emotes/angry.json`.
+  @override
+  final String path;
+
+  @override
+  bool get isLottie => format == AssetFormats.lottie;
+
+  @override
+  bool get hasSafePath => isSafePath(path);
+
+  /// Whether [path] is a safe, relative key under `emotes/`.
+  static bool isSafePath(String path) => isSafeAssetPath(path, 'emotes/');
+
+  /// Parses a wire `asset`: null for `null`, a missing field or anything
+  /// malformed (unknown format, unsafe path).
+  static EmoteAsset? tryParse(Object? raw) {
+    final j = readMapOrNull(raw);
+    if (j == null) return null;
+    final format = readString(j['format']);
+    final path = readString(j['path']);
+    if ((format != AssetFormats.image && format != AssetFormats.lottie) ||
+        !isSafePath(path)) {
+      return null;
+    }
+    return EmoteAsset(format: format, path: path);
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {'path': path, 'format': format};
 }
 
 /// Cosmetics a player has equipped for this room (`players[].cosmetics`).

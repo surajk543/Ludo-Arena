@@ -4509,6 +4509,30 @@
       }
     }
   },
+  "storeEmotesHeroTitle": "Animated emotes",
+  "@storeEmotesHeroTitle": {
+    "description": "Shop Emotes category header card title, and the section title of the animated Store emotes (Shop and Collection)."
+  },
+  "storeEmotesHeroSubtitle": "Send them in any match. Buy once with diamonds, keep them forever.",
+  "@storeEmotesHeroSubtitle": {
+    "description": "Shop Emotes category header card text: emotes are sent in matches, bought once with diamonds and owned forever."
+  },
+  "storeEmoteKind": "Animated emote",
+  "@storeEmoteKind": {
+    "description": "Emote sheet subtitle: an animated emote from the Shop."
+  },
+  "storeEmoteUseInMatchNote": "Send it from the chat button during a match.",
+  "@storeEmoteUseInMatchNote": {
+    "description": "Note on an owned Store emote: how to send it during a match (the quick-chat button)."
+  },
+  "storeEmotesLoadMoreFailed": "Couldn't load more emotes.",
+  "@storeEmotesLoadMoreFailed": {
+    "description": "Inline error at the end of an emote grid (next page failed)."
+  },
+  "storeEmotesOwnedEmpty": "Animated emotes you buy in the Shop show up here.",
+  "@storeEmotesOwnedEmpty": {
+    "description": "Collection Emotes tab, animated section: none bought yet."
+  },
   "walletTitle": "Your wallet",
   "@walletTitle": {
     "description": "Wallet sheet title."

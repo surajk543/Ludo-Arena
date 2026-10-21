@@ -21,5 +21,11 @@
   "storeAllOwnedMessage": "Semua yang ada di sini sudah ada di Koleksimu.",
   "storeViewInCollection": "Lihat di Koleksi",
   "storeLoadMoreFailed": "Tidak dapat memuat foto lainnya.",
-  "storeTileSemantics": "{name}, {status}"
+  "storeTileSemantics": "{name}, {status}",
+  "storeEmotesHeroTitle": "Emote animasi",
+  "storeEmotesHeroSubtitle": "Kirim di pertandingan mana pun. Beli sekali dengan berlian, milikmu selamanya.",
+  "storeEmoteKind": "Emote animasi",
+  "storeEmoteUseInMatchNote": "Kirim lewat tombol obrolan saat pertandingan.",
+  "storeEmotesLoadMoreFailed": "Tidak dapat memuat emote lainnya.",
+  "storeEmotesOwnedEmpty": "Emote animasi yang kamu beli di Toko akan muncul di sini."
 }

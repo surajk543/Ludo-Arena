@@ -160,9 +160,10 @@ class _QuickChatSheetState extends ConsumerState<QuickChatSheet> {
               itemCount: ids.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
               itemBuilder: (context, i) => _EmoteButton(
-                emoteId: ids[i],
+                key: ValueKey('chat-emote-${ids[i].id}'),
+                emote: ids[i],
                 enabled: enabled,
-                onTap: () => _pick(EmotePick(ids[i])),
+                onTap: () => _pick(EmotePick(ids[i].id)),
               ),
             ),
             loading: () => const Center(
@@ -255,18 +256,40 @@ class _ChatChip extends StatelessWidget {
 
 class _EmoteButton extends StatelessWidget {
   const _EmoteButton({
-    required this.emoteId,
+    super.key,
+    required this.emote,
     required this.enabled,
     required this.onTap,
   });
 
-  final String emoteId;
+  final OwnedEmote emote;
   final bool enabled;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final asset = emote.asset;
+    final Widget icon;
+    if (asset == null) {
+      icon = EmoteIcon(emoteId: emote.id, size: 44);
+    } else {
+      final l10n = AppLocalizations.of(context);
+      // A Store emote: its animation from the emote cache (the generic
+      // emote glyph while it downloads).
+      icon = Semantics(
+        image: true,
+        label: l10n.widgetsEmoteLabel(
+          emote.name ?? cosmeticName(l10n, emote.id),
+        ),
+        excludeSemantics: true,
+        child: EmoteAssetView(
+          asset: asset,
+          size: 44,
+          placeholder: EmoteIcon(emoteId: emote.id, size: 44),
+        ),
+      );
+    }
     return Opacity(
       opacity: enabled ? 1 : 0.4,
       child: Material(
@@ -275,10 +298,7 @@ class _EmoteButton extends StatelessWidget {
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: enabled ? onTap : null,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: EmoteIcon(emoteId: emoteId, size: 44),
-          ),
+          child: Padding(padding: const EdgeInsets.all(6), child: icon),
         ),
       ),
     );
