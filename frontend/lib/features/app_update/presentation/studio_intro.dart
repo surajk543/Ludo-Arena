@@ -55,7 +55,7 @@ class StudioIntro extends ConsumerStatefulWidget {
   static const Duration maxDuration = Duration(seconds: 12);
 
   /// Feathered border, as a fraction of the square's side.
-  static const double feather = 0.08;
+  static const double feather = 0.14;
 
   static Future<ui.Codec> loadAssetCodec() async {
     final data = await rootBundle.load(asset);
