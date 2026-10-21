@@ -20,6 +20,10 @@ import '../play_text.dart';
 /// progress is a narrow vertical column on the avatar's trailing side; the
 /// height the horizontal progress line used to take goes to a larger
 /// avatar, so the pod's outer size does not change.
+///
+/// Around a portrait board the match layout gives every pod the [height]
+/// the full-width board leaves; the pod then fills it and its avatar grows
+/// with it (see [_PodMetrics.fill]).
 class PlayerPanel extends StatelessWidget {
   const PlayerPanel({
     super.key,
@@ -29,6 +33,7 @@ class PlayerPanel extends StatelessWidget {
     required this.isTurn,
     this.turnTotalMs = 20000,
     this.stacked = false,
+    this.height,
     this.muted = false,
     this.onTap,
   });
@@ -44,8 +49,15 @@ class PlayerPanel extends StatelessWidget {
   final int turnTotalMs;
 
   /// Card layout (large avatar with the progress column beside it, full-width
-  /// name below), used when the screen has spare height around the board.
+  /// name below) at its natural size; without it, the compact row. Pods
+  /// given a [height] choose for themselves.
   final bool stacked;
+
+  /// Height to fill (portrait match rows), the same on and off turn. The
+  /// pod is then a card or a row, whichever shows the larger avatar at its
+  /// width and this height, and [stacked] is ignored. Null — or less than a
+  /// row pod needs at this width — keeps the pod's natural size.
+  final double? height;
 
   /// The user muted this player from their pod (a muted icon by the name).
   final bool muted;
@@ -53,6 +65,12 @@ class PlayerPanel extends StatelessWidget {
   /// Opens the player's options (opponents only). The pod then reads as a
   /// button to screen readers.
   final VoidCallback? onTap;
+
+  /// Width from which a pod filling [height] no longer grows its avatar
+  /// (wider only adds empty space): the match layout lets the dice dock
+  /// grow only into width beyond it.
+  static double fillWidthFor(BuildContext context, double height) =>
+      _PodMetrics.fillCardWidth(context, height);
 
   SeatColor get _seat => SeatColor.tryFromName(player.color) ?? SeatColor.red;
 
@@ -62,14 +80,34 @@ class PlayerPanel extends StatelessWidget {
       final width = constraints.maxWidth.isFinite
           ? constraints.maxWidth
           : 240.0;
+      final target = height;
+      final fill = target == null
+          ? null
+          : _PodMetrics.fill(context, width, target);
+      if (fill != null) {
+        return _buildPod(
+          context,
+          fill.metrics,
+          card: fill.card,
+          height: fill.height,
+        );
+      }
       return _buildPod(
         context,
         stacked ? _PodMetrics.stackedFor(width) : _PodMetrics.forWidth(width),
+        card: stacked,
       );
     },
   );
 
-  Widget _buildPod(BuildContext context, _PodMetrics m) {
+  /// [card]: avatar row above the name. [height]: a filled pod's fixed
+  /// outer height (its content centered in it).
+  Widget _buildPod(
+    BuildContext context,
+    _PodMetrics m, {
+    required bool card,
+    double? height,
+  }) {
     final c = context.colors;
     final l10n = AppLocalizations.of(context);
     final palette = GamePalette.of(context);
@@ -81,16 +119,18 @@ class PlayerPanel extends StatelessWidget {
     final side = m.side;
     // A side card's avatar row is as tall as the classic card's avatar plus
     // its progress line (which follows the text scale), so the card keeps
-    // its size; the avatar fills the row up to [_PodMetrics.avatar].
-    final cardRow = stacked && side
-        ? _PodMetrics.classicRingBox +
-              m.lineGap +
-              math.max(
-                m.detailIcon,
-                _lineHeight(context, m.detailStyle(context)),
-              )
+    // its size; the avatar fills the row up to [_PodMetrics.avatar]. A
+    // filled card's row is exactly its turn-ring box.
+    final cardRow = card && side
+        ? m.cardRow ??
+              _PodMetrics.classicRingBox +
+                  m.lineGap +
+                  math.max(
+                    m.detailIcon,
+                    _lineHeight(context, m.detailStyle(context)),
+                  )
         : 0.0;
-    final avatarSize = stacked && side
+    final avatarSize = card && side
         ? math.min(m.avatar, (cardRow - m.ringGap).floorToDouble())
         : m.avatar;
 
@@ -220,7 +260,11 @@ class PlayerPanel extends StatelessWidget {
     final pod = AnimatedContainer(
       duration: reduce ? Duration.zero : AppDurations.medium,
       curve: AppCurves.standard,
-      constraints: BoxConstraints(minHeight: m.minHeight),
+      height: height,
+      alignment: height == null ? null : Alignment.center,
+      constraints: height == null
+          ? BoxConstraints(minHeight: m.minHeight)
+          : null,
       padding: EdgeInsetsDirectional.fromSTEB(
         m.padStart,
         m.padVertical,
@@ -243,7 +287,7 @@ class PlayerPanel extends StatelessWidget {
               ]
             : c.shadow(AppElevation.low),
       ),
-      child: switch ((stacked, side)) {
+      child: switch ((card, side)) {
         // Card: [avatar | progress column] above the name.
         (true, true) => Column(
           mainAxisSize: MainAxisSize.min,
@@ -557,6 +601,7 @@ class _PodMetrics {
     this.sideIcon = 0,
     this.sideSpacing = 0,
     this.sideGap = 0,
+    this.cardRow,
   });
 
   /// Avatar size; for a [side] card the largest size, capped further by the
@@ -585,6 +630,10 @@ class _PodMetrics {
   final double sideIcon;
   final double sideSpacing;
   final double sideGap;
+
+  /// A filled card's avatar row height (its turn-ring box); null for the
+  /// natural card, whose row keeps the classic card's height.
+  final double? cardRow;
 
   /// Ring box (avatar + turn ring) of the classic card. A [side] card's
   /// avatar row is this plus the progress line it replaces, which keeps the
@@ -727,6 +776,189 @@ class _PodMetrics {
       minHeight: 60,
       detailIcon: 10,
       largeDetail: false,
+    );
+  }
+
+  // ------------------------------------------------------------- fill
+
+  /// Border budgeted on each side of a filled pod: the turn border (1 dp off
+  /// turn), so a filled pod keeps its size when the turn changes.
+  static const double _fillBorder = 2;
+
+  /// Largest avatar of a filled pod.
+  static const double maxFillAvatar = 96;
+
+  /// Tallest filled pod; a taller row leaves the rest around the board.
+  static const double maxFillHeight = 176;
+
+  /// Room a filled row pod keeps for the name beside a grown avatar.
+  static const double _fillNameRoom = 72;
+
+  /// Filled card: paddings, the gap above the name and the name's size.
+  static const double _fillCardPad = 8;
+  static const double _fillCardPadV = 5;
+  static const double _fillCardGap = 3;
+  static const double _fillCardName = 15;
+
+  /// Smallest avatar worth a filled card.
+  static const double _minFillCardAvatar = 36;
+
+  /// A pod filling [target] dp of height at [width]: a card (avatar row
+  /// above the full-width name) or a row (name beside the avatar),
+  /// whichever shows the larger avatar — on phones the card, since a row
+  /// pod's avatar is limited by its width. Ties go to the card, which shows
+  /// more of the name. The avatar grows with the height up to
+  /// [maxFillAvatar] (and what the width allows); text grows modestly.
+  /// Null when [target] is shorter than this width's row pod.
+  static ({_PodMetrics metrics, bool card, double height})? fill(
+    BuildContext context,
+    double width,
+    double target,
+  ) {
+    final height = math.min(target, maxFillHeight).floorToDouble();
+    final row = _fillRow(width, height);
+    if (row == null) return null;
+    final card = _fillCard(context, width, height);
+    if (card != null && card.avatar >= row.avatar) {
+      return (metrics: card, card: true, height: height);
+    }
+    return (metrics: row, card: false, height: height);
+  }
+
+  /// Row pod of this width's tier with the avatar grown into [height],
+  /// as long as the name keeps [_fillNameRoom].
+  static _PodMetrics? _fillRow(double width, double height) {
+    final t = forWidth(width);
+    final ring = height - 2 * _fillBorder - 2 * t.padVertical;
+    if (ring < t.avatar + t.ringGap) return null;
+    final column = t.side ? t.sideGap + _cardColumn : 0.0;
+    final byWidth =
+        width -
+        2 * _fillBorder -
+        t.padStart -
+        t.padEnd -
+        t.gap -
+        column -
+        _fillNameRoom -
+        t.ringGap;
+    final avatar = math
+        .max(
+          t.avatar,
+          math.min(math.min(ring - t.ringGap, byWidth), maxFillAvatar),
+        )
+        .floorToDouble();
+    // One step of name size per 16 dp of avatar growth, at most two.
+    final grown = ((avatar - t.avatar) / 16).floorToDouble().clamp(0.0, 2.0);
+    return _PodMetrics(
+      avatar: avatar,
+      ringGap: t.ringGap,
+      ringStroke: t.ringStroke,
+      nameFont: t.nameFont + grown,
+      padStart: t.padStart,
+      padEnd: t.padEnd,
+      padVertical: t.padVertical,
+      gap: t.gap,
+      dot: t.dot,
+      lineGap: t.lineGap,
+      minHeight: 0,
+      detailIcon: t.detailIcon,
+      largeDetail: t.largeDetail,
+      showCount: t.showCount,
+      side: t.side,
+      sideIcon: t.sideIcon,
+      sideSpacing: t.sideSpacing,
+      sideGap: t.sideGap,
+    );
+  }
+
+  /// Gap between a filled card's turn ring and its progress column.
+  static const double _fillCardSideGap = 4;
+
+  /// A filled card's avatar row box (ring) for a pod [height] — what is
+  /// left under the name line and paddings — and the turn-ring gap in it
+  /// (thinner around smaller avatars: 10 dp up to a 67 dp ring, 12 dp from
+  /// 80 dp; the stroke is a third of it).
+  static ({double ring, double ringGap}) _fillCardRing(
+    BuildContext context,
+    double height,
+  ) {
+    final nameLine = math.max(
+      10.0, // the seat dot
+      _lineHeight(
+        context,
+        context.textTheme.labelLarge?.copyWith(fontSize: _fillCardName),
+      ),
+    );
+    final ring =
+        height - 2 * _fillBorder - 2 * _fillCardPadV - _fillCardGap - nameLine;
+    return (ring: ring, ringGap: (ring * 0.15).clamp(10.0, 12.0));
+  }
+
+  /// A filled card's width besides its avatar: paddings, turn border,
+  /// ring gap and the progress column.
+  static double _fillCardChrome(double ringGap) =>
+      2 * _fillCardPad +
+      2 * _fillBorder +
+      _fillCardSideGap +
+      _cardColumn +
+      ringGap;
+
+  /// Width from which a card filling [target] dp of height shows its
+  /// largest avatar (wider pods only add empty space).
+  static double fillCardWidth(BuildContext context, double target) {
+    final r = _fillCardRing(
+      context,
+      math.min(target, maxFillHeight).floorToDouble(),
+    );
+    final avatar = math.min(r.ring - r.ringGap, maxFillAvatar).floorToDouble();
+    return avatar + _fillCardChrome(r.ringGap);
+  }
+
+  /// Card with the progress column beside an avatar that fills [height]
+  /// (above the name line); null when too narrow or short for one.
+  static _PodMetrics? _fillCard(
+    BuildContext context,
+    double width,
+    double height,
+  ) {
+    final (:ring, :ringGap) = _fillCardRing(context, height);
+    final byWidth = width - _fillCardChrome(ringGap);
+    final avatar = math
+        .min(math.min(ring - ringGap, byWidth), maxFillAvatar)
+        .floorToDouble();
+    if (avatar < _minFillCardAvatar) return null;
+    final cardRow = avatar + ringGap;
+    // Token marks fill the column; the "0/4" count stays while the marks
+    // keep 12 dp with it (screen readers always get the full progress).
+    const spacing = 2.0;
+    final countLine = math.max(
+      13.0,
+      _lineHeight(context, context.textTheme.labelMedium),
+    );
+    var icon = ((cardRow - 3 * spacing - 2 - countLine) / 4).floorToDouble();
+    final showCount = icon >= 12;
+    if (!showCount) icon = ((cardRow - 3 * spacing) / 4).floorToDouble();
+    return _PodMetrics(
+      avatar: avatar,
+      ringGap: ringGap,
+      ringStroke: ringGap / 3,
+      nameFont: _fillCardName,
+      padStart: _fillCardPad,
+      padEnd: _fillCardPad,
+      padVertical: _fillCardPadV,
+      gap: 0,
+      dot: 10,
+      // The card puts lineGap + 2 between the avatar row and the name.
+      lineGap: _fillCardGap - 2,
+      minHeight: 0,
+      detailIcon: 13,
+      largeDetail: true,
+      showCount: showCount,
+      side: true,
+      sideIcon: icon.clamp(8.0, 18.0),
+      sideSpacing: spacing,
+      sideGap: _fillCardSideGap,
+      cardRow: cardRow,
     );
   }
 
