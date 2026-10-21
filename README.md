@@ -44,6 +44,12 @@ A short Markdown companion is in [docs/architecture.md](docs/architecture.md).
   account; all-or-nothing flat entry fees (Ludo 100,000, Snakes & Ladders
   50,000); at-most-once payouts. The welcome grant and entry fees are set live
   in the per-environment app-policy file. Coins are virtual and non-redeemable.
+- **Coin packs (in-app purchases)**: four optional consumable packs in the
+  Shop's first category, bought through Google Play / the App Store and
+  verified by the backend with the store before coins and diamonds (amounts
+  from `backend/config/coin_packs.json`, never from the app) are credited
+  exactly once; refunds take them back. See
+  [docs/in-app-purchases.md](docs/in-app-purchases.md).
 - **Progression**: XP and 50 levels, daily/weekly missions and events,
   exactly-once reward claims, a cosmetic-only Collection Room, friends, invites
   and a weekly friends leaderboard. No loot boxes, no punitive streaks.
@@ -168,14 +174,15 @@ cd monitoring && promtool test rules prometheus/tests/alerts_test.yml
 
 | Project | Configuration |
 |---|---|
-| backend | Environment variables (template: `backend/.env.example`): `APP_ENV`, `HTTP_ADDR`, `METRICS_ADDR`, `PUBLIC_URL`, `TRUSTED_PROXY_HOPS`, `DATABASE_URL`, `REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_TLS`, `JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `ACTIVE_USER_KEY`, `GOOGLE_CLIENT_IDS`, `APPLE_AUDIENCES`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `APP_POLICY_FILE`, `APP_MAINTENANCE_FLAG_FILE`, gameplay timers and fallback fees (`TURN_SECONDS`, `ENTRY_FEE_LUDO`, …), WebSocket (`WS_COMPRESSION`, `WS_COMPRESSION_THRESHOLD`, `WS_OUTBOUND_QUEUE`, …), bots (`BOT_SERVICE_KEY_SHA256`, `BOT_PUBLIC_FILL_ENABLED`, `BOT_LOADTEST_ENABLED`, `BOT_PICTURE_SHARE`, …), profile-picture storage (`R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` — all four or none — and `ASSET_URL_TTL`). Policy and content files in `backend/config/`; the live entry fees (default Ludo 100,000 / Snakes & Ladders 50,000 coins) and welcome grant (default 1,000,000 coins, 50 diamonds) are `entryFees` / `welcome` in `backend/config/app-policy.<env>.json`, hot-reloaded without a restart (`ENTRY_FEE_*` / `WELCOME_*` are fallbacks). |
+| backend | Environment variables (template: `backend/.env.example`): `APP_ENV`, `HTTP_ADDR`, `METRICS_ADDR`, `PUBLIC_URL`, `TRUSTED_PROXY_HOPS`, `DATABASE_URL`, `REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_TLS`, `JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `ACTIVE_USER_KEY`, `GOOGLE_CLIENT_IDS`, `APPLE_AUDIENCES`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `APP_POLICY_FILE`, `APP_MAINTENANCE_FLAG_FILE`, gameplay timers and fallback fees (`TURN_SECONDS`, `ENTRY_FEE_LUDO`, …), WebSocket (`WS_COMPRESSION`, `WS_COMPRESSION_THRESHOLD`, `WS_OUTBOUND_QUEUE`, …), bots (`BOT_SERVICE_KEY_SHA256`, `BOT_PUBLIC_FILL_ENABLED`, `BOT_LOADTEST_ENABLED`, `BOT_PICTURE_SHARE`, …), profile-picture storage (`R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` — all four or none — and `ASSET_URL_TTL`), in-app purchase verification (`GOOGLE_PLAY_SERVICE_ACCOUNT_FILE`, `GOOGLE_PLAY_PACKAGE_NAME`, `APPLE_BUNDLE_ID`, `APPLE_IAP_KEY_ID` / `APPLE_IAP_ISSUER_ID` / `APPLE_IAP_KEY_FILE`, …; without them purchases answer 503 `iap_unavailable` — see [docs/in-app-purchases.md](docs/in-app-purchases.md)). Policy and content files in `backend/config/`; the live entry fees (default Ludo 100,000 / Snakes & Ladders 50,000 coins) and welcome grant (default 1,000,000 coins, 50 diamonds) are `entryFees` / `welcome` in `backend/config/app-policy.<env>.json`, hot-reloaded without a restart (`ENTRY_FEE_*` / `WELCOME_*` are fallbacks). |
 | frontend | `--dart-define`s: `API_BASE_URL`, `APP_ENV`, `GOOGLE_SERVER_CLIENT_ID`, `GOOGLE_IOS_CLIENT_ID`, `APPLE_SERVICE_ID`, `APPLE_REDIRECT_URI`, `FACEBOOK_ENABLED`; optional `--dart-define-from-file=config/firebase.json` (gitignored). |
 | bot-play | YAML in `bot-play/configs/` (`config.example.yaml`, `environments/*.yaml`, `loadtest.example.yaml`, `profiles.yaml`) + the `BOT_SERVICE_KEY` environment variable. |
 | monitoring | Environment variables (template: `monitoring/.env.example`): `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS`, `ENV_NAME`, `TZ_NAME`, `STATUS_INTERVAL`, `DAILY_REPORT_AT`, `REPORT_FORMAT`, `ALERT_FORMAT`, `ALERT_DEDUPE_WINDOW`, `PROM_URL`, `WEBHOOK_BEARER_TOKEN`, `PLAY_REPORTS_BUCKET`, `GA4_PROPERTY_ID`, `GOOGLE_APPLICATION_CREDENTIALS`, …; scrape targets in `monitoring/prometheus/targets/`, thresholds in `monitoring/prometheus/rules/thresholds.yml`, alert timing in `monitoring/alertmanager/alertmanager.yml`. |
 
 Secrets (`JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `ACTIVE_USER_KEY`,
 `FACEBOOK_APP_SECRET`, `R2_SECRET_ACCESS_KEY`, database/Redis passwords, `BOT_SERVICE_KEY`,
-`TELEGRAM_BOT_TOKEN`, Google service-account keys) come only
+`TELEGRAM_BOT_TOKEN`, Google service-account keys including the Google Play
+purchase-verification key, the App Store Connect API key `.p8`) come only
 from the environment or a secret manager — never from Git or the app. The full
 list with groups is in [the architecture page](docs/architecture.html#env-vars).
 
@@ -191,6 +198,7 @@ list with groups is in [the architecture page](docs/architecture.html#env-vars).
 | [docs/app-version-policy.md](docs/app-version-policy.md) | Force/optional update and maintenance |
 | [docs/progression.md](docs/progression.md) | XP, missions, Collection Room, social, analytics |
 | [docs/cosmetics-catalog.md](docs/cosmetics-catalog.md) | Cosmetic item ids |
+| [docs/in-app-purchases.md](docs/in-app-purchases.md) | Coin packs: store verification, refunds, Play Console / App Store Connect setup |
 | [docs/bot-play.md](docs/bot-play.md) | Bot service design and operations |
 | [docs/deployment.md](docs/deployment.md) | Local development and production checklist |
 | [docs/performance.md](docs/performance.md) | WebSocket compression and load-test measurements |
@@ -218,7 +226,24 @@ Pending:
 - **Release signing**: release keystore / Play App Signing SHA-1 and the
   matching Android OAuth client.
 - **Store listings**: App Store and Google Play; store URLs are empty, so the
-  app shows "not yet available in the store" on update prompts.
+  app shows "not yet available in the store" on update prompts. When filling
+  them in:
+  - **In-app purchases**: both listings must say **"Contains in-app
+    purchases"**. Products (consumable, same id on both stores): `coins_starter`
+    (₹199: 50 lakh coins + 5 diamonds), `coins_popular` (₹299: 80 lakh + 8),
+    `coins_great_value` (₹499: 1.5 crore + 100), `coins_best_value` (₹999:
+    3.5 crore + 250). Setup steps (product ids, consumable type, service
+    account, App Store Server Notifications URL, license testers / sandbox) are
+    in [docs/in-app-purchases.md](docs/in-app-purchases.md).
+  - **Google Play Data safety**: declare **Financial info → Purchase history**:
+    collected (only when a pack is bought; required for that purchase), not
+    shared, purposes *App functionality* and *Account management*,
+    encrypted in transit, deleted on account deletion. Payment card details are
+    handled by Google Play and are not collected by the app.
+  - **App Store App Privacy**: declare **Purchases → Purchase History**, linked
+    to the user, not used for tracking, purpose *App Functionality*.
+  - Keep the privacy policy (`website/ludo-royale/privacy/`) in step: it
+    describes the purchase record and refunds.
 - **Firebase Analytics**: DebugView verification on a real device.
 - **Production infrastructure**: load balancer, managed PostgreSQL/Redis,
   secrets and monitoring (target design in
