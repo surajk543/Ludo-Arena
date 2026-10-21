@@ -22,7 +22,7 @@ import 'settings_widgets.dart';
 
 /// Settings: appearance, language, sound/haptics/motion, quick chat, privacy
 /// (analytics consent), account (Save Progress, switch back to guest, sign
-/// out) and about (version, legal notices).
+/// out, delete account) and about (version, legal notices).
 ///
 /// Changing theme or language never touches the session, socket or a match.
 class SettingsScreen extends ConsumerWidget {
@@ -293,6 +293,14 @@ class SettingsScreen extends ConsumerWidget {
                           destructive: true,
                           onTap: () =>
                               AccountActions.confirmSignOut(context, ref),
+                        ),
+                        SettingsNavTile(
+                          icon: Icons.delete_forever_rounded,
+                          title: l10n.settingsDeleteAccount,
+                          subtitle: l10n.settingsDeleteAccountSubtitle,
+                          destructive: true,
+                          onTap: () =>
+                              AccountActions.confirmDeleteAccount(context, ref),
                         ),
                       ],
                     ),

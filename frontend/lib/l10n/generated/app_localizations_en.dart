@@ -54,6 +54,43 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account was signed in on another device.';
 
   @override
+  String get authAccountDeleted => 'Your account was deleted.';
+
+  @override
+  String get authDeleteAccountTitle => 'Delete your account?';
+
+  @override
+  String get authDeleteAccountIntro =>
+      'This permanently deletes your account and everything in it:';
+
+  @override
+  String get authDeleteAccountItemWallet => 'Coins and diamonds';
+
+  @override
+  String get authDeleteAccountItemProgress => 'Level, XP and missions';
+
+  @override
+  String get authDeleteAccountItemCollection => 'Collection Room items';
+
+  @override
+  String get authDeleteAccountItemFriends => 'Friends and friend requests';
+
+  @override
+  String get authDeleteAccountWarning =>
+      'This can\'t be undone. If you play again later, you\'ll start with a new account.';
+
+  @override
+  String get authDeleteAccountConfirmCheck =>
+      'I understand that my account and progress will be deleted forever.';
+
+  @override
+  String get authDeleteAccountConfirm => 'Delete account';
+
+  @override
+  String get authDeleteAccountFailed =>
+      'Your account was not deleted. Check your connection and try again.';
+
+  @override
   String get authChangeLanguage => 'Change language';
 
   @override
@@ -2806,6 +2843,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'Sign out';
+
+  @override
+  String get settingsDeleteAccount => 'Delete account';
+
+  @override
+  String get settingsDeleteAccountSubtitle =>
+      'Permanently delete your account and its data';
 
   @override
   String get settingsAbout => 'About';

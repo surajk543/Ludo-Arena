@@ -51,6 +51,50 @@
   "@authSignedInElsewhereBanner": {
     "description": "Login-screen banner after being signed out by a sign-in on another device."
   },
+  "authAccountDeleted": "Your account was deleted.",
+  "@authAccountDeleted": {
+    "description": "Login banner and toast after the account was deleted (Settings → Delete account)."
+  },
+  "authDeleteAccountTitle": "Delete your account?",
+  "@authDeleteAccountTitle": {
+    "description": "Delete-account confirmation dialog title."
+  },
+  "authDeleteAccountIntro": "This permanently deletes your account and everything in it:",
+  "@authDeleteAccountIntro": {
+    "description": "Delete-account dialog: introduces the list of what is deleted."
+  },
+  "authDeleteAccountItemWallet": "Coins and diamonds",
+  "@authDeleteAccountItemWallet": {
+    "description": "Delete-account dialog list item."
+  },
+  "authDeleteAccountItemProgress": "Level, XP and missions",
+  "@authDeleteAccountItemProgress": {
+    "description": "Delete-account dialog list item."
+  },
+  "authDeleteAccountItemCollection": "Collection Room items",
+  "@authDeleteAccountItemCollection": {
+    "description": "Delete-account dialog list item."
+  },
+  "authDeleteAccountItemFriends": "Friends and friend requests",
+  "@authDeleteAccountItemFriends": {
+    "description": "Delete-account dialog list item."
+  },
+  "authDeleteAccountWarning": "This can't be undone. If you play again later, you'll start with a new account.",
+  "@authDeleteAccountWarning": {
+    "description": "Delete-account dialog: irreversible warning."
+  },
+  "authDeleteAccountConfirmCheck": "I understand that my account and progress will be deleted forever.",
+  "@authDeleteAccountConfirmCheck": {
+    "description": "Delete-account dialog: checkbox the user must tick before deleting."
+  },
+  "authDeleteAccountConfirm": "Delete account",
+  "@authDeleteAccountConfirm": {
+    "description": "Delete-account dialog: destructive confirm button."
+  },
+  "authDeleteAccountFailed": "Your account was not deleted. Check your connection and try again.",
+  "@authDeleteAccountFailed": {
+    "description": "Delete-account dialog: inline error when the request failed (nothing was deleted)."
+  },
   "authChangeLanguage": "Change language",
   "@authChangeLanguage": {
     "description": "Button/tooltip to change the language on the login screen."

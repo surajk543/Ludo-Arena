@@ -179,3 +179,10 @@ abstract final class WsCloseCodes {
   /// server.
   static const heartbeatTimeout = 4000;
 }
+
+/// Close reasons the client acts on (§1). Other reasons are informational.
+abstract final class WsCloseReasons {
+  /// With 4401: the account was deleted (`DELETE /account`). Do not refresh
+  /// or reconnect, and do not show "signed in on another device".
+  static const accountDeleted = 'account deleted';
+}

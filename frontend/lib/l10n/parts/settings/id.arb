@@ -29,6 +29,8 @@
   "settingsSwitchToGuest": "Kembali ke akun tamu",
   "settingsSwitchToGuestSubtitle": "Kembali ke akun tamu yang tersimpan di perangkat ini",
   "settingsSignOut": "Keluar",
+  "settingsDeleteAccount": "Hapus akun",
+  "settingsDeleteAccountSubtitle": "Hapus akun dan datanya secara permanen",
   "settingsAbout": "Tentang",
   "settingsVersion": "Versi",
   "settingsLegalNotices": "Pemberitahuan hukum",

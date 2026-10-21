@@ -54,6 +54,43 @@ class AppLocalizationsUr extends AppLocalizations {
       'آپ کے اکاؤنٹ سے کسی دوسرے آلے پر سائن اِن کیا گیا۔';
 
   @override
+  String get authAccountDeleted => 'آپ کا اکاؤنٹ ڈیلیٹ کر دیا گیا۔';
+
+  @override
+  String get authDeleteAccountTitle => 'اپنا اکاؤنٹ ڈیلیٹ کریں؟';
+
+  @override
+  String get authDeleteAccountIntro =>
+      'اس سے آپ کا اکاؤنٹ اور اس میں موجود سب کچھ ہمیشہ کے لیے ڈیلیٹ ہو جائے گا:';
+
+  @override
+  String get authDeleteAccountItemWallet => 'سکے اور ہیرے';
+
+  @override
+  String get authDeleteAccountItemProgress => 'لیول، XP اور مشنز';
+
+  @override
+  String get authDeleteAccountItemCollection => 'کلیکشن روم کی اشیاء';
+
+  @override
+  String get authDeleteAccountItemFriends => 'دوست اور دوستی کی درخواستیں';
+
+  @override
+  String get authDeleteAccountWarning =>
+      'اسے واپس نہیں کیا جا سکتا۔ اگر آپ بعد میں دوبارہ کھیلیں گے تو نئے اکاؤنٹ سے شروعات ہوگی۔';
+
+  @override
+  String get authDeleteAccountConfirmCheck =>
+      'مجھے معلوم ہے کہ میرا اکاؤنٹ اور پیش رفت ہمیشہ کے لیے ڈیلیٹ ہو جائیں گے۔';
+
+  @override
+  String get authDeleteAccountConfirm => 'اکاؤنٹ ڈیلیٹ کریں';
+
+  @override
+  String get authDeleteAccountFailed =>
+      'آپ کا اکاؤنٹ ڈیلیٹ نہیں ہوا۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔';
+
+  @override
   String get authChangeLanguage => 'زبان بدلیں';
 
   @override
@@ -2807,6 +2844,13 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'سائن آؤٹ';
+
+  @override
+  String get settingsDeleteAccount => 'اکاؤنٹ ڈیلیٹ کریں';
+
+  @override
+  String get settingsDeleteAccountSubtitle =>
+      'اپنا اکاؤنٹ اور اس کا ڈیٹا ہمیشہ کے لیے ڈیلیٹ کریں';
 
   @override
   String get settingsAbout => 'ایپ کے بارے میں';
