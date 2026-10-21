@@ -112,7 +112,6 @@ type GameConfig struct {
 	PracticeBotWait         time.Duration
 	EntryFeeLudo            int64
 	EntryFeeSnakes          int64
-	DiceSeedForTests        int64 // non-zero only in tests: deterministic dice
 }
 
 // BotConfig configures the bot service boundary.
