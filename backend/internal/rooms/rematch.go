@@ -174,7 +174,7 @@ func (s *Service) publicRematch(ctx context.Context, oldRoomID, game, variant st
 			p.Forfeited, p.ForfeitWhy, p.Strikes, p.Actions, p.Connected = false, "", 0, 0, true
 		}
 		r := &Room{ID: newRoomID(), Game: game, Variant: variant, Mode: ModePrivate, Code: code,
-			Capacity: capacity, Status: StatusLobby, HostSeat: 0, EntryFee: s.entryFee(game), Round: 1,
+			Capacity: capacity, Status: StatusLobby, HostSeat: 0, EntryFee: s.EntryFee(game), Round: 1,
 			CreatedAt: now, Players: players}
 		_, err = s.create(ctx, r, func(m *mutation) error {
 			for _, p := range players {

@@ -182,8 +182,8 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
   "capacity": 4,
   "status": "playing",            // "lobby" | "playing" | "finished" | "closed"
   "hostSeat": 0,                  // private rooms; -1 for public
-  "entryFee": 1000,
-  "pot": 4000,
+  "entryFee": 100000,             // fixed when the room was created (live policy fee at that time)
+  "pot": 400000,
   "round": 1,                     // increments on each rematch in the same room
   "fillDeadline": 0,              // public lobby: unix ms when it starts/times out
   "players": [

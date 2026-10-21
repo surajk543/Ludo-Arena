@@ -1,5 +1,6 @@
 // Package apppolicy implements backend-controlled force update, optional
-// update and maintenance mode (docs/app-version-policy.md).
+// update and maintenance mode (docs/app-version-policy.md), plus live economy
+// settings: the coin entry fee per game and the new-account welcome grant.
 //
 // The policy is a validated JSON file per environment, reloaded atomically on
 // SIGHUP or when its modification time changes. An invalid file is rejected as
@@ -15,8 +16,34 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
+)
+
+// Game ids that accept an entry fee in the policy file (the protocol's game
+// ids).
+const (
+	GameLudo          = "ludo"
+	GameSnakesLadders = "snakes_ladders"
+)
+
+// MaxEntryFee is the largest accepted entry fee in coins (also the bound for
+// ENTRY_FEE_LUDO / ENTRY_FEE_SNAKES).
+const MaxEntryFee int64 = 100_000_000
+
+// Welcome grant keys and bounds (also the bounds for WELCOME_COINS /
+// WELCOME_DIAMONDS).
+const (
+	WelcomeCoins       = "coins"
+	WelcomeDiamonds    = "diamonds"
+	MaxWelcomeCoins    = int64(1_000_000_000)
+	MaxWelcomeDiamonds = int64(1_000_000)
+)
+
+var (
+	entryFeeBounds = map[string]int64{GameLudo: MaxEntryFee, GameSnakesLadders: MaxEntryFee}
+	welcomeBounds  = map[string]int64{WelcomeCoins: MaxWelcomeCoins, WelcomeDiamonds: MaxWelcomeDiamonds}
 )
 
 // Platform is a client platform.
@@ -108,6 +135,16 @@ type File struct {
 	Environment   string                    `json:"environment"`
 	Maintenance   GlobalMaintenance         `json:"maintenance"`
 	Platforms     map[string]PlatformPolicy `json:"platforms"`
+	// EntryFees optionally sets the coin entry fee per game id ("ludo",
+	// "snakes_ladders"). A game left out falls back to its ENTRY_FEE_*
+	// environment value, then the built-in default. A fee applies to rooms
+	// created after the policy is (re)loaded; existing rooms keep theirs.
+	EntryFees map[string]*int64 `json:"entryFees,omitempty"`
+	// Welcome optionally sets the one-time grant for new accounts ("coins",
+	// "diamonds"). A key left out falls back to WELCOME_COINS /
+	// WELCOME_DIAMONDS, then the built-in default. It applies to accounts
+	// created after the policy is (re)loaded; existing accounts never change.
+	Welcome map[string]*int64 `json:"welcome,omitempty"`
 }
 
 // GlobalMaintenance applies to every platform.
@@ -148,6 +185,8 @@ type compiled struct {
 	file      File
 	sha256    string
 	platforms map[Platform]compiledPlatform
+	entryFees map[string]int64 // only the games the file sets
+	welcome   map[string]int64 // only the keys the file sets
 }
 
 type compiledPlatform struct {
@@ -187,7 +226,10 @@ func Parse(raw []byte, env string) (*compiled, error) {
 			errs = append(errs, err)
 		}
 	}
-	c := &compiled{file: f, platforms: map[Platform]compiledPlatform{}}
+	c := &compiled{file: f, platforms: map[Platform]compiledPlatform{},
+		entryFees: map[string]int64{}, welcome: map[string]int64{}}
+	errs = append(errs, parseAmounts("entryFees", f.EntryFees, entryFeeBounds, c.entryFees)...)
+	errs = append(errs, parseAmounts("welcome", f.Welcome, welcomeBounds, c.welcome)...)
 	for name := range f.Platforms {
 		if _, ok := ParsePlatform(name); !ok || name != strings.ToLower(name) {
 			errs = append(errs, fmt.Errorf("platforms: unknown platform %q", name))
@@ -237,6 +279,39 @@ func Parse(raw []byte, env string) (*compiled, error) {
 	sum := sha256.Sum256(raw)
 	c.sha256 = hex.EncodeToString(sum[:])
 	return c, nil
+}
+
+// parseAmounts validates an optional object of whole-number amounts (entry
+// fees, welcome grant) into out. Keys must appear in bounds and each value
+// must be an integer in 0..bounds[key]; fractions, strings, exponents and
+// int64 overflow already fail to decode.
+func parseAmounts(field string, in map[string]*int64, bounds map[string]int64, out map[string]int64) []error {
+	keys := make([]string, 0, len(in))
+	for k := range in {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys) // deterministic error order
+	allowed := make([]string, 0, len(bounds))
+	for k := range bounds {
+		allowed = append(allowed, k)
+	}
+	sort.Strings(allowed)
+	var errs []error
+	for _, k := range keys {
+		v := in[k]
+		limit, known := bounds[k]
+		switch {
+		case !known:
+			errs = append(errs, fmt.Errorf("%s: unknown key %q (allowed: %s)", field, k, strings.Join(allowed, ", ")))
+		case v == nil:
+			errs = append(errs, fmt.Errorf("%s.%s must be an integer", field, k))
+		case *v < 0 || *v > limit:
+			errs = append(errs, fmt.Errorf("%s.%s must be between 0 and %d", field, k, limit))
+		default:
+			out[k] = *v
+		}
+	}
+	return errs
 }
 
 // validateStoreURL requires an official store host for the platform, or empty

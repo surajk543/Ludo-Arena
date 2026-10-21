@@ -26,15 +26,17 @@ type msg struct {
 // roomState is the client-side reconstruction of a room (mirrors the Flutter
 // reducer contract in docs/websocket-protocol.md §3 and §6).
 type roomState struct {
-	ID      string `json:"id"`
-	V       int64  `json:"v"`
-	Game    string `json:"game"`
-	Variant string `json:"variant"`
-	Mode    string `json:"mode"`
-	Code    string `json:"code"`
-	Status  string `json:"status"`
-	Round   int    `json:"round"`
-	Players []struct {
+	ID       string `json:"id"`
+	V        int64  `json:"v"`
+	Game     string `json:"game"`
+	Variant  string `json:"variant"`
+	Mode     string `json:"mode"`
+	Code     string `json:"code"`
+	Status   string `json:"status"`
+	Round    int    `json:"round"`
+	EntryFee int64  `json:"entryFee"`
+	Pot      int64  `json:"pot"`
+	Players  []struct {
 		Seat      int    `json:"seat"`
 		UID       string `json:"uid"`
 		Bot       bool   `json:"bot"`

@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"ludoroyale/internal/apppolicy"
 )
 
 // Environment names accepted by APP_ENV.
@@ -110,9 +112,19 @@ type GameConfig struct {
 	LobbyTTL                time.Duration
 	FinishedTTL             time.Duration
 	PracticeBotWait         time.Duration
-	EntryFeeLudo            int64
-	EntryFeeSnakes          int64
+	// EntryFeeLudo / EntryFeeSnakes are the fallback entry fees (ENTRY_FEE_*
+	// or the built-in defaults). An "entryFees" value in the app-policy file
+	// overrides them live; read the effective fee via rooms.Service.EntryFee.
+	EntryFeeLudo   int64
+	EntryFeeSnakes int64
 }
+
+// Built-in entry fee defaults in coins, used when neither the app-policy file
+// nor ENTRY_FEE_LUDO / ENTRY_FEE_SNAKES set a value.
+const (
+	DefaultEntryFeeLudo   int64 = 100_000
+	DefaultEntryFeeSnakes int64 = 50_000
+)
 
 // BotConfig configures the bot service boundary.
 type BotConfig struct {
@@ -124,11 +136,20 @@ type BotConfig struct {
 	AssignmentTTL     time.Duration
 }
 
-// WalletConfig configures the welcome grant.
+// WalletConfig configures the welcome grant fallbacks (WELCOME_* or the
+// built-in defaults). A "welcome" object in the app-policy file overrides
+// them live for accounts created afterwards.
 type WalletConfig struct {
 	WelcomeCoins    int64
 	WelcomeDiamonds int64
 }
+
+// Built-in welcome grant defaults, used when neither the app-policy file nor
+// WELCOME_COINS / WELCOME_DIAMONDS set a value.
+const (
+	DefaultWelcomeCoins    int64 = 1_000_000
+	DefaultWelcomeDiamonds int64 = 50
+)
 
 // TelemetryConfig configures pseudonymous aggregate analytics.
 type TelemetryConfig struct {
@@ -298,11 +319,19 @@ func Load() (*Config, error) {
 		LobbyTTL:                getDur("LOBBY_TTL", 30*time.Minute),
 		FinishedTTL:             getDur("FINISHED_ROOM_TTL", 10*time.Minute),
 		PracticeBotWait:         getDur("PRACTICE_BOT_WAIT_SECONDS", 20*time.Second),
-		EntryFeeLudo:            int64(getInt("ENTRY_FEE_LUDO", 1000)),
-		EntryFeeSnakes:          int64(getInt("ENTRY_FEE_SNAKES", 500)),
+		EntryFeeLudo:            int64(getInt("ENTRY_FEE_LUDO", int(DefaultEntryFeeLudo))),
+		EntryFeeSnakes:          int64(getInt("ENTRY_FEE_SNAKES", int(DefaultEntryFeeSnakes))),
 	}
-	if c.Game.EntryFeeLudo < 0 || c.Game.EntryFeeSnakes < 0 || c.Game.MaxStrikes < 1 {
-		errs = append(errs, errors.New("entry fees must be >= 0 and MAX_STRIKES >= 1"))
+	for _, f := range []struct {
+		key string
+		fee int64
+	}{{"ENTRY_FEE_LUDO", c.Game.EntryFeeLudo}, {"ENTRY_FEE_SNAKES", c.Game.EntryFeeSnakes}} {
+		if f.fee < 0 || f.fee > apppolicy.MaxEntryFee {
+			errs = append(errs, fmt.Errorf("%s must be between 0 and %d", f.key, apppolicy.MaxEntryFee))
+		}
+	}
+	if c.Game.MaxStrikes < 1 {
+		errs = append(errs, errors.New("MAX_STRIKES must be >= 1"))
 	}
 
 	var botKey []byte
@@ -329,8 +358,14 @@ func Load() (*Config, error) {
 	}
 
 	c.Wallet = WalletConfig{
-		WelcomeCoins:    int64(getInt("WELCOME_COINS", 1_000_000)),
-		WelcomeDiamonds: int64(getInt("WELCOME_DIAMONDS", 50)),
+		WelcomeCoins:    int64(getInt("WELCOME_COINS", int(DefaultWelcomeCoins))),
+		WelcomeDiamonds: int64(getInt("WELCOME_DIAMONDS", int(DefaultWelcomeDiamonds))),
+	}
+	if c.Wallet.WelcomeCoins < 0 || c.Wallet.WelcomeCoins > apppolicy.MaxWelcomeCoins {
+		errs = append(errs, fmt.Errorf("WELCOME_COINS must be between 0 and %d", apppolicy.MaxWelcomeCoins))
+	}
+	if c.Wallet.WelcomeDiamonds < 0 || c.Wallet.WelcomeDiamonds > apppolicy.MaxWelcomeDiamonds {
+		errs = append(errs, fmt.Errorf("WELCOME_DIAMONDS must be between 0 and %d", apppolicy.MaxWelcomeDiamonds))
 	}
 	c.Telemetry = TelemetryConfig{ActiveUserKey: []byte(get("ACTIVE_USER_KEY", publicIDKey))}
 

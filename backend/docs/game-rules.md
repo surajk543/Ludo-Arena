@@ -215,10 +215,28 @@ So row 0 (bottom) reads 1→10 left to right, the next row 11→20 right to left
 
 ## Coins (entry fee and payout)
 
-- Each game charges every seated player the configured entry fee when the game
-  starts (`ENTRY_FEE_LUDO`, default 1,000 coins; `ENTRY_FEE_SNAKES`, default
-  500 coins). The debit for all players happens in one PostgreSQL transaction
-  (all or nothing). Players without enough coins cannot join.
+- Each game charges every seated player the same flat entry fee when the game
+  starts: **Ludo 100,000 coins** and **Snakes & Ladders 50,000 coins** by
+  default. The debit for all players happens in one PostgreSQL transaction
+  (all or nothing). Players without enough coins cannot join or create a room
+  (`insufficient_funds`); the 1,000,000-coin welcome grant covers the fee.
+- **Configuring the fee.** The fee is read live, in this order:
+  1. `entryFees` in the per-environment app-policy file (`APP_POLICY_FILE`,
+     e.g. `{"ludo": 100000, "snakes_ladders": 50000}`), hot-reloaded on
+     `SIGHUP` or file change without a restart
+     (see `docs/app-version-policy.md`);
+  2. `ENTRY_FEE_LUDO` / `ENTRY_FEE_SNAKES` (environment, read at startup);
+  3. the built-in defaults (100,000 / 50,000).
+  Values are whole coins in `0..100,000,000`. `GET /api/v1/app/config`
+  reports the live values (`entryFees`).
+- **A room keeps the fee it was created with** (`entryFee` in the room
+  snapshot) for all of its rounds, including private-room rematches. A fee
+  change applies to rooms created afterwards (public lobbies, private rooms
+  and the new room of a public rematch). Public matchmaking only seats a player
+  in an open lobby whose fee equals the current fee; older lobbies keep their
+  players and fee until they start or time out.
+- Practice rooms, rooms with a bot seat and load-test rooms are free (fee 0,
+  no payout), whatever the configured fee.
 - The winner receives the whole pot (`entryFee × players`).
 - Coins are virtual and non-redeemable. There is no real-money wagering.
 - Settlement is **at-most-once**, guarded by a Redis idempotency key per game.

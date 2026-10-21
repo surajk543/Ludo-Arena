@@ -94,7 +94,13 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	if ext.Progression == nil {
 		ext.Progression = playerinfo.StarterProvider{}
 	}
-	ids := identity.NewStore(core.PG, identity.Welcome{Coins: cfg.Wallet.WelcomeCoins, Diamonds: cfg.Wallet.WelcomeDiamonds})
+	// The welcome grant is live: app-policy "welcome" > WELCOME_* > default,
+	// read when each account is created (never re-applied to old accounts).
+	welcome := func() identity.Welcome {
+		coins, diamonds := policy.Welcome(cfg.Wallet.WelcomeCoins, cfg.Wallet.WelcomeDiamonds)
+		return identity.Welcome{Coins: coins, Diamonds: diamonds}
+	}
+	ids := identity.NewStoreWithGrant(core.PG, welcome)
 	signer := auth.NewSigner(cfg.Auth.JWTSigningKey, cfg.Auth.JWTIssuer)
 	sessions := auth.NewSessions(core.RDB, cfg.Auth.RefreshTokenTTL)
 	verifier := auth.NewVerifier(ctx, auth.ProviderConfig{
@@ -129,11 +135,13 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	acct := &httpapi.Account{Log: log, Auth: authSvc, IDs: ids, Profiles: core.Profiles,
 		Progression: ext.Progression, Policy: policy, Env: cfg.Env,
 		Extra: func() map[string]any {
+			// Entry fees and the welcome grant are live (app policy, per request).
+			w := welcome()
 			return map[string]any{
 				"rulesVersion": 1, "protocolVersion": protocol.Version,
-				"entryFees":   map[string]int64{"ludo": cfg.Game.EntryFeeLudo, "snakes_ladders": cfg.Game.EntryFeeSnakes},
+				"entryFees":   roomSvc.EntryFees(),
 				"turnSeconds": int(cfg.Game.TurnTimeout.Seconds()),
-				"welcome":     map[string]int64{"coins": cfg.Wallet.WelcomeCoins, "diamonds": cfg.Wallet.WelcomeDiamonds},
+				"welcome":     map[string]int64{"coins": w.Coins, "diamonds": w.Diamonds},
 			}
 		}}
 	acct.Register(rt)

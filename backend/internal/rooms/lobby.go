@@ -52,11 +52,25 @@ func validGame(game, variant string, capacity int) error {
 	return nil
 }
 
-func (s *Service) entryFee(game string) int64 {
+// EntryFee is the live coin entry fee for a new room (or public rematch room)
+// of game. Precedence: the app-policy file's "entryFees" (hot-reloaded) >
+// ENTRY_FEE_* > built-in default. A room stores the fee it was created with
+// (Room.EntryFee) for all of its rounds, so a policy change never alters rooms
+// that already exist. Practice, bot and load-test games stay free (startGame).
+func (s *Service) EntryFee(game string) int64 {
+	fallback := s.Game.EntryFeeLudo
 	if game == GameSnakes {
-		return s.Game.EntryFeeSnakes
+		fallback = s.Game.EntryFeeSnakes
 	}
-	return s.Game.EntryFeeLudo
+	if s.Policy == nil {
+		return fallback
+	}
+	return s.Policy.EntryFee(game, fallback)
+}
+
+// EntryFees returns the live entry fee of every game (GET /app/config).
+func (s *Service) EntryFees() map[string]int64 {
+	return map[string]int64{GameLudo: s.EntryFee(GameLudo), GameSnakes: s.EntryFee(GameSnakes)}
 }
 
 // playerFor builds a seat for a human from profile + progression data.
@@ -148,7 +162,7 @@ func (s *Service) MatchmakingJoin(ctx context.Context, c Caller, game, variant s
 	if c.LoadTest {
 		pool = "loadtest"
 	}
-	fee := s.entryFee(game)
+	fee := s.EntryFee(game)
 	if c.LoadTest {
 		fee = 0
 	}
@@ -172,6 +186,11 @@ func (s *Service) MatchmakingJoin(ctx context.Context, c Caller, game, variant s
 			}
 			if r.SeatOf(c.UserID) >= 0 {
 				return nil
+			}
+			if r.EntryFee != fee {
+				// Opened before an entry-fee change: the caller was checked
+				// (and shown) the current fee, so only join lobbies at it.
+				return errSkip
 			}
 			r.Players = append(r.Players, me)
 			m.setPointer(c.UserID)
@@ -381,7 +400,7 @@ func (s *Service) CreatePrivate(ctx context.Context, c Caller, game, variant str
 	if err := s.ensureFree(ctx, c.UserID); err != nil {
 		return nil, err
 	}
-	fee := s.entryFee(game)
+	fee := s.EntryFee(game)
 	if err := s.checkFunds(ctx, c, fee); err != nil {
 		return nil, err
 	}

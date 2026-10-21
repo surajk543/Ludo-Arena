@@ -61,11 +61,17 @@ type Account struct {
 // Store accesses identity.auth_identities.
 type Store struct {
 	pool    *pgxpool.Pool
-	welcome Welcome
+	welcome func() Welcome // read once per account creation (live config)
 }
 
-// NewStore returns a Store.
+// NewStore returns a Store with a fixed welcome grant.
 func NewStore(pool *pgxpool.Pool, welcome Welcome) *Store {
+	return NewStoreWithGrant(pool, func() Welcome { return welcome })
+}
+
+// NewStoreWithGrant returns a Store whose welcome grant is looked up when each
+// account is created, so a live config change applies to later accounts only.
+func NewStoreWithGrant(pool *pgxpool.Pool, welcome func() Welcome) *Store {
 	return &Store{pool: pool, welcome: welcome}
 }
 
@@ -92,13 +98,14 @@ func (s *Store) FindOrCreate(ctx context.Context, provider, subject string) (Acc
 	}
 
 	newID := uuid.New()
-	created, err := s.createAccount(ctx, newID, provider, subject)
+	grant := s.welcome()
+	created, err := s.createAccount(ctx, newID, provider, subject, grant)
 	if err != nil {
 		return Account{}, err
 	}
 	if created {
 		return Account{UserID: newID, Created: true,
-			Wallet: wallet.Wallet{Coins: s.welcome.Coins, Diamonds: s.welcome.Diamonds}}, nil
+			Wallet: wallet.Wallet{Coins: grant.Coins, Diamonds: grant.Diamonds}}, nil
 	}
 	// A concurrent request created the account first; use it.
 	id, err := s.Lookup(ctx, provider, subject)
@@ -111,13 +118,13 @@ func (s *Store) FindOrCreate(ctx context.Context, provider, subject string) (Acc
 
 // createAccount inserts wallet + identity atomically. It returns false (and
 // rolls back, discarding the wallet) when the identity already exists.
-func (s *Store) createAccount(ctx context.Context, id uuid.UUID, provider, subject string) (bool, error) {
+func (s *Store) createAccount(ctx context.Context, id uuid.UUID, provider, subject string, grant Welcome) (bool, error) {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return false, err
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
-	if err := wallet.ProvisionTx(ctx, tx, id, s.welcome.Coins, s.welcome.Diamonds); err != nil {
+	if err := wallet.ProvisionTx(ctx, tx, id, grant.Coins, grant.Diamonds); err != nil {
 		return false, err
 	}
 	var owner uuid.UUID

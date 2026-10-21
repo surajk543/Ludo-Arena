@@ -14,7 +14,7 @@ const _preview = RoomPreview(
   capacity: 4,
   players: 2,
   status: RoomStatuses.lobby,
-  entryFee: 1000,
+  entryFee: 100000,
   hostName: 'Asha',
 );
 
@@ -114,7 +114,7 @@ void main() {
           capacity: 4,
           players: players,
           status: status,
-          entryFee: 500,
+          entryFee: 50000,
           hostName: 'Asha',
         ),
       );

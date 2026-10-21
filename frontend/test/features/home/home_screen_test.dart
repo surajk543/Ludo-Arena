@@ -95,7 +95,7 @@ void main() {
     await tester.tap(find.text('2 players'));
     await tester.tap(find.text('Quick'));
     await tester.pump();
-    expect(find.textContaining('Entry fee 1,000 coins'), findsOneWidget);
+    expect(find.textContaining('Entry fee 1 Lakh coins'), findsOneWidget);
     await tester.tap(find.text('Find match'));
     await tester.pumpAndSettle();
     expect(

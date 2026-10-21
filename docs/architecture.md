@@ -67,12 +67,17 @@ these are the exact guarantees and failure windows
 
 | Operation | Guarantee | Mechanism | Known failure window |
 |---|---|---|---|
-| Welcome grant (1,000,000 coins, 50 diamonds) | Exactly once per account | Wallet and identity row inserted in one transaction; the `(provider, subject)` primary key serializes concurrent first sign-ins. Refresh, reconnect, guest resume and linking never grant again. | None known |
+| Welcome grant (default 1,000,000 coins, 50 diamonds; live from `welcome` in the app-policy file) | Exactly once per account | Amounts read once per new account; wallet and identity row inserted in one transaction; the `(provider, subject)` primary key serializes concurrent first sign-ins. Refresh, reconnect, guest resume and linking never grant again; a config change never alters existing wallets. | None known |
 | Entry fees | All players charged or none; at most once per room round | `wallet.DebitAll` (one transaction, `SELECT … FOR UPDATE`); guard key `settle:fee:{room}:{round}` (24 h) taken with `SETNX` first; if the lobby changed before the room switched to playing, every charged player is credited back (`entry_fee_refund`) | If the process dies after the debit commits but before the room commit, the in-process refund does not run and is not retried; the guard key prevents a second charge. A failed refund credit is logged and counted in `wallet_settlement_failures_total{op="refund"}` but not retried. Neither case is repaired automatically (by design there is no ledger to reconcile against). |
 | Payout (pot to the winner) | At most once — never twice | Scheduler job claims `settle:pay:{room}:{round}` with `SETNX` (7 d) **before** the PostgreSQL credit; on a credit error the claim is released and the job retried (attempt × 5 s, at most 10) | A crash between the claim and the PostgreSQL commit loses that payout (it is not retried). |
 | Mission claims, purchases | Exactly once | Claim or inventory row and the wallet change in the same transaction (primary key); `Idempotency-Key` replays the stored response | None known |
 | Maintenance | No settlement while active | Turn and fill timers are pushed forward; no auto-moves, forfeits, payouts or debits | — |
 
+Entry fees are flat per player — **Ludo 100,000 coins, Snakes & Ladders
+50,000 coins** by default — and are set live by `entryFees` in the
+per-environment app-policy file (hot-reloaded; `ENTRY_FEE_*` and the built-in
+defaults are fallbacks). A room keeps the fee it was created with, so a change
+only applies to new rooms (`docs/app-version-policy.md` → Entry fees).
 Rooms with a bot seat, practice rooms and load-test rooms charge **no entry
 fee and pay no coins**. Coins and diamonds are virtual and non-redeemable.
 

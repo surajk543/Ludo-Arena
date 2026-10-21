@@ -1,6 +1,7 @@
 package apppolicy
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -325,8 +326,282 @@ func TestShippedPolicyFilesAreValid(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err := Parse(raw, env); err != nil {
+		c, err := Parse(raw, env)
+		if err != nil {
 			t.Errorf("%s policy invalid: %v", env, err)
+			continue
 		}
+		// The shipped entry fees: Ludo 100,000 and Snakes & Ladders 50,000 coins.
+		if c.entryFees[GameLudo] != 100_000 || c.entryFees[GameSnakesLadders] != 50_000 || len(c.entryFees) != 2 {
+			t.Errorf("%s entry fees = %v, want ludo 100000, snakes_ladders 50000", env, c.entryFees)
+		}
+		// The shipped welcome grant: 10 lakh (1,000,000) coins and 50 diamonds.
+		if c.welcome[WelcomeCoins] != 1_000_000 || c.welcome[WelcomeDiamonds] != 50 || len(c.welcome) != 2 {
+			t.Errorf("%s welcome = %v, want coins 1000000, diamonds 50", env, c.welcome)
+		}
+	}
+}
+
+// fallbackFees stands in for ENTRY_FEE_* / the built-in defaults.
+var fallbackFees = map[string]int64{GameLudo: 1_111, GameSnakesLadders: 2_222}
+
+func TestEntryFeesFromPolicyFile(t *testing.T) {
+	p := basePolicy()
+	p["entryFees"] = map[string]any{"ludo": 100_000, "snakes_ladders": 50_000}
+	s, _ := newStore(t, p)
+	if got := s.EntryFee(GameLudo, 1); got != 100_000 {
+		t.Fatalf("ludo fee = %d", got)
+	}
+	if got := s.EntryFee(GameSnakesLadders, 1); got != 50_000 {
+		t.Fatalf("snakes fee = %d", got)
+	}
+	got := s.EntryFees(fallbackFees)
+	if len(got) != 2 || got[GameLudo] != 100_000 || got[GameSnakesLadders] != 50_000 {
+		t.Fatalf("EntryFees = %v", got)
+	}
+	// The result is a copy: callers cannot mutate the live policy.
+	got[GameLudo] = 1
+	if s.EntryFee(GameLudo, 0) != 100_000 {
+		t.Fatal("EntryFees result aliases the policy")
+	}
+}
+
+func TestEntryFeesPrecedence(t *testing.T) {
+	cases := []struct {
+		name       string
+		fees       any // nil: no entryFees object
+		ludo, snkl int64
+	}{
+		{"absent: fallback for both", nil, 1_111, 2_222},
+		{"empty object: fallback for both", map[string]any{}, 1_111, 2_222},
+		{"only ludo set", map[string]any{"ludo": 70_000}, 70_000, 2_222},
+		{"only snakes set", map[string]any{"snakes_ladders": 30_000}, 1_111, 30_000},
+		{"zero is a real fee (free), not unset", map[string]any{"ludo": 0, "snakes_ladders": 0}, 0, 0},
+		{"maximum accepted", map[string]any{"ludo": MaxEntryFee}, MaxEntryFee, 2_222},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			p := basePolicy()
+			if c.fees != nil {
+				p["entryFees"] = c.fees
+			}
+			s, _ := newStore(t, p)
+			got := s.EntryFees(fallbackFees)
+			if got[GameLudo] != c.ludo || got[GameSnakesLadders] != c.snkl {
+				t.Fatalf("fees = %v, want ludo %d snakes %d", got, c.ludo, c.snkl)
+			}
+		})
+	}
+}
+
+func TestEntryFeesValidation(t *testing.T) {
+	bad := map[string]string{
+		"unknown game":     `{"ludo": 50000, "chess": 10}`,
+		"game id casing":   `{"Ludo": 50000}`,
+		"negative":         `{"ludo": -1}`,
+		"above maximum":    `{"snakes_ladders": 100000001}`,
+		"fraction":         `{"ludo": 50000.5}`,
+		"exponent":         `{"ludo": 5e4}`,
+		"string":           `{"ludo": "50000"}`,
+		"null":             `{"ludo": null}`,
+		"int64 overflow":   `{"ludo": 99999999999999999999}`,
+		"not an object":    `[100000, 50000]`,
+		"number as object": `50000`,
+	}
+	withFees := func(t *testing.T, fees string) []byte {
+		t.Helper()
+		raw, _ := json.Marshal(basePolicy())
+		out := strings.Replace(string(raw), `"configVersion":7`, `"configVersion":7,"entryFees":`+fees, 1)
+		if out == string(raw) {
+			t.Fatal("test setup: entryFees not injected")
+		}
+		return []byte(out)
+	}
+	// Control: the same injection with valid fees parses.
+	if _, err := Parse(withFees(t, `{"ludo": 50000, "snakes_ladders": 0}`), "production"); err != nil {
+		t.Fatalf("valid entryFees rejected: %v", err)
+	}
+	for name, fees := range bad {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Parse(withFees(t, fees), "production"); err == nil {
+				t.Fatalf("invalid entryFees %s accepted", fees)
+			}
+		})
+	}
+}
+
+func TestEntryFeesInvalidReloadKeepsPreviousFees(t *testing.T) {
+	p := basePolicy()
+	p["entryFees"] = map[string]any{"ludo": 100_000, "snakes_ladders": 50_000}
+	s, dir := newStore(t, p)
+
+	// A bad fee rejects the whole file: the previous fees (and the rest of the
+	// policy) stay active.
+	p["configVersion"] = 8
+	p["entryFees"] = map[string]any{"ludo": -5, "snakes_ladders": 30_000}
+	writePolicy(t, dir, p)
+	if err := s.Reload(); err == nil || !strings.Contains(err.Error(), "entryFees.ludo") {
+		t.Fatalf("expected an entryFees.ludo error, got %v", err)
+	}
+	if s.EntryFee(GameLudo, 1) != 100_000 || s.EntryFee(GameSnakesLadders, 1) != 50_000 {
+		t.Fatalf("previous fees not kept: %v", s.EntryFees(fallbackFees))
+	}
+	if d := s.Evaluate(client(t, "android", "1.4.0", "140"), "en"); d.ConfigVersion != 7 {
+		t.Fatalf("previous policy not kept: configVersion %d", d.ConfigVersion)
+	}
+
+	// A valid change applies on the next reload, without a restart.
+	p["configVersion"] = 9
+	p["entryFees"] = map[string]any{"ludo": 75_000, "snakes_ladders": 30_000}
+	writePolicy(t, dir, p)
+	if err := s.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if s.EntryFee(GameLudo, 1) != 75_000 || s.EntryFee(GameSnakesLadders, 1) != 30_000 {
+		t.Fatalf("new fees not applied: %v", s.EntryFees(fallbackFees))
+	}
+
+	// Removing the object falls back to ENTRY_FEE_* / the built-in defaults.
+	delete(p, "entryFees")
+	writePolicy(t, dir, p)
+	if err := s.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if got := s.EntryFees(fallbackFees); got[GameLudo] != 1_111 || got[GameSnakesLadders] != 2_222 {
+		t.Fatalf("fallback not used after removal: %v", got)
+	}
+}
+
+func TestEntryFeesHotReloadByPolling(t *testing.T) {
+	p := basePolicy()
+	p["entryFees"] = map[string]any{"ludo": 100_000, "snakes_ladders": 50_000}
+	s, dir := newStore(t, p)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go s.Run(ctx, 10*time.Millisecond)
+
+	p["configVersion"] = 8
+	p["entryFees"] = map[string]any{"ludo": 60_000, "snakes_ladders": 35_000}
+	path := writePolicy(t, dir, p)
+	// Make the modification time differ even on coarse-grained filesystems.
+	future := time.Now().Add(2 * time.Second)
+	if err := os.Chtimes(path, future, future); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for s.EntryFee(GameLudo, 0) != 60_000 || s.EntryFee(GameSnakesLadders, 0) != 35_000 {
+		if time.Now().After(deadline) {
+			t.Fatalf("fees not hot-reloaded: %v", s.EntryFees(fallbackFees))
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
+
+func TestWelcomePrecedence(t *testing.T) {
+	const fbCoins, fbDiamonds = 7_777, 7 // stand-ins for WELCOME_* / defaults
+	cases := []struct {
+		name            string
+		welcome         any // nil: no welcome object
+		coins, diamonds int64
+	}{
+		{"absent: fallback for both", nil, fbCoins, fbDiamonds},
+		{"empty object: fallback for both", map[string]any{}, fbCoins, fbDiamonds},
+		{"both set", map[string]any{"coins": 1_000_000, "diamonds": 50}, 1_000_000, 50},
+		{"only coins set", map[string]any{"coins": 2_000_000}, 2_000_000, fbDiamonds},
+		{"only diamonds set", map[string]any{"diamonds": 75}, fbCoins, 75},
+		{"zero is a real grant, not unset", map[string]any{"coins": 0, "diamonds": 0}, 0, 0},
+		{"maximums accepted", map[string]any{"coins": MaxWelcomeCoins, "diamonds": MaxWelcomeDiamonds}, MaxWelcomeCoins, MaxWelcomeDiamonds},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			p := basePolicy()
+			if c.welcome != nil {
+				p["welcome"] = c.welcome
+			}
+			s, _ := newStore(t, p)
+			if coins, diamonds := s.Welcome(fbCoins, fbDiamonds); coins != c.coins || diamonds != c.diamonds {
+				t.Fatalf("welcome = %d coins / %d diamonds, want %d / %d", coins, diamonds, c.coins, c.diamonds)
+			}
+		})
+	}
+}
+
+func TestWelcomeValidation(t *testing.T) {
+	bad := map[string]string{
+		"unknown key":        `{"coins": 1000000, "gems": 5}`,
+		"key casing":         `{"Coins": 1000000}`,
+		"negative coins":     `{"coins": -1}`,
+		"negative diamonds":  `{"diamonds": -1}`,
+		"coins above max":    `{"coins": 1000000001}`,
+		"diamonds above max": `{"diamonds": 1000001}`,
+		"fraction":           `{"coins": 1000000.5}`,
+		"exponent":           `{"coins": 1e6}`,
+		"string":             `{"diamonds": "50"}`,
+		"null":               `{"coins": null}`,
+		"not an object":      `[1000000, 50]`,
+	}
+	withWelcome := func(t *testing.T, w string) []byte {
+		t.Helper()
+		raw, _ := json.Marshal(basePolicy())
+		out := strings.Replace(string(raw), `"configVersion":7`, `"configVersion":7,"welcome":`+w, 1)
+		if out == string(raw) {
+			t.Fatal("test setup: welcome not injected")
+		}
+		return []byte(out)
+	}
+	if _, err := Parse(withWelcome(t, `{"coins": 1000000, "diamonds": 50}`), "production"); err != nil {
+		t.Fatalf("valid welcome rejected: %v", err)
+	}
+	for name, w := range bad {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Parse(withWelcome(t, w), "production"); err == nil {
+				t.Fatalf("invalid welcome %s accepted", w)
+			}
+		})
+	}
+}
+
+func TestWelcomeReloadKeepsLastGoodAndHotReloads(t *testing.T) {
+	p := basePolicy()
+	p["welcome"] = map[string]any{"coins": 1_000_000, "diamonds": 50}
+	s, dir := newStore(t, p)
+	want := func(coins, diamonds int64) {
+		t.Helper()
+		if c, d := s.Welcome(1, 1); c != coins || d != diamonds {
+			t.Fatalf("welcome = %d / %d, want %d / %d", c, d, coins, diamonds)
+		}
+	}
+	want(1_000_000, 50)
+
+	// An invalid grant rejects the whole file; the last good one stays.
+	p["configVersion"] = 8
+	p["welcome"] = map[string]any{"coins": 2_000_000_000, "diamonds": 60}
+	writePolicy(t, dir, p)
+	if err := s.Reload(); err == nil || !strings.Contains(err.Error(), "welcome.coins") {
+		t.Fatalf("expected a welcome.coins error, got %v", err)
+	}
+	want(1_000_000, 50)
+
+	// A valid change is picked up by the poller without a restart.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go s.Run(ctx, 10*time.Millisecond)
+	p["configVersion"] = 9
+	p["welcome"] = map[string]any{"coins": 1_500_000, "diamonds": 75}
+	path := writePolicy(t, dir, p)
+	future := time.Now().Add(3 * time.Second)
+	if err := os.Chtimes(path, future, future); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if c, d := s.Welcome(1, 1); c == 1_500_000 && d == 75 {
+			break
+		}
+		if time.Now().After(deadline) {
+			c, d := s.Welcome(1, 1)
+			t.Fatalf("welcome not hot-reloaded: %d / %d", c, d)
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 }
