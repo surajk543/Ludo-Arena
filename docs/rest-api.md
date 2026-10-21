@@ -345,12 +345,17 @@ endpoint → 422 `idempotency_key_reused`; a malformed key → 400.
 Slots: `dice, token, ludo_board, snakes_board, frame, title, victory, trail`.
 Emotes and badges are owned, not equipped. Every item is cosmetic only.
 A purchase debits the fixed price and adds the item in one transaction; an
-insufficient balance changes nothing.
+insufficient balance changes nothing. The app shows this one list in two
+places: the **Collection Room** (owned items plus `level`/`mission`/`event`
+items still to earn) and the **Shop** (`purchase` items not owned yet) — see
+[`cosmetics-catalog.md` → Collection vs Shop](cosmetics-catalog.md#collection-vs-shop-app).
 
 ## Store (profile pictures)
 
 Profile pictures (Lottie animations and PNG images) bought with **diamonds**
-and owned **forever**; the owner applies any picture they own. Catalogue,
+and owned **forever**; the owner applies any picture they own. The app
+calls this the **Shop** (`/shop`; its old `/store` route redirects); the API
+paths keep `/store`. Catalogue,
 storage and privacy model: [`cosmetics-catalog.md`](cosmetics-catalog.md#profile-pictures).
 
 All routes: authenticated humans, version gated. Rate limits per account:
@@ -359,7 +364,7 @@ claims and purchases), apply 60/min (shared with the loadout), sign 120/min.
 
 | Method & path | Body | Response |
 |---|---|---|
-| `GET /store/profile-pictures?filter=&limit=&cursor=` | – | `{"items":[ProfilePicture],"nextCursor":"…"\|null,"total":160,"equipped":"pp_x"\|null}` |
+| `GET /store/profile-pictures?filter=&excludeOwned=&limit=&cursor=` | – | `{"items":[ProfilePicture],"nextCursor":"…"\|null,"total":160,"equipped":"pp_x"\|null}` |
 | `POST /store/profile-pictures/{id}/purchase` | – (`Idempotency-Key`) | `{"item": ProfilePicture, "wallet": Wallet}`; 409 `already_owned`, 422 `insufficient_funds`, 404 `not_found` (unknown or retired picture). Pushes `wallet.updated` (`reason: "purchase"`, `delta.diamonds` = −price). |
 | `PUT /me/profile-picture` | `{"id":"pp_x"}` or `{"id":null}` | `{"equipped": ProfilePicture\|null}`; 422 `item_locked` (not owned), 404 `not_found` (unknown id), 400 `bad_request` (missing `id`, `""`, wrong type, unknown field). `null` = back to the built-in avatar. |
 | `POST /assets/sign` | `{"paths":["profile_pictures/…", …]}` (1–50) | `{"urls":{"<path>":"https://…"},"expiresAt":1792588328065}`; 400 `bad_request` (0 or > 50 paths, empty or > 255-character path), 503 `assets_unavailable` (asset storage not configured on this server). |
@@ -367,13 +372,20 @@ claims and purchases), apply 60/min (shared with the loadout), sign 120/min.
 **ProfilePicture**: `{"id":"pp_wolf","name":"Wolf","format":"image|lottie","path":"profile_pictures/image/wolf.png","price":{"diamonds":10},"owned":false,"equipped":false}`
 
 **List**: `filter` = `all` (default) \| `animated` (Lottie) \| `static`
-(images) \| `owned`; `limit` 1–50 (default 24); order `sort_order`, then
-`id`. `cursor` is the previous page's opaque `nextCursor` (`null` on the last
-page); paging continues after the last item seen, so rows added or retired
-meanwhile never repeat or skip an item. `total` = items matching the filter
-(for the caller). `equipped` = the caller's equipped picture id. Retired
-pictures (`active = false`) are listed only to their owners. Any other
-`filter`/`limit`/`cursor` → 400 `bad_request`.
+(images) \| `owned`; `excludeOwned` = `true` \| `false` (default `false`)
+leaves out every picture the caller owns (with `all`, `animated`, `static`);
+`limit` 1–50 (default 24); order `sort_order`, then `id`. `cursor` is the
+previous page's opaque `nextCursor` (`null` on the last page); paging
+continues after the last item seen, so rows added or retired — or pictures
+bought — meanwhile never repeat or skip an item. `total` = items matching the
+filter and `excludeOwned` (for the caller). `equipped` = the caller's
+equipped picture id (also when `excludeOwned` leaves its item out). Retired
+pictures (`active = false`) are listed only to their owners (so never with
+`excludeOwned=true`). Any other `filter`/`limit`/`cursor`, an
+`excludeOwned` other than `true`/`false`, or `filter=owned` with
+`excludeOwned=true` → 400 `bad_request`. The app's **Shop** lists
+`excludeOwned=true` (only pictures not owned yet); the **Collection**'s
+Pictures category and the Profile picker list `filter=owned`.
 
 **Purchase** — like the Collection purchase: one transaction locks the
 progression row, then adds the inventory row and debits the wallet (same

@@ -94,19 +94,19 @@
   },
   "profilePictureClassic": "Classic avatar",
   "@profilePictureClassic": {
-    "description": "Picker choice: the built-in avatar (no Store picture)."
+    "description": "Picker choice: the built-in avatar (no Shop picture)."
   },
-  "profilePictureEmptyMessage": "Pictures you buy in the Store show up here.",
+  "profilePictureEmptyMessage": "Pictures you buy in the Shop show up here.",
   "@profilePictureEmptyMessage": {
-    "description": "Picker empty state: the player owns no Store pictures yet."
+    "description": "Picker empty state: the player owns no profile pictures yet (they are bought in the Shop)."
   },
-  "profilePictureOpenStore": "Visit the Store",
-  "@profilePictureOpenStore": {
-    "description": "Picker empty-state button: opens the Store."
+  "profilePictureOpenShop": "Visit the Shop",
+  "@profilePictureOpenShop": {
+    "description": "Picker empty-state button: opens the Shop."
   },
-  "profilePictureGetMore": "Get more in the Store",
+  "profilePictureGetMore": "Get more in the Shop",
   "@profilePictureGetMore": {
-    "description": "Picker link: opens the Store to buy more pictures."
+    "description": "Picker link: opens the Shop to buy more pictures."
   },
   "profilePictureShowMore": "Show more",
   "@profilePictureShowMore": {

@@ -1,14 +1,19 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:ludo_royale/app/routes.dart';
 import 'package:ludo_royale/core/network/api_models.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/collection/application/collection_controller.dart';
 import 'package:ludo_royale/features/collection/domain/collection_models.dart';
 import 'package:ludo_royale/features/collection/presentation/collection_screen.dart';
+import 'package:ludo_royale/features/store/application/shop_category.dart';
 import 'package:ludo_royale/features/wallet/wallet_controller.dart';
 
 import '../progression/meta_test_support.dart';
+import '../store/store_test_support.dart';
 
 const _buyGolden = '/collection/items/dice_golden/purchase';
 
@@ -18,24 +23,44 @@ void main() {
   group('filtering', () {
     final data = CollectionData.fromJson(collectionJson());
 
-    test('by kind and owned/locked, in catalog order', () {
+    test('by kind and owned/locked, in catalog order; items for sale and '
+        'not owned are left to the Shop', () {
       expect(data.filtered('dice', CollectionFilter.all).map((i) => i.id), [
         'dice_classic',
         'dice_neon',
-        'dice_golden',
         'dice_autumn',
       ]);
       expect(data.filtered('token', CollectionFilter.owned).map((i) => i.id), [
         'token_classic',
         'token_gem',
       ]);
+      // Still to earn (level 10); the Crown Piece is sold in the Shop.
       expect(data.filtered('token', CollectionFilter.locked).map((i) => i.id), [
         'token_royal',
-        'token_crown',
+      ]);
+      // Mission-only badges show locked with how to earn them.
+      expect(data.filtered('badge', CollectionFilter.locked).map((i) => i.id), [
+        'badge_first_win',
+        'badge_friendly',
       ]);
       expect(data.ownedOf('emote'), 3);
-      expect(data.totalOf('emote'), 5);
+      expect(data.totalOf('emote'), 4);
       expect(data.ownedCount, 13);
+      expect(data.collectionCount, 29);
+      expect(data.shopItems('dice').map((i) => i.id), ['dice_golden']);
+      expect(data.shopItems('title'), isEmpty);
+    });
+
+    test('a bought item moves from the Shop to the Collection', () {
+      final bought = CollectionData.fromJson(
+        collectionJson(extraOwned: {'dice_golden'}),
+      );
+      expect(bought.filtered('dice', CollectionFilter.owned).map((i) => i.id), [
+        'dice_classic',
+        'dice_golden',
+      ]);
+      expect(bought.shopItems('dice'), isEmpty);
+      expect(bought.totalOf('dice'), 4);
     });
 
     test('starter collection is equipped and owned', () {
@@ -194,15 +219,17 @@ void main() {
     });
     tearDown(() => fakes.close());
 
-    testWidgets('tabs and filters narrow the grid', (tester) async {
+    testWidgets('tabs and filters narrow the grid; items for sale are left '
+        'to the Shop', (tester) async {
       await pumpMeta(tester, env, fakes, const CollectionScreen());
       expect(fakes.analytics.events, contains('collection_viewed'));
       expect(byKeyString('item-dice_classic'), findsOneWidget);
-      expect(byKeyString('item-dice_golden'), findsOneWidget);
+      expect(byKeyString('item-dice_neon'), findsOneWidget);
+      expect(byKeyString('item-dice_golden'), findsNothing); // in the Shop
 
       await tester.tap(find.text('Owned').first);
       await tester.pump();
-      expect(byKeyString('item-dice_golden'), findsNothing);
+      expect(byKeyString('item-dice_neon'), findsNothing);
       expect(byKeyString('item-dice_classic'), findsOneWidget);
 
       await tester.tap(find.text('To unlock'));
@@ -213,8 +240,19 @@ void main() {
       await tester.tap(find.text('All'));
       await tester.tap(find.text('Tokens').first);
       await tester.pump();
-      expect(byKeyString('item-token_crown'), findsOneWidget);
+      expect(byKeyString('item-token_crown'), findsNothing); // in the Shop
       expect(byKeyString('item-dice_classic'), findsNothing);
+      // Still to earn: shown locked with how to earn it.
+      expect(byKeyString('item-token_royal'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: byKeyString('item-token_royal'),
+          matching: find.text('Reach level 10'),
+        ),
+        findsOneWidget,
+      );
+      await scrollTo(tester, byKeyString('collection-more-in-shop'));
+      expect(byKeyString('collection-more-in-shop'), findsOneWidget);
     });
 
     testWidgets('equip from the detail sheet', (tester) async {
@@ -240,52 +278,250 @@ void main() {
       expect(byKeyString('equip-default'), findsOneWidget);
     });
 
-    testWidgets('purchase confirmation shows price and balance; '
-        'insufficient funds is explained', (tester) async {
-      env.backend.on(
-        'POST',
-        _buyGolden,
-        (_) => FakeResponse.error(422, 'insufficient_funds'),
+    testWidgets('a locked level item explains how to earn it', (tester) async {
+      await pumpMeta(
+        tester,
+        env,
+        fakes,
+        const CollectionScreen(initialKind: 'token'),
       );
-      await pumpMeta(tester, env, fakes, const CollectionScreen());
-      await tester.tap(byKeyString('item-dice_golden'));
+      await tester.tap(byKeyString('item-token_royal'));
       await settleRoute(tester);
-      await tester.tap(byKeyString('buy'));
-      await settleRoute(tester);
-      expect(find.text('Buy Royal Gold?'), findsOneWidget);
-      expect(find.text('40 diamonds'), findsWidgets);
-      expect(find.text('50 diamonds'), findsOneWidget); // balance
-      expect(find.text('10 diamonds'), findsOneWidget); // after
-      await tester.tap(find.text('Buy'));
-      await settleRoute(tester);
-      expect(env.backend.calls('POST', _buyGolden), hasLength(1));
-      expect(find.text('Not enough diamonds for this item.'), findsOneWidget);
+      expect(
+        find.text('Unlocks automatically when you reach level 10.'),
+        findsOneWidget,
+      );
+      expect(byKeyString('buy'), findsNothing);
     });
 
-    testWidgets('the confirmation blocks a purchase the balance cannot cover', (
+    testWidgets('a bought item is in the Collection with its equip flow', (
+      tester,
+    ) async {
+      env.backend
+        ..json(
+          'GET',
+          '/collection',
+          collectionJson(extraOwned: {'dice_golden'}),
+        )
+        ..json('PUT', '/collection/loadout', {
+          'loadout': {...kStarterLoadout, 'dice': 'dice_golden'},
+        });
+      await pumpMeta(tester, env, fakes, const CollectionScreen());
+      expect(byKeyString('item-dice_golden'), findsOneWidget);
+      // Nothing else of this kind for sale: no Shop link.
+      expect(
+        find.byKey(
+          const ValueKey('collection-more-in-shop'),
+          skipOffstage: false,
+        ),
+        findsNothing,
+      );
+      await tester.tap(byKeyString('item-dice_golden'));
+      await settleRoute(tester);
+      expect(byKeyString('buy'), findsNothing);
+      expect(byKeyString('view-in-collection'), findsNothing);
+      await tester.tap(byKeyString('equip'));
+      await settleRoute(tester);
+      expect(env.backend.calls('PUT', '/collection/loadout').single.json, {
+        'slot': 'dice',
+        'itemId': 'dice_golden',
+      });
+      expect(find.text('Equipped!'), findsOneWidget);
+    });
+
+    testWidgets('Pictures lists the owned pictures; apply and back to the '
+        'classic avatar', (tester) async {
+      routeStore(env);
+      env.backend.on('PUT', '/me/profile-picture', (req) {
+        final id = req.json['id'];
+        return FakeResponse(200, {
+          'equipped': id == null
+              ? null
+              : {...storeShelf()[1], 'owned': true, 'equipped': true},
+        });
+      });
+      final c = await pumpMeta(
+        tester,
+        env,
+        fakes,
+        const CollectionScreen(initialKind: kPictureCategory),
+      );
+      await flush(tester);
+      final call = env.backend.calls('GET', '/store/profile-pictures').last;
+      expect(call.query['filter'], 'owned');
+      expect(byKeyString('pp-pp_item_1'), findsOneWidget);
+      expect(byKeyString('pp-pp_item_2'), findsOneWidget);
+      expect(byKeyString('pp-pp_item_0'), findsNothing); // not owned
+      expect(find.text('Equipped'), findsWidgets); // #2
+      // No owned/locked filter on pictures.
+      expect(byKeyString('collection-filter'), findsNothing);
+
+      await tester.tap(byKeyString('pp-pp_item_1'));
+      await settleRoute(tester);
+      expect(byKeyString('store-buy'), findsNothing);
+      expect(byKeyString('store-view-in-collection'), findsNothing);
+      await tester.tap(byKeyString('store-apply'));
+      await settleRoute(tester);
+      expect(find.text('Picture applied!'), findsOneWidget);
+      expect(c.read(sessionControllerProvider).user!.picture!.id, 'pp_item_1');
+      await tester.tap(byKeyString('store-remove'));
+      await settleRoute(tester);
+      expect(find.text('Back to your classic avatar.'), findsOneWidget);
+      expect(c.read(sessionControllerProvider).user!.picture, isNull);
+    });
+  });
+
+  group('screen → Shop', () {
+    late TestEnv env;
+    late MetaFakes fakes;
+
+    setUp(() async {
+      env = await TestEnv.create();
+      env.routeHappyPath();
+      routeMeta(env);
+      fakes = MetaFakes();
+    });
+    tearDown(() => fakes.close());
+
+    GoRouter router(String initial) => GoRouter(
+      initialLocation: initial,
+      routes: [
+        GoRoute(
+          path: AppRoutes.collection,
+          builder: (_, state) =>
+              CollectionScreen(initialKind: state.uri.queryParameters['kind']),
+        ),
+        GoRoute(
+          path: AppRoutes.shop,
+          builder: (_, state) => Scaffold(body: Text('AT ${state.uri}')),
+        ),
+      ],
+    );
+
+    testWidgets('Find more in the Shop opens that Shop category', (
       tester,
     ) async {
       await pumpMeta(
         tester,
         env,
         fakes,
-        const CollectionScreen(initialKind: 'frame'),
+        const SizedBox(),
+        router: router('/collection?kind=token'),
       );
-      await scrollTo(tester, byKeyString('item-frame_royal'));
-      await tester.tap(byKeyString('item-frame_royal'));
+      await scrollTo(tester, byKeyString('collection-more-in-shop'));
+      await tester.tap(byKeyString('collection-more-in-shop'));
       await settleRoute(tester);
-      await tester.tap(byKeyString('buy'));
-      await settleRoute(tester);
-      // 60 diamonds > 50 → no Buy action, explanation instead.
-      expect(find.text('Buy'), findsNothing);
+      expect(find.text('AT /shop?category=token'), findsOneWidget);
+    });
+
+    testWidgets('an empty category offers Go to Shop', (tester) async {
+      // Badges here are only sold (none owned or to earn).
+      final json = collectionJson();
+      json['items'] = [
+        for (final i in json['items'] as List)
+          if ((i as Map)['kind'] == 'badge')
+            {
+              ...i,
+              'owned': false,
+              'acquisition': {
+                'type': 'purchase',
+                'price': {'diamonds': 5},
+                'label': '5 diamonds',
+              },
+            }
+          else
+            i,
+      ];
+      env.backend.json('GET', '/collection', json);
+      await pumpMeta(
+        tester,
+        env,
+        fakes,
+        const SizedBox(),
+        router: router('/collection?kind=badge'),
+      );
       expect(
-        find.textContaining('you need another 10 diamonds'),
+        find.text('Nothing to collect here yet. Take a look in the Shop!'),
         findsOneWidget,
       );
-      expect(
-        env.backend.calls('POST', '/collection/items/frame_royal/purchase'),
-        isEmpty,
+      await tester.tap(byKeyString('collection-go-to-shop'));
+      await settleRoute(tester);
+      expect(find.text('AT /shop?category=badge'), findsOneWidget);
+    });
+
+    testWidgets('no pictures yet: Go to Shop opens the Shop pictures', (
+      tester,
+    ) async {
+      routeStore(env, shelf: const []);
+      await pumpMeta(
+        tester,
+        env,
+        fakes,
+        const SizedBox(),
+        router: router('/collection?kind=picture'),
       );
+      await flush(tester);
+      expect(find.text('No pictures yet'), findsOneWidget);
+      expect(
+        find.text('Pictures you buy in the Shop show up here.'),
+        findsOneWidget,
+      );
+      await tester.tap(byKeyString('collection-go-to-shop'));
+      await settleRoute(tester);
+      expect(find.text('AT /shop?category=picture'), findsOneWidget);
     });
   });
+
+  // 320×640 at the largest text scale, every language, both themes: every
+  // Collection tab (Pictures included) lays out without overflow.
+  for (final locale in const ['en', 'hi', 'ur', 'id', 'ar']) {
+    for (final mode in ThemeMode.values.skip(1)) {
+      testWidgets('collection tabs $locale ${mode.name} @320x640 x1.35', (
+        tester,
+      ) async {
+        final env = await TestEnv.create();
+        env.routeHappyPath();
+        routeMeta(env);
+        routeStore(env);
+        final fakes = MetaFakes();
+        addTearDown(fakes.close);
+        await pumpMeta(
+          tester,
+          env,
+          fakes,
+          const CollectionScreen(),
+          locale: Locale(locale),
+          themeMode: mode,
+          size: Viewports.small,
+          textScale: 1.35,
+        );
+        await flush(tester);
+        expect(tester.takeException(), isNull);
+        for (var i = 0; i < kCollectionTabs.length; i++) {
+          final pill = find
+              .descendant(
+                of: find.byKey(
+                  const ValueKey('collection-kinds'),
+                  skipOffstage: false,
+                ),
+                matching: find.byType(InkWell, skipOffstage: false),
+                skipOffstage: false,
+              )
+              .at(i);
+          await tester.ensureVisible(pill);
+          await tester.pump(const Duration(milliseconds: 300));
+          await tester.tap(pill);
+          await flush(tester);
+          expect(tester.takeException(), isNull, reason: kCollectionTabs[i]);
+          await scrollThrough(tester);
+          expect(tester.takeException(), isNull, reason: kCollectionTabs[i]);
+        }
+        final rtl = locale == 'ar' || locale == 'ur';
+        expect(
+          Directionality.of(tester.element(find.byType(CollectionScreen))),
+          rtl ? TextDirection.rtl : TextDirection.ltr,
+        );
+      });
+    }
+  }
 }

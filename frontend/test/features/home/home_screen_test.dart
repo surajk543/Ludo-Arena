@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ludo_royale/app/gate/app_gate_controller.dart';
 import 'package:ludo_royale/app/routes.dart';
+import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/realtime/realtime_status.dart';
 import 'package:ludo_royale/core/storage/preferences_store.dart';
 import 'package:ludo_royale/core/theme/theme_controller.dart';
@@ -14,6 +15,7 @@ import 'package:ludo_royale/features/home/presentation/home_screen.dart';
 import 'package:ludo_royale/features/home/presentation/join_code_sheet.dart';
 import 'package:ludo_royale/features/home/presentation/widgets/game_card.dart';
 import 'package:ludo_royale/features/home/presentation/widgets/home_tiles.dart';
+import 'package:ludo_royale/features/home/presentation/widgets/no_ads_ribbon.dart';
 import 'package:ludo_royale/shared/widgets/widgets.dart';
 
 import '../../helpers/fake_backend.dart';
@@ -45,7 +47,7 @@ GoRouter _router({List<NavigatorObserver> observers = const []}) => GoRouter(
       AppRoutes.collection,
       AppRoutes.friends,
       AppRoutes.events,
-      AppRoutes.store,
+      AppRoutes.shop,
       AppRoutes.profile,
       AppRoutes.settings,
       AppRoutes.linkAccount,
@@ -400,7 +402,6 @@ void main() {
     ('Collection', '/collection'),
     ('Friends', '/friends'),
     ('Events', '/events'),
-    ('Store', '/store'),
   ]) {
     testWidgets('More to Explore: $tile opens $route', (tester) async {
       await pumpHome(tester);
@@ -412,19 +413,72 @@ void main() {
     });
   }
 
-  testWidgets('More to Explore stays balanced: a short last row spans the '
-      'full width', (tester) async {
+  testWidgets('More to Explore: four tiles in two balanced rows, no Shop '
+      'tile', (tester) async {
     await pumpHome(tester);
-    final store = find.bySemanticsLabel('Store');
-    await reveal(tester, store);
     final events = find.bySemanticsLabel('Events');
+    await reveal(tester, events);
     final grid = find.byType(ExploreGrid);
-    // Five tiles on a phone: 2 + 2 + 1, the fifth as wide as the grid.
-    expect(tester.getSize(store).width, tester.getSize(grid).width);
     expect(
-      tester.getSize(events).width,
-      lessThan(tester.getSize(grid).width / 2),
+      find.descendant(of: grid, matching: find.byType(LobbyTile)),
+      findsNWidgets(4),
     );
+    expect(
+      find.descendant(of: grid, matching: find.bySemanticsLabel('Shop')),
+      findsNothing,
+    );
+    expect(find.bySemanticsLabel('Store'), findsNothing);
+    // 2 + 2 on a phone: every tile narrower than half the grid, in pairs.
+    final missions = find.bySemanticsLabel('Missions');
+    for (final tile in [
+      missions,
+      find.bySemanticsLabel('Collection'),
+      find.bySemanticsLabel('Friends'),
+      events,
+    ]) {
+      expect(
+        tester.getSize(tile).width,
+        lessThan(tester.getSize(grid).width / 2),
+      );
+    }
+    expect(tester.getSize(events).width, tester.getSize(missions).width);
+  });
+
+  testWidgets('the Shop button is pinned on top: it stays put while the '
+      'lobby scrolls and opens the Shop', (tester) async {
+    final env = await TestEnv.create();
+    env.routeHappyPath();
+    await pumpScreen(
+      tester,
+      env,
+      const SizedBox(),
+      router: _router(),
+      prepare: (c) =>
+          c.read(sessionControllerProvider.notifier).continueAsGuest(),
+    );
+    final shop = find.byKey(const ValueKey('lobby-shop'));
+    expect(shop, findsOneWidget);
+    expect(find.bySemanticsLabel('Shop'), findsOneWidget);
+    final before = tester.getRect(shop);
+    expect(before.height, greaterThanOrEqualTo(48));
+    // Above the profile header (never on its buttons or the No Ads ribbon).
+    expect(
+      before.bottom,
+      lessThanOrEqualTo(tester.getRect(find.byType(NoAdsRibbon)).top),
+    );
+    expect(
+      before.bottom,
+      lessThanOrEqualTo(tester.getRect(find.byTooltip('Settings')).top),
+    );
+
+    // Scroll to the end of the lobby.
+    await reveal(tester, find.bySemanticsLabel('Events'));
+    expect(find.text('Asha'), findsNothing); // the header scrolled away
+    expect(tester.getRect(shop), before);
+    await tester.tap(shop);
+    await tester.pumpAndSettle();
+    expect(find.text('AT /shop'), findsOneWidget);
+    expect(env.audio.played, contains(Sfx.uiTap));
   });
 
   testWidgets('theme shortcut flips and persists the theme', (tester) async {

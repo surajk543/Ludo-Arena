@@ -95,13 +95,9 @@
   "@homeEventsSubtitle": {
     "description": "Entry tile subtitle."
   },
-  "homeStore": "Store",
-  "@homeStore": {
-    "description": "Entry tile: the Store (profile pictures bought with diamonds)."
-  },
-  "homeStoreSubtitle": "Profile pictures",
-  "@homeStoreSubtitle": {
-    "description": "Entry tile subtitle."
+  "homeShop": "Shop",
+  "@homeShop": {
+    "description": "Lobby: the Shop button pinned at the top of Home (stays visible while the lobby scrolls)."
   },
   "homeExploreHeader": "More to Explore",
   "@homeExploreHeader": {

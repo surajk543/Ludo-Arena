@@ -9,6 +9,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../authentication/application/session_controller.dart';
 import '../../progression/application/meta_support.dart';
+import '../../store/application/shop_category.dart';
 import '../../store/application/store_controller.dart';
 import '../../store/domain/store_models.dart';
 import '../../store/presentation/widgets/store_picture_sheet.dart'
@@ -27,7 +28,7 @@ abstract final class ProfilePictureSheet {
 }
 
 /// The picker body: a grid of choices, Show more, Cancel / Apply and a
-/// link to the Store.
+/// link to the Shop.
 class ProfilePicturePicker extends ConsumerStatefulWidget {
   const ProfilePicturePicker({super.key});
 
@@ -78,10 +79,10 @@ class _ProfilePicturePickerState extends ConsumerState<ProfilePicturePicker> {
     }
   }
 
-  void _openStore() {
+  void _openShop() {
     final router = GoRouter.maybeOf(context);
     Navigator.of(context).pop();
-    router?.push(AppRoutes.store);
+    router?.push(AppRoutes.shopFor(category: kPictureCategory));
   }
 
   @override
@@ -110,7 +111,7 @@ class _ProfilePicturePickerState extends ConsumerState<ProfilePicturePicker> {
         ],
       );
     } else if (s.items.isEmpty) {
-      body = _Empty(onOpenStore: _openStore);
+      body = _Empty(onOpenShop: _openShop);
     } else {
       body = _choices(context, s);
     }
@@ -270,7 +271,7 @@ class _ProfilePicturePickerState extends ConsumerState<ProfilePicturePicker> {
         Center(
           child: TextButton.icon(
             key: const ValueKey('picture-picker-get-more'),
-            onPressed: _busy ? null : _openStore,
+            onPressed: _busy ? null : _openShop,
             icon: const Icon(Icons.storefront_rounded),
             label: Text(
               l10n.profilePictureGetMore,
@@ -374,11 +375,11 @@ class _Choice extends StatelessWidget {
   }
 }
 
-/// No owned pictures yet: point to the Store.
+/// No owned pictures yet: point to the Shop.
 class _Empty extends StatelessWidget {
-  const _Empty({required this.onOpenStore});
+  const _Empty({required this.onOpenShop});
 
-  final VoidCallback onOpenStore;
+  final VoidCallback onOpenShop;
 
   @override
   Widget build(BuildContext context) {
@@ -405,11 +406,11 @@ class _Empty extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         PremiumButton(
-          key: const ValueKey('picture-picker-store'),
-          label: l10n.profilePictureOpenStore,
+          key: const ValueKey('picture-picker-shop'),
+          label: l10n.profilePictureOpenShop,
           icon: Icons.storefront_rounded,
           size: PremiumButtonSize.medium,
-          onPressed: onOpenStore,
+          onPressed: onOpenShop,
         ),
       ],
     );

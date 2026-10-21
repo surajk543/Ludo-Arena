@@ -959,10 +959,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get homeEventsSubtitle => 'محدود وقت کے کپ';
 
   @override
-  String get homeStore => 'اسٹور';
-
-  @override
-  String get homeStoreSubtitle => 'پروفائل تصویریں';
+  String get homeShop => 'شاپ';
 
   @override
   String get homeExploreHeader => 'مزید دریافت کریں';
@@ -1556,6 +1553,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get metaTabEmotes => 'ایموٹس';
 
   @override
+  String get metaTabPictures => 'تصویریں';
+
+  @override
   String get metaFilterAll => 'سب';
 
   @override
@@ -1703,6 +1703,16 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get metaNothingOwnedInKind =>
       'یہاں ابھی کچھ نہیں — مزید ان لاک کرنے کے لیے کھیلتے رہیں۔';
+
+  @override
+  String get metaKindEmptyMessage =>
+      'یہاں ابھی جمع کرنے کو کچھ نہیں۔ شاپ میں دیکھیں!';
+
+  @override
+  String get metaGoToShop => 'شاپ پر جائیں';
+
+  @override
+  String get metaFindMoreInShop => 'شاپ میں مزید دیکھیں';
 
   @override
   String get metaCollectionFairNote =>
@@ -2813,13 +2823,13 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get profilePictureEmptyMessage =>
-      'اسٹور سے خریدی گئی تصویریں یہاں نظر آئیں گی۔';
+      'شاپ سے خریدی گئی تصویریں یہاں نظر آئیں گی۔';
 
   @override
-  String get profilePictureOpenStore => 'اسٹور پر جائیں';
+  String get profilePictureOpenShop => 'شاپ پر جائیں';
 
   @override
-  String get profilePictureGetMore => 'اسٹور سے مزید حاصل کریں';
+  String get profilePictureGetMore => 'شاپ سے مزید حاصل کریں';
 
   @override
   String get profilePictureShowMore => 'مزید دکھائیں';
@@ -3187,7 +3197,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get storeTitle => 'اسٹور';
+  String get storeTitle => 'شاپ';
 
   @override
   String get storeHeroTitle => 'پروفائل تصویریں';
@@ -3195,6 +3205,10 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get storeHeroSubtitle =>
       'ہیروں سے ایک بار خریدیں اور ہمیشہ کے لیے اپنی بنا لیں۔';
+
+  @override
+  String get storeCosmeticsHeroSubtitle =>
+      'مقررہ قیمت، کچھ بھی اتفاقی نہیں۔ صرف لُک کے لیے، اور ہمیشہ کے لیے آپ کا۔';
 
   @override
   String get storeFilterAnimated => 'اینیمیٹڈ';
@@ -3210,6 +3224,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get storeApply => 'لگائیں';
+
+  @override
+  String get storeApplyNow => 'ابھی لگائیں';
 
   @override
   String get storeRemove => 'کلاسک اوتار لگائیں';
@@ -3233,17 +3250,20 @@ class AppLocalizationsUr extends AppLocalizations {
   String get storeEmptyOwnedTitle => 'ابھی کوئی تصویر نہیں';
 
   @override
-  String get storeEmptyOwnedMessage =>
-      'آپ جو تصویریں خریدتے ہیں وہ ہمیشہ آپ کی رہتی ہیں۔';
-
-  @override
   String get storeEmptyTitle => 'یہاں ابھی کچھ نہیں';
 
   @override
   String get storeEmptyMessage => 'نئی تصویریں جلد آ رہی ہیں۔';
 
   @override
-  String get storeBrowseAll => 'سب دیکھیں';
+  String get storeAllOwnedTitle => 'سب آپ کے پاس ہیں!';
+
+  @override
+  String get storeAllOwnedMessage =>
+      'یہاں کی ہر چیز پہلے سے آپ کے کلیکشن میں ہے۔';
+
+  @override
+  String get storeViewInCollection => 'کلیکشن میں دیکھیں';
 
   @override
   String get storeLoadMoreFailed => 'مزید تصویریں لوڈ نہیں ہو سکیں۔';

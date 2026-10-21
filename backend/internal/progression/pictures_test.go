@@ -3,6 +3,7 @@ package progression
 import (
 	"context"
 	"errors"
+	"sort"
 	"testing"
 	"time"
 
@@ -67,20 +68,26 @@ func TestRetiredPictureVisibleOnlyToOwners(t *testing.T) {
 		see   bool
 		total int
 	}{{owner, true, 161}, {other, false, 160}} {
-		p, err := f.svc.StorePictures(ctx, c.who, FilterAll, 5, "")
+		p, err := f.svc.StorePictures(ctx, c.who, FilterAll, false, 5, "")
 		if err != nil {
 			t.Fatal(err)
 		}
 		if pageIDs(p)[id] != c.see || p.Total < c.total {
 			t.Fatalf("visible %v total %d, want %v ≥%d", pageIDs(p)[id], p.Total, c.see, c.total)
 		}
-		if p, _ := f.svc.StorePictures(ctx, c.who, FilterStatic, 50, ""); pageIDs(p)[id] != c.see {
+		if p, _ := f.svc.StorePictures(ctx, c.who, FilterStatic, false, 50, ""); pageIDs(p)[id] != c.see {
 			t.Fatalf("static filter visibility %v", !c.see)
 		}
 	}
-	owned, _ := f.svc.StorePictures(ctx, owner, FilterOwned, 50, "")
+	owned, _ := f.svc.StorePictures(ctx, owner, FilterOwned, false, 50, "")
 	if owned.Total != 1 || owned.Items[0].ID != id {
 		t.Fatalf("owned %+v", owned)
+	}
+	// The Shop listing (excludeOwned) never shows it, not even to its owner.
+	for _, who := range []uuid.UUID{owner, other} {
+		if p, _ := f.svc.StorePictures(ctx, who, FilterStatic, true, 50, ""); pageIDs(p)[id] {
+			t.Fatal("retired picture in the excludeOwned listing")
+		}
 	}
 	// Retired: not for sale, never on a bot, but its owner may apply it.
 	if _, err := f.svc.PurchasePicture(ctx, other, id); !errors.Is(err, ErrPictureNotFound) {
@@ -141,13 +148,13 @@ func TestStoreCursorIsStableAcrossCatalogueChanges(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	a := f.env.NewAccount(t)
-	p1, err := f.svc.StorePictures(ctx, a, FilterAll, 10, "")
+	p1, err := f.svc.StorePictures(ctx, a, FilterAll, false, 10, "")
 	if err != nil || p1.NextCursor == nil {
 		t.Fatalf("page 1: %v", err)
 	}
 	// A row added before the cursor position does not shift page 2.
 	f.tempPicture(t, true, 5)
-	p2, err := f.svc.StorePictures(ctx, a, FilterAll, 10, *p1.NextCursor)
+	p2, err := f.svc.StorePictures(ctx, a, FilterAll, false, 10, *p1.NextCursor)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,9 +162,121 @@ func TestStoreCursorIsStableAcrossCatalogueChanges(t *testing.T) {
 		t.Fatalf("page 2 repeats page 1: %s", p2.Items[0].ID)
 	}
 	for _, bad := range []string{"x", "MTI", "YWJjOnBwX3g"} { // "x", "12", "abc:pp_x"
-		if _, err := f.svc.StorePictures(ctx, a, FilterAll, 10, bad); !errors.Is(err, ErrBadStoreQuery) {
+		if _, err := f.svc.StorePictures(ctx, a, FilterAll, false, 10, bad); !errors.Is(err, ErrBadStoreQuery) {
 			t.Fatalf("cursor %q: %v", bad, err)
 		}
+	}
+}
+
+// walkStore pages through a listing with limit and returns every item.
+func (f *fixture) walkStore(t *testing.T, who uuid.UUID, filter string, excludeOwned bool, limit int) []ProfilePicture {
+	t.Helper()
+	var out []ProfilePicture
+	cursor := ""
+	for pages := 0; pages < 500; pages++ {
+		p, err := f.svc.StorePictures(context.Background(), who, filter, excludeOwned, limit, cursor)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(p.Items) > limit {
+			t.Fatalf("page of %d items with limit %d", len(p.Items), limit)
+		}
+		out = append(out, p.Items...)
+		if p.NextCursor == nil {
+			return out
+		}
+		cursor = *p.NextCursor
+	}
+	t.Fatal("pagination did not end")
+	return nil
+}
+
+func TestStoreExcludeOwned(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	a := f.env.NewAccount(t)
+	// Five cheap pictures at the front of the shelf (sort_order -1, then id).
+	ids := make([]string, 5)
+	for i := range ids {
+		ids[i] = f.tempPicture(t, true, 1)
+	}
+	sort.Strings(ids)
+	for _, id := range []string{ids[0], ids[2]} {
+		if _, err := f.svc.PurchasePicture(ctx, a, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.svc.ApplyPicture(ctx, a, ids[0]); err != nil {
+		t.Fatal(err)
+	}
+
+	full, err := f.svc.StorePictures(ctx, a, FilterAll, false, 50, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	shop, err := f.svc.StorePictures(ctx, a, FilterAll, true, 50, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !pageIDs(full)[ids[0]] || !pageIDs(full)[ids[2]] {
+		t.Fatal("the default listing lost owned pictures")
+	}
+	if shop.Total != full.Total-2 || pageIDs(shop)[ids[0]] || pageIDs(shop)[ids[2]] || !pageIDs(shop)[ids[1]] {
+		t.Fatalf("excludeOwned total %d (all %d), ids %v", shop.Total, full.Total, pageIDs(shop))
+	}
+	// The equipped id is still reported although its item is left out.
+	if shop.Equipped == nil || *shop.Equipped != ids[0] {
+		t.Fatalf("equipped %v", shop.Equipped)
+	}
+
+	// Small pages: every picture not owned exactly once, never an owned one.
+	for _, c := range []struct {
+		filter string
+		limit  int
+	}{{FilterAll, 2}, {FilterStatic, 3}, {FilterAnimated, 7}} {
+		items := f.walkStore(t, a, c.filter, true, c.limit)
+		first, err := f.svc.StorePictures(ctx, a, c.filter, true, c.limit, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		seen := map[string]bool{}
+		for _, it := range items {
+			if it.Owned || it.ID == ids[0] || it.ID == ids[2] || seen[it.ID] {
+				t.Fatalf("%s: owned or repeated %+v", c.filter, it)
+			}
+			seen[it.ID] = true
+		}
+		if len(items) != first.Total {
+			t.Fatalf("%s: walked %d, total %d", c.filter, len(items), first.Total)
+		}
+		if c.filter != FilterAnimated && !seen[ids[1]] {
+			t.Fatalf("%s: unowned picture missing", c.filter)
+		}
+	}
+
+	// A cursor taken before a purchase: the bought picture is left out of
+	// the next page and nothing repeats.
+	order := f.walkStore(t, a, FilterAll, true, 50)
+	if order[0].ID != ids[1] || order[1].ID != ids[3] || order[2].ID != ids[4] {
+		t.Fatalf("shelf order %s %s %s", order[0].ID, order[1].ID, order[2].ID)
+	}
+	p1, err := f.svc.StorePictures(ctx, a, FilterAll, true, 1, "")
+	if err != nil || p1.Items[0].ID != ids[1] || p1.NextCursor == nil {
+		t.Fatalf("page 1 %+v %v", p1, err)
+	}
+	if _, err := f.svc.PurchasePicture(ctx, a, ids[3]); err != nil {
+		t.Fatal(err)
+	}
+	p2, err := f.svc.StorePictures(ctx, a, FilterAll, true, 1, *p1.NextCursor)
+	if err != nil || p2.Items[0].ID != ids[4] || p2.Total != shop.Total-1 {
+		t.Fatalf("page 2 after a purchase %+v %v", p2, err)
+	}
+
+	if _, err := f.svc.StorePictures(ctx, a, FilterOwned, true, 10, ""); !errors.Is(err, ErrBadStoreQuery) {
+		t.Fatalf("owned + excludeOwned: %v", err)
+	}
+	if owned, _ := f.svc.StorePictures(ctx, a, FilterOwned, false, 10, ""); owned.Total != 3 {
+		t.Fatalf("owned total %d", owned.Total)
 	}
 }
 

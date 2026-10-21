@@ -954,10 +954,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeEventsSubtitle => 'Piala waktu terbatas';
 
   @override
-  String get homeStore => 'Toko';
-
-  @override
-  String get homeStoreSubtitle => 'Foto profil';
+  String get homeShop => 'Toko';
 
   @override
   String get homeExploreHeader => 'Jelajahi Lainnya';
@@ -1543,6 +1540,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get metaTabEmotes => 'Emote';
 
   @override
+  String get metaTabPictures => 'Foto';
+
+  @override
   String get metaFilterAll => 'Semua';
 
   @override
@@ -1690,6 +1690,16 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get metaNothingOwnedInKind =>
       'Belum ada apa-apa — terus bermain untuk membuka lebih banyak.';
+
+  @override
+  String get metaKindEmptyMessage =>
+      'Belum ada yang bisa dikoleksi di sini. Coba lihat di Toko!';
+
+  @override
+  String get metaGoToShop => 'Buka Toko';
+
+  @override
+  String get metaFindMoreInShop => 'Temukan lebih banyak di Toko';
 
   @override
   String get metaCollectionFairNote =>
@@ -2809,7 +2819,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Foto yang kamu beli di Toko muncul di sini.';
 
   @override
-  String get profilePictureOpenStore => 'Kunjungi Toko';
+  String get profilePictureOpenShop => 'Kunjungi Toko';
 
   @override
   String get profilePictureGetMore => 'Dapatkan lebih banyak di Toko';
@@ -3189,6 +3199,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Beli sekali dengan berlian dan jadi milikmu selamanya.';
 
   @override
+  String get storeCosmeticsHeroSubtitle =>
+      'Harga tetap, tanpa acak. Hanya tampilan, dan jadi milikmu selamanya.';
+
+  @override
   String get storeFilterAnimated => 'Animasi';
 
   @override
@@ -3202,6 +3216,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get storeApply => 'Pakai';
+
+  @override
+  String get storeApplyNow => 'Pakai sekarang';
 
   @override
   String get storeRemove => 'Pakai avatar klasik';
@@ -3225,17 +3242,20 @@ class AppLocalizationsId extends AppLocalizations {
   String get storeEmptyOwnedTitle => 'Belum ada foto';
 
   @override
-  String get storeEmptyOwnedMessage =>
-      'Foto yang kamu beli jadi milikmu selamanya.';
-
-  @override
   String get storeEmptyTitle => 'Belum ada apa-apa di sini';
 
   @override
   String get storeEmptyMessage => 'Foto baru segera hadir.';
 
   @override
-  String get storeBrowseAll => 'Lihat semua';
+  String get storeAllOwnedTitle => 'Kamu sudah punya semuanya!';
+
+  @override
+  String get storeAllOwnedMessage =>
+      'Semua yang ada di sini sudah ada di Koleksimu.';
+
+  @override
+  String get storeViewInCollection => 'Lihat di Koleksi';
 
   @override
   String get storeLoadMoreFailed => 'Tidak dapat memuat foto lainnya.';

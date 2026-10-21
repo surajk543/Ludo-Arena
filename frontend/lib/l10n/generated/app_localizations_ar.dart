@@ -958,10 +958,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeEventsSubtitle => 'كؤوس لفترة محدودة';
 
   @override
-  String get homeStore => 'المتجر';
-
-  @override
-  String get homeStoreSubtitle => 'صور الملف الشخصي';
+  String get homeShop => 'المتجر';
 
   @override
   String get homeExploreHeader => 'استكشف المزيد';
@@ -1583,6 +1580,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get metaTabEmotes => 'التعبيرات';
 
   @override
+  String get metaTabPictures => 'الصور';
+
+  @override
   String get metaFilterAll => 'الكل';
 
   @override
@@ -1728,6 +1728,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get metaNothingOwnedInKind =>
       'لا شيء هنا بعد — واصل اللعب لفتح المزيد.';
+
+  @override
+  String get metaKindEmptyMessage =>
+      'لا شيء لجمعه هنا بعد. ألقِ نظرة على المتجر!';
+
+  @override
+  String get metaGoToShop => 'اذهب إلى المتجر';
+
+  @override
+  String get metaFindMoreInShop => 'اكتشف المزيد في المتجر';
 
   @override
   String get metaCollectionFairNote =>
@@ -2848,7 +2858,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصور التي تشتريها من المتجر تظهر هنا.';
 
   @override
-  String get profilePictureOpenStore => 'زيارة المتجر';
+  String get profilePictureOpenShop => 'زيارة المتجر';
 
   @override
   String get profilePictureGetMore => 'احصل على المزيد من المتجر';
@@ -3222,6 +3232,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'اشترِها مرة واحدة بالماس واحتفظ بها إلى الأبد.';
 
   @override
+  String get storeCosmeticsHeroSubtitle =>
+      'أسعار ثابتة بلا عشوائية. للمظهر فقط، ويبقى لك إلى الأبد.';
+
+  @override
   String get storeFilterAnimated => 'متحركة';
 
   @override
@@ -3235,6 +3249,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get storeApply => 'استخدام';
+
+  @override
+  String get storeApplyNow => 'استخدمها الآن';
 
   @override
   String get storeRemove => 'استخدام الصورة الكلاسيكية';
@@ -3258,16 +3275,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storeEmptyOwnedTitle => 'لا توجد صور بعد';
 
   @override
-  String get storeEmptyOwnedMessage => 'الصور التي تشتريها تبقى لك إلى الأبد.';
-
-  @override
   String get storeEmptyTitle => 'لا شيء هنا بعد';
 
   @override
   String get storeEmptyMessage => 'صور جديدة في الطريق.';
 
   @override
-  String get storeBrowseAll => 'عرض الكل';
+  String get storeAllOwnedTitle => 'تملكها كلها!';
+
+  @override
+  String get storeAllOwnedMessage => 'كل ما هنا موجود بالفعل في مجموعتك.';
+
+  @override
+  String get storeViewInCollection => 'عرض في المجموعة';
 
   @override
   String get storeLoadMoreFailed => 'تعذّر تحميل المزيد من الصور.';

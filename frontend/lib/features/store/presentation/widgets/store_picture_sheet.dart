@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/audio_haptics/haptics_service.dart';
@@ -9,32 +10,56 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../authentication/application/session_controller.dart';
+import '../../../meta_routes.dart';
 import '../../../progression/application/meta_support.dart';
 import '../../../progression/presentation/widgets/meta_scaffold.dart';
 import '../../../wallet/wallet_controller.dart';
+import '../../application/shop_category.dart';
 import '../../application/store_controller.dart';
 import '../../domain/store_models.dart';
 
+/// A picture shelf ([storeProvider]: the Shop, [ownedPicturesProvider]: the
+/// Collection).
+typedef PictureShelfProvider = NotifierProvider<StoreController, StoreState>;
+
 /// Opens the picture sheet: large preview (in the player's frame), price
-/// and balance, Buy → Apply, or Apply / back to the classic avatar.
-Future<void> showStorePictureSheet(BuildContext context, ProfilePicture item) =>
-    AppBottomSheet.show<void>(
-      context,
-      builder: (_) => StorePictureSheet(initial: item),
-    );
+/// and balance, Buy → Apply, or Apply / back to the classic avatar. [shelf]
+/// is the shelf the picture was tapped on (default: the Shop).
+Future<void> showStorePictureSheet(
+  BuildContext context,
+  ProfilePicture item, {
+  PictureShelfProvider? shelf,
+}) => AppBottomSheet.show<void>(
+  context,
+  builder: (_) => StorePictureSheet(initial: item, shelf: shelf),
+);
 
-class StorePictureSheet extends ConsumerWidget {
-  const StorePictureSheet({super.key, required this.initial});
+class StorePictureSheet extends ConsumerStatefulWidget {
+  const StorePictureSheet({super.key, required this.initial, this.shelf});
 
-  /// The item as tapped; live updates come from the Store state.
+  /// The item as tapped; live updates come from [shelf].
   final ProfilePicture initial;
 
+  /// Default: the Shop ([storeProvider]).
+  final PictureShelfProvider? shelf;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StorePictureSheet> createState() => _StorePictureSheetState();
+}
+
+class _StorePictureSheetState extends ConsumerState<StorePictureSheet> {
+  /// Bought (or found already owned) in this sheet. It has left the Shop's
+  /// shelf, so the sheet keeps showing it: Apply now, View in Collection.
+  ProfilePicture? _bought;
+
+  PictureShelfProvider get _shelf => widget.shelf ?? storeProvider;
+
+  @override
+  Widget build(BuildContext context) {
     final c = context.colors;
     final l10n = AppLocalizations.of(context);
-    final item =
-        ref.watch(storeProvider.select((s) => s.byId(initial.id))) ?? initial;
+    final live = ref.watch(_shelf.select((s) => s.byId(widget.initial.id)));
+    final item = _bought ?? live ?? widget.initial;
     final wallet = ref.watch(walletControllerProvider.select((w) => w.wallet));
     final user = ref.watch(sessionControllerProvider.select((s) => s.user));
 
@@ -94,14 +119,13 @@ class StorePictureSheet extends ConsumerWidget {
             _ValueRow(label: l10n.metaYourBalance, diamonds: wallet.diamonds),
         ],
         const SizedBox(height: AppSpacing.xl),
-        ..._actions(context, ref, item, wallet),
+        ..._actions(context, item, wallet),
       ],
     );
   }
 
   List<Widget> _actions(
     BuildContext context,
-    WidgetRef ref,
     ProfilePicture item,
     Wallet? wallet,
   ) {
@@ -121,7 +145,7 @@ class StorePictureSheet extends ConsumerWidget {
           size: PremiumButtonSize.medium,
           // The purchase cue plays once the server confirms.
           sound: null,
-          onPressed: affordable ? () => _purchase(context, ref, item) : null,
+          onPressed: affordable ? () => _purchase(item) : null,
         ),
         const SizedBox(height: AppSpacing.sm),
         if (affordable)
@@ -138,14 +162,28 @@ class StorePictureSheet extends ConsumerWidget {
           ),
       ];
     }
+    // Just bought in the Shop: it now lives in the Collection.
+    final viewInCollection = [
+      if (_bought != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        PremiumButton(
+          key: const ValueKey('store-view-in-collection'),
+          label: l10n.storeViewInCollection,
+          icon: Icons.diamond_rounded,
+          size: PremiumButtonSize.medium,
+          variant: PremiumButtonVariant.ghost,
+          onPressed: _openCollection,
+        ),
+      ],
+    ];
     if (!item.equipped) {
       return [
         PremiumButton(
           key: const ValueKey('store-apply'),
-          label: l10n.storeApply,
+          label: _bought != null ? l10n.storeApplyNow : l10n.storeApply,
           icon: Icons.face_retouching_natural,
           size: PremiumButtonSize.medium,
-          onPressed: () => _apply(context, ref, item),
+          onPressed: () => _apply(item),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
@@ -153,6 +191,7 @@ class StorePictureSheet extends ConsumerWidget {
           textAlign: TextAlign.center,
           style: context.textTheme.bodySmall,
         ),
+        ...viewInCollection,
       ];
     }
     return [
@@ -170,21 +209,26 @@ class StorePictureSheet extends ConsumerWidget {
         icon: Icons.restart_alt_rounded,
         size: PremiumButtonSize.medium,
         variant: PremiumButtonVariant.ghost,
-        onPressed: () => _apply(context, ref, null),
+        onPressed: () => _apply(null),
       ),
+      ...viewInCollection,
     ];
   }
 
-  Future<void> _purchase(
-    BuildContext context,
-    WidgetRef ref,
-    ProfilePicture item,
-  ) async {
-    final outcome = await ref.read(storeProvider.notifier).purchase(item);
-    if (!context.mounted) return;
+  /// Closes the sheet and opens the Collection's Pictures category.
+  void _openCollection() {
+    final router = GoRouter.maybeOf(context);
+    Navigator.of(context).pop();
+    router?.push(MetaRoutes.collectionFor(kind: kPictureCategory));
+  }
+
+  Future<void> _purchase(ProfilePicture item) async {
+    final outcome = await ref.read(_shelf.notifier).purchase(item);
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context);
     switch (outcome) {
       case StoreSucceeded():
+        setState(() => _bought = item.copyWith(owned: true));
         ref.read(audioServiceProvider).play(Sfx.purchase);
         ref.read(hapticsServiceProvider).success();
         AppToast.show(
@@ -196,6 +240,9 @@ class StorePictureSheet extends ConsumerWidget {
       case StoreIgnored():
         break;
       case StoreFailed(:final error):
+        if (error.code == 'already_owned') {
+          setState(() => _bought = item.copyWith(owned: true));
+        }
         AppToast.show(
           context,
           storeErrorMessage(l10n, error),
@@ -204,16 +251,17 @@ class StorePictureSheet extends ConsumerWidget {
     }
   }
 
-  Future<void> _apply(
-    BuildContext context,
-    WidgetRef ref,
-    ProfilePicture? item,
-  ) async {
-    final outcome = await ref.read(storeProvider.notifier).apply(item);
-    if (!context.mounted) return;
+  /// Applies [item], or the classic avatar when null.
+  Future<void> _apply(ProfilePicture? item) async {
+    final outcome = await ref.read(_shelf.notifier).apply(item);
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context);
     switch (outcome) {
       case StoreSucceeded():
+        final bought = _bought;
+        if (bought != null) {
+          setState(() => _bought = bought.copyWith(equipped: item != null));
+        }
         // Server-confirmed.
         playUiSound(context, Sfx.uiConfirm);
         AppToast.show(
@@ -233,7 +281,8 @@ class StorePictureSheet extends ConsumerWidget {
   }
 }
 
-/// User-facing text for a failed Store action.
+/// User-facing text for a failed picture action (Shop, Collection, Profile
+/// picker).
 String storeErrorMessage(AppLocalizations l10n, ApiException error) {
   switch (error.code) {
     case 'insufficient_funds':

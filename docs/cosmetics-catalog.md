@@ -60,12 +60,30 @@ reached): 2 → `frame_bronze`; 3 → `token_gem`, `emote_laugh`; 5 →
 `token_royal`; 12 → `victory_fireworks`; 15 → `title_dice_master`; 20 →
 `frame_gold`; 30 → `title_royal`.
 
+## Collection vs Shop (app)
+
+Both screens read the same server data (`GET /collection`, and the picture
+shelf below); the split is presentation only — the backend stays
+authoritative for ownership, prices and purchases.
+
+| | **Collection Room** (`/collection`) | **Shop** (`/shop`; `/store` redirects) |
+|---|---|---|
+| Cosmetics | Everything **owned** (starter, bought, earned) plus what can still be **earned** by playing (`level`, `mission`, `event`), shown locked with how to earn it ("Reach level 10", mission, event). Equip / reset as before. | Only items with `acquisition.type == "purchase"` (fixed price in coins **or** diamonds) that the player does **not own yet**, one category per kind that has priced items: dice, tokens, Ludo boards, Snakes boards, trails, victory, frames, emotes (titles and badges are never sold). |
+| Profile pictures | **Pictures** tab: the owned pictures (`filter=owned`, paged), Apply / back to the classic avatar. | **Pictures** category: pictures not owned yet (`excludeOwned=true`; All / Animated / Static), bought with diamonds. |
+| After a purchase | The item appears here (equip / apply it any time). | The item leaves the Shop; its sheet offers Equip/Apply now and View in Collection. |
+
+An empty Collection tab, and every tab with items for sale, links to that
+Shop category (`/shop?category=dice`, `picture`, …). The Shop opens on the
+category chosen last in the running app. The lobby's **Shop** button is
+pinned at the top of Home.
+
 ## Profile pictures
 
-Players buy **profile pictures** in the **Store** (`/store` in the app) with
-**diamonds**. A bought picture is the player's **forever** (no expiry, no
-rental); the player can apply any picture they own, or go back to the
-built-in avatar. Pictures are cosmetic only. API:
+Players buy **profile pictures** in the app's **Shop** (`/shop`, Pictures
+category; the API keeps its `/store/…` paths) with **diamonds**. A bought
+picture is the player's **forever** (no expiry, no rental) and moves to the
+Collection's Pictures tab; the player can apply any picture they own, or go
+back to the built-in avatar. Pictures are cosmetic only. API:
 [`rest-api.md` → Store](rest-api.md#store-profile-pictures).
 
 **Catalogue** — `progression.profile_pictures` (owner-approved table,
@@ -113,7 +131,7 @@ once into app storage (`<applicationSupportDirectory>/profile_pictures/<path>`)
 and never downloads the same path again. Backend configuration (all four or
 none; only in `backend/.env` / the secret store): `R2_ACCOUNT_ID`,
 `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` (an R2 API token
-limited to this bucket). Without them the Store still lists, sells and
+limited to this bucket). Without them the Shop still lists, sells and
 applies pictures, and signing answers 503 `assets_unavailable`. Signed URLs
 and secrets are never logged.
 

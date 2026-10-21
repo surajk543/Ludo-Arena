@@ -608,6 +608,10 @@
   "@metaTabEmotes": {
     "description": "Collection tab."
   },
+  "metaTabPictures": "Pictures",
+  "@metaTabPictures": {
+    "description": "Category of profile pictures (Shop category pill and Collection Room tab)."
+  },
   "metaFilterAll": "All",
   "@metaFilterAll": {
     "description": "Collection filter."
@@ -821,6 +825,18 @@
   "metaNothingOwnedInKind": "Nothing here yet — keep playing to unlock more.",
   "@metaNothingOwnedInKind": {
     "description": "Owned filter is empty."
+  },
+  "metaKindEmptyMessage": "Nothing to collect here yet. Take a look in the Shop!",
+  "@metaKindEmptyMessage": {
+    "description": "Collection Room tab with nothing owned or to earn (its items are only sold in the Shop)."
+  },
+  "metaGoToShop": "Go to Shop",
+  "@metaGoToShop": {
+    "description": "Collection Room empty state: button that opens the Shop."
+  },
+  "metaFindMoreInShop": "Find more in the Shop",
+  "@metaFindMoreInShop": {
+    "description": "Collection Room, below a tab: more items of it are for sale in the Shop."
   },
   "metaCollectionFairNote": "Every item is cosmetic and has a fixed way to get it — no random boxes, no gameplay advantage.",
   "@metaCollectionFairNote": {
