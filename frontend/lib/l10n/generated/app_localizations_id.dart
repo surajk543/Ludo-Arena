@@ -189,13 +189,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get authGuestLogoutTitle => 'Keluar dari akun tamu?';
 
   @override
-  String get authGuestLogoutMessage =>
-      'Kamu bermain sebagai tamu. Jika keluar sekarang, koin, level, dan koleksimu akan hilang kecuali kamu menyimpan progres terlebih dahulu.';
-
-  @override
-  String get authGuestLogoutConfirm => 'Keluar dan hapus progres';
-
-  @override
   String get authSaveProgressFirst => 'Simpan progres dulu';
 
   @override
@@ -215,6 +208,10 @@ class AppLocalizationsId extends AppLocalizations {
   String authWelcomeBack(String name) {
     return 'Selamat datang, $name!';
   }
+
+  @override
+  String get authGuestLogoutKeptMessage =>
+      'Koin, level, dan koleksimu tetap tersimpan di perangkat ini. Ketuk “Main sebagai tamu” untuk melanjutkan dari posisi terakhirmu. Simpan progresmu agar tetap ada di ponsel baru juga.';
 
   @override
   String get boardsColorRed => 'Merah';

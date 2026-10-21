@@ -6,24 +6,23 @@ import 'provider_credential.dart';
 /// Go-owned authentication + account endpoints (see docs/rest-api.md).
 abstract interface class AuthApi {
   /// `POST /auth/guest`. Without [deviceId]: a new guest (201, incl.
-  /// `guestSecret`). With [deviceId]: the account already bound to the
-  /// device (200, no `guestSecret`) or a new guest bound to it (201).
+  /// `guestSecret`). With [deviceId]: the device's guest (200, no
+  /// `guestSecret`) or a new guest bound to the device (201).
   Future<AuthResponse> createGuest({String? deviceId});
 
-  /// `POST /auth/guest/resume`.
+  /// `POST /auth/guest/resume`. 401 `invalid_credential` once the guest was
+  /// linked to a provider or deleted.
   Future<AuthResponse> resumeGuest(String guestSecret);
 
-  /// `POST /auth/device/resume`: signs in to the account bound to
-  /// [deviceId] (no `guestSecret`). 404 `not_found` when the device has no
-  /// account; never creates one.
+  /// `POST /auth/device/resume`: signs in to the device's guest (no
+  /// `guestSecret`). 404 `not_found` when the device has no guest; never
+  /// creates one.
   Future<AuthResponse> resumeDevice(String deviceId);
 
-  /// `PUT /account/device`: binds [deviceId] to the current account. 409
-  /// `identity_conflict` when the device belongs to another account.
+  /// `PUT /account/device`: binds [deviceId] to the current guest account.
+  /// 409 `identity_conflict` when the device has another guest, 409
+  /// `not_a_guest` for a linked account.
   Future<void> bindDevice(String deviceId);
-
-  /// `DELETE /account/device`: unbinds the current account's device.
-  Future<void> unbindDevice();
 
   /// `POST /auth/{provider}`.
   Future<AuthResponse> signIn(ProviderCredential credential);
@@ -82,11 +81,6 @@ class RestAuthApi implements AuthApi {
   @override
   Future<void> bindDevice(String deviceId) async {
     await _api.put('/account/device', body: {'deviceId': deviceId});
-  }
-
-  @override
-  Future<void> unbindDevice() async {
-    await _api.delete('/account/device');
   }
 
   @override

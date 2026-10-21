@@ -83,8 +83,8 @@ func (a *Account) Register(rt *Router) {
 	rt.Handle("POST /api/v1/auth/logout", Route{IPRule: &refreshIP}, a.logout)
 	rt.Handle("POST /api/v1/account/link/{provider}", gated(Route{Auth: AuthHuman, UserRule: &link}), a.link)
 	rt.Handle("PUT /api/v1/account/device", gated(Route{Auth: AuthHuman, UserRule: &link}), a.bindDevice)
-	// Like logout, forgetting the device is never blocked by the version
-	// gate: it only removes data.
+	// Older apps call this on a guest sign-out (like logout, never blocked by
+	// the version gate); it keeps the binding (guest persistence).
 	rt.Handle("DELETE /api/v1/account/device", Route{Auth: AuthHuman, UserRule: &link}, a.unbindDevice)
 	rt.Handle("GET /api/v1/me", gated(Route{Auth: AuthHuman}), a.me)
 	profileRule := ratelimit.ProfilePerUser

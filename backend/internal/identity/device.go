@@ -13,6 +13,12 @@ package identity
 // another platform is a different binding. The table keys give one account
 // per device (PRIMARY KEY (provider, subject)) and one device per account
 // (UNIQUE (user_id, provider)).
+//
+// Only guests are bound: a binding is the device guest's restore credential
+// (with its guest secret) until the account is deleted or linked to Google,
+// Facebook or Apple — Link removes both, BindDevice refuses linked accounts,
+// and a binding left on a linked account by older code never resolves (it is
+// released for the device's next guest).
 
 import (
 	"context"
@@ -33,15 +39,29 @@ const (
 
 	deviceKeyLabel = "ludo-royale/device-id/v1"
 	// bindLockClass namespaces the per-account advisory lock that serializes
-	// BindDevice calls of one account (two-key form: never overlaps the
-	// single-key migration lock).
+	// BindDevice and Link calls of one account (two-key form: never overlaps
+	// the single-key migration lock).
 	bindLockClass = 0x64657669 // "devi"
 	// knownBadAndroidID is the ANDROID_ID many Android 2.2 devices shared.
 	knownBadAndroidID = "9774d56d682e549c"
 )
 
-// ErrInvalidDevice: the device id or platform is not acceptable.
-var ErrInvalidDevice = errors.New("invalid device id or platform")
+// Errors.
+var (
+	// ErrInvalidDevice: the device id or platform is not acceptable.
+	ErrInvalidDevice = errors.New("invalid device id or platform")
+	// ErrNotGuest: the account is linked to Google, Facebook or Apple; only
+	// guests are bound to a device.
+	ErrNotGuest = errors.New("account is linked: only guests are bound to a device")
+)
+
+// lockAccountBinds takes the transaction-scoped lock that serializes the
+// account's BindDevice and Link calls.
+func lockAccountBinds(ctx context.Context, tx pgx.Tx, userID uuid.UUID) error {
+	_, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock($1, hashtext($2))`,
+		int32(bindLockClass), userID.String())
+	return err
+}
 
 // DeviceKey derives the device-binding HMAC key from the server secret
 // (PUBLIC_ID_KEY) with domain separation, so the secret's other uses (public
@@ -114,23 +134,38 @@ func lower(s string) string {
 	return string(b)
 }
 
-// FindOrCreateDeviceGuest returns the account bound to the device or, if the
-// device is unbound, creates a new guest account: wallet (welcome grant),
+// FindOrCreateDeviceGuest returns the guest bound to the device or, if the
+// device has no guest, creates a new guest account: wallet (welcome grant),
 // guest identity and device binding in one transaction. Concurrent first
-// calls for the same device create exactly one account.
+// calls for the same device create exactly one account. A binding that a
+// linked account still holds (written before linking released it) is
+// released first, so the device gets a new guest instead of that account.
 func (s *Store) FindOrCreateDeviceGuest(ctx context.Context, deviceSubject, guestSubject string) (Account, error) {
+	if _, err := s.pool.Exec(ctx, releaseStaleDeviceSQL, Device, deviceSubject); err != nil {
+		return Account{}, err
+	}
 	return s.findOrCreate(ctx, ident{Device, deviceSubject}, ident{Guest, guestSubject})
 }
+
+// releaseStaleDeviceSQL deletes the device binding ($1 = Device, $2 =
+// subject) if its account is linked: such a binding no longer restores
+// anything (LookupGuest ignores it) and the device is free for a guest.
+const releaseStaleDeviceSQL = `
+	DELETE FROM identity.auth_identities d
+	WHERE d.provider = $1 AND d.subject = $2 AND EXISTS (
+		SELECT 1 FROM identity.auth_identities l
+		WHERE l.user_id = d.user_id AND l.` + linkedProviderSQL + `)`
 
 // errRetryBind: a concurrent bind by another account took the device.
 var errRetryBind = errors.New("concurrent device bind")
 
-// BindDevice binds the device to the account: a no-op if it already is,
-// ErrConflict if the device belongs to another account (it is never moved),
+// BindDevice binds the device to the guest account: a no-op if it already
+// is, ErrNotGuest if the account is linked (only guests are bound),
+// ErrConflict if the device belongs to another guest (it is never moved),
 // and otherwise it replaces the account's previous device binding, if any
-// (one device per account). Binds of one account are serialized by a
-// transaction-scoped advisory lock; a race with another account for the same
-// device is re-checked (and then reports ErrConflict).
+// (one device per account). Binds and links of one account are serialized
+// by a transaction-scoped advisory lock; a race with another account for
+// the same device is re-checked (and then reports ErrConflict).
 func (s *Store) BindDevice(ctx context.Context, userID uuid.UUID, deviceSubject string) error {
 	for attempt := 0; ; attempt++ {
 		err := s.bindDeviceOnce(ctx, userID, deviceSubject)
@@ -146,8 +181,16 @@ func (s *Store) bindDeviceOnce(ctx context.Context, userID uuid.UUID, subject st
 		return err
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
-	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock($1, hashtext($2))`,
-		int32(bindLockClass), userID.String()); err != nil {
+	if err := lockAccountBinds(ctx, tx, userID); err != nil {
+		return err
+	}
+	switch linked, err := isLinked(ctx, tx, userID); {
+	case err != nil:
+		return err
+	case linked:
+		return ErrNotGuest
+	}
+	if _, err := tx.Exec(ctx, releaseStaleDeviceSQL, Device, subject); err != nil {
 		return err
 	}
 	var owner uuid.UUID
@@ -183,11 +226,4 @@ func (s *Store) bindDeviceOnce(ctx context.Context, userID uuid.UUID, subject st
 		return err
 	}
 	return tx.Commit(ctx)
-}
-
-// UnbindDevice removes the account's device binding (idempotent).
-func (s *Store) UnbindDevice(ctx context.Context, userID uuid.UUID) error {
-	_, err := s.pool.Exec(ctx,
-		`DELETE FROM identity.auth_identities WHERE provider = $1 AND user_id = $2`, Device, userID)
-	return err
 }

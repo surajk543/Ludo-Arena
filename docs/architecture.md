@@ -29,8 +29,8 @@ Go backend** over HTTPS REST (`/api/v1`) and one WebSocket
 state, turn timers, wallets, progression and sessions. Live state, timers,
 sessions and cross-instance pub/sub live in **Redis**; durable data lives in
 **PostgreSQL** schemas `wallet` (balances only), `identity` (provider →
-account mappings, plus the internal `device` binding that restores an account
-after an app update or reinstall) and `progression`. There are no match-history, ledger or
+account mappings, plus the internal `device` binding that restores the
+device's guest after a sign-out, app update or reinstall) and `progression`. There are no match-history, ledger or
 profile tables (a player-chosen display name is one nullable
 `progression.player_progress` column; other display data is a Redis cache).
 Profile pictures and Store emotes sold in the Shop are catalogued in

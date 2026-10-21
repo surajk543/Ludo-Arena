@@ -241,29 +241,37 @@ void main() {
       expect(env.secure.values.containsKey('session.replaced'), isFalse);
     });
 
-    test('a user sign-out is not undone by the next launch; the binding '
-        'stays for "Play as guest"', () async {
+    test('a guest sign-out is not undone by the next launch; "Play as '
+        'guest" then resumes the same guest', () async {
       await setUpEnv();
       env.backend
         ..json(
           'POST',
-          '/auth/google',
-          authJson(isGuest: false, providers: ['google'], uid: 'u_g'),
+          '/auth/guest',
+          authJson(guestSecret: 'gs_1', isNewUser: true),
+          status: 201,
         )
-        ..json('POST', '/auth/device/resume', authJson(uid: 'u_g'));
-      await session().signIn(LinkedProvider.google);
+        ..json('POST', '/auth/device/resume', authJson())
+        ..json('POST', '/auth/guest/resume', authJson(access: 'at-2'));
+      await session().continueAsGuest();
       await settle();
-      await session().logout(forgetGuest: false);
+      await session().logout();
       await settle();
       expect(env.backend.calls('DELETE', '/account/device'), isEmpty);
-      expect(env.secure.values[boundKey], 'u_g');
+      expect(env.secure.values[boundKey], 'u_guest1');
+      expect(env.secure.values['session.guest_secret'], 'gs_1');
 
       final next = relaunch();
       expect(await next.restore(), RestoreOutcome.signedOut);
       expect(env.backend.calls('POST', '/auth/device/resume'), isEmpty);
+      expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
 
-      // An explicit sign-in lifts the block for later launches.
-      await next.signIn(LinkedProvider.google);
+      // An explicit "Play as guest" is the same account, and lifts the block
+      // for later launches.
+      final again = await next.continueAsGuest() as AuthSucceeded;
+      expect(again.isNewUser, isFalse);
+      expect(again.user.uid, 'u_guest1');
+      expect(env.backend.calls('POST', '/auth/guest'), hasLength(1));
       expect(env.secure.values.containsKey('session.signed_out'), isFalse);
     });
   });
@@ -320,8 +328,8 @@ void main() {
   });
 
   group('device binding', () {
-    test('provider sign-in binds the device once; the next restore does not '
-        're-bind', () async {
+    test('provider accounts are never bound to the device (they are reached '
+        'through their provider)', () async {
       await setUpEnv();
       env.backend
         ..json(
@@ -339,159 +347,251 @@ void main() {
         isA<AuthSucceeded>(),
       );
       await settle();
-      final put = env.backend.calls('PUT', '/account/device').single;
-      expect(put.json, {'deviceId': deviceId});
-      expect(put.header('Authorization'), 'Bearer at-1');
-      expect(env.secure.values[boundKey], 'u_g');
-
       expect(await relaunch().restore(), RestoreOutcome.restored);
       await settle();
-      expect(puts(), 1);
+      expect(puts(), 0);
+      expect(env.secure.values.containsKey(boundKey), isFalse);
     });
 
-    test('409 identity_conflict is silent and not retried for that '
-        'account', () async {
-      await setUpEnv();
-      env.backend
-        ..on(
-          'PUT',
-          '/account/device',
-          (_) => FakeResponse.error(409, 'identity_conflict'),
-        )
-        ..json(
-          'POST',
-          '/auth/google',
-          authJson(isGuest: false, providers: ['google'], uid: 'u_g'),
-        )
-        ..json(
-          'POST',
-          '/auth/refresh',
-          authJson(isGuest: false, providers: ['google'], uid: 'u_g'),
-        );
-      expect(
-        await session().signIn(LinkedProvider.google),
-        isA<AuthSucceeded>(),
+    /// A guest restored from its stored secret (created before device
+    /// binding, or without a device id), with [put] as the bind answer.
+    Future<void> restoredGuest(FakeResponse Function() put) async {
+      await setUpEnv(
+        secure: {'session.guest_secret': 'gs_1', 'session.last_was_guest': '1'},
       );
+      env.backend
+        ..on('PUT', '/account/device', (_) => put())
+        ..json('POST', '/auth/guest/resume', authJson())
+        ..json('POST', '/auth/refresh', authJson(access: 'at-2'));
+      expect(await session().restore(), RestoreOutcome.restored);
       await settle();
-      expect(state().isSignedIn, isTrue);
-      expect(puts(), 1);
-      expect(await relaunch().restore(), RestoreOutcome.restored);
-      await settle();
-      expect(puts(), 1);
-    });
+    }
+
+    for (final code in ['identity_conflict', 'not_a_guest']) {
+      test('409 $code is silent and not retried for that account', () async {
+        await restoredGuest(() => FakeResponse.error(409, code));
+        expect(state().isSignedIn, isTrue);
+        expect(puts(), 1);
+        expect(env.secure.values[boundKey], 'u_guest1');
+        expect(await relaunch().restore(), RestoreOutcome.restored);
+        await settle();
+        expect(puts(), 1);
+      });
+    }
 
     test('other binding failures never fail sign-in and are retried on the '
         'next launch', () async {
-      await setUpEnv();
-      env.backend
-        ..on(
-          'PUT',
-          '/account/device',
-          (_) => FakeResponse.error(500, 'internal'),
-        )
-        ..json(
-          'POST',
-          '/auth/google',
-          authJson(isGuest: false, providers: ['google'], uid: 'u_g'),
-        )
-        ..json(
-          'POST',
-          '/auth/refresh',
-          authJson(isGuest: false, providers: ['google'], uid: 'u_g'),
-        );
-      expect(
-        await session().signIn(LinkedProvider.google),
-        isA<AuthSucceeded>(),
-      );
-      await settle();
+      await restoredGuest(() => FakeResponse.error(500, 'internal'));
+      expect(state().isSignedIn, isTrue);
       expect(env.secure.values.containsKey(boundKey), isFalse);
       expect(await relaunch().restore(), RestoreOutcome.restored);
       await settle();
       expect(puts(), 2);
     });
 
-    test('a different account on the same device is bound too', () async {
-      await setUpEnv(secure: {boundKey: 'u_guest1'});
-      env.backend.json(
-        'POST',
-        '/auth/google',
-        authJson(isGuest: false, providers: ['google'], uid: 'u_g'),
+    test('a different guest on the same device is bound too', () async {
+      await setUpEnv(
+        secure: {
+          boundKey: 'u_guest1',
+          'session.guest_secret': 'gs_2',
+          'session.last_was_guest': '1',
+        },
       );
-      await session().signIn(LinkedProvider.google);
+      env.backend.json('POST', '/auth/guest/resume', authJson(uid: 'u_guest2'));
+      await session().restore();
       await settle();
       expect(puts(), 1);
+      expect(env.secure.values[boundKey], 'u_guest2');
     });
   });
 
-  group('logout', () {
-    test('forgetGuest:true unbinds the device with the live session before '
-        'revoking and clearing it', () async {
-      await setUpEnv();
-      env.backend
-        ..json(
-          'POST',
-          '/auth/guest',
-          authJson(guestSecret: 'gs_1', isNewUser: true),
-          status: 201,
-        )
-        ..json('POST', '/auth/device/resume', authJson());
-      await session().continueAsGuest();
-      expect(env.secure.values[boundKey], 'u_guest1');
-      await session().logout(forgetGuest: true);
-      await settle();
-
-      final del = env.backend.calls('DELETE', '/account/device').single;
-      expect(del.header('Authorization'), 'Bearer at-1');
-      final paths = env.backend.requests
-          .map((r) => '${r.method} ${r.path}')
-          .toList();
-      expect(
-        paths.indexOf('DELETE /account/device'),
-        lessThan(paths.indexOf('POST /auth/logout')),
-      );
-      expect(env.secure.values.containsKey(boundKey), isFalse);
-      expect(env.secure.values.containsKey('session.refresh_token'), isFalse);
-      expect(env.secure.values.containsKey('session.guest_secret'), isFalse);
-      expect(state().status, SessionStatus.signedOut);
-
-      // The guest is not brought back by the next launch.
-      expect(await relaunch().restore(), RestoreOutcome.signedOut);
-      expect(env.backend.calls('POST', '/auth/device/resume'), isEmpty);
-    });
-
-    test('forgetGuest:false keeps the binding', () async {
-      await setUpEnv();
+  group('guest persistence', () {
+    /// A new device guest (201, `gs_1`, bound to the device).
+    Future<void> newDeviceGuest() async {
       env.backend.json(
         'POST',
         '/auth/guest',
-        authJson(guestSecret: 'gs_1', isNewUser: true),
+        authJson(guestSecret: 'gs_1', isNewUser: true, coins: 1000000),
         status: 201,
       );
-      await session().continueAsGuest();
-      await session().logout(forgetGuest: false);
+      final created = await session().continueAsGuest() as AuthSucceeded;
+      expect(created.isNewUser, isTrue);
+      expect(env.secure.values[boundKey], 'u_guest1');
+    }
+
+    test('a guest sign-out never forgets the guest: no unbind, the secret '
+        'and the binding stay', () async {
+      await setUpEnv();
+      await newDeviceGuest();
+      await session().logout();
       await settle();
       expect(env.backend.calls('DELETE', '/account/device'), isEmpty);
+      expect(env.secure.values['session.guest_secret'], 'gs_1');
       expect(env.secure.values[boundKey], 'u_guest1');
+      expect(env.secure.values.containsKey('session.refresh_token'), isFalse);
+      expect(state().status, SessionStatus.signedOut);
+      expect(state().hasStoredGuest, isTrue);
     });
 
-    test('a failed unbind never blocks the sign-out', () async {
+    test('Android reinstall after a sign-out (secure storage wiped): the '
+        'device restores the same guest', () async {
       await setUpEnv();
+      await newDeviceGuest();
+      await session().logout();
+      await settle();
+
+      env.secure.values.clear(); // uninstall: Keystore-backed storage gone
+      env.backend.json(
+        'POST',
+        '/auth/device/resume',
+        authJson(access: 'at-r', coins: 4321),
+      );
+      final next = relaunch();
+      expect(await next.restore(), RestoreOutcome.restored);
+      expect(state().user!.uid, 'u_guest1');
+      expect(container.read(walletControllerProvider).coins, 4321);
+      expect(env.secure.values[boundKey], 'u_guest1');
+      expect(env.backend.calls('POST', '/auth/guest'), hasLength(1));
+    });
+
+    test('Android reinstall, then "Play as guest" on the login screen: the '
+        "device's guest (200), not a new one", () async {
+      await setUpEnv();
+      env.backend.json('POST', '/auth/guest', authJson(coins: 4321));
+      final outcome = await session().continueAsGuest() as AuthSucceeded;
+      expect(outcome.isNewUser, isFalse);
+      expect(outcome.user.uid, 'u_guest1');
+      expect(env.backend.calls('POST', '/auth/guest').single.json, {
+        'deviceId': deviceId,
+      });
+      expect(container.read(walletControllerProvider).coins, 4321);
+    });
+
+    test('Save Progress ends the device guest: after a sign-out, "Play as '
+        'guest" starts a new guest and the linked account is never '
+        'bound', () async {
+      await setUpEnv();
+      await newDeviceGuest();
       env.backend
         ..json(
           'POST',
-          '/auth/guest',
-          authJson(guestSecret: 'gs_1', isNewUser: true),
-          status: 201,
+          '/account/link/google',
+          meJson(isGuest: false, providers: ['google']),
         )
-        ..on(
-          'DELETE',
-          '/account/device',
-          (_) => FakeResponse.error(500, 'internal'),
+        ..json(
+          'POST',
+          '/auth/refresh',
+          authJson(isGuest: false, providers: ['google'], access: 'at-2'),
         );
-      await session().continueAsGuest();
-      await session().logout(forgetGuest: true);
-      expect(state().status, SessionStatus.signedOut);
-      expect(env.secure.values.containsKey('session.refresh_token'), isFalse);
+      expect(await session().link(LinkedProvider.google), isA<LinkSucceeded>());
+      expect(env.secure.values.containsKey('session.guest_secret'), isFalse);
+      expect(env.secure.values.containsKey(boundKey), isFalse);
+
+      // The next launch restores the linked account; no bind for it.
+      expect(await relaunch().restore(), RestoreOutcome.restored);
+      await settle();
+      expect(puts(), 0);
+
+      await session().logout();
+      env.backend.json(
+        'POST',
+        '/auth/guest',
+        authJson(
+          id: 'acc-new',
+          uid: 'u_new',
+          guestSecret: 'gs_new',
+          isNewUser: true,
+        ),
+        status: 201,
+      );
+      final fresh = await session().continueAsGuest() as AuthSucceeded;
+      expect(fresh.isNewUser, isTrue);
+      expect(fresh.user.uid, 'u_new');
+      expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
+      expect(env.backend.calls('POST', '/auth/guest').last.json, {
+        'deviceId': deviceId,
+      });
+      expect(env.secure.values['session.guest_secret'], 'gs_new');
+      expect(env.secure.values[boundKey], 'u_new');
+    });
+
+    test('a guest secret the server no longer accepts (linked or deleted '
+        'elsewhere) is forgotten; the device decides', () async {
+      await setUpEnv(secure: {'session.guest_secret': 'gs_old'});
+      env.backend
+        ..on(
+          'POST',
+          '/auth/guest/resume',
+          (_) => FakeResponse.error(401, 'invalid_credential'),
+        )
+        ..json(
+          'POST',
+          '/auth/guest',
+          authJson(uid: 'u_new', guestSecret: 'gs_new', isNewUser: true),
+          status: 201,
+        );
+      final outcome = await session().continueAsGuest() as AuthSucceeded;
+      expect(outcome.user.uid, 'u_new');
+      expect(env.secure.values['session.guest_secret'], 'gs_new');
+    });
+
+    test('Save Progress conflict keeps the device guest: after signing in '
+        'to the other account, "Play as guest" is the same guest', () async {
+      await setUpEnv();
+      await newDeviceGuest();
+      env.backend
+        ..on(
+          'POST',
+          '/account/link/google',
+          (_) => FakeResponse.error(409, 'identity_conflict'),
+        )
+        ..json(
+          'POST',
+          '/auth/google',
+          authJson(
+            id: 'acc-x',
+            uid: 'u_x',
+            isGuest: false,
+            providers: ['google'],
+            access: 'at-x',
+            refresh: 'rt-x',
+          ),
+        )
+        ..json('POST', '/auth/guest/resume', authJson(access: 'at-g'));
+      final conflict =
+          await session().link(LinkedProvider.google) as LinkConflict;
+      await session().signInWithCredential(conflict.credential);
+      await settle();
+      expect(state().user!.uid, 'u_x');
+      expect(puts(), 0);
+      expect(env.secure.values['session.guest_secret'], 'gs_1');
+      expect(env.secure.values[boundKey], 'u_guest1');
+
+      await session().logout();
+      final back = await session().continueAsGuest() as AuthSucceeded;
+      expect(back.user.uid, 'u_guest1');
+      expect(back.isNewUser, isFalse);
+      expect(env.backend.calls('POST', '/auth/guest'), hasLength(1));
+    });
+
+    test('after Delete account, "Play as guest" starts a new guest', () async {
+      await setUpEnv();
+      await newDeviceGuest();
+      env.backend.json('DELETE', '/account', const {}, status: 204);
+      expect(await session().deleteAccount(), isA<DeleteAccountSucceeded>());
+      expect(env.secure.values.containsKey('session.guest_secret'), isFalse);
+      expect(env.secure.values.containsKey(boundKey), isFalse);
+
+      env.backend.json(
+        'POST',
+        '/auth/guest',
+        authJson(uid: 'u_new', guestSecret: 'gs_new', isNewUser: true),
+        status: 201,
+      );
+      final fresh = await session().continueAsGuest() as AuthSucceeded;
+      expect(fresh.isNewUser, isTrue);
+      expect(fresh.user.uid, 'u_new');
+      expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
     });
   });
 
@@ -510,7 +610,7 @@ void main() {
       final outcome = await session().continueAsGuest() as AuthSucceeded;
       expect(outcome.isNewUser, isTrue);
       expect(env.backend.calls('POST', '/auth/guest').single.json, isEmpty);
-      await session().logout(forgetGuest: true);
+      await session().logout();
       await settle();
       expect(env.backend.requests.map((r) => '${r.method} ${r.path}'), [
         'POST /auth/guest',
@@ -523,6 +623,8 @@ void main() {
   test('the device id never reaches analytics, URLs or headers', () async {
     final analytics = _RecordingAnalyticsBackend();
     await setUpEnv(
+      // A guest from before device binding: restoring it binds the device.
+      secure: {'session.guest_secret': 'gs_0', 'session.last_was_guest': '1'},
       prefs: {PrefKeys.analyticsConsent: AnalyticsConsent.granted.name},
       analyticsBackend: analytics,
     );
@@ -535,6 +637,7 @@ void main() {
     );
     addTearDown(container.dispose);
     env.backend
+      ..json('POST', '/auth/guest/resume', authJson())
       ..json('POST', '/auth/device/resume', authJson(uid: 'u_dev'))
       ..json(
         'POST',
@@ -548,14 +651,22 @@ void main() {
         status: 201,
       );
 
-    await session().restore();
-    await session().logout(forgetGuest: false);
+    await session().restore(); // guest resume + PUT /account/device
+    await settle();
+    await session().logout();
     await session().signIn(LinkedProvider.google);
     await settle();
-    await session().logout(forgetGuest: false);
-    await session().continueAsGuest();
-    await session().logout(forgetGuest: true);
+    await session().logout();
+    await session().continueAsGuest(); // guest resume
     await settle();
+    await session().logout();
+    env.secure.values.clear(); // reinstall
+    await session().restore(); // POST /auth/device/resume
+    await settle();
+    await session().logout();
+    await session().continueAsGuest(); // no secret: POST /auth/guest
+    await settle();
+    await session().logout();
 
     expect(analytics.events, isNotEmpty, reason: 'the gate was open');
     for (final (name, params) in analytics.events) {

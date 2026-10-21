@@ -188,13 +188,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authGuestLogoutTitle => 'Sign out of your guest account?';
 
   @override
-  String get authGuestLogoutMessage =>
-      'You\'re playing as a guest. If you sign out now, your coins, level and collection will be lost unless you save your progress first.';
-
-  @override
-  String get authGuestLogoutConfirm => 'Sign out and lose progress';
-
-  @override
   String get authSaveProgressFirst => 'Save progress first';
 
   @override
@@ -215,6 +208,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String authWelcomeBack(String name) {
     return 'Welcome, $name!';
   }
+
+  @override
+  String get authGuestLogoutKeptMessage =>
+      'Your coins, level and collection stay on this device. Tap “Play as guest” to carry on where you left off. Save your progress to keep them on a new phone too.';
 
   @override
   String get boardsColorRed => 'Red';

@@ -95,9 +95,7 @@ void main() {
     await boot();
     await gate().start();
     await settle();
-    await container
-        .read(sessionControllerProvider.notifier)
-        .logout(forgetGuest: true);
+    await container.read(sessionControllerProvider.notifier).logout();
     await settle();
     expect(state().phase, GatePhase.signedOut);
   });

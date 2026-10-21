@@ -190,10 +190,16 @@ final class DisplayNameFailed extends DisplayNameOutcome {
 /// controller only exchanges provider credentials for backend sessions and
 /// keeps tokens in secure storage (via [TokenManager]).
 ///
-/// Device binding: when the device has an id ([DeviceIdentity]), each
-/// human account it signs in to is bound to it (`PUT /account/device`,
-/// once per account), so an update or reinstall lands back in the same
-/// account (`POST /auth/device/resume`) with its coins and progress.
+/// Guest persistence: the device guest stays the same account — after a
+/// sign-out ("Play as guest" resumes it), an update or a reinstall — until
+/// it is linked to Google/Facebook/Apple (Save Progress) or deleted. Its
+/// credentials are the guest secret (secure storage; the iOS keychain keeps
+/// it across reinstalls) and, when the device has an id
+/// ([DeviceIdentity]), the server-side device binding (`POST /auth/guest`
+/// with the id, `POST /auth/device/resume`; guests created without it are
+/// bound with `PUT /account/device`, once per account). Only guests are
+/// bound: after linking, the server drops both credentials and the device
+/// starts a new guest.
 class SessionController extends Notifier<SessionState> {
   AuthApi get _api => ref.read(authApiProvider);
   SecureSessionStore get _store => ref.read(secureSessionStoreProvider);
@@ -241,9 +247,9 @@ class SessionController extends Notifier<SessionState> {
   /// 2. signed out by the user or by a sign-in on another device → stay
   ///    signed out until an explicit sign-in;
   /// 3. the last session was a guest with a stored secret →
-  ///    `/auth/guest/resume` (installs from before device binding);
+  ///    `/auth/guest/resume`;
   /// 4. the device has an id → `/auth/device/resume` (an update or
-  ///    reinstall lands back in the device's account; 404 → signed out);
+  ///    reinstall lands back in the device's guest; 404 → signed out);
   /// 5. else signed out.
   Future<RestoreOutcome> restore() async {
     final tokens = ref.read(tokenManagerProvider);
@@ -368,7 +374,10 @@ class SessionController extends Notifier<SessionState> {
 
   /// "Play as guest": resumes the guest stored on this device if any,
   /// otherwise `POST /auth/guest` — with the device id the server returns
-  /// the device's account (200) or a new guest bound to the device (201).
+  /// the device's guest (200) or a new guest bound to the device (201: the
+  /// device never had one, or its guest was linked or deleted). A secret
+  /// the server no longer accepts (its account was linked or deleted) is
+  /// forgotten.
   Future<AuthOutcome> continueAsGuest() async {
     _analytics.loginStarted(LoginMethod.guest);
     try {
@@ -420,6 +429,13 @@ class SessionController extends Notifier<SessionState> {
   // ---------------------------------------------------------------- linking
 
   /// Save Progress: links [provider] to the CURRENT account.
+  ///
+  /// When this turns the device guest into a linked account, the server
+  /// drops its guest secret and device binding, so they are forgotten here
+  /// too: the account is reached by signing in with [provider], and "Play as
+  /// guest" on this device starts a new guest. (A non-guest account that
+  /// links one more provider leaves a stored guest secret alone: it belongs
+  /// to the device guest, e.g. after a Save Progress conflict.)
   Future<LinkOutcome> link(LinkedProvider provider) async {
     final ProviderCredential? credential;
     try {
@@ -428,11 +444,17 @@ class SessionController extends Notifier<SessionState> {
       return LinkFailed(_identityFailureCode(e.failure));
     }
     if (credential == null) return const LinkCancelled();
+    final wasGuest = state.isGuest;
     try {
       final me = await _api.link(credential);
       // A linked account is no longer resumed with the guest secret on
       // launch (that would sign out the account's other device).
       await _store.writeLastSessionWasGuest(me.user.isGuest);
+      if (wasGuest && !me.user.isGuest) {
+        await _store.clearGuestSecret();
+        await _store.clearDeviceBoundUid();
+        _set(state.copyWith(hasStoredGuest: false));
+      }
       _adoptProfile(me);
       _analytics.accountLinkSucceeded(_method(provider));
       return LinkSucceeded(me.user, provider);
@@ -510,22 +532,18 @@ class SessionController extends Notifier<SessionState> {
 
   // ---------------------------------------------------------------- logout
 
-  /// Signs out. [forgetGuest] also deletes the guest secret and unbinds the
-  /// device from the account (only after the user confirmed losing an
-  /// unsaved guest account; otherwise the device would restore it). The app
-  /// does not sign in on its own again until the user signs in.
-  Future<void> logout({required bool forgetGuest}) async {
+  /// Signs out. A guest loses nothing: its guest secret and the device
+  /// binding stay, so "Play as guest" brings back the same account (only
+  /// Save Progress or Delete account end a device guest). The app does not
+  /// sign in on its own again until the user signs in.
+  Future<void> logout() async {
     final tokens = ref.read(tokenManagerProvider);
-    // Needs the still-valid session, so before the revoke (an expiring
-    // access token may be refreshed here: read the tokens after it).
-    if (forgetGuest) await _unbindDevice();
     final previous = _currentTokens();
     if (previous != null) unawaited(_revoke(previous));
     await tokens.clear();
     for (final c in ref.read(identityProviderClientsProvider).values) {
       unawaited(c.signOut());
     }
-    if (forgetGuest) await _store.clearGuestSecret();
     await _store.writeLastSessionWasGuest(false);
     await _store.markSignedOut();
     final hasGuest = await _store.readGuestSecret() != null;
@@ -649,13 +667,15 @@ class SessionController extends Notifier<SessionState> {
     }
   }
 
-  /// Best effort, once per account: binds this device to [user]'s account
-  /// so a reinstall restores it. Also migrates accounts created before
-  /// device binding. A 409 `identity_conflict` (the device already belongs
-  /// to another account, which keeps it) is final and silent; other
-  /// failures are retried after the next sign-in or launch.
+  /// Best effort, once per account: binds this device to [user]'s guest
+  /// account so a reinstall restores it (guests created without a device
+  /// id, e.g. before device binding). Linked accounts are never bound: they
+  /// are reached through their provider. A 409 (`identity_conflict`: the
+  /// device already has another guest, which keeps it; `not_a_guest`) is
+  /// final and silent; other failures are retried after the next sign-in or
+  /// launch.
   Future<void> _bindDevice(User user) async {
-    if (!user.isHuman || _bindingUid == user.uid) return;
+    if (!user.isHuman || !user.isGuest || _bindingUid == user.uid) return;
     _bindingUid = user.uid;
     try {
       final deviceId = await _deviceId();
@@ -664,7 +684,7 @@ class SessionController extends Notifier<SessionState> {
       try {
         await _api.bindDevice(deviceId);
       } on ApiException catch (e) {
-        if (e.code != 'identity_conflict') return;
+        if (e.status != 409) return;
       }
       // Not for an account that was left meanwhile.
       if (state.user?.uid == user.uid) {
@@ -674,19 +694,6 @@ class SessionController extends Notifier<SessionState> {
       // Best effort.
     } finally {
       if (_bindingUid == user.uid) _bindingUid = null;
-    }
-  }
-
-  /// Best effort `DELETE /account/device` with the current session.
-  Future<void> _unbindDevice() async {
-    if (!ref.read(tokenManagerProvider).hasSession) return;
-    if (await _deviceId() == null) return;
-    try {
-      await _api.unbindDevice().timeout(const Duration(seconds: 5));
-    } catch (_) {
-      // Best effort: signing out must not depend on the network.
-    } finally {
-      await _store.clearDeviceBoundUid();
     }
   }
 

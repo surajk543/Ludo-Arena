@@ -51,12 +51,11 @@
   "authLogoutMessage": "آپ کسی بھی وقت اسی طریقے سے دوبارہ سائن اِن کر سکتے ہیں۔",
   "authLogoutConfirm": "سائن آؤٹ کریں",
   "authGuestLogoutTitle": "مہمان اکاؤنٹ سے سائن آؤٹ کریں؟",
-  "authGuestLogoutMessage": "آپ مہمان کے طور پر کھیل رہے ہیں۔ اگر آپ ابھی سائن آؤٹ کرتے ہیں تو پیش رفت محفوظ کیے بغیر آپ کے سکے، لیول اور کلیکشن ضائع ہو جائیں گے۔",
-  "authGuestLogoutConfirm": "سائن آؤٹ کریں اور پیش رفت کھو دیں",
   "authSaveProgressFirst": "پہلے پیش رفت محفوظ کریں",
   "authSwitchToGuestTitle": "مہمان اکاؤنٹ پر واپس جائیں؟",
   "authSwitchToGuestMessage": "آپ اس اکاؤنٹ سے نکل کر اس ڈیوائس پر محفوظ مہمان اکاؤنٹ کے ساتھ جاری رکھیں گے۔",
   "authSwitchToGuestConfirm": "مہمان پر جائیں",
   "authGuestUnavailable": "وہ مہمان اکاؤنٹ اب دستیاب نہیں ہے۔",
-  "authWelcomeBack": "خوش آمدید، {name}!"
+  "authWelcomeBack": "خوش آمدید، {name}!",
+  "authGuestLogoutKeptMessage": "آپ کے سکے، لیول اور کلیکشن اس ڈیوائس پر محفوظ رہیں گے۔ جہاں چھوڑا تھا وہیں سے جاری رکھنے کے لیے “مہمان کے طور پر کھیلیں” پر ٹیپ کریں۔ نئے فون پر بھی انہیں رکھنے کے لیے اپنی پیش رفت محفوظ کریں۔"
 }
