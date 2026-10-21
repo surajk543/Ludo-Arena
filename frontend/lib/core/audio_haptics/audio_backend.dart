@@ -46,8 +46,9 @@ abstract interface class AudioBackend {
 ///   started copy is handed back to its pool after the sound's length (the
 ///   pool would otherwise create a new native player for every play).
 /// - Music: one separate media-mode [AudioPlayer] (streams the AAC file).
-/// - Never requests audio focus on Android; ambient (mixing, honours the
-///   silent switch) on iOS — the user's own music keeps playing.
+/// - Never requests audio focus on Android; on iOS a mixing `playback`
+///   session that keeps playing in silent mode — the user's own music keeps
+///   playing too.
 class AudioPlayersBackend implements AudioBackend {
   final Map<Sfx, Future<AudioPool>> _pools = {};
   final Set<Timer> _releases = {};
@@ -56,16 +57,26 @@ class AudioPlayersBackend implements AudioBackend {
   bool _contextSet = false;
   bool _disposed = false;
 
+  /// The app's single iOS audio session (owner's rule, 22 Oct 2026: music
+  /// and effects keep playing when the Ring/Silent switch is on silent; only
+  /// the volume buttons and the in-app sound/music settings turn them down).
+  /// `playback` ignores the silent switch; `mixWithOthers` keeps the user's
+  /// own music playing alongside (only valid with playback, playAndRecord or
+  /// multiRoute). Without the `audio` background mode, nothing plays once the
+  /// app is in the background.
+  static AudioContextIOS iosSession() => AudioContextIOS(
+    category: AVAudioSessionCategory.playback,
+    options: const {AVAudioSessionOptions.mixWithOthers},
+  );
+
   /// Audio session for short game/UI effects.
   ///
-  /// - iOS: `ambient` — mixes with the user's music and is silenced by the
-  ///   Ring/Silent switch. (`mixWithOthers` must NOT be passed explicitly: iOS
-  ///   only accepts it for playback/playAndRecord/multiRoute, and ambient
-  ///   already mixes.)
+  /// - iOS: [iosSession] (plays in silent mode, mixes with other apps).
   /// - Android: game/sonification usage without requesting audio focus, so
-  ///   background music keeps playing.
+  ///   background music keeps playing (silent/vibrate mode never mutes
+  ///   media on Android; the media volume does).
   static AudioContext sfxAudioContext() => AudioContext(
-    iOS: AudioContextIOS(category: AVAudioSessionCategory.ambient),
+    iOS: iosSession(),
     android: const AudioContextAndroid(
       isSpeakerphoneOn: false,
       stayAwake: false,
@@ -75,11 +86,11 @@ class AudioPlayersBackend implements AudioBackend {
     ),
   );
 
-  /// Audio session for the lobby music: the same ambient iOS session (iOS
-  /// has one session per app) and, on Android, game usage with music content
-  /// and no audio focus — it never stops another app's music.
+  /// Audio session for the lobby music: the same iOS session (iOS has one
+  /// session per app, [iosSession]) and, on Android, game usage with music
+  /// content and no audio focus — it never stops another app's music.
   static AudioContext musicAudioContext() => AudioContext(
-    iOS: AudioContextIOS(category: AVAudioSessionCategory.ambient),
+    iOS: iosSession(),
     android: const AudioContextAndroid(
       isSpeakerphoneOn: false,
       stayAwake: false,

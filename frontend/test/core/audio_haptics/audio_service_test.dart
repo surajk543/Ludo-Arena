@@ -46,13 +46,13 @@ class _FlakyMusicBackend extends RecordingAudioBackend {
 
 void main() {
   group('audio contexts', () {
-    test('effects: a valid iOS context (no assertion) that respects the silent '
-        'switch', () {
-      // Constructing runs AudioContextIOS' debug assertions; the previous
-      // respectSilence + mixWithOthers config failed them at startup.
+    test('effects: a valid iOS context (no assertion) that keeps playing in '
+        'silent mode and mixes with other apps', () {
+      // Constructing runs AudioContextIOS' debug assertions (mixWithOthers is
+      // only accepted with playback, playAndRecord or multiRoute).
       final ctx = AudioPlayersBackend.sfxAudioContext();
-      expect(ctx.iOS.category, AVAudioSessionCategory.ambient);
-      expect(ctx.iOS.options, isEmpty);
+      expect(ctx.iOS.category, AVAudioSessionCategory.playback);
+      expect(ctx.iOS.options, {AVAudioSessionOptions.mixWithOthers});
     });
 
     test('effects play as game sonification without taking audio focus', () {
@@ -65,11 +65,12 @@ void main() {
     });
 
     test(
-      'music mixes with other apps: ambient on iOS, no focus on Android',
+      'music plays in silent mode and mixes with other apps: mixing playback '
+      'on iOS, no focus on Android',
       () {
         final ctx = AudioPlayersBackend.musicAudioContext();
-        expect(ctx.iOS.category, AVAudioSessionCategory.ambient);
-        expect(ctx.iOS.options, isEmpty);
+        expect(ctx.iOS.category, AVAudioSessionCategory.playback);
+        expect(ctx.iOS.options, {AVAudioSessionOptions.mixWithOthers});
         expect(ctx.android.audioFocus, AndroidAudioFocus.none);
         expect(ctx.android.contentType, AndroidContentType.music);
         expect(ctx.android.usageType, AndroidUsageType.game);
