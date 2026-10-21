@@ -172,9 +172,10 @@ engines, scheduler, app policy, progression, social, analytics, metrics),
 bot-play, and the Flutter app (app gate and policy screens, login and Save
 Progress, home, profile, settings, wallet, realtime client and state reducer,
 board renderers, themes, localization, analytics gate). The Flutter play
-screens (matchmaking, practice, private rooms, match) and meta screens
-(missions, events, collection, friends, leaderboard, level road) were routed on
-2026-10-21 and are still being polished by the frontend team.
+screens (matchmaking, practice, private rooms, match, results/rematch) and meta
+screens (missions, events, collection, friends, leaderboard, level road) are
+implemented and covered by widget tests; a hands-on play-through on physical
+devices is still pending.
 
 Pending:
 

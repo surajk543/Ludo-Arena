@@ -889,7 +889,7 @@ td code { font-size: 0.8rem; }
   <!-- ============================================================ 5 -->
   <section class="doc-section" id="ludo-online" aria-labelledby="ludo-online-h">
     <div class="section-head"><span class="section-num">5</span><h2 id="ludo-online-h">Online multiplayer Ludo<a class="heading-anchor" href="#ludo-online" aria-label="Link to this section">#</a></h2></div>
-    <p class="section-meta">Code: <code>backend/internal/rooms/{lobby,game,commands,store,service}.go</code>, <code>backend/internal/game/ludo</code>, <code>backend/internal/websocket</code>, <code>frontend/lib/core/{realtime,protocol}</code> · Docs: <a href="websocket-protocol.md">websocket-protocol.md</a>, <a href="../backend/docs/game-rules.md">game-rules.md</a> · Status: <span class="badge b-impl">Implemented</span> — Flutter play screens landed on 2026-10-21 and are being polished</p>
+    <p class="section-meta">Code: <code>backend/internal/rooms/{lobby,game,commands,store,service}.go</code>, <code>backend/internal/game/ludo</code>, <code>backend/internal/websocket</code>, <code>frontend/lib/core/{realtime,protocol}</code> · Docs: <a href="websocket-protocol.md">websocket-protocol.md</a>, <a href="../backend/docs/game-rules.md">game-rules.md</a> · Status: <span class="badge b-impl">Implemented</span> — Flutter play screens implemented and tested (widget tests + live-backend contract test)</p>
 
 <figure class="diagram" id="fig-ludo-seq">
   <div class="diagram-head"><span class="diagram-num">Figure 9</span><span class="diagram-title">Matchmaking to turn change: the Go server is authoritative</span><span class="diagram-tools"><button type="button" class="tool" data-act="size" aria-pressed="false">Actual size</button><button type="button" class="tool" data-act="src" aria-pressed="false">Source</button></span></div>
@@ -963,7 +963,7 @@ td code { font-size: 0.8rem; }
   <!-- ============================================================ 6 -->
   <section class="doc-section" id="snakes-ladders" aria-labelledby="snakes-ladders-h">
     <div class="section-head"><span class="section-num">6</span><h2 id="snakes-ladders-h">Snakes &amp; Ladders flow<a class="heading-anchor" href="#snakes-ladders" aria-label="Link to this section">#</a></h2></div>
-    <p class="section-meta">Code: <code>backend/internal/game/snakes_ladders/snakesladders.go</code>, <code>frontend/lib/features/snakes_ladders/presentation/board</code> · Docs: <a href="../backend/docs/game-rules.md">game-rules.md</a> · Status: <span class="badge b-impl">Implemented</span> (Flutter game screen being polished)</p>
+    <p class="section-meta">Code: <code>backend/internal/game/snakes_ladders/snakesladders.go</code>, <code>frontend/lib/features/snakes_ladders/presentation/board</code> · Docs: <a href="../backend/docs/game-rules.md">game-rules.md</a> · Status: <span class="badge b-impl">Implemented</span> (Flutter game screen implemented)</p>
     <p>Snakes &amp; Ladders shares rooms, matchmaking, private rooms, timers, fees and the protocol with Ludo. There are no move choices: the server applies the move as part of the roll, so the phase stays <code>awaiting_roll</code> until <code>finished</code>.</p>
 
 <figure class="diagram" id="fig-snakes-flow">
@@ -996,7 +996,7 @@ td code { font-size: 0.8rem; }
   <!-- ============================================================ 7 -->
   <section class="doc-section" id="private-rooms" aria-labelledby="private-rooms-h">
     <div class="section-head"><span class="section-num">7</span><h2 id="private-rooms-h">Private rooms<a class="heading-anchor" href="#private-rooms" aria-label="Link to this section">#</a></h2></div>
-    <p class="section-meta">Code: <code>backend/internal/rooms/lobby.go</code> (<code>newCode</code>, <code>CreatePrivate</code>, <code>PreviewCode</code>, <code>JoinByCode</code>, <code>StartPrivate</code>, <code>closeRoom</code>), <code>rooms/bots.go</code>, <code>rooms/rematch.go</code>, <code>frontend/lib/features/private_rooms</code> · Status: <span class="badge b-impl">Implemented</span> — backend; Flutter create, join and lobby screens (<code>features/private_rooms</code>) being polished</p>
+    <p class="section-meta">Code: <code>backend/internal/rooms/lobby.go</code> (<code>newCode</code>, <code>CreatePrivate</code>, <code>PreviewCode</code>, <code>JoinByCode</code>, <code>StartPrivate</code>, <code>closeRoom</code>), <code>rooms/bots.go</code>, <code>rooms/rematch.go</code>, <code>frontend/lib/features/private_rooms</code> · Status: <span class="badge b-impl">Implemented</span> — backend; Flutter create, join and lobby screens (<code>features/private_rooms</code>) implemented</p>
     <p>Both games use the same private-room machinery. Codes are <strong>6 characters from a 32-symbol alphabet</strong> <code>ABCDEFGHJKLMNPQRSTUVWXYZ23456789</code> (no I, O, 0, 1), drawn with <code>crypto/rand</code> (256 is divisible by 32, so there is no modulo bias), reserved with <code>SETNX roomcode:{CODE}</code> and retried on collision (up to 5 attempts). Input is upper-cased and validated before lookup.</p>
 
 <figure class="diagram" id="fig-private-seq">
@@ -1494,7 +1494,7 @@ td code { font-size: 0.8rem; }
   <!-- ============================================================ 13 -->
   <section class="doc-section" id="progression" aria-labelledby="progression-h">
     <div class="section-head"><span class="section-num">13</span><h2 id="progression-h">Progression and engagement<a class="heading-anchor" href="#progression" aria-label="Link to this section">#</a></h2></div>
-    <p class="section-meta">Code: <code>backend/internal/progression/{record,claim,collection,levels,missions,service}.go</code>, <code>backend/internal/rooms/rematch.go</code>, <code>backend/internal/social</code>, <code>backend/config/{catalog,missions}.json</code> · Docs: <a href="progression.md">progression.md</a>, <a href="cosmetics-catalog.md">cosmetics-catalog.md</a> · Status: <span class="badge b-impl">Implemented</span> — backend; Flutter missions, events, collection, friends, leaderboard and level-road screens (<code>features/meta_routes.dart</code>) landed on 2026-10-21 and are being polished</p>
+    <p class="section-meta">Code: <code>backend/internal/progression/{record,claim,collection,levels,missions,service}.go</code>, <code>backend/internal/rooms/rematch.go</code>, <code>backend/internal/social</code>, <code>backend/config/{catalog,missions}.json</code> · Docs: <a href="progression.md">progression.md</a>, <a href="cosmetics-catalog.md">cosmetics-catalog.md</a> · Status: <span class="badge b-impl">Implemented</span> — backend; Flutter missions, events, collection, friends, leaderboard and level-road screens (<code>features/meta_routes.dart</code>) implemented</p>
 
     <h3 id="rematch">Match completion and rematch (consent-based)<a class="heading-anchor" href="#rematch" aria-label="Link to this heading">#</a></h3>
 <figure class="diagram" id="fig-prog-rematch">
@@ -1998,8 +1998,8 @@ td code { font-size: 0.8rem; }
           <tr><td>Guest login, guest resume, Save Progress linking</td><td><span class="badge b-impl">Implemented</span></td><td>Conflict handling in <code>session_controller.dart</code></td></tr>
           <tr><td>App gate (policy check, maintenance, force/optional update, unreachable)</td><td><span class="badge b-impl">Implemented</span></td><td>—</td></tr>
           <tr><td>Flutter realtime client, reducer, boards, theme, localization, analytics gate</td><td><span class="badge b-impl">Implemented</span></td><td>—</td></tr>
-          <tr><td>Flutter matchmaking, practice, create/join room, lobby and game screens</td><td><span class="badge b-impl">Implemented</span></td><td>Routed via <code>play_routes.dart</code>; landed on 2026-10-21, final polish in progress</td></tr>
-          <tr><td>Flutter missions, events, collection, friends, leaderboard and level-road screens</td><td><span class="badge b-impl">Implemented</span></td><td>Routed via <code>meta_routes.dart</code>; landed on 2026-10-21, final polish in progress</td></tr>
+          <tr><td>Flutter matchmaking, practice, create/join room, lobby and game screens</td><td><span class="badge b-impl">Implemented</span></td><td>Routed via <code>play_routes.dart</code>; covered by widget tests (light/dark, RTL, small screens); hands-on device play-through pending</td></tr>
+          <tr><td>Flutter missions, events, collection, friends, leaderboard and level-road screens</td><td><span class="badge b-impl">Implemented</span></td><td>Routed via <code>meta_routes.dart</code>; covered by widget tests (light/dark, all locales, small screens); hands-on device play-through pending</td></tr>
           <tr><td>Facebook Login</td><td><span class="badge b-pending">Pending</span></td><td>Needs a Meta app, <code>FACEBOOK_APP_ID</code> and <code>FACEBOOK_APP_SECRET</code>; button hidden, backend returns 503 <code>provider_unavailable</code></td></tr>
           <tr><td>Sign in with Apple</td><td><span class="badge b-pending">Pending</span></td><td>Needs an Apple Developer account, App ID capability, Services ID and <code>APPLE_AUDIENCES</code></td></tr>
           <tr><td>Release signing SHA-1 / Play App Signing OAuth client</td><td><span class="badge b-pending">Pending</span></td><td>Release builds currently use the debug key</td></tr>

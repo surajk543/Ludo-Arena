@@ -107,8 +107,9 @@ Facebook app and credentials; Apple Developer configuration; release signing
 SHA-1 / Play App Signing; App Store and Play listings (store URLs are empty, so
 the app shows "not yet available in the store"); Firebase DebugView
 verification on a device; production infrastructure. The Flutter play and
-meta screens were routed on 2026-10-21 (`feature_routes.dart` spreads
-`playRoutes` and `metaRoutes`) and are still being polished. See
+meta screens are implemented (`feature_routes.dart` spreads `playRoutes` and
+`metaRoutes`) and covered by widget tests; a hands-on play-through on physical
+devices is still pending. See
 [architecture.html#status](architecture.html#status).
 
 ## Related documents
