@@ -137,7 +137,8 @@ What a change affects:
   current fee, so the price shown before **Find match** is the price charged.
   Lobbies opened at an older fee keep their players and start or time out
   normally.
-- Practice rooms, rooms with a bot seat and load-test rooms stay free.
+- Practice rooms and load-test rooms stay free. Rooms with bots charge every
+  seat, bots included (`backend/docs/game-rules.md` "Coins with bots").
 - An invalid value (negative, too large, unknown game) rejects the whole file;
   the previous policy and fees stay active and the error is logged.
 

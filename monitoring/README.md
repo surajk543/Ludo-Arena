@@ -124,6 +124,16 @@ the daily peak CPU / RAM per host. A source that is not configured shows
 "not configured" instead of failing the report; when Prometheus holds fewer
 than 30 days the charts show what exists and say so.
 
+**Bots in the numbers.** New accounts, sign-ins, DAU / WAU and every "real
+players" figure count people only. Bots play for coins from their own wallets
+(`wallet.wallets` rows flagged `is_bot`, never accounts; see
+`backend/docs/game-rules.md` "Coins with bots"), which the backend watches
+with `bot_wallet_recharges_total`, `bot_wallet_resets_total`,
+`bot_coins_minted_total{reason}` and `bot_coins_removed_total{reason}` (per
+instance: `sum`). They are not in the reports yet; to see how many coins bots
+put into the economy per day, query
+`sum(increase(bot_coins_minted_total[1d])) - sum(increase(bot_coins_removed_total[1d]))`.
+
 **Alerts**: a short text message per Alertmanager notification (firing and
 resolved), with summary, severity, instance, start time / duration, and the
 current CPU %, RAM %, players playing and online (real vs bots).

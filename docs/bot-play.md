@@ -251,8 +251,10 @@ requests a fill for a lobby only when **all** hold:
 `count = min(capacity − humans − bots − pendingBots, max_bots_per_room − bots,
 service headroom, per-game headroom)`; oldest lobbies first. The backend
 re-validates (open lobby, capacity, `BOT_MAX_PER_ROOM`,
-`BOT_PUBLIC_FILL_ENABLED`). Rooms with a bot are played with entry fee 0 and
-no payout (backend rule).
+`BOT_PUBLIC_FILL_ENABLED`). Rooms with a bot are played for coins like any
+match: the backend charges each bot's entry fee to, and pays a bot's winnings
+into, the bot persona's server-side wallet (backend/docs/game-rules.md "Coins
+with bots"); bot-play never touches wallets.
 
 ### loadtest (`bots.modes: [loadtest]`, exclusive)
 Development/preproduction traffic generation (also WebSocket compression and
@@ -575,7 +577,9 @@ any attribute named `*token`, `*key`, `*authorization`, `*secret`, …).
   requested name and falls back to a neutral first name (never "Bot") when
   nothing is left. The app shows no bot tag or badge and offers the same
   pod actions (add friend, mute, report) on every opponent. The server still
-  treats bots as bots (no wallets, fees or payouts, no XP or analytics); a
+  treats bots as bots (no XP or analytics; their coins are a server-side
+  persona wallet flagged `is_bot`, never an account, that bot-play never
+  sees or touches); a
   report against a bot is stored with `reported_bot` and kept out of the
   operator queue, and a friend request to a bot stays pending in Redis and
   lapses after 72 h (see `docs/progression.md`).
