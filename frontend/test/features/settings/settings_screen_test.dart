@@ -251,23 +251,43 @@ void main() {
     expect(backend.enabled, [true, false]);
   });
 
-  testWidgets('guest sign-out warns before losing progress', (tester) async {
+  testWidgets('guest sign-out keeps the guest: "Play as guest" brings the '
+      'same account back', (tester) async {
     final (env, c) = await pumpSettings(tester);
     await reveal(tester, find.text('Sign out'));
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text('Sign out of your guest account?'), findsOneWidget);
+    expect(
+      find.text(
+        'Your coins, level and collection stay on this device. Tap '
+        '“Play as guest” to carry on where you left off. Save your progress '
+        'to keep them on a new phone too.',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Save progress first'), findsOneWidget);
+    expect(find.textContaining('lose'), findsNothing);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(c.read(sessionControllerProvider).isSignedIn, isTrue);
 
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sign out and lose progress'));
+    await tester.tap(find.text('Sign out').last); // the dialog's button
     await drain(tester);
     expect(c.read(sessionControllerProvider).isSignedIn, isFalse);
-    expect(env.secure.values.containsKey('session.guest_secret'), isFalse);
+    expect(env.secure.values['session.guest_secret'], 'gs_new');
+    expect(env.backend.calls('DELETE', '/account/device'), isEmpty);
+
+    final again = await tester.runAsync(
+      () => c.read(sessionControllerProvider.notifier).continueAsGuest(),
+    );
+    expect(again, isA<AuthSucceeded>());
+    expect(env.backend.calls('POST', '/auth/guest'), hasLength(1));
+    expect(env.backend.calls('POST', '/auth/guest/resume').single.json, {
+      'guestSecret': 'gs_new',
+    });
   });
 
   testWidgets('About shows the version and a Legal notices entry', (

@@ -416,18 +416,6 @@ abstract class AppLocalizations {
   /// **'Sign out of your guest account?'**
   String get authGuestLogoutTitle;
 
-  /// Warning that guest progress is lost unless saved.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re playing as a guest. If you sign out now, your coins, level and collection will be lost unless you save your progress first.'**
-  String get authGuestLogoutMessage;
-
-  /// Destructive guest sign-out button.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign out and lose progress'**
-  String get authGuestLogoutConfirm;
-
   /// Button leading to Save Progress from the guest sign-out dialog.
   ///
   /// In en, this message translates to:
@@ -463,6 +451,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome, {name}!'**
   String authWelcomeBack(String name);
+
+  /// Guest sign-out confirmation: nothing is lost; “Play as guest” on this device brings the same guest account back. Quote the Play as guest button label (authPlayAsGuest).
+  ///
+  /// In en, this message translates to:
+  /// **'Your coins, level and collection stay on this device. Tap “Play as guest” to carry on where you left off. Save your progress to keep them on a new phone too.'**
+  String get authGuestLogoutKeptMessage;
 
   /// Seat color name used in game-board accessibility labels.
   ///
@@ -936,6 +930,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Free'**
   String get commonFree;
+
+  /// Title of the full-screen overlay that blocks the app while the internet / game-server connection is down (after sign-in, on any screen, including a match).
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get connectionLostTitle;
+
+  /// Body of the connection-lost overlay: the app reconnects by itself and unblocks when the connection is back.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting… You can continue as soon as you\'re back online.'**
+  String get connectionLostMessage;
+
+  /// Extra line on the connection-lost overlay during a match: the server keeps the match going and plays timed-out turns for the player.
+  ///
+  /// In en, this message translates to:
+  /// **'Your match keeps running. Missed turns are played for you automatically.'**
+  String get connectionLostMatchHint;
+
+  /// Button on the connection-lost overlay: retry the connection immediately instead of waiting for the next automatic attempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Try now'**
+  String get connectionLostRetryNow;
+
+  /// Screen-reader announcement when the connection is restored and the connection-lost overlay disappears.
+  ///
+  /// In en, this message translates to:
+  /// **'Back online'**
+  String get connectionBackOnline;
 
   /// Application name shown in the OS task switcher and splash.
   ///
@@ -1770,6 +1794,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to home'**
   String get gateGoHome;
+
+  /// Screen-reader label of the studio logo animation shown when the app launches (the studio's name; keep it as is in every language).
+  ///
+  /// In en, this message translates to:
+  /// **'Sun Game Studio'**
+  String get gateStudioIntroLabel;
 
   /// Header greeting with the display name.
   ///

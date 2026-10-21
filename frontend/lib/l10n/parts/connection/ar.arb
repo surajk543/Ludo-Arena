@@ -1,0 +1,7 @@
+{
+  "connectionLostTitle": "انقطع الاتصال",
+  "connectionLostMessage": "جارٍ إعادة الاتصال… يمكنك المتابعة فور عودة الإنترنت.",
+  "connectionLostMatchHint": "تستمر مباراتك. تُلعب الأدوار الفائتة تلقائيًا.",
+  "connectionLostRetryNow": "حاول الآن",
+  "connectionBackOnline": "أنت متصل مجددًا"
+}

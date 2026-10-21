@@ -95,9 +95,7 @@ void main() {
     await boot();
     await gate().start();
     await settle();
-    await container
-        .read(sessionControllerProvider.notifier)
-        .logout(forgetGuest: true);
+    await container.read(sessionControllerProvider.notifier).logout();
     await settle();
     expect(state().phase, GatePhase.signedOut);
   });
@@ -415,13 +413,81 @@ void main() {
       GatePhase phase,
       String location, {
       bool lang = true,
+      bool intro = false,
       String? pending,
     }) => gateRedirect(
       phase: phase,
       location: location,
       languageChosen: lang,
+      introPlaying: intro,
       pendingLocation: pending,
     );
+
+    test('the launch intro holds the splash whatever the gate phase', () {
+      for (final phase in GatePhase.values) {
+        for (final lang in [true, false]) {
+          expect(
+            go(phase, AppRoutes.home, lang: lang, intro: true),
+            AppRoutes.splash,
+            reason: '${phase.name} lang=$lang',
+          );
+          expect(go(phase, AppRoutes.splash, lang: lang, intro: true), isNull);
+        }
+      }
+      String? remembered;
+      gateRedirect(
+        phase: GatePhase.ready,
+        location: AppRoutes.game('r_3'),
+        languageChosen: true,
+        introPlaying: true,
+        rememberPending: (l) => remembered = l,
+      );
+      expect(remembered, AppRoutes.game('r_3'));
+    });
+
+    test('first launch: the language comes first, signed in or not (the '
+        'gate keeps working underneath); blocking screens still win', () {
+      for (final phase in [
+        GatePhase.initializing,
+        GatePhase.checkingPolicy,
+        GatePhase.optionalUpdatePrompt,
+        GatePhase.restoringSession,
+        GatePhase.loadingWallet,
+        GatePhase.signedOut,
+        GatePhase.ready,
+      ]) {
+        expect(
+          go(phase, AppRoutes.splash, lang: false),
+          AppRoutes.languageOnboarding,
+          reason: phase.name,
+        );
+        expect(go(phase, AppRoutes.languageOnboarding, lang: false), isNull);
+      }
+      expect(
+        go(GatePhase.maintenance, AppRoutes.splash, lang: false),
+        AppRoutes.maintenance,
+      );
+      expect(
+        go(GatePhase.forceUpdate, AppRoutes.splash, lang: false),
+        AppRoutes.updateRequired,
+      );
+      expect(
+        go(GatePhase.unreachable, AppRoutes.splash, lang: false),
+        AppRoutes.unreachable,
+      );
+      // Once chosen: the lobby (ready), the loading splash (still signing
+      // in) or the login screen (signed out).
+      expect(go(GatePhase.ready, AppRoutes.languageOnboarding), AppRoutes.home);
+      expect(
+        go(GatePhase.restoringSession, AppRoutes.languageOnboarding),
+        AppRoutes.splash,
+      );
+      expect(
+        go(GatePhase.signedOut, AppRoutes.languageOnboarding),
+        isNull,
+        reason: 'its Continue button goes on to the login screen',
+      );
+    });
 
     test('nothing behind the gate is reachable before ready', () {
       for (final phase in [

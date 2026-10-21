@@ -55,6 +55,7 @@ dependencies:
   # Product analytics ONLY (no Firebase Auth/Firestore/Remote Config). Gated by core/analytics.
   firebase_core: ^5.0.0
   firebase_analytics: ^13.0.0
+  clock: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -86,6 +87,7 @@ flutter:
     # assets/audio/ASSET_LICENSES.md, not bundled).
     - assets/audio/sfx/
     - assets/audio/music/
+    - assets/audio/jingles/
     # OFL license texts of the bundled fonts (shown on the licenses page).
     - assets/fonts/OFL-Fredoka.txt
     - assets/fonts/OFL-Nunito.txt

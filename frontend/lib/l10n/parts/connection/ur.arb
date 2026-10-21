@@ -1,0 +1,7 @@
+{
+  "connectionLostTitle": "کنکشن ٹوٹ گیا",
+  "connectionLostMessage": "دوبارہ کنیکٹ ہو رہا ہے… انٹرنیٹ واپس آتے ہی آپ جاری رکھ سکتے ہیں۔",
+  "connectionLostMatchHint": "آپ کا میچ جاری رہے گا۔ چھوٹی ہوئی باریاں خود بخود کھیلی جائیں گی۔",
+  "connectionLostRetryNow": "ابھی کوشش کریں",
+  "connectionBackOnline": "دوبارہ آن لائن"
+}

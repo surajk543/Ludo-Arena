@@ -51,12 +51,11 @@
   "authLogoutMessage": "يمكنك تسجيل الدخول مجددًا في أي وقت بالطريقة نفسها.",
   "authLogoutConfirm": "تسجيل الخروج",
   "authGuestLogoutTitle": "تسجيل الخروج من حساب الضيف؟",
-  "authGuestLogoutMessage": "أنت تلعب كضيف. إذا سجّلت الخروج الآن فستفقد عملاتك ومستواك ومجموعتك ما لم تحفظ تقدّمك أولًا.",
-  "authGuestLogoutConfirm": "تسجيل الخروج وفقدان التقدّم",
   "authSaveProgressFirst": "احفظ التقدّم أولًا",
   "authSwitchToGuestTitle": "العودة إلى حساب الضيف؟",
   "authSwitchToGuestMessage": "ستغادر هذا الحساب وتتابع بحساب الضيف المحفوظ على هذا الجهاز.",
   "authSwitchToGuestConfirm": "التبديل إلى الضيف",
   "authGuestUnavailable": "حساب الضيف هذا لم يعد متاحًا.",
-  "authWelcomeBack": "أهلًا، {name}!"
+  "authWelcomeBack": "أهلًا، {name}!",
+  "authGuestLogoutKeptMessage": "تبقى عملاتك ومستواك ومجموعتك على هذا الجهاز. اضغط «العب كضيف» لتكمل من حيث توقفت. احفظ تقدّمك لتحتفظ بها على هاتف جديد أيضًا."
 }

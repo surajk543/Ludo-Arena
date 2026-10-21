@@ -28,5 +28,6 @@
   "gateUnreachableLastKnownUpdate": "ہمیں ملنے والی آخری اطلاع کے مطابق اس ورژن کو اپڈیٹ کرنا ضروری ہے۔",
   "gateNotFoundTitle": "ابھی دستیاب نہیں",
   "gateNotFoundMessage": "لوڈو رائل کا یہ حصہ اس ورژن میں ابھی دستیاب نہیں ہے۔",
-  "gateGoHome": "ہوم پر واپس جائیں"
+  "gateGoHome": "ہوم پر واپس جائیں",
+  "gateStudioIntroLabel": "Sun Game Studio"
 }

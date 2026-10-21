@@ -28,5 +28,6 @@
   "gateUnreachableLastKnownUpdate": "हमें मिली आख़िरी जानकारी के अनुसार इस वर्ज़न को अपडेट करना ज़रूरी है।",
   "gateNotFoundTitle": "अभी उपलब्ध नहीं",
   "gateNotFoundMessage": "लूडो रॉयल का यह हिस्सा इस वर्ज़न में अभी उपलब्ध नहीं है।",
-  "gateGoHome": "होम पर वापस जाएँ"
+  "gateGoHome": "होम पर वापस जाएँ",
+  "gateStudioIntroLabel": "Sun Game Studio"
 }

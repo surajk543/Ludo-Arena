@@ -34,8 +34,9 @@ func (a *Account) deviceSubject(r *http.Request, deviceID string) (string, error
 	return sub, err
 }
 
-// deviceGuest is POST /auth/guest with a deviceId: 200 sign-in to the bound
-// account, or 201 for a new guest bound to the device.
+// deviceGuest is POST /auth/guest with a deviceId: 200 sign-in to the
+// device's guest, or 201 for a new guest bound to the device (also after the
+// device's previous guest was linked to a provider or deleted).
 func (a *Account) deviceGuest(w http.ResponseWriter, r *http.Request, deviceID string) error {
 	sub, err := a.deviceSubject(r, deviceID)
 	if err != nil {
@@ -56,8 +57,9 @@ func (a *Account) deviceGuest(w http.ResponseWriter, r *http.Request, deviceID s
 	return a.writeAuth(w, r, http.StatusCreated, res)
 }
 
-// deviceResume is POST /auth/device/resume: 200 sign-in to the bound
-// account, 404 if the device is not bound. Never creates an account.
+// deviceResume is POST /auth/device/resume: 200 sign-in to the device's
+// guest, 404 if the device has none (a linked account is reached only
+// through its provider). Never creates an account.
 func (a *Account) deviceResume(w http.ResponseWriter, r *http.Request) error {
 	var body deviceBody
 	if err := DecodeJSON(r, &body); err != nil {
@@ -81,9 +83,10 @@ func (a *Account) deviceResume(w http.ResponseWriter, r *http.Request) error {
 	return a.writeAuth(w, r, http.StatusOK, res)
 }
 
-// bindDevice is PUT /account/device: binds the device to the caller's
+// bindDevice is PUT /account/device: binds the device to the caller's guest
 // account (replacing the account's previous device). 200 {}; 409
-// identity_conflict if the device belongs to another account.
+// identity_conflict if the device belongs to another guest; 409 not_a_guest
+// if the caller's account is linked (only guests are bound).
 func (a *Account) bindDevice(w http.ResponseWriter, r *http.Request) error {
 	p, _ := PrincipalFrom(r.Context())
 	var body deviceBody
@@ -96,10 +99,15 @@ func (a *Account) bindDevice(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if err := a.IDs.BindDevice(r.Context(), p.UserID, sub); err != nil {
-		if errors.Is(err, identity.ErrConflict) {
+		switch {
+		case errors.Is(err, identity.ErrConflict):
 			metrics.AuthLinks.WithLabelValues("device", "conflict").Inc()
 			return Errf(http.StatusConflict, "identity_conflict",
 				"This device is already linked to a different game profile. Nothing was merged or moved.")
+		case errors.Is(err, identity.ErrNotGuest):
+			metrics.AuthLinks.WithLabelValues("device", "not_guest").Inc()
+			return Errf(http.StatusConflict, "not_a_guest",
+				"Only guest profiles are kept on a device. This profile is reached by signing in with its linked account.")
 		}
 		return err
 	}
@@ -108,14 +116,14 @@ func (a *Account) bindDevice(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// unbindDevice is DELETE /account/device: removes the caller's device
-// binding. 204, idempotent.
-func (a *Account) unbindDevice(w http.ResponseWriter, r *http.Request) error {
-	p, _ := PrincipalFrom(r.Context())
-	if err := a.IDs.UnbindDevice(r.Context(), p.UserID); err != nil {
-		return err
-	}
-	metrics.AuthLinks.WithLabelValues("device", "removed").Inc()
+// unbindDevice is DELETE /account/device: 204, and the binding is kept.
+// App versions before guest persistence call it on a guest sign-out
+// ("forget this guest"); a device guest now ends only when it is linked to a
+// provider or deleted, so for them too "Play as guest" (POST /auth/guest with
+// the device id) brings the same guest back (docs/authentication.md "Guest
+// persistence").
+func (a *Account) unbindDevice(w http.ResponseWriter, _ *http.Request) error {
+	metrics.AuthLinks.WithLabelValues("device", "unbind_ignored").Inc()
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }

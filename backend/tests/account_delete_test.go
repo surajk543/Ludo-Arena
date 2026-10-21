@@ -95,7 +95,8 @@ func TestDeleteAccountErasesEverything(t *testing.T) {
 	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(13), proxyHops: 1})
 	ctx := context.Background()
 
-	// A: a device-bound guest (guest + device identities) linked to Google.
+	// A: a device guest linked to Google (linking drops its guest secret and
+	// device binding; guest_persistence_test.go covers deleting a guest).
 	devA := devID("delete")
 	a := parseAuth(t, e.deviceGuest(devA))
 	googleSub := devID("delete-google") // unique per run and -count iteration

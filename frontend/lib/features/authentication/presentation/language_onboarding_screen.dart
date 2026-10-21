@@ -9,8 +9,11 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../settings/presentation/language_picker.dart';
 
-/// First-launch language choice (before login). Tapping a language applies
-/// it immediately; the preview card updates live.
+/// First-launch language choice, shown after the launch intro on every
+/// launch until the player confirms a language — signed in (guest restored)
+/// or not. Tapping a language applies it immediately (the preview card
+/// updates live); Continue confirms it, then the app goes on to the lobby,
+/// the login screen or the loading splash, wherever the gate is.
 class LanguageOnboardingScreen extends ConsumerWidget {
   const LanguageOnboardingScreen({super.key});
 
@@ -59,7 +62,7 @@ class LanguageOnboardingScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.xl),
                         const LanguagePreviewCard(),
                         const SizedBox(height: AppSpacing.lg),
-                        const LanguagePickerList(),
+                        const LanguagePickerList(confirmOnSelect: false),
                       ],
                     ),
                   ),

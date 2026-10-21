@@ -77,12 +77,52 @@ class AudioService {
     _syncMusic();
   }
 
-  /// App lifecycle: effects are dropped and the music pauses in the
-  /// background; the music fades back in on return.
+  /// App lifecycle: effects are dropped, a jingle stops and the music pauses
+  /// in the background; the music fades back in on return.
   void setForeground(bool foreground) {
     if (_foreground == foreground) return;
     _foreground = foreground;
+    if (!foreground) stopJingle();
     _syncMusic();
+  }
+
+  // ------------------------------------------------------------- jingles
+
+  final Set<Jingle> _missingJingles = {};
+
+  /// Loads [jingle] so [playJingle] starts it without delay. Never throws.
+  Future<void> preloadJingle(Jingle jingle) async {
+    if (_disposed || _missingJingles.contains(jingle)) return;
+    try {
+      await _backend.jingleLoad(jingle);
+    } catch (e) {
+      _jingleFailed(jingle, e);
+    }
+  }
+
+  /// Plays [jingle] once at the effects volume × its gain. No-op when sound
+  /// is off, the effects volume is zero or the app is in the background.
+  void playJingle(Jingle jingle) {
+    if (_disposed || !_enabled || !_foreground) return;
+    if (_missingJingles.contains(jingle)) return;
+    final v = (_sfxVolume * jingle.gain).clamp(0.0, 1.0);
+    if (v <= 0) return;
+    unawaited(
+      Future<void>.sync(
+        () => _backend.jinglePlay(jingle, v),
+      ).catchError((Object e) => _jingleFailed(jingle, e)),
+    );
+  }
+
+  /// Stops a playing jingle (e.g. the launch intro cut short).
+  void stopJingle() {
+    if (_disposed) return;
+    unawaited(_backend.jingleStop().catchError((Object _) {}));
+  }
+
+  void _jingleFailed(Jingle jingle, Object error) {
+    if (error is AudioAssetMissingException) _missingJingles.add(jingle);
+    _log('audio: ${jingle.file} failed ($error)');
   }
 
   // ------------------------------------------------------------- effects
@@ -380,6 +420,11 @@ class RecordingAudioBackend implements AudioBackend {
 
   /// Music player calls in order, e.g. `load:lobby`, `resume`, `pause`.
   final List<String> musicCalls = [];
+
+  /// Jingle player calls in order: `load:studioIntro`, `play:studioIntro`,
+  /// `stop`.
+  final List<String> jingleCalls = [];
+  final List<double> jingleVolumes = [];
   final List<double> musicVolumes = [];
   bool disposed = false;
 
@@ -419,6 +464,26 @@ class RecordingAudioBackend implements AudioBackend {
 
   @override
   Future<void> musicSetVolume(double volume) async => musicVolumes.add(volume);
+
+  @override
+  Future<void> jingleLoad(Jingle jingle) async {
+    if (missingAssets.contains(jingle.assetPath)) {
+      throw AudioAssetMissingException(jingle.assetPath);
+    }
+    jingleCalls.add('load:${jingle.name}');
+  }
+
+  @override
+  Future<void> jinglePlay(Jingle jingle, double volume) async {
+    if (missingAssets.contains(jingle.assetPath)) {
+      throw AudioAssetMissingException(jingle.assetPath);
+    }
+    jingleCalls.add('play:${jingle.name}');
+    jingleVolumes.add(volume);
+  }
+
+  @override
+  Future<void> jingleStop() async => jingleCalls.add('stop');
 
   @override
   Future<void> dispose() async => disposed = true;
@@ -465,6 +530,9 @@ class SilentAudioService extends AudioService {
   List<double> get volumes => recorder.volumes;
 
   List<String> get musicCalls => recorder.musicCalls;
+
+  /// Jingle player calls (see [RecordingAudioBackend.jingleCalls]).
+  List<String> get jingleCalls => recorder.jingleCalls;
 
   static AudioClock _frameClock() {
     final fallback = Stopwatch()..start();

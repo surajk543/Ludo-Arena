@@ -133,5 +133,9 @@
   "gateGoHome": "Back to home",
   "@gateGoHome": {
     "description": "Button back to the home screen."
+  },
+  "gateStudioIntroLabel": "Sun Game Studio",
+  "@gateStudioIntroLabel": {
+    "description": "Screen-reader label of the studio logo animation shown when the app launches (the studio's name; keep it as is in every language)."
   }
 }

@@ -3,14 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:ludo_royale/app/gate/app_gate_controller.dart';
+import 'package:ludo_royale/app/launch_intro.dart';
 import 'package:ludo_royale/core/audio_haptics/reduced_motion.dart';
 import 'package:ludo_royale/core/theme/app_theme.dart';
 import 'package:ludo_royale/features/app_update/presentation/force_update_screen.dart';
 import 'package:ludo_royale/features/app_update/presentation/maintenance_screen.dart';
 import 'package:ludo_royale/features/app_update/presentation/optional_update_dialog.dart';
+import 'package:ludo_royale/features/app_update/presentation/splash_screen.dart';
+import 'package:ludo_royale/features/app_update/presentation/studio_intro.dart';
 import 'package:ludo_royale/features/app_update/presentation/unreachable_screen.dart';
 import 'package:ludo_royale/core/app_policy/app_policy.dart';
 import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_royale/shared/widgets/widgets.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';
@@ -225,5 +229,37 @@ void main() {
     await tester.tap(find.text('Later'));
     await tester.pumpAndSettle();
     expect(await result, OptionalUpdateChoice.later);
+  });
+
+  testWidgets('splash: the studio intro first, then the game icon with '
+      'loading while the gate still signs in', (tester) async {
+    final env = await TestEnv.create();
+    final c = await pumpScreen(
+      tester,
+      env,
+      const ReducedMotion(reduce: false, child: SplashScreen()),
+    );
+    expect(c.read(launchIntroPlayingProvider), isTrue);
+    expect(find.byType(StudioIntro), findsOneWidget);
+    expect(find.byType(BrandLogo), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+
+    c.read(launchIntroPlayingProvider.notifier).finish();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(StudioIntro), findsNothing);
+    expect(find.byType(BrandLogo), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('splash: with reduced motion the intro is skipped', (
+    tester,
+  ) async {
+    final env = await TestEnv.create();
+    final c = await pumpScreen(tester, env, const SplashScreen());
+    expect(c.read(launchIntroPlayingProvider), isFalse);
+    expect(find.byType(StudioIntro), findsNothing);
+    expect(find.byType(BrandLogo), findsOneWidget);
   });
 }

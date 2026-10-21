@@ -186,13 +186,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authGuestLogoutTitle => 'تسجيل الخروج من حساب الضيف؟';
 
   @override
-  String get authGuestLogoutMessage =>
-      'أنت تلعب كضيف. إذا سجّلت الخروج الآن فستفقد عملاتك ومستواك ومجموعتك ما لم تحفظ تقدّمك أولًا.';
-
-  @override
-  String get authGuestLogoutConfirm => 'تسجيل الخروج وفقدان التقدّم';
-
-  @override
   String get authSaveProgressFirst => 'احفظ التقدّم أولًا';
 
   @override
@@ -212,6 +205,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String authWelcomeBack(String name) {
     return 'أهلًا، $name!';
   }
+
+  @override
+  String get authGuestLogoutKeptMessage =>
+      'تبقى عملاتك ومستواك ومجموعتك على هذا الجهاز. اضغط «العب كضيف» لتكمل من حيث توقفت. احفظ تقدّمك لتحتفظ بها على هاتف جديد أيضًا.';
 
   @override
   String get boardsColorRed => 'الأحمر';
@@ -511,6 +508,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get commonFree => 'مجاني';
+
+  @override
+  String get connectionLostTitle => 'انقطع الاتصال';
+
+  @override
+  String get connectionLostMessage =>
+      'جارٍ إعادة الاتصال… يمكنك المتابعة فور عودة الإنترنت.';
+
+  @override
+  String get connectionLostMatchHint =>
+      'تستمر مباراتك. تُلعب الأدوار الفائتة تلقائيًا.';
+
+  @override
+  String get connectionLostRetryNow => 'حاول الآن';
+
+  @override
+  String get connectionBackOnline => 'أنت متصل مجددًا';
 
   @override
   String get appTitle => 'لودو رويال';
@@ -974,6 +988,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gateGoHome => 'العودة إلى الرئيسية';
+
+  @override
+  String get gateStudioIntroLabel => 'Sun Game Studio';
 
   @override
   String homeGreeting(String name) {

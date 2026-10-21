@@ -28,5 +28,6 @@
   "gateUnreachableLastKnownUpdate": "آخر حالة وصلتنا أشارت إلى أن هذا الإصدار يحتاج إلى تحديث.",
   "gateNotFoundTitle": "غير متاح بعد",
   "gateNotFoundMessage": "هذا الجزء من لودو رويال غير متاح في هذا الإصدار بعد.",
-  "gateGoHome": "العودة إلى الرئيسية"
+  "gateGoHome": "العودة إلى الرئيسية",
+  "gateStudioIntroLabel": "Sun Game Studio"
 }

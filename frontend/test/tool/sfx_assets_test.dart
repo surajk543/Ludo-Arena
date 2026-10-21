@@ -49,6 +49,18 @@ void main() {
     expect(total, lessThan(800 * 1024));
   });
 
+  test('jingles ship as AAC (m4a) under 200 KB and match their length', () {
+    for (final jingle in Jingle.values) {
+      final file = File('assets/${jingle.assetPath}');
+      expect(file.existsSync(), isTrue, reason: jingle.file);
+      final bytes = file.readAsBytesSync();
+      expect(bytes.length, lessThan(200 * 1024), reason: jingle.file);
+      expect(String.fromCharCodes(bytes.sublist(4, 8)), 'ftyp');
+      expect(String.fromCharCodes(bytes.sublist(8, 11)), 'M4A');
+    }
+    expect(Jingle.studioIntro.length, const Duration(milliseconds: 6592));
+  });
+
   test('the lobby music ships as AAC (m4a) under 1 MB', () {
     for (final track in MusicTrack.values) {
       final file = File('assets/${track.assetPath}');

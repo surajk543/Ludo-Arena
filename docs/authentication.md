@@ -45,11 +45,36 @@ does not depend on Redis-held sessions surviving. Guest creation is rate
 limited per IP (10/hour). A guest is never a Firebase anonymous user and never
 just a locally generated id.
 
+## Guest persistence
+
+A guest is the **device guest** — the same account, with the same id, coins,
+diamonds, XP, collection and friends — until the player **links** it to
+Google/Facebook/Apple (Save Progress) or **deletes** it. Two credentials
+restore it, both only for guests: the guest secret (app secure storage) and
+the device binding (below).
+
+| Scenario | What happens |
+|---|---|
+| Guest signs out, taps **Play as guest** | Same guest: the app keeps the guest secret and the binding on sign-out (`POST /auth/guest/resume`, or `POST /auth/guest {"deviceId"}` → 200). There is no "forget this guest" any more; the sign-out dialog says progress stays on the device. Older app versions still drop their guest secret and call `DELETE /account/device`, which now keeps the binding, so they get the same guest back too (on devices with a device id). |
+| App updated, or uninstalled and reinstalled on the same device | Same guest: restored on launch (`POST /auth/device/resume`) or by **Play as guest** (`POST /auth/guest {"deviceId"}` → 200). On iOS the keychain usually still holds the tokens and the guest secret as well. |
+| Guest links a provider identity that has **no** game account yet | The guest becomes that provider account (same id and progress). In the same transaction its guest secret **and** device binding are deleted: the guest secret now answers 401, `POST /auth/device/resume` 404, and **Play as guest** on the device creates a **new** guest (201, new welcome grant). The saved account is reached only by signing in with the provider. |
+| Guest tries to link a provider identity that **already** has its own account | 409 `identity_conflict`; nothing is merged, moved or lost. The guest stays the device guest (secret, binding, progress). If the player then chooses "Sign in to that account instead", the guest stays on the device: Settings → Switch back to guest, or sign out → **Play as guest**. |
+| Guest deletes the account | Everything is erased, including both credentials; **Play as guest** creates a new guest. |
+| Factory reset, new phone, or a build signed with another key | Not restorable without Save Progress (the device id changes). |
+
+Linked accounts are never bound to a device (`PUT /account/device` → 409
+`not_a_guest`), so a provider sign-in on a device never takes the device's
+"Play as guest" slot. Guest credentials that an older server version left on a
+linked account are ignored (guest resume 401, device resume 404) and such a
+binding is released for the device's next guest. Verified by
+`backend/tests/guest_persistence_test.go`.
+
 ## Device binding (restore after update or reinstall)
 
-Secure storage (tokens, guest secret) does not reliably survive an uninstall.
-So that a guest's coins, diamonds, XP, collection and friends come back after
-an app **update or reinstall**, the account is bound to a platform device id.
+Secure storage (tokens, guest secret) does not reliably survive an uninstall
+(Android deletes it; the iOS keychain normally keeps it). So that a guest's
+coins, diamonds, XP, collection and friends come back after an app **update
+or reinstall**, the guest account is bound to a platform device id.
 
 | Platform | Device id the app sends | Survives | Changes on |
 |---|---|---|---|
@@ -60,23 +85,27 @@ an app **update or reinstall**, the account is bound to a platform device id.
 The app sends the id with its normal `X-App-Platform` header:
 
 1. **No stored session** (fresh install, reinstall, lost secure storage):
-   `POST /auth/device/resume {"deviceId"}` → 200 signs in to the bound account
-   (guest or linked) with nothing lost; 404 `not_found` → no account is bound.
+   `POST /auth/device/resume {"deviceId"}` → 200 signs in to the device's
+   guest with nothing lost; 404 `not_found` → the device has no guest (never
+   bound, or its guest was linked or deleted).
 2. **Continue as Guest**: `POST /auth/guest {"deviceId"}` → 200 if the device
-   is already bound (that account, no new account, no second welcome grant,
-   no `guestSecret`), else 201: a new guest **and** its device binding are
+   has a guest (that account, no new account, no second welcome grant, no
+   `guestSecret`), else 201: a new guest **and** its device binding are
    created in **one transaction** (concurrent first calls for one device create
    exactly one account — `backend/tests/device_test.go:
    TestConcurrentDeviceGuestCreatesOneAccount`).
-3. **Existing accounts** (guests created before device binding, or after
-   moving to a new phone): `PUT /account/device {"deviceId"}` binds the current
-   device to the signed-in account. It is idempotent; a device bound to
-   **another** account answers 409 `identity_conflict` and is never moved; a
-   different device already bound to this account is **replaced** (one device
-   per account).
-4. **"Forget this guest"** on logout: `DELETE /account/device` (204,
-   idempotent, not version-gated) removes the binding; the next guest on this
-   device is a new account.
+3. **Existing guests** (created before device binding or without a device id):
+   `PUT /account/device {"deviceId"}` binds the current device to the
+   signed-in guest. It is idempotent; a device bound to **another** guest
+   answers 409 `identity_conflict` and is never moved; a different device
+   already bound to this guest is **replaced** (one device per account); a
+   linked account answers 409 `not_a_guest`. Link and bind of one account are
+   serialized (advisory lock), so a linked account never keeps a binding.
+4. `DELETE /account/device` (204, not version-gated) **keeps** the binding.
+   The current app never calls it; app versions before guest persistence call
+   it on a guest sign-out ("forget this guest") and drop their guest secret —
+   because the binding stays, their next "Play as guest" with the device id is
+   still the same guest. A binding ends only with linking or deletion.
 
 Every sign-in through these endpoints is a normal human sign-in and replaces
 the account's previous session (see "One active device per account").
@@ -95,8 +124,8 @@ account per device; `UNIQUE (user_id, provider)` one device per account.
 `device` is internal: it is never listed in `linkedProviders`, never counts as
 linked (an account with only guest + device is still `isGuest: true` and is
 offered Save Progress) and cannot be linked through `/account/link/{provider}`.
-Rotating `PUBLIC_ID_KEY` orphans every device binding (accounts stay reachable
-through their guest secret or linked providers).
+Rotating `PUBLIC_ID_KEY` orphans every device binding (guests stay reachable
+through their guest secret while the app still holds it).
 
 **Validation.** `deviceId`: 16–64 characters `[A-Za-z0-9-]`, compared
 case-insensitively; the known-bad Android id `9774d56d682e549c` and values of
@@ -107,12 +136,29 @@ one repeated character (all zeros, hyphens ignored) are rejected (400
 the account on the same device: the backend never logs it, never passes it to
 analytics and never shows it to other players; the app must not send it
 anywhere else either (analytics parameters never carry ids). It acts as a
-restore credential for that device: on Android 8+ only apps signed with the
-same key can read ANDROID_ID, the iOS UUID lives in the app's own keychain,
-the id spaces are ≥ 64 bits, and the sign-in endpoints are rate limited per
-IP. Save Progress (linking Google/Apple/
-Facebook) remains the way to keep an account across devices, factory resets
-and app-signing changes.
+bearer restore credential for the device's **guest** (never for a linked
+account):
+
+- **iOS:** a random UUID v4 (122 random bits) the app generated, in the app's
+  own keychain item (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, no
+  shared access group): other apps cannot read it, it is not restored to
+  another device, and keychain items survive an uninstall on the same device.
+- **Android 8+:** ANDROID_ID is 64 bits, unique per (app-signing key, user,
+  device): another app (different key) on the same phone sees a different
+  value, and other devices cannot derive it. Unlike a server-issued secret it
+  is not random per install, so anything that can run code **inside** this
+  app's process (its own SDKs) or a rooted device can read it — the same reach
+  as the app's secure storage, which holds the guest secret and tokens anyway.
+- Guessing is impractical: ≥ 2^64 candidates per device, sign-in endpoints
+  rate limited per IP (`/auth/device/resume` 30/min, `/auth/guest` 10/h), and
+  only the HMAC is stored, so a database leak does not reveal device ids.
+
+Android Auto Backup stays **off** (`android:allowBackup="false"`,
+`data_extraction_rules.xml` excludes everything): Keystore-encrypted secure
+storage cannot be restored on another device anyway, and backing up the guest
+secret in plain form would put a bearer credential into the cloud backup.
+Save Progress (linking Google/Apple/Facebook) remains the way to keep an
+account across devices, factory resets and app-signing changes.
 
 ## Save Progress (linking)
 
@@ -123,13 +169,13 @@ grant is issued.
 
 | Outcome | Response |
 |---|---|
-| Identity unused | 200, `user.isGuest=false`, same `user.id`, same wallet |
+| Identity unused | 200, `user.isGuest=false`, same `user.id`, same wallet. In the same transaction the account's guest secret and device binding are deleted (`linkedProviders` no longer lists `guest`): it is no longer the device guest — see "Guest persistence" |
 | Identity already linked to this account | 200 (idempotent) |
 | Identity belongs to **another** account | 409 `identity_conflict` — nothing is merged or moved. The app offers "Sign in to that account instead" (calls `/auth/{provider}` with the same credential) or "Cancel". |
 | This account already has a different identity of that provider | 409 `provider_already_linked` |
 
 After linking, signing in with that provider on any device resolves to the same
-account id and wallet.
+account id and wallet; "Play as guest" on the device starts a new guest.
 
 ## Sessions
 
@@ -137,8 +183,8 @@ account id and wallet.
 |---|---|---|
 | Access token | client only | HS256, 15 min, verified on every request **and** checked against the live session family (`sess:{sid}`), so logout/revocation (including replacement by a sign-in on another device) is immediate |
 | Refresh token | client (secure storage); server keeps `sha256` | Rotated on every use (`POST /auth/refresh`). Presenting an already-rotated token revokes the whole family (`refresh_reused`) |
-| Guest secret | client (secure storage); server keeps `sha256` in `identity.auth_identities` | Durable guest recovery |
-| Device binding | client sends the platform device id; server keeps only an HMAC (provider `device`) in `identity.auth_identities` | Restore after app update / reinstall on the same device (see "Device binding") |
+| Guest secret | client (secure storage); server keeps `sha256` in `identity.auth_identities` | Durable guest recovery, kept on sign-out; deleted when the guest is linked or deleted |
+| Device binding | client sends the platform device id; server keeps only an HMAC (provider `device`) in `identity.auth_identities` | Restore the device's guest after sign-out, app update or reinstall on the same device (see "Guest persistence", "Device binding") |
 | Bot sessions | server-issued, room-scoped, ≤ 2 h | See `docs/bot-play.md`; bot status comes only from these tokens |
 
 ### One active device per account (last sign-in wins)

@@ -189,13 +189,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get authGuestLogoutTitle => 'Keluar dari akun tamu?';
 
   @override
-  String get authGuestLogoutMessage =>
-      'Kamu bermain sebagai tamu. Jika keluar sekarang, koin, level, dan koleksimu akan hilang kecuali kamu menyimpan progres terlebih dahulu.';
-
-  @override
-  String get authGuestLogoutConfirm => 'Keluar dan hapus progres';
-
-  @override
   String get authSaveProgressFirst => 'Simpan progres dulu';
 
   @override
@@ -215,6 +208,10 @@ class AppLocalizationsId extends AppLocalizations {
   String authWelcomeBack(String name) {
     return 'Selamat datang, $name!';
   }
+
+  @override
+  String get authGuestLogoutKeptMessage =>
+      'Koin, level, dan koleksimu tetap tersimpan di perangkat ini. Ketuk “Main sebagai tamu” untuk melanjutkan dari posisi terakhirmu. Simpan progresmu agar tetap ada di ponsel baru juga.';
 
   @override
   String get boardsColorRed => 'Merah';
@@ -505,6 +502,23 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get commonFree => 'Gratis';
+
+  @override
+  String get connectionLostTitle => 'Koneksi terputus';
+
+  @override
+  String get connectionLostMessage =>
+      'Menyambung ulang… Kamu bisa lanjut begitu kembali online.';
+
+  @override
+  String get connectionLostMatchHint =>
+      'Pertandinganmu tetap berjalan. Giliran yang terlewat dimainkan otomatis.';
+
+  @override
+  String get connectionLostRetryNow => 'Coba sekarang';
+
+  @override
+  String get connectionBackOnline => 'Kembali online';
 
   @override
   String get appTitle => 'Ludo Royale';
@@ -969,6 +983,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get gateGoHome => 'Kembali ke beranda';
+
+  @override
+  String get gateStudioIntroLabel => 'Sun Game Studio';
 
   @override
   String homeGreeting(String name) {

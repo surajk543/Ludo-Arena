@@ -14,6 +14,7 @@ import '../l10n/generated/app_localizations.dart';
 import 'gate/app_gate_controller.dart';
 import 'lobby_music.dart';
 import 'match_resume.dart';
+import 'offline/offline_blocking_host.dart';
 import 'realtime_binder.dart';
 import 'router.dart';
 import 'shell/app_shell_host.dart';
@@ -86,19 +87,24 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
       builder: (context, child) => MediaQuery.withClampedTextScaling(
         maxScaleFactor: 1.35,
         child: ReducedMotionScope(
-          child: AppShellHost(
-            // Incoming private-room invites from friends.
-            child: PlayInviteHost(
-              router: router,
-              // Global level-up celebration (deferred during matches) and the
-              // app-wide friend-request banner.
-              child: MetaShellHost(
-                navigatorKey: rootNavigatorKey,
-                // Coin pack results delivered outside the Shop (e.g. a
-                // purchase re-delivered at startup).
-                child: CoinPurchaseHost(
+          // "Connection lost" overlay: blocks every screen past the gate
+          // (routes, dialogs, sheets, banners) while the socket is down.
+          child: OfflineBlockingHost(
+            backButtonDispatcher: router.backButtonDispatcher,
+            child: AppShellHost(
+              // Incoming private-room invites from friends.
+              child: PlayInviteHost(
+                router: router,
+                // Global level-up celebration (deferred during matches) and
+                // the app-wide friend-request banner.
+                child: MetaShellHost(
                   navigatorKey: rootNavigatorKey,
-                  child: child ?? const SizedBox.shrink(),
+                  // Coin pack results delivered outside the Shop (e.g. a
+                  // purchase re-delivered at startup).
+                  child: CoinPurchaseHost(
+                    navigatorKey: rootNavigatorKey,
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),

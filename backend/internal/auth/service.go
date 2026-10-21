@@ -94,10 +94,11 @@ func (s *Service) CreateGuest(ctx context.Context) (Result, error) {
 	return s.newGuest(ctx, acct, secret)
 }
 
-// GuestForDevice signs in to the account bound to the device (deviceSubject
-// from identity.DeviceSubject) or, if the device is unbound, creates a new
+// GuestForDevice signs in to the guest bound to the device (deviceSubject
+// from identity.DeviceSubject) or, if the device has no guest, creates a new
 // guest account bound to it. Only a newly created guest gets a guest secret;
-// an existing account never gets a second welcome grant.
+// an existing account never gets a second welcome grant. An account that was
+// linked to Google/Facebook/Apple is never the device's guest any more.
 func (s *Service) GuestForDevice(ctx context.Context, deviceSubject string) (Result, error) {
 	secret := NewSecret("gs_")
 	acct, err := s.ids.FindOrCreateDeviceGuest(ctx, deviceSubject, HashSecret(secret))
@@ -110,10 +111,11 @@ func (s *Service) GuestForDevice(ctx context.Context, deviceSubject string) (Res
 	return s.newGuest(ctx, acct, secret)
 }
 
-// ResumeDevice signs in to the account bound to the device (guest or
-// linked). identity.ErrNotFound if no account is bound; never creates one.
+// ResumeDevice signs in to the guest bound to the device.
+// identity.ErrNotFound if the device has no guest (a linked account is
+// reached only through its provider); never creates an account.
 func (s *Service) ResumeDevice(ctx context.Context, deviceSubject string) (Result, error) {
-	id, err := s.ids.Lookup(ctx, identity.Device, deviceSubject)
+	id, err := s.ids.LookupGuest(ctx, identity.Device, deviceSubject)
 	if err != nil {
 		return Result{}, err
 	}
@@ -135,12 +137,14 @@ func (s *Service) newGuest(ctx context.Context, acct identity.Account, secret st
 	return Result{Tokens: toks, UserID: acct.UserID, IsNewUser: acct.Created, Wallet: acct.Wallet, GuestSecret: secret}, nil
 }
 
-// ResumeGuest signs a guest back in with the guest secret.
+// ResumeGuest signs a guest back in with the guest secret. Once the account
+// is linked to Google/Facebook/Apple the secret is no longer accepted
+// (ErrCredentialInvalid): the account is reached through its provider.
 func (s *Service) ResumeGuest(ctx context.Context, secret string) (Result, error) {
 	if len(secret) < 16 || len(secret) > 128 {
 		return Result{}, ErrCredentialInvalid
 	}
-	id, err := s.ids.Lookup(ctx, identity.Guest, HashSecret(secret))
+	id, err := s.ids.LookupGuest(ctx, identity.Guest, HashSecret(secret))
 	if errors.Is(err, identity.ErrNotFound) {
 		return Result{}, ErrCredentialInvalid
 	}
@@ -238,7 +242,9 @@ func (s *Service) CheckSession(ctx context.Context, sid string) error {
 
 // Link attaches a verified provider identity to the caller's account. The
 // account id, wallet, XP and collection never change and no welcome bonus is
-// granted. Conflicts are reported, never merged.
+// granted. Conflicts are reported, never merged. The account stops being a
+// device guest: its guest secret and device binding are removed
+// (identity.Store.Link), so "Play as guest" on that device starts a new guest.
 func (s *Service) Link(ctx context.Context, userID uuid.UUID, ident Identity) error {
 	if err := s.ids.Link(ctx, userID, ident.Provider, ident.Subject); err != nil {
 		return err
