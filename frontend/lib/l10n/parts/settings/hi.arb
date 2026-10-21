@@ -29,6 +29,8 @@
   "settingsSwitchToGuest": "मेहमान अकाउंट पर वापस जाएँ",
   "settingsSwitchToGuestSubtitle": "इस डिवाइस पर सेव मेहमान अकाउंट पर लौटें",
   "settingsSignOut": "साइन आउट",
+  "settingsDeleteAccount": "अकाउंट डिलीट करें",
+  "settingsDeleteAccountSubtitle": "अपना अकाउंट और उसका डेटा हमेशा के लिए डिलीट करें",
   "settingsAbout": "ऐप के बारे में",
   "settingsVersion": "वर्ज़न",
   "settingsLegalNotices": "कानूनी सूचनाएँ",

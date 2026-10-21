@@ -54,6 +54,43 @@ class AppLocalizationsId extends AppLocalizations {
       'Akunmu telah masuk di perangkat lain.';
 
   @override
+  String get authAccountDeleted => 'Akunmu telah dihapus.';
+
+  @override
+  String get authDeleteAccountTitle => 'Hapus akunmu?';
+
+  @override
+  String get authDeleteAccountIntro =>
+      'Tindakan ini menghapus akunmu beserta seluruh isinya secara permanen:';
+
+  @override
+  String get authDeleteAccountItemWallet => 'Koin dan berlian';
+
+  @override
+  String get authDeleteAccountItemProgress => 'Level, XP, dan misi';
+
+  @override
+  String get authDeleteAccountItemCollection => 'Item Ruang Koleksi';
+
+  @override
+  String get authDeleteAccountItemFriends => 'Teman dan permintaan pertemanan';
+
+  @override
+  String get authDeleteAccountWarning =>
+      'Tindakan ini tidak bisa dibatalkan. Jika kamu bermain lagi nanti, kamu akan mulai dengan akun baru.';
+
+  @override
+  String get authDeleteAccountConfirmCheck =>
+      'Saya mengerti bahwa akun dan progres saya akan dihapus selamanya.';
+
+  @override
+  String get authDeleteAccountConfirm => 'Hapus akun';
+
+  @override
+  String get authDeleteAccountFailed =>
+      'Akunmu tidak dihapus. Periksa koneksimu dan coba lagi.';
+
+  @override
   String get authChangeLanguage => 'Ganti bahasa';
 
   @override
@@ -2834,6 +2871,13 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'Keluar';
+
+  @override
+  String get settingsDeleteAccount => 'Hapus akun';
+
+  @override
+  String get settingsDeleteAccountSubtitle =>
+      'Hapus akun dan datanya secara permanen';
 
   @override
   String get settingsAbout => 'Tentang';

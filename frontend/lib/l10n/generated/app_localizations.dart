@@ -182,6 +182,72 @@ abstract class AppLocalizations {
   /// **'Your account was signed in on another device.'**
   String get authSignedInElsewhereBanner;
 
+  /// Login banner and toast after the account was deleted (Settings → Delete account).
+  ///
+  /// In en, this message translates to:
+  /// **'Your account was deleted.'**
+  String get authAccountDeleted;
+
+  /// Delete-account confirmation dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get authDeleteAccountTitle;
+
+  /// Delete-account dialog: introduces the list of what is deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your account and everything in it:'**
+  String get authDeleteAccountIntro;
+
+  /// Delete-account dialog list item.
+  ///
+  /// In en, this message translates to:
+  /// **'Coins and diamonds'**
+  String get authDeleteAccountItemWallet;
+
+  /// Delete-account dialog list item.
+  ///
+  /// In en, this message translates to:
+  /// **'Level, XP and missions'**
+  String get authDeleteAccountItemProgress;
+
+  /// Delete-account dialog list item.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection Room items'**
+  String get authDeleteAccountItemCollection;
+
+  /// Delete-account dialog list item.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends and friend requests'**
+  String get authDeleteAccountItemFriends;
+
+  /// Delete-account dialog: irreversible warning.
+  ///
+  /// In en, this message translates to:
+  /// **'This can\'t be undone. If you play again later, you\'ll start with a new account.'**
+  String get authDeleteAccountWarning;
+
+  /// Delete-account dialog: checkbox the user must tick before deleting.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand that my account and progress will be deleted forever.'**
+  String get authDeleteAccountConfirmCheck;
+
+  /// Delete-account dialog: destructive confirm button.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get authDeleteAccountConfirm;
+
+  /// Delete-account dialog: inline error when the request failed (nothing was deleted).
+  ///
+  /// In en, this message translates to:
+  /// **'Your account was not deleted. Check your connection and try again.'**
+  String get authDeleteAccountFailed;
+
   /// Button/tooltip to change the language on the login screen.
   ///
   /// In en, this message translates to:
@@ -4818,6 +4884,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get settingsSignOut;
+
+  /// Settings → Account: opens the delete-account confirmation (destructive).
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get settingsDeleteAccount;
+
+  /// Subtitle of the Delete account row.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and its data'**
+  String get settingsDeleteAccountSubtitle;
 
   /// Section header.
   ///

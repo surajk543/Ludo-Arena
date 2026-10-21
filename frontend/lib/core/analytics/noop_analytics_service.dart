@@ -39,6 +39,9 @@ class NoopAnalyticsService implements AnalyticsService {
   void accountLinkSucceeded(LoginMethod method) {}
 
   @override
+  void accountDeleted() {}
+
+  @override
   void displayNameChanged() {}
 
   @override

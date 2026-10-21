@@ -53,6 +53,10 @@ enum RealtimeHaltReason {
 
   /// Handshake answered 400: a client bug; retrying cannot help.
   badRequest,
+
+  /// Closed with 4401 + reason `account deleted`: the account no longer
+  /// exists. No refresh, no reconnect; the session layer signs out.
+  accountDeleted,
 }
 
 typedef AccessTokenSource = Future<String?> Function();
@@ -87,6 +91,7 @@ class RealtimeConnection {
     this._onPolicySignal,
     this._onServerTime,
     this._onTelemetry,
+    this._onAccountDeleted,
     AppLifecycleBus? lifecycle,
     ReconnectBackoff? backoff,
     Random? random,
@@ -118,6 +123,9 @@ class RealtimeConnection {
   final void Function(PolicySignalReason)? _onPolicySignal;
   final void Function(int, Duration)? _onServerTime;
   final void Function(TelemetryKind)? _onTelemetry;
+
+  /// The server closed the socket because the account was deleted.
+  final void Function()? _onAccountDeleted;
   final Random _random;
   final NowFn _now;
   late final ReconnectBackoff _backoff;
@@ -397,7 +405,7 @@ class RealtimeConnection {
       onError: (Object _) {},
       onDone: () {
         if (gen != _generation || !identical(_socket, socket)) return;
-        _handleDrop(socket.closeCode);
+        _handleDrop(socket.closeCode, reason: socket.closeReason);
       },
       cancelOnError: false,
     );
@@ -540,7 +548,7 @@ class RealtimeConnection {
 
   // -------------------------------------------------------------- drops
 
-  void _handleDrop(int? code, {bool closeSocket = false}) {
+  void _handleDrop(int? code, {bool closeSocket = false, String? reason}) {
     _detach(
       closeCode: closeSocket ? WsCloseCodes.heartbeatTimeout : null,
       reason: 'heartbeat',
@@ -551,6 +559,11 @@ class RealtimeConnection {
     }
     _dropped = true;
     switch (code) {
+      case WsCloseCodes.sessionRevoked
+          when reason == WsCloseReasons.accountDeleted:
+        // Not "signed in on another device" and nothing to refresh.
+        _haltWith(RealtimeHaltReason.accountDeleted, RealtimeStatus.idle);
+        _onAccountDeleted?.call();
       case WsCloseCodes.sessionRevoked:
         unawaited(_refreshThenReconnect());
       case WsCloseCodes.sessionReplaced:

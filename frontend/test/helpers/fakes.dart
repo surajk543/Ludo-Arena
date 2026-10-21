@@ -70,6 +70,10 @@ class RecordingAnalytics extends NoopAnalyticsService {
   final List<String> events = [];
   String? actor;
 
+  /// The actor type when `account_deleted` was logged (must still be
+  /// `human`: the event is sent before the session is cleared).
+  String? actorAtAccountDeleted;
+
   @override
   void setActorType(String? actorType) => actor = actorType;
   @override
@@ -86,6 +90,12 @@ class RecordingAnalytics extends NoopAnalyticsService {
   @override
   void accountLinkSucceeded(LoginMethod method) =>
       events.add('account_link_succeeded:${method.name}');
+  @override
+  void accountDeleted() {
+    actorAtAccountDeleted = actor;
+    events.add('account_deleted');
+  }
+
   @override
   void displayNameChanged() => events.add('display_name_changed');
   @override
