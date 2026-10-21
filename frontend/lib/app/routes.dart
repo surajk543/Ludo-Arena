@@ -51,8 +51,12 @@ abstract final class AppRoutes {
   static const String friends = '/friends';
   static const String events = '/events';
 
-  /// Store (profile pictures for diamonds). Full screen above the tabs:
-  /// `context.push(AppRoutes.store)`.
+  /// Shop (profile pictures and cosmetics not owned yet). Full screen above
+  /// the tabs: `context.push(AppRoutes.shop)` or [shopFor].
+  static const String shop = '/shop';
+
+  /// Former path of the Shop, kept so old deep links and notifications
+  /// still work: redirects to [shop] with the same query.
   static const String store = '/store';
 
   // ---------------------------------------------------------- query keys
@@ -61,6 +65,7 @@ abstract final class AppRoutes {
   static const String qCapacity = 'capacity';
   static const String qBots = 'bots';
   static const String qCode = 'code';
+  static const String qCategory = 'category';
 
   // ---------------------------------------------------------- builders
 
@@ -103,6 +108,12 @@ abstract final class AppRoutes {
   ).toString();
 
   static String game(String roomId) => '/game/${Uri.encodeComponent(roomId)}';
+
+  /// `/shop?category=picture|dice|token|…` ([category] null: the category
+  /// chosen last in this session).
+  static String shopFor({String? category}) => category == null
+      ? shop
+      : Uri(path: shop, queryParameters: {qCategory: category}).toString();
 
   /// Full-screen gate routes (only reachable when the gate is in that phase).
   static const Set<String> gateRoutes = {

@@ -11,13 +11,21 @@ import (
 	"ludoroyale/internal/metrics"
 )
 
-// GET /api/v1/store/profile-pictures?filter=&limit=&cursor=
+// GET /api/v1/store/profile-pictures?filter=&excludeOwned=&limit=&cursor=
 func (s *Service) handleStorePictures(w http.ResponseWriter, r *http.Request) error {
 	uid, err := caller(r)
 	if err != nil {
 		return err
 	}
 	q := r.URL.Query()
+	excludeOwned := false
+	switch q.Get("excludeOwned") {
+	case "", "false":
+	case "true":
+		excludeOwned = true
+	default:
+		return mapErr(ErrBadStoreQuery)
+	}
 	limit := 0
 	if raw := q.Get("limit"); raw != "" {
 		n, err := strconv.Atoi(raw)
@@ -26,7 +34,7 @@ func (s *Service) handleStorePictures(w http.ResponseWriter, r *http.Request) er
 		}
 		limit = n
 	}
-	page, err := s.StorePictures(r.Context(), uid, q.Get("filter"), limit, q.Get("cursor"))
+	page, err := s.StorePictures(r.Context(), uid, q.Get("filter"), excludeOwned, limit, q.Get("cursor"))
 	if err != nil {
 		return mapErr(err)
 	}

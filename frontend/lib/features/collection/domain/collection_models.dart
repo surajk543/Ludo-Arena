@@ -143,8 +143,17 @@ class CollectionItem {
   bool get equippable => kEquipSlots.contains(kind);
   bool get isStarter => acquisition.type == AcquisitionType.starter;
 
-  /// Not owned and buyable for a fixed price.
+  /// Not owned and buyable for a fixed price: on sale in the Shop.
   bool get canPurchase => !owned && acquisition.isPurchasable;
+
+  /// Sold in the Shop for a fixed price (owned or not).
+  bool get inShopCatalog => acquisition.isPurchasable;
+
+  /// Shown in the Collection Room: everything owned (starter, bought,
+  /// earned) plus what can still be earned by playing (level, mission,
+  /// event), shown locked. Items for sale and not owned live in the Shop.
+  bool get inCollection =>
+      owned || acquisition.type != AcquisitionType.purchase;
 
   CollectionItem copyWith({bool? owned, bool? equipped}) => CollectionItem(
     id: id,
@@ -185,20 +194,34 @@ class CollectionData {
 
   int get ownedCount => items.where((i) => i.owned).length;
 
+  /// Items the Collection Room shows (owned or still to earn).
+  int get collectionCount => items.where((i) => i.inCollection).length;
+
   int ownedOf(String kind) =>
       items.where((i) => i.kind == kind && i.owned).length;
-  int totalOf(String kind) => items.where((i) => i.kind == kind).length;
 
-  /// Items of [kind] matching [filter], in catalog order.
+  /// Items of [kind] the Collection Room shows (owned or still to earn).
+  int totalOf(String kind) =>
+      items.where((i) => i.kind == kind && i.inCollection).length;
+
+  /// Collection Room items of [kind] matching [filter], in catalog order.
   List<CollectionItem> filtered(String kind, CollectionFilter filter) => [
     for (final i in items)
       if (i.kind == kind &&
+          i.inCollection &&
           switch (filter) {
             CollectionFilter.all => true,
             CollectionFilter.owned => i.owned,
             CollectionFilter.locked => !i.owned,
           })
         i,
+  ];
+
+  /// Items of [kind] on sale in the Shop (priced, not owned yet), in
+  /// catalog order.
+  List<CollectionItem> shopItems(String kind) => [
+    for (final i in items)
+      if (i.kind == kind && i.canPurchase) i,
   ];
 
   /// Copy with [loadout] applied to the equipped flags.

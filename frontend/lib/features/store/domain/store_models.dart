@@ -6,7 +6,9 @@ import '../../../core/protocol/json_read.dart';
 /// Default page size of the Store shelf (server default; 1..50).
 const int kStorePageSize = 24;
 
-/// Store shelf filter (`GET /store/profile-pictures?filter=`).
+/// Picture shelf filter (`GET /store/profile-pictures?filter=`). The Shop
+/// offers [all], [animated] and [still] (pictures not owned yet); the
+/// Collection and the Profile picker list [owned].
 enum StoreFilter {
   all('all'),
 
@@ -23,7 +25,7 @@ enum StoreFilter {
   final String wire;
 }
 
-/// `ProfilePicture`: a Store item with the caller's ownership.
+/// `ProfilePicture`: a Shop picture with the caller's ownership.
 @immutable
 class ProfilePicture {
   const ProfilePicture({
@@ -56,7 +58,7 @@ class ProfilePicture {
   final String format;
   final String path;
 
-  /// Fixed price; diamonds are the only Store currency.
+  /// Fixed price; pictures are sold for diamonds only.
   final int priceDiamonds;
 
   /// Bought: the player keeps it forever.

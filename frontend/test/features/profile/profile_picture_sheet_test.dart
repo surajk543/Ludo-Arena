@@ -56,8 +56,8 @@ void main() {
         builder: (_, _) => const ProfileScreen(),
       ),
       GoRoute(
-        path: AppRoutes.store,
-        builder: (_, _) => const Scaffold(body: Text('AT /store')),
+        path: AppRoutes.shop,
+        builder: (_, state) => Scaffold(body: Text('AT ${state.uri}')),
       ),
     ],
   );
@@ -184,7 +184,7 @@ void main() {
     expect(_choice('pp_item_11'), findsOneWidget);
   });
 
-  testWidgets('no owned pictures: the empty state points to the Store', (
+  testWidgets('no owned pictures: the empty state points to the Shop', (
     tester,
   ) async {
     routeStore(env, shelf: const []);
@@ -192,22 +192,31 @@ void main() {
     await openPicker(tester);
     expect(find.byKey(const ValueKey('picture-picker-empty')), findsOneWidget);
     expect(find.text('No pictures yet'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('picture-picker-store')));
+    expect(
+      find.text('Pictures you buy in the Shop show up here.'),
+      findsOneWidget,
+    );
+    expect(find.text('Visit the Shop'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('picture-picker-shop')));
     await drain(tester);
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('AT /store'), findsOneWidget);
+    expect(find.text('AT /shop?category=picture'), findsOneWidget);
   });
 
-  testWidgets('Get more opens the Store', (tester) async {
+  testWidgets('Get more in the Shop opens the Shop pictures', (tester) async {
     await pumpProfile(tester);
     await openPicker(tester);
     final link = find.byKey(const ValueKey('picture-picker-get-more'));
     await tester.ensureVisible(link);
     await tester.pump();
+    expect(
+      find.descendant(of: link, matching: find.text('Get more in the Shop')),
+      findsOneWidget,
+    );
     await tester.tap(link);
     await drain(tester);
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('AT /store'), findsOneWidget);
+    expect(find.text('AT /shop?category=picture'), findsOneWidget);
     expect(env.backend.calls('PUT', _apply), isEmpty);
   });
 
