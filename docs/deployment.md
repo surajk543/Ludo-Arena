@@ -57,7 +57,13 @@ which they flush.
   `APP_MAINTENANCE_FLAG_FILE` on a path operators can create quickly
   (e.g. a mounted volume). `BOT_LOADTEST_ENABLED` must be `false` (startup
   refuses otherwise).
-- Expose `METRICS_ADDR` only to the monitoring network.
+- Expose `METRICS_ADDR` only to the monitoring network. Live player counts
+  (`players_in_game`, `rooms_in_game`, `players_in_lobby`) are cluster-wide
+  and identical on every instance — aggregate with `max`; `ws_connections_active`
+  is per instance — aggregate with `sum`. Alert when
+  `time() - max(game_stats_refreshed_timestamp_seconds) > 120` (recount every
+  `GAME_STATS_INTERVAL`, default 15 s). See
+  [architecture.md](architecture.md#observability-live-player-counts).
 - Run ≥ 2 instances; any instance can serve any player (state + timers in
   Redis, events via Redis pub/sub). Rolling deploys: instances close
   WebSockets with `1001`; clients reconnect and resync.

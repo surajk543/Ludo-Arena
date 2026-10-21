@@ -38,6 +38,12 @@ func histogram0(name, help string, buckets []float64) prometheus.Histogram {
 	return h
 }
 
+func gauge0(name, help string) prometheus.Gauge {
+	g := prometheus.NewGauge(prometheus.GaugeOpts{Name: name, Help: help})
+	Registry.MustRegister(g)
+	return g
+}
+
 func gauge(name, help string, labels ...string) *prometheus.GaugeVec {
 	g := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: name, Help: help}, labels)
 	Registry.MustRegister(g)
@@ -98,6 +104,16 @@ var (
 	ClientErrors       = counter("client_errors_total", "Client-reported errors (telemetry).", "kind")
 	SettlementFailures = counter("wallet_settlement_failures_total", "Entry-fee or payout operations that failed.", "op")
 	ActiveUsers        = gauge("active_users_estimate", "Pseudonymous HyperLogLog estimates of active human users.", "window")
+)
+
+// Live game counts, cluster-wide: recounted from the Redis live-room index by
+// one instance per GAME_STATS_INTERVAL and exposed with the same values by
+// every instance (aggregate with max, not sum). Bots include load-test bots.
+var (
+	PlayersInGame      = gauge("players_in_game", "Non-forfeited players seated in rooms that are playing, cluster-wide (same value on every instance; aggregate with max).", "actor")
+	RoomsInGame        = gauge("rooms_in_game", "Rooms that are playing, cluster-wide (same value on every instance; aggregate with max).", "game", "mode")
+	PlayersInLobby     = gauge("players_in_lobby", "Players seated in rooms waiting to start (public, private and practice lobbies), cluster-wide (aggregate with max).", "actor")
+	GameStatsRefreshed = gauge0("game_stats_refreshed_timestamp_seconds", "Unix time of the last successful cluster-wide recount behind players_in_game, rooms_in_game and players_in_lobby.")
 )
 
 // Bot service (operational; never mixed with product metrics).

@@ -30,6 +30,10 @@ type Config struct {
 	LogLevel    string
 	PublicURL   string // externally visible base URL, used for the Apple callback
 
+	// GameStatsInterval is how often the cluster-wide live-game gauges
+	// (players_in_game, rooms_in_game, players_in_lobby) are recounted.
+	GameStatsInterval time.Duration
+
 	DatabaseURL   string
 	DBMaxConns    int32
 	RedisAddr     string
@@ -229,6 +233,10 @@ func Load() (*Config, error) {
 		RedisTLS:          getBool("REDIS_TLS", false),
 		TrustedProxyHops:  getInt("TRUSTED_PROXY_HOPS", 0),
 		RateLimitDisabled: getBool("RATE_LIMIT_DISABLED", false),
+	}
+	c.GameStatsInterval = getDur("GAME_STATS_INTERVAL", 15*time.Second)
+	if c.GameStatsInterval < time.Second {
+		errs = append(errs, errors.New("GAME_STATS_INTERVAL must be at least 1s"))
 	}
 	if c.Env == EnvProduction && c.RateLimitDisabled {
 		errs = append(errs, errors.New("RATE_LIMIT_DISABLED is not allowed in production"))
