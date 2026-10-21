@@ -86,7 +86,31 @@
   },
   "profileChangePicture": "Change picture",
   "@profileChangePicture": {
-    "description": "Profile button under the avatar: opens the Store to pick a profile picture."
+    "description": "Profile: label / tooltip of the tappable avatar that opens the picture picker (owned pictures or the classic avatar)."
+  },
+  "profilePictureTitle": "Choose your picture",
+  "@profilePictureTitle": {
+    "description": "Title of the Profile sheet to pick one of the owned profile pictures (or the classic avatar)."
+  },
+  "profilePictureClassic": "Classic avatar",
+  "@profilePictureClassic": {
+    "description": "Picker choice: the built-in avatar (no Store picture)."
+  },
+  "profilePictureEmptyMessage": "Pictures you buy in the Store show up here.",
+  "@profilePictureEmptyMessage": {
+    "description": "Picker empty state: the player owns no Store pictures yet."
+  },
+  "profilePictureOpenStore": "Visit the Store",
+  "@profilePictureOpenStore": {
+    "description": "Picker empty-state button: opens the Store."
+  },
+  "profilePictureGetMore": "Get more in the Store",
+  "@profilePictureGetMore": {
+    "description": "Picker link: opens the Store to buy more pictures."
+  },
+  "profilePictureShowMore": "Show more",
+  "@profilePictureShowMore": {
+    "description": "Picker button: loads the next page of owned pictures."
   },
   "profileEditNameTitle": "Change your name",
   "@profileEditNameTitle": {

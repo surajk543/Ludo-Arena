@@ -2727,6 +2727,25 @@ class AppLocalizationsUr extends AppLocalizations {
   String get profileChangePicture => 'تصویر بدلیں';
 
   @override
+  String get profilePictureTitle => 'اپنی تصویر چنیں';
+
+  @override
+  String get profilePictureClassic => 'کلاسک اوتار';
+
+  @override
+  String get profilePictureEmptyMessage =>
+      'اسٹور سے خریدی گئی تصویریں یہاں نظر آئیں گی۔';
+
+  @override
+  String get profilePictureOpenStore => 'اسٹور پر جائیں';
+
+  @override
+  String get profilePictureGetMore => 'اسٹور سے مزید حاصل کریں';
+
+  @override
+  String get profilePictureShowMore => 'مزید دکھائیں';
+
+  @override
   String get profileEditNameTitle => 'اپنا نام بدلیں';
 
   @override

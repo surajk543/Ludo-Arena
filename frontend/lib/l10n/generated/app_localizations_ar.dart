@@ -2754,6 +2754,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileChangePicture => 'تغيير الصورة';
 
   @override
+  String get profilePictureTitle => 'اختر صورتك';
+
+  @override
+  String get profilePictureClassic => 'الصورة الكلاسيكية';
+
+  @override
+  String get profilePictureEmptyMessage =>
+      'الصور التي تشتريها من المتجر تظهر هنا.';
+
+  @override
+  String get profilePictureOpenStore => 'زيارة المتجر';
+
+  @override
+  String get profilePictureGetMore => 'احصل على المزيد من المتجر';
+
+  @override
+  String get profilePictureShowMore => 'عرض المزيد';
+
+  @override
   String get profileEditNameTitle => 'غيّر اسمك';
 
   @override

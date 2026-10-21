@@ -4609,11 +4609,47 @@ abstract class AppLocalizations {
   /// **'Edit name'**
   String get profileEditNameTooltip;
 
-  /// Profile button under the avatar: opens the Store to pick a profile picture.
+  /// Profile: label / tooltip of the tappable avatar that opens the picture picker (owned pictures or the classic avatar).
   ///
   /// In en, this message translates to:
   /// **'Change picture'**
   String get profileChangePicture;
+
+  /// Title of the Profile sheet to pick one of the owned profile pictures (or the classic avatar).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your picture'**
+  String get profilePictureTitle;
+
+  /// Picker choice: the built-in avatar (no Store picture).
+  ///
+  /// In en, this message translates to:
+  /// **'Classic avatar'**
+  String get profilePictureClassic;
+
+  /// Picker empty state: the player owns no Store pictures yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures you buy in the Store show up here.'**
+  String get profilePictureEmptyMessage;
+
+  /// Picker empty-state button: opens the Store.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit the Store'**
+  String get profilePictureOpenStore;
+
+  /// Picker link: opens the Store to buy more pictures.
+  ///
+  /// In en, this message translates to:
+  /// **'Get more in the Store'**
+  String get profilePictureGetMore;
+
+  /// Picker button: loads the next page of owned pictures.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get profilePictureShowMore;
 
   /// Title of the change-display-name sheet.
   ///

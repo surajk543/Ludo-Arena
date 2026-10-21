@@ -2727,6 +2727,25 @@ class AppLocalizationsHi extends AppLocalizations {
   String get profileChangePicture => 'तस्वीर बदलें';
 
   @override
+  String get profilePictureTitle => 'अपनी तस्वीर चुनें';
+
+  @override
+  String get profilePictureClassic => 'क्लासिक अवतार';
+
+  @override
+  String get profilePictureEmptyMessage =>
+      'स्टोर से खरीदी गई तस्वीरें यहाँ दिखेंगी।';
+
+  @override
+  String get profilePictureOpenStore => 'स्टोर पर जाएँ';
+
+  @override
+  String get profilePictureGetMore => 'स्टोर से और पाएँ';
+
+  @override
+  String get profilePictureShowMore => 'और दिखाएँ';
+
+  @override
   String get profileEditNameTitle => 'अपना नाम बदलें';
 
   @override

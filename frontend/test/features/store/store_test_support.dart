@@ -66,6 +66,10 @@ void routeStore(
   int pageSize = 24,
 }) {
   final all = shelf ?? storeShelf();
+  final equipped = [
+    for (final i in all)
+      if (i['equipped'] == true) i['id'] as String,
+  ].firstOrNull;
   env.backend.on('GET', '/store/profile-pictures', (req) {
     final filter = req.query['filter'] ?? 'all';
     final items = [
@@ -87,6 +91,7 @@ void routeStore(
         items.sublist(start, end),
         nextCursor: end < items.length ? 'c$end' : null,
         total: items.length,
+        equipped: equipped,
       ),
     );
   });

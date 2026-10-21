@@ -2719,6 +2719,25 @@ class AppLocalizationsId extends AppLocalizations {
   String get profileChangePicture => 'Ganti foto';
 
   @override
+  String get profilePictureTitle => 'Pilih fotomu';
+
+  @override
+  String get profilePictureClassic => 'Avatar klasik';
+
+  @override
+  String get profilePictureEmptyMessage =>
+      'Foto yang kamu beli di Toko muncul di sini.';
+
+  @override
+  String get profilePictureOpenStore => 'Kunjungi Toko';
+
+  @override
+  String get profilePictureGetMore => 'Dapatkan lebih banyak di Toko';
+
+  @override
+  String get profilePictureShowMore => 'Tampilkan lebih banyak';
+
+  @override
   String get profileEditNameTitle => 'Ganti namamu';
 
   @override

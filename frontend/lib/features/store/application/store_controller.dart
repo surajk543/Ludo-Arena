@@ -114,6 +114,11 @@ final class StoreFailed extends StoreOutcome {
 /// (a retry of the same intent reuses the key) and applying a picture
 /// (`PUT /me/profile-picture`), which updates the signed-in user at once.
 class StoreController extends Notifier<StoreState> {
+  StoreController([this.initialFilter = StoreFilter.all]);
+
+  /// Shelf loaded first (the Profile picker starts on [StoreFilter.owned]).
+  final StoreFilter initialFilter;
+
   /// Bumped on every new first-page load; stale responses are dropped.
   int _generation = 0;
   final Set<String> _inFlight = {};
@@ -125,8 +130,8 @@ class StoreController extends Notifier<StoreState> {
   @override
   StoreState build() {
     _generation++;
-    unawaited(_loadFirst(StoreFilter.all, _generation));
-    return const StoreState();
+    unawaited(_loadFirst(initialFilter, _generation));
+    return StoreState(filter: initialFilter);
   }
 
   /// Switches the shelf to [filter] (first page).
@@ -301,5 +306,13 @@ class StoreController extends Notifier<StoreState> {
 
 final storeProvider = NotifierProvider<StoreController, StoreState>(
   StoreController.new,
+  isAutoDispose: true,
+);
+
+/// The pictures the player owns (`filter=owned`), page by page, for the
+/// Profile picture picker. Applying through it updates the session user
+/// like the Store does.
+final ownedPicturesProvider = NotifierProvider<StoreController, StoreState>(
+  () => StoreController(StoreFilter.owned),
   isAutoDispose: true,
 );
