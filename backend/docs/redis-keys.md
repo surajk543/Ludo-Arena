@@ -25,6 +25,9 @@ network only, AUTH/TLS.
 | `sessrep:{sid}` | string (newer sid) | refresh TTL | auth | Tombstone: `sid` was ended by a newer sign-in of the account → refresh / REST / WS upgrade answer `session_replaced`. Not written by logout or reuse revocation |
 | `profile:{userId}` | hash `{name, avatar}` | none | profile | Display cache (non-authoritative) |
 | `pubid:{uid}` | string | none | profile | Public id → account id cache |
+| `seat:{userId}` | string (JSON `{l, lo}`) | 1 h | progression | Seat summary cache: level + non-starter loadout slots, read by room joins instead of PostgreSQL. Deleted after every committed level-up (match record, mission claim) and equip. Filled on a miss only by the holder of `seat:{userId}:lease` |
+| `seat:{userId}:lease` | string (token) | 5 s | progression | Fill lease taken atomically with a cache miss; deleted with the entry on invalidation, so a fill that read PostgreSQL before a concurrent commit never stores the old value |
+| `emotes:{userId}` | set | 1 h | progression | Owned non-starter emotes (chat hot path). Members are never stale (inventory is append-only); a missing member is confirmed in PostgreSQL and added. Grants add to an existing set |
 | `presence:{userId}` | string | 60 s (refreshed) | gateway | Online indicator (friends list) |
 | `dedup:{userId}:{msgId}` | string | 2 min | gateway | WebSocket command de-duplication |
 | `rl:{rule}:{key}:{window}` | counter | window | ratelimit | Fixed-window rate limits |

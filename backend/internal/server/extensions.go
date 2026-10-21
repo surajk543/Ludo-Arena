@@ -30,10 +30,11 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 		Progression: prog, Recorder: prog, Inviter: soc, Inventory: prog,
 		Routes: []func(rt *httpapi.Router){prog.Register, soc.Register, tracker.Register},
 		OnNewAccount: func(ctx context.Context, id uuid.UUID) {
-			if err := prog.Bootstrap(ctx, id); err != nil {
-				core.Log.Warn("progression bootstrap failed", "error", err.Error())
-			}
-			_ = tracker.Touch(ctx, id)
+			// Off the sign-up request path. Every progression read and write
+			// also creates the row lazily, so a late, failed or dropped
+			// bootstrap is harmless (async_jobs_total{job="new_account"}).
+			core.Async.Go("new_account", func(ctx context.Context) error { return prog.Bootstrap(ctx, id) })
+			_ = tracker.Touch(ctx, id) // Redis only
 		},
 		// Humans only: the gateway never calls this for bot sessions.
 		OnActivity: func(ctx context.Context, id uuid.UUID) { _ = tracker.Touch(ctx, id) },

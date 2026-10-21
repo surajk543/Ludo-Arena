@@ -682,6 +682,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Pub/sub</td><td><code>ev:room:{roomId}</code>, <code>ev:user:{userId}</code></td></tr>
           <tr><td>Bots</td><td><code>bot:assignments</code>, <code>botasg:{id}</code>, <code>botsess:{uid}</code></td></tr>
           <tr><td>Progression/social/analytics caches</td><td><code>lb:xp:{weekKey}</code>, <code>recent:{userId}</code>, <code>invite:*</code>, <code>idem:{userId}:{key}</code>, <code>au:d:*</code>/<code>au:w:*</code> (HyperLogLog)</td></tr>
+          <tr><td>Hot-path caches (<a href="architecture.md#postgresql-on-the-hot-path">PostgreSQL on the hot path</a>)</td><td><code>seat:{userId}</code> + <code>seat:{userId}:lease</code> (seat summary for room joins, 1 h, deleted on level-up/equip), <code>emotes:{userId}</code> (owned emotes for chat, 1 h)</td></tr>
         </tbody>
       </table>
     </div>

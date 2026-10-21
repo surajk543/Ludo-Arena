@@ -343,7 +343,11 @@ func (a *Account) writeMe(w http.ResponseWriter, r *http.Request, uid uuid.UUID)
 }
 
 func (a *Account) writeAuth(w http.ResponseWriter, r *http.Request, status int, res auth.Result) error {
-	user, err := a.user(r.Context(), res.UserID)
+	ctx := r.Context()
+	if res.IsNewUser {
+		ctx = context.WithValue(ctx, newAccountKey{}, true)
+	}
+	user, err := a.user(ctx, res.UserID)
 	if err != nil {
 		return err
 	}
@@ -368,7 +372,7 @@ func (a *Account) user(ctx context.Context, uid uuid.UUID) (User, error) {
 		}
 	}
 	prof := a.Profiles.Get(ctx, uid)
-	sum, err := a.Progression.Summary(ctx, uid)
+	sum, err := a.summary(ctx, uid)
 	if err != nil {
 		a.Log.Warn("progression summary unavailable", "error", err.Error())
 		sum = playerinfo.Starter()
@@ -379,6 +383,20 @@ func (a *Account) user(ctx context.Context, uid uuid.UUID) (User, error) {
 		Level: sum.Level, XP: sum.XP, LevelXP: sum.LevelXP, NextLevelXP: sum.NextLevelXP,
 		Title: sum.Title, Loadout: sum.Loadout,
 	}, nil
+}
+
+// newAccountKey marks a request context whose account this request created.
+type newAccountKey struct{}
+
+// summary returns the account's progression summary. An account created by
+// this very request has the starter summary by definition, so the sign-up
+// response skips PostgreSQL; its progression row is created off the request
+// path (OnNewAccount) or lazily by the first progression read or write.
+func (a *Account) summary(ctx context.Context, uid uuid.UUID) (playerinfo.Summary, error) {
+	if created, _ := ctx.Value(newAccountKey{}).(bool); created {
+		return playerinfo.Starter(), nil
+	}
+	return a.Progression.Summary(ctx, uid)
 }
 
 // decodeOptionalJSON is DecodeJSON for endpoints whose body may be empty.

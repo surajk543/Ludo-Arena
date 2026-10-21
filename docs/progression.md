@@ -193,6 +193,8 @@ currency for `purchase` items). Level milestones are derived from the
 | `invite:{from}:{to}:{roomId}` | string | until the invite expires (10 s – 30 min) | invite id (dedupe) |
 | `idem:{userId}:{key}` / `…:lock` | string | 24 h / 30 s | cached successful claim/purchase response |
 | `au:d:{yyyymmdd}`, `au:w:{yyyy-Www}` | HyperLogLog | 40 days | pseudonymous active-user sketches |
+| `seat:{userId}` (+ `…:lease`, 5 s) | string | 1 h | seat summary cache (level, non-starter loadout) for room joins; deleted after level-ups and equips ([architecture.md → PostgreSQL on the hot path](architecture.md#postgresql-on-the-hot-path)) |
+| `emotes:{userId}` | set | 1 h | owned non-starter emotes for `chat.emote`; grants add to it, misses are confirmed in PostgreSQL |
 | `rl:invite_user:…`, `rl:friend_request_user:…` | counter | window | rate limits |
 | read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}` | | | set by the gateway / profile service |
 
@@ -200,7 +202,8 @@ currency for `purchase` items). Level milestones are derived from the
 reset, pending invites disappear (the sender can re-invite), idempotency
 replays are unavailable for the past 24 h (a retried claim/purchase gets the
 normal `409 already_claimed` / `already_owned` instead of a replay), and the
-day/week active-user estimates restart. Nothing durable is lost: XP, levels,
+day/week active-user estimates restart, and the seat/emote caches refill from
+PostgreSQL on the next join or emote. Nothing durable is lost: XP, levels,
 missions, claims, inventory, loadouts, friendships and wallets live in
 PostgreSQL, and friend codes resolve from `player_progress.public_id`.
 

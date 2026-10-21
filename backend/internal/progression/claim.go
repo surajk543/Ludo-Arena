@@ -225,6 +225,10 @@ func (s *Service) Claim(ctx context.Context, userID uuid.UUID, periodKey, missio
 	}
 
 	// Post-commit effects.
+	if xr.level != xr.oldLevel {
+		s.InvalidateSeat(ctx, userID)
+	}
+	s.cacheGranted(ctx, userID, append(append([]*Item(nil), granted...), xr.unlocked...))
 	metrics.MissionRewardsClaimed.WithLabelValues(per.Kind).Inc()
 	if r.XP > 0 {
 		metrics.XPAwarded.WithLabelValues("mission").Add(float64(r.XP))

@@ -96,6 +96,7 @@ func (s *Service) Equip(ctx context.Context, userID uuid.UUID, slot, itemID stri
 			return nil, ErrItemLocked
 		}
 	}
+	s.InvalidateSeat(ctx, userID) // the next room seat shows the new loadout
 	metrics.CosmeticEquips.WithLabelValues(slot).Inc()
 	lo, err := s.loadouts(ctx, s.pool, []uuid.UUID{userID})
 	if err != nil {
@@ -145,6 +146,9 @@ func (s *Service) Purchase(ctx context.Context, userID uuid.UUID, itemID string)
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
+	// Ownership only (equipping is a separate request that invalidates the
+	// seat summary): a purchased emote is usable in chat at once.
+	s.cacheGranted(ctx, userID, []*Item{it})
 
 	currency := "coins"
 	if price.Diamonds > 0 {
