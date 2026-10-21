@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -152,6 +153,18 @@ func TestDeleteAccountErasesEverything(t *testing.T) {
 	if r := e.report(a.Token, c.UID, roomID, "offensive_name"); r.Status != 201 {
 		t.Fatalf("A reports C: %d %s", r.Status, r.Raw)
 	}
+	// A report A filed against a bot (no account behind reported_id) and a
+	// pending friend request A sent to a bot.
+	if _, err := e.app.PG.Exec(ctx, `INSERT INTO progression.player_reports
+		(reporter_id, reported_id, reason, room_id, game, reported_bot, reported_profile)
+		VALUES ($1, gen_random_uuid(), 'other', 'r_seededbot', 'ludo', TRUE, '{"uid":"b_0123456789","name":"Asha"}')`,
+		a.UserID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.rdb.HSet(ctx, "botfr:"+a.UserID, "b_0123456789",
+		fmt.Sprintf(`{"name":"Asha","avatar":1,"level":1,"title":"","at":%d}`, time.Now().UnixMilli())).Err(); err != nil {
+		t.Fatal(err)
+	}
 
 	// Everything the deletion must remove is really there.
 	for tb, n := range e.accountRows(t, a.UserID) {
@@ -162,7 +175,7 @@ func TestDeleteAccountErasesEverything(t *testing.T) {
 	week := progression.LeaderboardKey(progression.WeekKey(time.Now()))
 	redisKeys := []string{"profile:" + a.UserID, "pubid:" + a.UID, "namechg:" + a.UserID, "seat:" + a.UserID,
 		"emotes:" + a.UserID, "presence:" + a.UserID, "recent:" + a.UserID, "usess:" + a.UserID,
-		"user:" + a.UserID + ":room", "sess:" + sidOf(t, a.Token)}
+		"user:" + a.UserID + ":room", "sess:" + sidOf(t, a.Token), "botfr:" + a.UserID}
 	for _, k := range redisKeys {
 		if n, _ := e.rdb.Exists(ctx, k).Result(); n != 1 {
 			t.Fatalf("setup: %s missing", k)

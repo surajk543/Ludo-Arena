@@ -28,7 +28,7 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 	// social subscribes itself to prog for recent opponents; prog stays the
 	// single match Recorder.
 	soc := social.New(core.PG, core.RDB, core.Profiles, prog, core.Notifier, core.Log,
-		social.Options{MaxFriends: core.Cfg.Social.FriendsMax})
+		social.Options{MaxFriends: core.Cfg.Social.FriendsMax, Bots: botLookup(core)})
 	rep := reports.New(core.PG, core.Profiles, prog, roomLookup(core), core.Log, reports.Options{
 		PerDay: core.Cfg.Social.ReportsPerDay, AdminKeySHA256: core.Cfg.AdminKeySHA256})
 	tracker := analytics.New(core.RDB, core.Cfg.Telemetry.ActiveUserKey, core.Log)
@@ -60,8 +60,25 @@ func roomLookup(core *Core) reports.RoomLookup {
 		}
 		info := reports.RoomInfo{Game: r.Game, Seats: make([]reports.Seat, len(r.Players))}
 		for i, p := range r.Players {
-			info.Seats[i] = reports.Seat{UserID: p.UserID, UID: p.UID, Bot: p.Bot}
+			info.Seats[i] = reports.Seat{UserID: p.UserID, UID: p.UID, Bot: p.Bot,
+				Name: p.Name, Avatar: p.Avatar, Level: p.Level}
 		}
 		return info, nil
+	}
+}
+
+// botLookup finds a bot seat by public id for friend requests to bots
+// (social.Options.Bots): in the requester's active room, else while the
+// bot's session is live.
+func botLookup(core *Core) social.BotLookup {
+	return func(ctx context.Context, me uuid.UUID, uid string) (social.BotProfile, error) {
+		p, err := rooms.FindBotSeat(ctx, core.RDB, me.String(), uid)
+		if errors.Is(err, rooms.ErrNoBotSeat) {
+			return social.BotProfile{}, social.ErrUnknownPlayer
+		}
+		if err != nil {
+			return social.BotProfile{}, err
+		}
+		return social.BotProfile{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level, Title: p.Title}, nil
 	}
 }

@@ -66,8 +66,6 @@ func mapErr(err error) error {
 		return httpapi.Errf(http.StatusNotFound, "room_not_found", "This game is no longer available to report from.")
 	case errors.Is(err, ErrSelf):
 		return httpapi.Errf(http.StatusUnprocessableEntity, "cannot_report_self", "You cannot report yourself.")
-	case errors.Is(err, ErrBot):
-		return httpapi.Errf(http.StatusUnprocessableEntity, "cannot_report_bot", "Computer players cannot be reported.")
 	case errors.Is(err, ErrNotInRoom):
 		return httpapi.Errf(http.StatusUnprocessableEntity, "not_in_room", "You can only report players from a game you played together.")
 	case errors.Is(err, ErrAlreadyReported):

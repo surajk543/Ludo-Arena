@@ -31,7 +31,7 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 | 403 | `forbidden` |
 | 404 | `not_found`, `invalid_code`, `room_not_found` |
 | 409 | `identity_conflict`, `provider_already_linked`, `already_owned`, `already_claimed`, `already_friends`, `already_reported`, `request_in_progress` |
-| 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `cannot_report_self`, `cannot_report_bot`, `not_in_room`, `idempotency_key_reused` |
+| 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `cannot_report_self`, `not_in_room`, `idempotency_key_reused` |
 | 426 | `update_required` (details = policy) |
 | 429 | `rate_limited`, `report_limit` (`Retry-After` header; `report_limit` details = `Limit`) |
 | 503 | `maintenance` (details = policy), `provider_unavailable` |
@@ -369,12 +369,20 @@ writes 30/min, new friend requests 60/hour.
   week (Monday 00:00 UTC; matches and mission rewards); equal XP share a rank.
 - A new request pushes `social.friend_request` to the recipient. Invites are
   sent over WebSocket (`room.invite`, friends only, 10/min per sender).
+- Bots look like people: the code of a bot seat the caller can see (in their
+  room) is accepted like a person's — same checks and limits (it counts
+  toward the 100 pending sent), `201` `status: "outgoing"`, listed under
+  `outgoing`, cancellable with `DELETE /friends/{uid}`. A bot never accepts;
+  its pending request disappears after 72 h.
 
 ## Player reports
 
 Authenticated humans, version gated. Rate limits per account: `POST` 20/min,
 `GET` 120/min (separate from the daily report limit). Stored in PostgreSQL
-(`progression.player_reports`: report metadata only, no game state).
+(`progression.player_reports`: report metadata only, no game state). Any
+seated opponent can be reported, bots included: a bot is reported exactly
+like a person (same errors, limits and response, listed by `GET /reports`)
+and is kept out of the operator queue.
 
 | Method & path | Body | Response |
 |---|---|---|
@@ -400,7 +408,6 @@ no report is counted.
 | 400 | `bad_request` | malformed body, unknown field, unknown `reason`, malformed `uid`/`roomId` |
 | 422 | `cannot_report_self` | `uid` is the caller |
 | 404 | `room_not_found` | the room no longer exists (rooms are kept while playing and ≈ 10.5 min after the game ends) |
-| 422 | `cannot_report_bot` | the seat is a bot (or not a human account) |
 | 422 | `not_in_room` | the caller or the reported player does not hold a seat in that room (forfeited / left seats count) |
 | 404 | `not_found` | `uid` is not seated and is no player at all |
 | 409 | `already_reported` | the caller already reported this player in the last 24 h |
@@ -409,6 +416,7 @@ no report is counted.
 Both 24 h rules are rolling windows enforced atomically per reporter (a
 burst of concurrent reports stores at most `perDay`). Rejected attempts are
 not stored and do not count. The reported player is not notified.
+(`422 cannot_report_bot` is no longer returned; older apps may still map it.)
 
 ### Operator API (private network only)
 
@@ -422,8 +430,8 @@ public proxy).
 
 | Method & path | Body | Response |
 |---|---|---|
-| `GET /admin/reports?status=submitted&limit=50` | – | `{"reports":[AdminReport]}` newest first; `status` optional (one of the four statuses), `limit` 1–200 (default 50); else 400 |
-| `PATCH /admin/reports/{id}` | `{"status":"reviewing","note":"…"}` (at least one; `note` ≤ 1000 chars, `""` clears it) | `{"report":AdminReport}`; 400 `bad_request`, 404 `not_found` (unknown id) |
+| `GET /admin/reports?status=submitted&limit=50` | – | `{"reports":[AdminReport]}` newest first; `status` optional (one of the four statuses), `limit` 1–200 (default 50); else 400. Reports against bots are not listed |
+| `PATCH /admin/reports/{id}` | `{"status":"reviewing","note":"…"}` (at least one; `note` ≤ 1000 chars, `""` clears it) | `{"report":AdminReport}`; 400 `bad_request`, 404 `not_found` (unknown id or a report against a bot) |
 
 **AdminReport**: `{"id","reporter":{"uid","name"},"reported":{"uid","name"},"reason","roomId","game","status","note":null,"createdAt","updatedAt","reportedStats":{"total","open","reporters"}}`
 — `reportedStats` counts every report against the reported player (`open` =

@@ -13,7 +13,7 @@ privacy-conscious analytics. HTTP contract: [`rest-api.md`](rest-api.md); push m
 | `backend/internal/reports` | Player reports (`POST/GET /reports`) and the operator review API (`/admin/reports`). |
 | `backend/internal/analytics` | Pseudonymous active-user sketches, `POST /telemetry/events`. |
 | `backend/config/catalog.json`, `backend/config/missions.json` | Cosmetics catalog and missions/events configuration (validated at startup). |
-| `backend/migrations/003_progression.sql`, `006_player_reports.sql` | The `progression` schema. |
+| `backend/migrations/003_progression.sql`, `006_player_reports.sql`, `009_report_bots.sql` | The `progression` schema. |
 | `backend/migrations/005_display_name.sql`, `backend/internal/profile` | The nullable `player_progress.display_name` column: player-chosen display names (`PATCH /me`), written and read by the `profile` package. |
 
 Every item is cosmetic. Nothing here changes dice, rules, matchmaking or
@@ -42,7 +42,7 @@ player-chosen display name (one nullable column, below).
 | `inventory(user_id, item_id, acquired_at)` | `(user_id, item_id)` | Owned cosmetics. Starter items are implicit (no rows). The PK makes grants and purchases exactly-once. |
 | `loadout(user_id, slot, item_id)` | `(user_id, slot)` | Equipped items. A missing slot means the starter item; a row whose item no longer fits the catalog also falls back to starter. |
 | `friendships(user_lo, user_hi, status, requested_by, created_at)` | `(user_lo, user_hi)`, `CHECK user_lo < user_hi` | One row per unordered pair: `pending` (request by `requested_by`) or `accepted`. Indexed on `user_hi` for "my relationships" lookups. Written only by `social`; read by `progression` inside the match transaction (friend XP bonus, friend missions). |
-| `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats, names) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
+| `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at, reported_bot, reported_profile)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `reporter_id` is an account; `reported_id` is an account or, with `reported_bot = true`, a bot's per-session id (no foreign key since migration 009: bots are not accounts). `reported_profile` (JSONB, bots only) keeps the bot's public profile at report time (`uid`, `name`, `avatar`, `level`), the only name stored here, because no account holds it. `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
 
 Indexes on `match_receipts.processed_at`, `mission_progress.updated_at` and
 `mission_claims.claimed_at` serve the purge job.
@@ -183,6 +183,15 @@ currency for `purchase` items). Level milestones are derived from the
 - Friend code = public uid (`u_…`, case-insensitive). Resolution: the
   durable `player_progress.public_id`, falling back to the Redis profile cache
   (`profile.Resolve`), verified against `profile.PublicID` and then persisted.
+- Requests to bots (bots must look like people in the app): a code that is
+  no account but a bot seat the caller can see (`rooms.FindBotSeat`: in the
+  caller's active room, else while the bot's session lives) gets the answer
+  of a request to a person who never replies — the same checks and limits
+  (friend cap, pending-sent cap counted over people and bots, hourly limit),
+  `201` `status: "outgoing"` with the bot's profile, listed under `outgoing`
+  and cancellable with `DELETE /friends/{uid}`. It is never accepted, sends
+  no notification and lapses after 72 h (`social.DefaultBotRequestTTL`).
+  Stored in Redis only (`botfr:{userId}`), never in `friendships`.
 - Requests auto-accept when the other player already requested you;
   repeating a pending request is idempotent; you cannot friend yourself.
 - Limits: `FRIENDS_MAX` accepted friends (default **20**, ≥ 1), 100 pending
@@ -220,9 +229,13 @@ currency for `purchase` items). Level milestones are derived from the
   (forfeited and left seats count), so reports work during the game and
   while the finished room exists (finished: `FINISHED_ROOM_TTL` + rematch
   window ≈ 10.5 min; closed: 2 min); afterwards `room_not_found`.
-- Bot seats (and seats that are not human accounts) → `cannot_report_bot`;
-  yourself → `cannot_report_self`; a uid that is not seated →
-  `not_in_room` (or `not_found` when it is no account at all).
+- A bot seat is reported exactly like a person (same checks, limits and
+  response; listed in "my reports" with the profile stored in
+  `reported_profile`), so reports never reveal bots. The row has
+  `reported_bot = true` and is left out of the operator queue
+  (`GET /admin/reports`; `PATCH` answers 404). `cannot_report_bot` is no
+  longer returned. Yourself → `cannot_report_self`; a uid that is not
+  seated → `not_in_room` (or `not_found` when it is no account at all).
 - Per reporter, rolling 24 h window: at most one report per reported player
   (`already_reported`, checked first) and at most `REPORTS_PER_DAY` reports
   (default **2**, ≥ 1; `report_limit` with `Retry-After` and
@@ -231,7 +244,8 @@ currency for `purchase` items). Level milestones are derived from the
   hash(reporter))`, so concurrent bursts cannot exceed the limit on any
   number of instances. Rejected attempts store nothing and do not count.
 - `GET /reports` lists my reports (newest first, ≤ 100) with the reported
-  player's public profile (uid, name, avatar, level) and review status, plus
+  player's public profile (uid, name, avatar, level; a bot's as stored with
+  the report) and review status, plus
   `limit {perDay, remaining, resetsAt}`. Reporter ids and operator notes are
   never returned to players; the reported player is never told.
 - Operators review through `GET /admin/reports` and
@@ -247,22 +261,24 @@ currency for `purchase` items). Level milestones are derived from the
 |---|---|---|---|
 | `lb:xp:{weekKey}` | ZSET | 21 days | weekly XP per account id (friends leaderboard) |
 | `recent:{userId}` | ZSET | 14 days | recent human opponents (account id → finish time ms), max 20 |
+| `botfr:{userId}` | hash | 72 h after the last request (each entry lapses 72 h after it was sent; lapsed entries are removed when read) | pending friend requests to bots: bot uid → `{name, avatar, level, title, at}` |
 | `invite:{from}:{to}:{roomId}` | string | until the invite expires (10 s – 30 min) | invite id (dedupe) |
 | `idem:{userId}:{key}` / `…:lock` | string | 24 h / 30 s | cached successful claim/purchase response |
 | `au:d:{yyyymmdd}`, `au:w:{yyyy-Www}` | HyperLogLog | 40 days | pseudonymous active-user sketches |
 | `seat:{userId}` (+ `…:lease`, 5 s) | string | 1 h | seat summary cache (level, non-starter loadout) for room joins; deleted after level-ups and equips ([architecture.md → PostgreSQL on the hot path](architecture.md#postgresql-on-the-hot-path)) |
 | `emotes:{userId}` | set | 1 h | owned non-starter emotes for `chat.emote`; grants add to it, misses are confirmed in PostgreSQL |
 | `rl:invite_user:…`, `rl:friend_request_user:…`, `rl:report_user:…`, `rl:report_read_user:…`, `rl:admin_ip:…` | counter | window | rate limits |
-| read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}` | | | set by the gateway / profile service / room engine (reports verify seats) |
+| read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}`, `user:{userId}:room`, `botsess:{uid}` | | | set by the gateway / profile service / room engine (reports verify seats; friend requests find bot seats) |
 
-Account deletion purges the account's `seat:`, `emotes:`, `recent:` keys,
+Account deletion purges the account's `seat:`, `emotes:`, `recent:`, `botfr:` keys,
 its member in other players' `recent:` sets and in the weekly `lb:xp:` sets,
 and its rate-limit counters. A match recorded after the deletion never
 re-adds the deleted account to anyone's recent players (`recent` ignores ids
 without an account), and `GET /social/recent` drops such ids.
 
 **If Redis is lost:** recent opponents and the current weekly leaderboard
-reset, pending invites disappear (the sender can re-invite), idempotency
+reset, pending invites and friend requests to bots disappear (the sender can
+re-invite), idempotency
 replays are unavailable for the past 24 h (a retried claim/purchase gets the
 normal `409 already_claimed` / `already_owned` instead of a replay), and the
 day/week active-user estimates restart, and the seat/emote caches refill from
@@ -320,10 +336,10 @@ its keys are rebuilt as players play (see §8).
 `level_ups_total`, `cosmetic_unlocks_total{source}`
 (`level|mission|event|purchase|first_win`), `cosmetic_equips_total{slot}`,
 `cosmetic_purchases_total{currency}`, `friend_requests_total{event}`
-(`sent|accepted|auto_accepted|declined|cancelled|removed|rejected`),
+(`sent|sent_to_bot|accepted|auto_accepted|declined|cancelled|removed|rejected`),
 `invites_sent_total{result}` (`sent|not_friends|rate_limited|error`),
 `player_reports_total{reason,result}` (reason: the five reasons or
-`invalid`; result: `created|already_reported|report_limit|cannot_report_self|cannot_report_bot|not_in_room|not_found|room_not_found|bad_request|error`),
+`invalid`; result: `created|already_reported|report_limit|cannot_report_self|not_in_room|not_found|room_not_found|bad_request|error`),
 `returning_users_estimate{window}`; plus the existing
 `active_users_estimate`, `client_errors_total`, `client_reconnect_total`.
 All count humans only; labels are bounded.
@@ -334,7 +350,7 @@ All count humans only; labels are bounded.
 prog, err := progression.New(pool, rdb, profiles, notifier, log, progression.Options{
     CatalogPath: "config/catalog.json", MissionsPath: "config/missions.json"})
 soc := social.New(pool, rdb, profiles, prog, notifier, log,
-    social.Options{MaxFriends: cfg.Social.FriendsMax}) // subscribes to prog
+    social.Options{MaxFriends: cfg.Social.FriendsMax, Bots: botLookup /* rooms.FindBotSeat */}) // subscribes to prog
 rep := reports.New(pool, profiles, prog, roomLookup /* rooms.LoadRoom */, log, reports.Options{
     PerDay: cfg.Social.ReportsPerDay, AdminKeySHA256: cfg.AdminKeySHA256})
 tracker := analytics.New(rdb, cfg.Telemetry.ActiveUserKey, log)

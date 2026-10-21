@@ -9,7 +9,7 @@ network only, AUTH/TLS.
 
 | Key | Type | TTL | Written by | Purpose |
 |---|---|---|---|---|
-| `room:{roomId}` | hash `{rev, s}` | lobby 30 min · playing 3 h · finished 10 min + rematch window · closed 2 min (refreshed on every commit) | rooms | Full authoritative room state (JSON) + optimistic revision. Also read (never written) by player reports to verify that reporter and reported player hold a seat |
+| `room:{roomId}` | hash `{rev, s}` | lobby 30 min · playing 3 h · finished 10 min + rematch window · closed 2 min (refreshed on every commit) | rooms | Full authoritative room state (JSON) + optimistic revision. Also read (never written) by player reports to verify that reporter and reported player hold a seat, and by friend requests to find a bot seat (`rooms.FindBotSeat`) |
 | `user:{userId}:room` | string | 6 h | rooms (atomic with room commits, guarded) | One active room per user |
 | `roomcode:{CODE}` | string | room TTL | rooms | Private room code → room id |
 | `mm:open:{pool}:{game}:{variant}:{capacity}` | zset (score = created ms) | — (members removed on start/close) | rooms | Open public lobbies; `pool` = `live` or `loadtest` |
@@ -21,7 +21,8 @@ network only, AUTH/TLS.
 | `settle:retry:*`, `record:retry:*` | counter | 1 h | rooms | Bounded retry counters |
 | `bot:assignments` | list | — | rooms | Pending bot assignment ids (long-poll queue) |
 | `botasg:{id}` | string | `BOT_ASSIGNMENT_TTL` | rooms | Assignment payload; claimed with GETDEL |
-| `botsess:{uid}` | string | bot session TTL | rooms | Bot public id → session/room (revocation) |
+| `botsess:{uid}` | string | bot session TTL | rooms | Bot public id → `{sessionId}\|{botId}\|{roomId}` (revocation; deleted when bot-play ends the session). Also read by friend requests to find the bot's room |
+| `botfr:{userId}` | hash: bot uid → JSON `{name, avatar, level, title, at}` | 72 h, refreshed by each new request; each entry lapses 72 h after `at` and is deleted when read | social | Pending friend requests the account sent to bots (bots never answer). Counted toward the 100 pending-sent cap with the PostgreSQL requests; listed under `outgoing` by `GET /friends`. Deleted by account deletion |
 | `sess:{sid}` | hash `{uid, cur, actor}` | refresh TTL (sliding) | auth | Session family; deleting it revokes access + refresh |
 | `rt:{sha256}` | string | refresh TTL | auth | Refresh-token hash → session (old hashes remain as reuse tombstones) |
 | `usess:{userId}` | string (sid) | refresh TTL (slides with refresh) | auth | The account's one live **human** session. Set atomically by every sign-in (Lua), which deletes the previous `sess:{old}`; cleared on logout only if it still names that sid. Deleted (with the session and its current `rt:{hash}`) by account deletion. Never written for bot sessions |
@@ -36,7 +37,7 @@ network only, AUTH/TLS.
 | `dedup:{userId}:{msgId}` | string | 2 min | gateway | WebSocket command de-duplication |
 | `rl:{rule}:{key}:{window}` | counter | window | ratelimit | Fixed-window rate limits (e.g. `rl:profile_user:…`, 20 `PATCH /me` per minute per account) |
 | `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify / gateway | Cross-instance event fan-out. `ev:user:*` also carries gateway control messages (`{"ctl":"kick","conn":…}`, `{"ctl":"revoke","sid":…}`, `{"ctl":"deleted"}` — account deleted: close the human socket with `4401` `account deleted`) that are never forwarded to clients |
-| progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents, weekly leaderboard, idempotency replays, active-user sketches. Player reports and the friend cap keep no Redis state of their own (only `rl:report_user:*`, `rl:report_read_user:*`, `rl:admin_ip:*` rate-limit counters); reports are stored in PostgreSQL |
+| progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents, weekly leaderboard, idempotency replays, active-user sketches. Player reports (also against bots) and the friend cap keep no Redis state of their own (only `rl:report_user:*`, `rl:report_read_user:*`, `rl:admin_ip:*` rate-limit counters); reports are stored in PostgreSQL |
 
 ## Account deletion
 
@@ -44,7 +45,7 @@ network only, AUTH/TLS.
 PostgreSQL transaction: `sess:{sid}` + its current `rt:{hash}` and
 `usess:{userId}`, `profile:{userId}`, `pubid:{publicId}`, `namechg:{userId}`,
 `seat:{userId}` (+ `:lease`), `emotes:{userId}`, `presence:{userId}`,
-`recent:{userId}` and the account's member in each opponent's
+`botfr:{userId}`, `recent:{userId}` and the account's member in each opponent's
 `recent:{otherId}`, its member in the last five `lb:xp:{week}` keys, and the
 current and previous window of every per-account `rl:{rule}:{userId}:{window}`
 counter; `user:{userId}:room` is cleared by leaving the room first. Left to
