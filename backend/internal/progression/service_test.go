@@ -619,12 +619,14 @@ func TestPurchases(t *testing.T) {
 	if f.owns(t, a, "frame_royal") || f.count(t, `SELECT count(*) FROM progression.inventory WHERE user_id = $1 AND item_id = 'frame_royal'`, a) != 0 {
 		t.Fatal("failed purchase left an inventory row")
 	}
+	// Shop prices are diamonds only: a 100-diamond token after a top-up.
+	f.env.SetDiamonds(t, a, 110)
 	if _, err := f.svc.Purchase(ctx, a, "token_crown"); err != nil {
 		t.Fatal(err)
 	}
 	end := f.wallet(t, a)
-	if end.Coins != start.Coins-150000 || end.Diamonds != start.Diamonds-40 {
-		t.Fatalf("wallet %+v, want coins %d diamonds %d", end, start.Coins-150000, start.Diamonds-40)
+	if end.Coins != start.Coins || end.Diamonds != 10 {
+		t.Fatalf("wallet %+v, want coins %d (unchanged) diamonds 10", end, start.Coins)
 	}
 	w := f.notes.For(a, MsgWalletUpdated)
 	if len(w) != 2 || progtest.PayloadMap(t, w[0].Payload)["reason"] != "purchase" {

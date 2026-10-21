@@ -72,8 +72,9 @@ func TestRepoCatalogMatchesDoc(t *testing.T) {
 	if len(c.Items()) != 37 {
 		t.Fatalf("catalog has %d items, want 37 (docs/cosmetics-catalog.md)", len(c.Items()))
 	}
-	prices := map[string]Price{"dice_golden": {Diamonds: 40}, "token_crown": {Coins: 150000}, "ludo_board_royal": {Diamonds: 30},
-		"snakes_board_candy": {Coins: 200000}, "trail_comet": {Diamonds: 20}, "victory_crown": {Diamonds: 40},
+	// Shop prices are in diamonds only (owner, 21 Oct 2026).
+	prices := map[string]Price{"dice_golden": {Diamonds: 40}, "token_crown": {Diamonds: 100}, "ludo_board_royal": {Diamonds: 200},
+		"snakes_board_candy": {Diamonds: 200}, "trail_comet": {Diamonds: 20}, "victory_crown": {Diamonds: 40},
 		"frame_royal": {Diamonds: 60}, "emote_crown": {Diamonds: 10}}
 	for id, p := range prices {
 		it := c.Get(id)
@@ -94,6 +95,9 @@ func TestCatalogValidation(t *testing.T) {
 		},
 		"two currencies": func(s string) string {
 			return strings.Replace(s, `"price": {"diamonds": 40}`, `"price": {"diamonds": 40, "coins": 5}`, 1)
+		},
+		"coin price": func(s string) string {
+			return strings.Replace(s, `"price": {"diamonds": 40}`, `"price": {"coins": 40000}`, 1)
 		},
 		"missing starter": func(s string) string {
 			return strings.Replace(s, `"id": "trail_none"`, `"id": "trail_nothing"`, 1)
