@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/audio_haptics/reduced_motion.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
@@ -12,8 +13,12 @@ import '../../../../l10n/generated/app_localizations.dart';
 /// The widget is a [reach] × [reach] square: place its top-end corner on the
 /// card's top-end corner. The band is clipped to the card's rounded corner,
 /// never takes pointer events, and is announced once as "No Ads" (no
-/// action). Static: nothing to gate behind reduced motion.
-class NoAdsRibbon extends StatelessWidget {
+/// action).
+///
+/// The label blinks on a loop (one gentle blink every [blinkPeriod], well
+/// below the 3 flashes per second limit for flashing content); with reduced
+/// motion (system or in-app setting) it stays still and fully visible.
+class NoAdsRibbon extends StatefulWidget {
   const NoAdsRibbon({super.key, this.cornerRadius = AppRadii.xl});
 
   /// Corner radius of the card the ribbon sits on.
@@ -31,6 +36,33 @@ class NoAdsRibbon extends StatelessWidget {
   static const double maxTextScale = 1.2;
 
   static const double _fontSize = 10;
+
+  /// One blink: the label holds, fades to [blinkMinOpacity], holds, and
+  /// fades back.
+  static const Duration blinkPeriod = Duration(milliseconds: 1400);
+
+  /// Opacity of the label at the bottom of a blink.
+  static const double blinkMinOpacity = 0.15;
+
+  /// Label opacity over one [blinkPeriod].
+  static final Animatable<double> _blink = TweenSequence<double>([
+    TweenSequenceItem(tween: ConstantTween(1), weight: 45),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.0,
+        end: blinkMinOpacity,
+      ).chain(CurveTween(curve: Curves.easeIn)),
+      weight: 15,
+    ),
+    TweenSequenceItem(tween: ConstantTween(blinkMinOpacity), weight: 25),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: blinkMinOpacity,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 15,
+    ),
+  ]);
 
   /// Space kept between the label and the card edges.
   static const double _margin = 1.5;
@@ -70,7 +102,42 @@ class NoAdsRibbon extends StatelessWidget {
   }
 
   @override
+  State<NoAdsRibbon> createState() => _NoAdsRibbonState();
+}
+
+class _NoAdsRibbonState extends State<NoAdsRibbon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: NoAdsRibbon.blinkPeriod,
+  );
+  late final Animation<double> _opacity = _controller.drive(NoAdsRibbon._blink);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (context.reduceMotion) {
+      _controller
+        ..stop()
+        ..value = 0; // fully visible
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final cornerRadius = widget.cornerRadius;
+    const reach = NoAdsRibbon.reach;
+    const thickness = NoAdsRibbon.thickness;
+    final innerEdge = NoAdsRibbon.innerEdge;
+    final midline = NoAdsRibbon.midline;
     final c = context.colors;
     final l10n = AppLocalizations.of(context);
     final direction = Directionality.of(context);
@@ -82,7 +149,12 @@ class NoAdsRibbon extends StatelessWidget {
       letterSpacing: 0.3,
       color: c.onGold,
     );
-    final fit = _fit(label, style, MediaQuery.textScalerOf(context), direction);
+    final fit = NoAdsRibbon._fit(
+      label,
+      style,
+      MediaQuery.textScalerOf(context),
+      direction,
+    );
 
     // Band centre on the corner's diagonal; the band is longer than its
     // visible chord and clipped to the card corner.
@@ -115,14 +187,17 @@ class NoAdsRibbon extends StatelessWidget {
         child: SizedBox(
           width: fit.width,
           // Safety net only: [fit] already sized the text to this box.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              maxLines: 1,
-              softWrap: false,
-              textScaler: TextScaler.noScaling, // capped in [_fit]
-              style: style.copyWith(fontSize: fit.fontSize),
+          child: FadeTransition(
+            opacity: _opacity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                softWrap: false,
+                textScaler: TextScaler.noScaling, // capped in [_fit]
+                style: style.copyWith(fontSize: fit.fontSize),
+              ),
             ),
           ),
         ),
