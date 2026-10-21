@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:ludo_royale/core/analytics/analytics_providers.dart';
 import 'package:ludo_royale/core/app_policy/policy_signal.dart';
+import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
 import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/config/app_config.dart';
 import 'package:ludo_royale/core/config/app_info.dart';
@@ -21,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fake_backend.dart';
 import 'fakes.dart';
+import 'picture_fixtures.dart';
 
 /// Everything a test needs to drive the real controllers against fakes at
 /// the HTTP / SDK boundary.
@@ -39,6 +41,9 @@ class TestEnv {
 
   /// Records every effect / music call of the screens under test.
   final SilentAudioService audio = SilentAudioService();
+
+  /// Profile pictures: none resolve unless a test adds them to `ready`.
+  final FakeProfilePictureCache pictures = FakeProfilePictureCache();
 
   /// No device id by default (behaves like before device binding); set
   /// `device.id` to simulate an Android 8+ / iOS device.
@@ -140,6 +145,8 @@ class TestEnv {
     clockProvider.overrideWithValue(clock.call),
     storeLauncherProvider.overrideWithValue(store),
     deviceLocalesProvider.overrideWithValue(const [Locale('en')]),
+    // No file system or network for profile pictures in widget tests.
+    profilePictureCacheProvider.overrideWithValue(pictures),
     realtimeConnectionProvider.overrideWith((ref) {
       final c = RealtimeConnection(
         uri: Uri.parse('ws://test.local/api/v1/ws'),

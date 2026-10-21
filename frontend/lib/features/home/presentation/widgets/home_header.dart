@@ -91,6 +91,7 @@ class HomeHeader extends ConsumerWidget {
                 },
                 child: PlayerAvatar(
                   avatarIndex: user.avatar,
+                  picture: user.picture,
                   frameId: user.loadout.frame,
                   size: compact ? 44 : 54,
                 ),

@@ -215,6 +215,7 @@ class _Header extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 18),
                 child: PlayerAvatar(
                   avatarIndex: winner.avatar,
+                  picture: winner.picture,
                   frameId: winner.cosmetics.frame,
                   size: 76,
                   seatColor: seat,
@@ -300,6 +301,7 @@ class _Placements extends StatelessWidget {
                     const SizedBox(width: AppSpacing.sm),
                     PlayerAvatar(
                       avatarIndex: row.player.avatar,
+                      picture: row.player.picture,
                       frameId: row.player.cosmetics.frame,
                       size: 34,
                       seatColor: SeatColor.tryFromName(row.player.color),
@@ -723,7 +725,12 @@ class _ConsentChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PlayerAvatar(avatarIndex: seat.player.avatar, size: 24),
+            PlayerAvatar(
+              avatarIndex: seat.player.avatar,
+              picture: seat.player.picture,
+              size: 24,
+              animatePicture: false,
+            ),
             const SizedBox(width: 4),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 96),

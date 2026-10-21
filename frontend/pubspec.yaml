@@ -24,6 +24,8 @@ dependencies:
   # Storage: secure for session credentials, prefs for non-sensitive UI settings
   flutter_secure_storage: ^10.3.4
   shared_preferences: ^2.5.6
+  # App support directory for the profile-picture disk cache (core/assets)
+  path_provider: ^2.1.6
 
   # Identity provider SDKs (credential acquisition only; the Go backend owns sessions)
   google_sign_in: ^7.2.0
@@ -35,6 +37,8 @@ dependencies:
   # UI, animation, media
   flutter_svg: ^2.3.0
   flutter_animate: ^4.5.2
+  # Animated Store profile pictures (Lottie JSON, rendered in pure Dart)
+  lottie: ^3.6.1
   audioplayers: ^6.8.1
   share_plus: ^13.3.1
   uuid: ^4.6.0

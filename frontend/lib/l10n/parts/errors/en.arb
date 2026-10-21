@@ -167,6 +167,10 @@
   "@errorItemLocked": {
     "description": "Error code item_locked."
   },
+  "errorAssetsUnavailable": "Pictures can't be downloaded right now. Please try again later.",
+  "@errorAssetsUnavailable": {
+    "description": "Error code assets_unavailable (picture storage unavailable)."
+  },
   "errorProviderUnavailable": "The sign-in service is unavailable right now. Please try again later.",
   "@errorProviderUnavailable": {
     "description": "Error code provider_unavailable."

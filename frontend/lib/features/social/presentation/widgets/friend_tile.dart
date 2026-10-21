@@ -59,7 +59,11 @@ class FriendTile extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      PlayerAvatar(avatarIndex: player.avatar, size: 48),
+                      PlayerAvatar(
+                        avatarIndex: player.avatar,
+                        picture: player.picture,
+                        size: 48,
+                      ),
                       if (showOnline)
                         PositionedDirectional(
                           end: 0,

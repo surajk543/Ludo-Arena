@@ -47,7 +47,8 @@ class RoomActions extends StatelessWidget {
 }
 
 /// Two-column grid (four columns on wide screens) of entry tiles with equal
-/// heights per row.
+/// heights per row. A short last row (e.g. the fifth tile on phones) is
+/// stretched across the full width, so the grid never shows a hole.
 class ExploreGrid extends StatelessWidget {
   const ExploreGrid({super.key, required this.tiles});
 
@@ -59,32 +60,31 @@ class ExploreGrid extends StatelessWidget {
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 640 ? 4 : 2;
         const gap = AppSpacing.md;
-        final tileWidth =
-            (constraints.maxWidth - gap * (columns - 1)) / columns;
         // Badge beside the text only while the text keeps ~80 dp.
         final scale = MediaQuery.textScalerOf(context).scale(1);
-        final beside = tileWidth - 2 * AppSpacing.md >= 128 * scale;
         final rows = <Widget>[];
         for (var i = 0; i < tiles.length; i += columns) {
           if (rows.isNotEmpty) rows.add(const SizedBox(height: gap));
+          // A short last row shares the full width (no empty holes).
+          final inRow = (tiles.length - i).clamp(1, columns);
+          final tileWidth = (constraints.maxWidth - gap * (inRow - 1)) / inRow;
+          final beside = tileWidth - 2 * AppSpacing.md >= 128 * scale;
           rows.add(
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (var j = 0; j < columns; j++) ...[
+                  for (var j = 0; j < inRow; j++) ...[
                     if (j > 0) const SizedBox(width: gap),
                     Expanded(
-                      child: i + j < tiles.length
-                          ? LobbyTile(
-                              icon: tiles[i + j].icon,
-                              color: tiles[i + j].color,
-                              title: tiles[i + j].title,
-                              subtitle: tiles[i + j].subtitle,
-                              onTap: tiles[i + j].onTap,
-                              badgeBeside: beside,
-                            )
-                          : const SizedBox.shrink(),
+                      child: LobbyTile(
+                        icon: tiles[i + j].icon,
+                        color: tiles[i + j].color,
+                        title: tiles[i + j].title,
+                        subtitle: tiles[i + j].subtitle,
+                        onTap: tiles[i + j].onTap,
+                        badgeBeside: beside,
+                      ),
                     ),
                   ],
                 ],

@@ -15,8 +15,10 @@ import 'package:ludo_royale/features/home/presentation/games_screen.dart';
 import 'package:ludo_royale/features/home/presentation/home_screen.dart';
 import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
 import 'package:ludo_royale/features/settings/presentation/settings_screen.dart';
+import 'package:ludo_royale/features/store/presentation/store_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import '../features/store/store_test_support.dart';
 import '../helpers/fake_backend.dart';
 import '../helpers/harness.dart';
 import '../helpers/screen_harness.dart';
@@ -77,10 +79,22 @@ void main() {
           'offline',
         ),
         'not-found': (const NotFoundScreen(location: '/missions'), null, null),
+        'store': (const StoreScreen(), signedIn, 'store'),
       };
 
+  // The Store also at the largest text scale the app allows, in every
+  // language and both themes.
+  final storeConfigs = [
+    for (final l in const ['en', 'hi', 'ur', 'id', 'ar'])
+      for (final m in const [ThemeMode.light, ThemeMode.dark])
+        (Locale(l), m, 1.35),
+  ];
+
   for (final entry in screens.entries) {
-    for (final (locale, mode, scale) in configs) {
+    for (final (locale, mode, scale) in [
+      ...configs,
+      if (entry.key == 'store') ...storeConfigs,
+    ]) {
       final name =
           '${entry.key} ${locale.languageCode} ${mode.name} x$scale @320x640';
       testWidgets(name, (tester) async {
@@ -125,6 +139,8 @@ void main() {
             );
           case 'offline':
             env.backend.offline = true;
+          case 'store':
+            routeStore(env);
         }
         await pumpScreen(
           tester,

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/protocol/json_read.dart';
+import '../../../core/protocol/models.dart' show PlayerPicture;
 
 /// One row of the weekly friends leaderboard.
 @immutable
@@ -10,6 +11,7 @@ class LeaderboardEntry {
     required this.name,
     required this.rank,
     this.avatar = 0,
+    this.picture,
     this.level = 1,
     this.weeklyXp = 0,
     this.isMe = false,
@@ -19,6 +21,7 @@ class LeaderboardEntry {
     uid: readString(j['uid']),
     name: readString(j['name']),
     avatar: readInt(j['avatar']),
+    picture: PlayerPicture.tryParse(j['picture']),
     level: readInt(j['level'], 1),
     weeklyXp: readInt(j['weeklyXp']),
     rank: readInt(j['rank'], 1),
@@ -28,6 +31,9 @@ class LeaderboardEntry {
   final String uid;
   final String name;
   final int avatar;
+
+  /// Store profile picture (null: the built-in [avatar]).
+  final PlayerPicture? picture;
   final int level;
   final int weeklyXp;
 

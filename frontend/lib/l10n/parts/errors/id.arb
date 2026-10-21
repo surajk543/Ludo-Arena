@@ -41,6 +41,7 @@
   "errorAlreadyFriends": "Kalian sudah berteman.",
   "errorNotCompleted": "Selesaikan misi ini dulu untuk mengklaim hadiah.",
   "errorItemLocked": "Item ini masih terkunci.",
+  "errorAssetsUnavailable": "Foto tidak dapat diunduh sekarang. Silakan coba lagi nanti.",
   "errorProviderUnavailable": "Layanan masuk sedang tidak tersedia. Silakan coba lagi nanti.",
   "errorNetwork": "Tidak dapat terhubung ke layanan game. Periksa koneksi internetmu.",
   "errorTimeout": "Koneksi habis waktu. Silakan coba lagi.",

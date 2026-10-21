@@ -726,6 +726,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get errorItemLocked => 'Item ini masih terkunci.';
 
   @override
+  String get errorAssetsUnavailable =>
+      'Foto tidak dapat diunduh sekarang. Silakan coba lagi nanti.';
+
+  @override
   String get errorProviderUnavailable =>
       'Layanan masuk sedang tidak tersedia. Silakan coba lagi nanti.';
 
@@ -948,6 +952,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get homeEventsSubtitle => 'Piala waktu terbatas';
+
+  @override
+  String get homeStore => 'Toko';
+
+  @override
+  String get homeStoreSubtitle => 'Foto profil';
 
   @override
   String get homeExploreHeader => 'Jelajahi Lainnya';
@@ -2743,6 +2753,28 @@ class AppLocalizationsId extends AppLocalizations {
   String get profileEditNameTooltip => 'Ubah nama';
 
   @override
+  String get profileChangePicture => 'Ganti foto';
+
+  @override
+  String get profilePictureTitle => 'Pilih fotomu';
+
+  @override
+  String get profilePictureClassic => 'Avatar klasik';
+
+  @override
+  String get profilePictureEmptyMessage =>
+      'Foto yang kamu beli di Toko muncul di sini.';
+
+  @override
+  String get profilePictureOpenStore => 'Kunjungi Toko';
+
+  @override
+  String get profilePictureGetMore => 'Dapatkan lebih banyak di Toko';
+
+  @override
+  String get profilePictureShowMore => 'Tampilkan lebih banyak';
+
+  @override
   String get profileEditNameTitle => 'Ganti namamu';
 
   @override
@@ -3069,6 +3101,73 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String socialReportStatusA11y(String status) {
     return 'Status: $status';
+  }
+
+  @override
+  String get storeTitle => 'Toko';
+
+  @override
+  String get storeHeroTitle => 'Foto profil';
+
+  @override
+  String get storeHeroSubtitle =>
+      'Beli sekali dengan berlian dan jadi milikmu selamanya.';
+
+  @override
+  String get storeFilterAnimated => 'Animasi';
+
+  @override
+  String get storeFilterStatic => 'Statis';
+
+  @override
+  String get storeKindAnimated => 'Foto animasi';
+
+  @override
+  String get storeKindStatic => 'Foto';
+
+  @override
+  String get storeApply => 'Pakai';
+
+  @override
+  String get storeRemove => 'Pakai avatar klasik';
+
+  @override
+  String get storeAppliedToast => 'Foto dipakai!';
+
+  @override
+  String get storeRemovedToast => 'Kembali ke avatar klasikmu.';
+
+  @override
+  String storePurchasedToast(String name) {
+    return '$name jadi milikmu selamanya!';
+  }
+
+  @override
+  String get storeNextMatchNote =>
+      'Langsung tampil di profilmu, dan terlihat pemain lain mulai pertandingan berikutnya.';
+
+  @override
+  String get storeEmptyOwnedTitle => 'Belum ada foto';
+
+  @override
+  String get storeEmptyOwnedMessage =>
+      'Foto yang kamu beli jadi milikmu selamanya.';
+
+  @override
+  String get storeEmptyTitle => 'Belum ada apa-apa di sini';
+
+  @override
+  String get storeEmptyMessage => 'Foto baru segera hadir.';
+
+  @override
+  String get storeBrowseAll => 'Lihat semua';
+
+  @override
+  String get storeLoadMoreFailed => 'Tidak dapat memuat foto lainnya.';
+
+  @override
+  String storeTileSemantics(String name, String status) {
+    return '$name, $status';
   }
 
   @override
