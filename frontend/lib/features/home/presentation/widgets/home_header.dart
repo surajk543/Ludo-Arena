@@ -117,7 +117,9 @@ class HomeHeader extends ConsumerWidget {
                   avatarIndex: user.avatar,
                   picture: user.picture,
                   frameId: user.loadout.frame,
-                  size: compact ? 44 : 54,
+                  // Large: the profile picture is the header's centerpiece
+                  // (the card grows taller with it).
+                  size: compact ? 60 : 76,
                 ),
               ),
             ),
