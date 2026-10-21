@@ -1120,6 +1120,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeNavProfile => 'ملفي';
 
   @override
+  String get homeNoAdsRibbon => 'بلا إعلانات';
+
+  @override
   String get metaMissionsTitle => 'المهام';
 
   @override

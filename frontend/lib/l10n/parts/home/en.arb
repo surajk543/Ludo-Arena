@@ -314,5 +314,9 @@
   "homeNavProfile": "Profile",
   "@homeNavProfile": {
     "description": "Bottom navigation label: the player's profile."
+  },
+  "homeNoAdsRibbon": "No Ads",
+  "@homeNoAdsRibbon": {
+    "description": "Text on the decorative diagonal ribbon in the lobby header's top corner: the app shows no ads. Keep it very short; screen readers also read it."
   }
 }

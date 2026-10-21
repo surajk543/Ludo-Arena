@@ -15,10 +15,12 @@ import '../../../authentication/application/session_controller.dart';
 import '../../../profile/progression.dart';
 import '../../../wallet/presentation/wallet_sheet.dart';
 import '../../../wallet/wallet_controller.dart';
+import 'no_ads_ribbon.dart';
 
 /// Compact lobby header: avatar + frame, name, level badge, title and a slim
 /// XP bar, then coin / diamond balances, connection status and the theme
-/// shortcut. Guests also get the Save Progress shortcut.
+/// shortcut. Guests also get the Save Progress shortcut. A decorative
+/// "No Ads" ribbon sits on the card's top-end corner, above the actions.
 ///
 /// Balances are separate widgets that `select` their own value, so wallet
 /// updates never rebuild the rest of the header.
@@ -36,33 +38,55 @@ class HomeHeader extends ConsumerWidget {
     final title = progression?.title ?? user.title;
 
     return SurfaceCard(
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.md,
-      ),
+      padding: _padding,
       borderRadius: AppRadii.xlAll,
       elevation: c.isDark ? AppElevation.flat : AppElevation.low,
       border: Border.all(color: c.cardBorder),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Narrow phone or large text: smaller avatar, more room for text.
-          final scale = MediaQuery.textScalerOf(context).scale(1);
-          final compact = constraints.maxWidth < 330 * scale;
-          return _layout(
-            context,
-            l10n,
-            user,
-            progression,
-            level,
-            title,
-            compact,
-          );
-        },
+      child: Stack(
+        fit: StackFit.passthrough,
+        clipBehavior: Clip.none,
+        children: [
+          // In the card's top-end corner, just inside its 1 dp border (the
+          // card's Ink adds the border width to the padding). Painted and
+          // read before the controls, so it can never sit on top of them.
+          PositionedDirectional(
+            top: -_padding.top,
+            end: -_padding.end,
+            child: const NoAdsRibbon(cornerRadius: AppRadii.xl - 1),
+          ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Narrow phone or large text: smaller avatar, more room for
+              // text.
+              final scale = MediaQuery.textScalerOf(context).scale(1);
+              final compact = constraints.maxWidth < 330 * scale;
+              return _layout(
+                context,
+                l10n,
+                user,
+                progression,
+                level,
+                title,
+                compact,
+              );
+            },
+          ),
+        ],
       ),
     );
   }
+
+  static const _padding = EdgeInsetsDirectional.fromSTEB(
+    AppSpacing.md,
+    AppSpacing.md,
+    AppSpacing.sm,
+    AppSpacing.md,
+  );
+
+  /// Lowers Save Progress / Settings below the [NoAdsRibbon]: with at least
+  /// this much space above their 48 dp boxes, the 40 dp circles stay ≥ 4 dp
+  /// clear of the band whatever the row height (text scale, locale).
+  static const double _actionsTopInset = 20;
 
   Widget _layout(
     BuildContext context,
@@ -139,19 +163,27 @@ class HomeHeader extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
-            if (user.needsSaveProgress)
-              IconCircleButton(
-                icon: Icons.cloud_upload_rounded,
-                tooltip: l10n.homeSaveProgressTooltip,
-                highlighted: true,
-                size: 40,
-                onPressed: () => context.push(AppRoutes.linkAccount),
+            Padding(
+              padding: const EdgeInsets.only(top: _actionsTopInset),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (user.needsSaveProgress)
+                    IconCircleButton(
+                      icon: Icons.cloud_upload_rounded,
+                      tooltip: l10n.homeSaveProgressTooltip,
+                      highlighted: true,
+                      size: 40,
+                      onPressed: () => context.push(AppRoutes.linkAccount),
+                    ),
+                  IconCircleButton(
+                    icon: Icons.settings_rounded,
+                    tooltip: l10n.homeSettingsTooltip,
+                    size: 40,
+                    onPressed: () => context.push(AppRoutes.settings),
+                  ),
+                ],
               ),
-            IconCircleButton(
-              icon: Icons.settings_rounded,
-              tooltip: l10n.homeSettingsTooltip,
-              size: 40,
-              onPressed: () => context.push(AppRoutes.settings),
             ),
           ],
         ),

@@ -1118,6 +1118,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavProfile => 'Profile';
 
   @override
+  String get homeNoAdsRibbon => 'No Ads';
+
+  @override
   String get metaMissionsTitle => 'Missions';
 
   @override

@@ -1113,6 +1113,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeNavProfile => 'Profil';
 
   @override
+  String get homeNoAdsRibbon => 'Tanpa Iklan';
+
+  @override
   String get metaMissionsTitle => 'Misi';
 
   @override
