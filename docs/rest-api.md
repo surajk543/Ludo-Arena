@@ -30,7 +30,7 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 | 401 | `unauthorized`, `invalid_credential`, `refresh_reused`, `session_replaced` |
 | 403 | `forbidden` |
 | 404 | `not_found`, `invalid_code`, `room_not_found` |
-| 409 | `identity_conflict`, `provider_already_linked`, `already_owned`, `already_claimed`, `already_friends`, `already_reported`, `request_in_progress`, `purchase_pending` |
+| 409 | `identity_conflict`, `provider_already_linked`, `not_a_guest` (`PUT /account/device`), `already_owned`, `already_claimed`, `already_friends`, `already_reported`, `request_in_progress`, `purchase_pending` |
 | 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `cannot_report_self`, `not_in_room`, `idempotency_key_reused`, `purchase_invalid` |
 | 426 | `update_required` (details = policy) |
 | 429 | `rate_limited`, `report_limit` (`Retry-After` header; `report_limit` details = `Limit`) |
@@ -139,9 +139,9 @@ part of `loadout`.
 
 | Method & path | Body | Notes |
 |---|---|---|
-| `POST /auth/guest` | empty, `{}` or `{"deviceId"}` | Without `deviceId`: 201, creates account + wallet (1,000,000 coins, 50 diamonds) + guest credential. With `deviceId` (see [Device binding](#device-binding-restore-after-update-or-reinstall)): **200** `isNewUser:false`, no `guestSecret` — signed in to the account already bound to this device (guest or linked; no new account, no second welcome grant); or **201** `isNewUser:true` + `guestSecret` — new guest created and bound to the device in one transaction. 400 `bad_request` for an invalid `deviceId`. Rate limited per IP (guest-creation budget). |
-| `POST /auth/guest/resume` | `{"guestSecret"}` | Signs a guest back in after the refresh token was lost or expired. |
-| `POST /auth/device/resume` | `{"deviceId"}` | Signs in to the account bound to this device (guest or linked): 200, `isNewUser:false`, no `guestSecret`. **404 `not_found`** if no account is bound. Never creates an account. 400 `bad_request` for an invalid `deviceId`. Rate limited per IP (sign-in budget). |
+| `POST /auth/guest` | empty, `{}` or `{"deviceId"}` | Without `deviceId`: 201, creates account + wallet (1,000,000 coins, 50 diamonds) + guest credential. With `deviceId` (see [Device binding](#device-binding-restore-after-update-or-reinstall)): **200** `isNewUser:false`, no `guestSecret` — signed in to the device's guest (no new account, no second welcome grant); or **201** `isNewUser:true` + `guestSecret` — new guest created and bound to the device in one transaction (the device had no guest, or its guest was linked to a provider or deleted). Never signs in to a linked account. 400 `bad_request` for an invalid `deviceId`. Rate limited per IP (guest-creation budget). |
+| `POST /auth/guest/resume` | `{"guestSecret"}` | Signs a guest back in (after a sign-out, or when the refresh token was lost or expired). 401 `invalid_credential` for an unknown secret, and once the guest was linked to Google/Facebook/Apple or deleted. |
+| `POST /auth/device/resume` | `{"deviceId"}` | Signs in to the device's guest: 200, `isNewUser:false`, no `guestSecret`. **404 `not_found`** if the device has no guest (never bound, or its guest was linked or deleted; a linked account is reached only through its provider). Never creates an account. 400 `bad_request` for an invalid `deviceId`. Rate limited per IP (sign-in budget). |
 | `POST /auth/google` | `{"idToken"}` | Google ID token; `aud` must be a configured Google client id. |
 | `POST /auth/facebook` | `{"accessToken"}` or `{"idToken","nonce"}` | Classic token (validated with Graph `debug_token`) or Limited Login OIDC token. |
 | `POST /auth/apple` | `{"identityToken","rawNonce","givenName"?,"familyName"?}` | Nonce: `sha256(rawNonce)` must equal the token's `nonce`. |
@@ -164,7 +164,11 @@ device" and go to sign-in without re-authenticating automatically.
 authenticated, same body as the provider login.
 
 - 200 `{"user","wallet"}` — identity linked to **this** account; account id,
-  coins, diamonds, XP and collection unchanged; no welcome bonus.
+  coins, diamonds, XP and collection unchanged; no welcome bonus. The account
+  is no longer the device guest: its guest secret and device binding are
+  deleted in the same transaction (`linkedProviders` drops `guest`; guest
+  resume → 401, device resume → 404, `POST /auth/guest {"deviceId"}` → 201 new
+  guest). See [`authentication.md` → Guest persistence](authentication.md#guest-persistence).
 - 409 `identity_conflict` — the provider identity already belongs to another
   account. `details`: `{"provider":"google"}`. Nothing is merged or moved. The
   client offers "Sign in to that account instead" (calls `POST /auth/{provider}`
@@ -177,8 +181,9 @@ authenticated, same body as the provider login.
 
 ### Device binding (restore after update or reinstall)
 
-A device binding lets the app restore its account after an app update or a
-reinstall, when secure storage (tokens, guest secret) may be gone. The client
+A device binding lets the app restore its **guest** after a sign-out, an app
+update or a reinstall, when secure storage (tokens, guest secret) may be gone.
+Only guests are bound; linking a provider removes the binding. The client
 sends a platform-scoped device id (Android ≥ 8: `Settings.Secure.ANDROID_ID`;
 iOS: a random UUID kept in the keychain) together with the usual
 `X-App-Platform`. The server stores only
@@ -198,10 +203,10 @@ gate → 400 `client_version_required`. The same `deviceId` on `android` and
 
 | Method & path | Auth | Body | Responses |
 |---|---|---|---|
-| `POST /auth/guest` | none | `{"deviceId"}` | 200 sign-in to the bound account / 201 new guest bound to the device (see the table above) |
-| `POST /auth/device/resume` | none | `{"deviceId"}` | 200 AuthResponse / 404 `not_found` |
-| `PUT /account/device` | human | `{"deviceId"}` | **200 `{}`**: bound to the caller's account. Idempotent if already bound to the caller. If the caller had a different device bound, that binding is **replaced** (moved to a new phone). **409 `identity_conflict`** (no `details`) if the device is bound to **another** account — it is never moved. Rate limited 10/min/account (shared with linking). |
-| `DELETE /account/device` | human | — | **204**, idempotent: removes the caller's device binding (e.g. "forget this guest" on logout). The account itself is untouched. Like logout, **not version-gated**. Rate limited 10/min/account (shared with linking). |
+| `POST /auth/guest` | none | `{"deviceId"}` | 200 sign-in to the device's guest / 201 new guest bound to the device (see the table above) |
+| `POST /auth/device/resume` | none | `{"deviceId"}` | 200 AuthResponse (the device's guest) / 404 `not_found` |
+| `PUT /account/device` | human | `{"deviceId"}` | **200 `{}`**: bound to the caller's guest account. Idempotent if already bound to the caller. If the caller had a different device bound, that binding is **replaced** (moved to a new phone). **409 `identity_conflict`** (no `details`) if the device is bound to **another** guest — it is never moved. **409 `not_a_guest`** if the caller's account is linked to Google/Facebook/Apple (linked accounts are never bound). Rate limited 10/min/account (shared with linking). |
+| `DELETE /account/device` | human | — | **204** and the binding is **kept** (a device guest ends only when it is linked or deleted). Not used by the current app; older app versions call it on a guest sign-out ("forget this guest"), and their next `POST /auth/guest {"deviceId"}` still returns the same guest. Like logout, **not version-gated**. Rate limited 10/min/account (shared with linking). |
 
 ### Deleting the account
 

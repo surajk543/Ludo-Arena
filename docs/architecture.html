@@ -709,7 +709,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Access token</td><td>Client only (<code>flutter_secure_storage</code>)</td><td>HS256 JWT, 15 min (<code>ACCESS_TOKEN_TTL</code>); claims <code>sub</code> (account), <code>sid</code> (session family), <code>knd</code>, <code>act</code> (actor type). Verified on every request <em>and</em> checked against the live <code>sess:{sid}</code>, so logout, revocation and replacement by a sign-in on another device are immediate.</td></tr>
           <tr><td>Refresh token</td><td>Client secure storage; server keeps only SHA-256</td><td>Opaque, 30 days (<code>REFRESH_TOKEN_TTL</code>), rotated on every <code>POST /auth/refresh</code>; presenting a rotated token revokes the whole family (<code>refresh_reused</code>).</td></tr>
           <tr><td>Guest secret</td><td>Client secure storage; server keeps SHA-256 as the guest identity subject</td><td>256-bit, returned once by <code>POST /auth/guest</code> when it creates the account; recovers the guest via <code>POST /auth/guest/resume</code>.</td></tr>
-          <tr><td>Device binding</td><td>Client sends the platform device id (Android 8+ <code>ANDROID_ID</code>, iOS keychain UUID); server keeps only an HMAC as the <code>device</code> identity subject</td><td>Restores the account after an app update or reinstall on the same device: <code>POST /auth/device/resume</code>, <code>POST /auth/guest {deviceId}</code>, <code>PUT</code>/<code>DELETE /account/device</code>.</td></tr>
+          <tr><td>Device binding</td><td>Client sends the platform device id (Android 8+ <code>ANDROID_ID</code>, iOS keychain UUID); server keeps only an HMAC as the <code>device</code> identity subject</td><td>Restores the device's guest (never a linked account) after a sign-out, app update or reinstall on the same device: <code>POST /auth/device/resume</code>, <code>POST /auth/guest {deviceId}</code>, <code>PUT /account/device</code>.</td></tr>
           <tr><td>Bot tokens</td><td>bot-play memory only</td><td>Controller JWT (15 min) and per-bot session JWTs scoped to one room or the load-test pool (≤ 2 h).</td></tr>
         </tbody>
       </table>
@@ -802,7 +802,7 @@ td code { font-size: 0.8rem; }
       <table>
         <thead><tr><th>Link outcome</th><th>Response</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td>Identity unused</td><td>200 <code>{user, wallet}</code></td><td>Same account id and wallet; <code>user.isGuest=false</code>; no welcome grant</td></tr>
+          <tr><td>Identity unused</td><td>200 <code>{user, wallet}</code></td><td>Same account id and wallet; <code>user.isGuest=false</code>; no welcome grant. Its guest secret and device binding are deleted in the same transaction: it is no longer the device guest, and “Play as guest” on that device starts a new guest</td></tr>
           <tr><td>Already linked to this account</td><td>200</td><td>Idempotent</td></tr>
           <tr><td>Belongs to another account</td><td>409 <code>identity_conflict</code> (<code>details.provider</code>)</td><td>Nothing merged or moved; app offers “Sign in to that account instead” or “Cancel”</td></tr>
           <tr><td>Account already has another identity of that provider</td><td>409 <code>provider_already_linked</code></td><td>No change</td></tr>
@@ -810,16 +810,17 @@ td code { font-size: 0.8rem; }
       </table>
     </div>
     <p class="small">Linking is rate limited to 10 per minute per account. After linking, signing in with that provider on any device resolves to the same account id and wallet.</p>
+    <p><strong>Guest persistence.</strong> A guest stays the same account (id, coins, diamonds, XP, collection, friends) after a sign-out, an app update or a reinstall — “Play as guest” or the launch restore brings it back — until it is linked to Google/Facebook/Apple or deleted. A link conflict (<code>identity_conflict</code>) changes nothing, so the guest stays on the device. See <a href="authentication.md#guest-persistence">authentication.md → Guest persistence</a>.</p>
     <h3 id="device-binding">Restore after update or reinstall (device binding)<a class="heading-anchor" href="#device-binding" aria-label="Link to this heading">#</a></h3>
-    <p>Secure storage does not reliably survive an uninstall, so the account is also bound to a platform device id: Android 8+ sends <code>Settings.Secure.ANDROID_ID</code> (per app-signing key; survives updates and reinstalls, changes on factory reset or a different signing key; Android &lt; 8 sends nothing), iOS sends a random UUID kept in the keychain (survives updates and reinstalls on the same device). The server stores only <code>hex(HMAC-SHA256(k, platform:deviceId))</code> with <code>k = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-royale/device-id/v1")</code> as an <code>identity.auth_identities</code> row with the internal provider <code>device</code>: one account per device, one device per account. The identifier is used only for this restore.</p>
+    <p>Secure storage does not reliably survive an uninstall, so the guest account is also bound to a platform device id (only guests are bound): Android 8+ sends <code>Settings.Secure.ANDROID_ID</code> (per app-signing key; survives updates and reinstalls, changes on factory reset or a different signing key; Android &lt; 8 sends nothing), iOS sends a random UUID kept in the keychain (survives updates and reinstalls on the same device). The server stores only <code>hex(HMAC-SHA256(k, platform:deviceId))</code> with <code>k = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-royale/device-id/v1")</code> as an <code>identity.auth_identities</code> row with the internal provider <code>device</code>: one account per device, one device per account. The identifier is used only for this restore.</p>
     <div class="table-wrap compact">
       <table>
         <thead><tr><th>Request</th><th>Outcome</th></tr></thead>
         <tbody>
-          <tr><td><code>POST /auth/device/resume {deviceId}</code></td><td>200 sign-in to the bound account (guest or linked); 404 <code>not_found</code> if unbound; never creates an account</td></tr>
-          <tr><td><code>POST /auth/guest {deviceId}</code></td><td>200 sign-in to the bound account (no second welcome grant, no <code>guestSecret</code>); else 201 new guest + binding in one transaction</td></tr>
-          <tr><td><code>PUT /account/device {deviceId}</code></td><td>200 <code>{}</code>: binds to the caller (idempotent; replaces the caller's previous device); 409 <code>identity_conflict</code> if bound to another account (never moved)</td></tr>
-          <tr><td><code>DELETE /account/device</code></td><td>204, idempotent: "forget this guest"</td></tr>
+          <tr><td><code>POST /auth/device/resume {deviceId}</code></td><td>200 sign-in to the device's guest; 404 <code>not_found</code> if the device has no guest (never bound, linked or deleted); never creates an account</td></tr>
+          <tr><td><code>POST /auth/guest {deviceId}</code></td><td>200 sign-in to the device's guest (no second welcome grant, no <code>guestSecret</code>); else 201 new guest + binding in one transaction</td></tr>
+          <tr><td><code>PUT /account/device {deviceId}</code></td><td>200 <code>{}</code>: binds to the calling guest (idempotent; replaces the caller's previous device); 409 <code>identity_conflict</code> if bound to another guest (never moved); 409 <code>not_a_guest</code> for a linked account</td></tr>
+          <tr><td><code>DELETE /account/device</code></td><td>204 and the binding is kept (older app versions call it on a guest sign-out; their next “Play as guest” is still the same guest)</td></tr>
         </tbody>
       </table>
     </div>
