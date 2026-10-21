@@ -7,8 +7,8 @@ rewards. There are no random/loot-box items.
 
 Acquisition types: `starter` (every account owns it, no row stored), `level`
 (granted automatically when the level is reached), `mission` / `event`
-(granted by claiming that objective), `purchase` (fixed price, coins or
-diamonds, bought explicitly).
+(granted by claiming that objective), `purchase` (fixed price in diamonds
+only, bought explicitly in the Shop).
 
 | Slot / kind | id | Name | Rarity | Acquisition |
 |---|---|---|---|---|
@@ -19,13 +19,13 @@ diamonds, bought explicitly).
 | token | `token_classic` | Classic Pawn | common | starter |
 | token | `token_gem` | Gemstone | rare | level 3 |
 | token | `token_royal` | Royal Pawn | epic | level 10 |
-| token | `token_crown` | Crown Piece | legendary | purchase 150,000 coins |
+| token | `token_crown` | Crown Piece | legendary | purchase 100 diamonds |
 | ludo_board | `ludo_board_classic` | Classic | common | starter |
 | ludo_board | `ludo_board_midnight` | Midnight Marble | rare | level 8 |
-| ludo_board | `ludo_board_royal` | Royal Court | epic | purchase 30 diamonds |
+| ludo_board | `ludo_board_royal` | Royal Court | epic | purchase 200 diamonds |
 | snakes_board | `snakes_board_classic` | Classic Meadow | common | starter |
 | snakes_board | `snakes_board_jungle` | Jungle Temple | rare | level 6 |
-| snakes_board | `snakes_board_candy` | Candy Land | epic | purchase 200,000 coins |
+| snakes_board | `snakes_board_candy` | Candy Land | epic | purchase 200 diamonds |
 | trail | `trail_none` | No Trail | common | starter |
 | trail | `trail_sparkle` | Sparkle | rare | level 7 |
 | trail | `trail_comet` | Comet | epic | purchase 20 diamonds |
@@ -68,7 +68,7 @@ authoritative for ownership, prices and purchases.
 
 | | **Collection Room** (`/collection`) | **Shop** (`/shop`; `/store` redirects) |
 |---|---|---|
-| Cosmetics | Everything **owned** (starter, bought, earned) plus what can still be **earned** by playing (`level`, `mission`, `event`), shown locked with how to earn it ("Reach level 10", mission, event). Equip / reset as before. | Only items with `acquisition.type == "purchase"` (fixed price in coins **or** diamonds) that the player does **not own yet**, one category per kind that has priced items: dice, tokens, Ludo boards, Snakes boards, trails, victory, frames, emotes (titles and badges are never sold). |
+| Cosmetics | Everything **owned** (starter, bought, earned) plus what can still be **earned** by playing (`level`, `mission`, `event`), shown locked with how to earn it ("Reach level 10", mission, event). Equip / reset as before. | Only items with `acquisition.type == "purchase"` (fixed price in **diamonds** — the Shop never sells for coins; the catalogue loader refuses a coin price) that the player does **not own yet**, one category per kind that has priced items: dice, tokens, Ludo boards, Snakes boards, trails, victory, frames, emotes (titles and badges are never sold). |
 | Profile pictures | **Pictures** tab: the owned pictures (`filter=owned`, paged), Apply / back to the classic avatar. | **Pictures** category: pictures not owned yet (`excludeOwned=true`; All / Animated / Static), bought with diamonds. |
 | After a purchase | The item appears here (equip / apply it any time). | The item leaves the Shop; its sheet offers Equip/Apply now and View in Collection. |
 

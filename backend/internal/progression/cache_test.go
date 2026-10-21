@@ -136,6 +136,7 @@ func TestSeatCacheInvalidatedByEveryWriter(t *testing.T) {
 	}
 
 	// Purchase changes ownership only; equipping changes the seat.
+	f.env.SetDiamonds(t, a, 1000) // the token costs more than the welcome grant
 	if _, err := f.svc.Purchase(ctx, a, "token_crown"); err != nil {
 		t.Fatal(err)
 	}
@@ -197,6 +198,7 @@ func TestSeatFillLosesToConcurrentInvalidation(t *testing.T) {
 
 	// Stress: readers race an equip loop; the final cached value must match
 	// PostgreSQL without any extra invalidation.
+	f.env.SetDiamonds(t, a, 1000) // the token costs more than the welcome grant
 	if _, err := f.svc.Purchase(ctx, a, "token_crown"); err != nil {
 		t.Fatal(err)
 	}
