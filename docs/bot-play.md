@@ -187,6 +187,11 @@ goroutine observes the events and sends the message after the reaction delay.
 
 * Each event fires with its probability × the profile's `chattiness`; an
   emote is used with `emote_share` when one fits, otherwise a phrase.
+* Store emotes (`em_…`): a persona may own one or two, like a player who
+  bought some, and they arrive in the session's `emotes`. Those that fit the
+  moment are candidates too (e.g. `em_hi_face` at game start, `em_party` on a
+  win, `em_angry` when captured; the table is `emotes` in
+  `internal/chatter`); the backend adds the emote's art to the broadcast.
 * At most `max_per_match` messages per bot per game round, at least
   `min_interval_ms` apart (never under the server's 3 s), at most one pending
   reaction, sent `reaction_delay_ms` after the event. A reaction older than

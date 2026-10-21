@@ -18,7 +18,8 @@ package progression
 // commit can never store the old value.
 //
 // Owned emotes — emotes:{userId}, set, TTL EmoteCacheTTL. The account's
-// non-starter emotes, read on every chat.emote. Inventory rows are never
+// non-starter emotes (catalogue emotes and Store emotes, em_… ids), read on
+// every chat.emote. Inventory rows are never
 // deleted, so a member is always a correct "owned" answer; a missing member is
 // confirmed in PostgreSQL (and added), so a fill racing a grant can never deny
 // an owned emote. Grants (purchase, mission/event rewards, level milestones)
@@ -248,7 +249,8 @@ func (s *Service) ownsStored(ctx context.Context, userID uuid.UUID, itemID strin
 	return ok, err
 }
 
-// ownedEmotes returns the account's non-starter emotes from PostgreSQL.
+// ownedEmotes returns the account's non-starter emotes from PostgreSQL:
+// catalogue emotes and Store emotes (em_… ids, emotes.go).
 func (s *Service) ownedEmotes(ctx context.Context, userID uuid.UUID) ([]string, error) {
 	var ids []string
 	for _, it := range s.catalog.Items() {
@@ -256,8 +258,8 @@ func (s *Service) ownedEmotes(ctx context.Context, userID uuid.UUID) ([]string, 
 			ids = append(ids, it.ID)
 		}
 	}
-	rows, err := s.pool.Query(ctx, `SELECT item_id FROM progression.inventory WHERE user_id = $1 AND item_id = ANY($2)`,
-		userID, ids)
+	rows, err := s.pool.Query(ctx, `SELECT item_id FROM progression.inventory
+		WHERE user_id = $1 AND (item_id = ANY($2) OR item_id LIKE 'em\_%')`, userID, ids)
 	if err != nil {
 		return nil, err
 	}

@@ -18,6 +18,7 @@ import 'package:ludo_royale/l10n/generated/app_localizations.dart';
 import '../../helpers/fakes.dart';
 import '../../helpers/harness.dart';
 import '../../helpers/screen_harness.dart';
+import '../store/store_test_support.dart' show routeStoreEmotes;
 
 export '../../helpers/fake_backend.dart';
 export '../../helpers/harness.dart';
@@ -687,8 +688,10 @@ Map<String, dynamic> progressionJson({int level = 4, int xp = 520}) {
   };
 }
 
-/// Registers every meta GET route with happy-path data.
+/// Registers every meta GET route with happy-path data (the Store's emotes
+/// included).
 void routeMeta(TestEnv env) {
+  routeStoreEmotes(env);
   env.backend
     ..json('GET', '/missions', missionsJson())
     ..json('GET', '/collection', collectionJson())

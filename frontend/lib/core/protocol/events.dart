@@ -685,18 +685,24 @@ final class EmoteEvent extends ServerEvent {
     required this.roomId,
     required this.seat,
     required this.emote,
+    this.asset,
   });
 
   final String roomId;
   final int seat;
 
-  /// Emote item id, e.g. `emote_wave`.
+  /// Emote item id: a built-in `emote_wave`, … or a Store emote `em_…`.
   final String emote;
+
+  /// The art of a Store emote (downloaded once and cached); null for
+  /// built-in emotes and for a missing or malformed `asset`.
+  final EmoteAsset? asset;
 
   factory EmoteEvent.fromJson(Map<String, dynamic> j) => EmoteEvent(
     roomId: readString(j['roomId']),
     seat: readInt(j['seat']),
     emote: readString(j['emote']),
+    asset: EmoteAsset.tryParse(j['asset']),
   );
 
   @override

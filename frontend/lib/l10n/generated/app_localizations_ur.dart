@@ -3352,6 +3352,26 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String get storeEmotesHeroTitle => 'اینیمیٹڈ ایموٹس';
+
+  @override
+  String get storeEmotesHeroSubtitle =>
+      'انہیں کسی بھی میچ میں بھیجیں۔ ہیروں سے ایک بار خریدیں، ہمیشہ کے لیے آپ کے۔';
+
+  @override
+  String get storeEmoteKind => 'اینیمیٹڈ ایموٹ';
+
+  @override
+  String get storeEmoteUseInMatchNote => 'میچ کے دوران چیٹ بٹن سے اسے بھیجیں۔';
+
+  @override
+  String get storeEmotesLoadMoreFailed => 'مزید ایموٹس لوڈ نہیں ہو سکے۔';
+
+  @override
+  String get storeEmotesOwnedEmpty =>
+      'شاپ سے خریدے گئے اینیمیٹڈ ایموٹس یہاں نظر آئیں گے۔';
+
+  @override
   String get walletTitle => 'آپ کا والٹ';
 
   @override

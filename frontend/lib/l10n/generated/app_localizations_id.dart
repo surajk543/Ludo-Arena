@@ -3343,6 +3343,27 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get storeEmotesHeroTitle => 'Emote animasi';
+
+  @override
+  String get storeEmotesHeroSubtitle =>
+      'Kirim di pertandingan mana pun. Beli sekali dengan berlian, milikmu selamanya.';
+
+  @override
+  String get storeEmoteKind => 'Emote animasi';
+
+  @override
+  String get storeEmoteUseInMatchNote =>
+      'Kirim lewat tombol obrolan saat pertandingan.';
+
+  @override
+  String get storeEmotesLoadMoreFailed => 'Tidak dapat memuat emote lainnya.';
+
+  @override
+  String get storeEmotesOwnedEmpty =>
+      'Emote animasi yang kamu beli di Toko akan muncul di sini.';
+
+  @override
   String get walletTitle => 'Dompetmu';
 
   @override

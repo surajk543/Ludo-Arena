@@ -368,3 +368,21 @@ type ChatEmote struct {
 	RoomID string `json:"roomId"`
 	Emote  string `json:"emote"`
 }
+
+// EmoteEvent is the chat.emote broadcast (not versioned). Bots never draw
+// emotes: they only tolerate the payload, including the asset of Store
+// emotes.
+type EmoteEvent struct {
+	RoomID string `json:"roomId"`
+	Seat   int    `json:"seat"`
+	Emote  string `json:"emote"`
+	// Asset is the art of a Store emote (em_… ids): an object path in the
+	// private asset bucket and its format. Absent for built-in emotes.
+	Asset *EmoteAsset `json:"asset,omitempty"`
+}
+
+// EmoteAsset is a Store emote's art (path, "lottie" | "image").
+type EmoteAsset struct {
+	Path   string `json:"path"`
+	Format string `json:"format"`
+}

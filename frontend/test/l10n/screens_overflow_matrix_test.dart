@@ -147,6 +147,7 @@ void main() {
           case 'shop':
             routeStore(env);
             routeCoinPacks(env);
+            routeStoreEmotes(env);
             env.backend.json('GET', '/collection', collectionJson());
         }
         await pumpScreen(

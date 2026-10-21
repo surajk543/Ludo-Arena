@@ -58,15 +58,24 @@ var phrases = map[Trigger][]string{
 }
 
 // emotes are the emote ids that fit each trigger (filtered by what the bot
-// session may use).
+// session may use): the catalogue emotes, then the Store emotes (em_…,
+// backend/config/emotes.tsv) a persona may own like a player who bought
+// them.
 var emotes = map[Trigger][]string{
-	GameStart:    {"emote_wave", "emote_thumbs"},
-	Six:          {"emote_thumbs", "emote_wow"},
-	Capture:      {"emote_laugh", "emote_thumbs", "emote_wow"},
-	Captured:     {"emote_wow"},
-	OtherCapture: {"emote_wow", "emote_laugh"},
-	Win:          {"emote_wave", "emote_thumbs", "emote_crown"},
-	Loss:         {"emote_thumbs", "emote_wave"},
+	GameStart: {"emote_wave", "emote_thumbs",
+		"em_hi_face", "em_back_hand", "em_smiley", "em_v_sign", "em_cowboy_hat_face"},
+	Six: {"emote_thumbs", "emote_wow",
+		"em_muscle", "em_sunglasses", "em_fist", "em_ok"},
+	Capture: {"emote_laugh", "emote_thumbs", "emote_wow",
+		"em_joy", "em_devil", "em_squinting_face_with_tongue", "em_sunglasses", "em_knife"},
+	Captured: {"emote_wow",
+		"em_angry", "em_rage", "em_crying", "em_scream", "em_astonished", "em_weary"},
+	OtherCapture: {"emote_wow", "emote_laugh",
+		"em_eyes", "em_astonished", "em_open_mouth", "em_joy"},
+	Win: {"emote_wave", "emote_thumbs", "emote_crown",
+		"em_party", "em_party_2", "em_clapping_hands", "em_sunglasses", "em_money_mouth"},
+	Loss: {"emote_thumbs", "emote_wave",
+		"em_pensive", "em_crying_face", "em_sad", "em_ok", "em_upside_down"},
 }
 
 // Phrases returns the quick-chat ids a bot may send for t.

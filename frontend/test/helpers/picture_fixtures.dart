@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:ludo_royale/core/assets/assets_api.dart';
 import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
-import 'package:ludo_royale/core/protocol/models.dart' show PlayerPicture;
+import 'package:ludo_royale/core/protocol/models.dart'
+    show CatalogAsset, EmoteAsset, PlayerPicture;
 import 'package:lottie/lottie.dart';
 
 /// A tiny hand-written Lottie (one pulsing circle, 30 frames, 64×64).
@@ -71,14 +72,18 @@ class FakeProfilePictureCache extends ProfilePictureCache {
   final List<String> requested = [];
 
   @override
-  LoadedPicture? peek(PlayerPicture picture) => ready[picture.path];
+  LoadedPicture? peek(CatalogAsset picture) => ready[picture.path];
 
   @override
-  Future<LoadedPicture?> load(PlayerPicture picture) async {
+  Future<LoadedPicture?> load(CatalogAsset picture) async {
     requested.add(picture.path);
     return ready[picture.path];
   }
 
   @override
-  Future<File?> file(PlayerPicture picture) async => null;
+  Future<File?> file(CatalogAsset picture) async => null;
 }
+
+/// A Store emote's art (`emotes/<name>.json`).
+EmoteAsset emoteAsset([String name = 'angry']) =>
+    EmoteAsset(format: 'lottie', path: 'emotes/$name.json');

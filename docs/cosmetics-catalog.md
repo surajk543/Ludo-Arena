@@ -70,6 +70,7 @@ authoritative for ownership, prices and purchases.
 |---|---|---|
 | Cosmetics | Everything **owned** (starter, bought, earned) plus what can still be **earned** by playing (`level`, `mission`, `event`), shown locked with how to earn it ("Reach level 10", mission, event). Equip / reset as before. | Only items with `acquisition.type == "purchase"` (fixed price in **diamonds** — the Shop never sells for coins; the catalogue loader refuses a coin price) that the player does **not own yet**, one category per kind that has priced items: dice, tokens, Ludo boards, Snakes boards, trails, victory, frames, emotes (titles and badges are never sold). |
 | Profile pictures | **Pictures** tab: the owned pictures (`filter=owned`, paged), Apply / back to the classic avatar. | **Pictures** category: pictures not owned yet (`excludeOwned=true`; All / Animated / Static), bought with diamonds. |
+| Store emotes | **Emotes** tab: the catalogue emotes above, then the bought Store emotes (`GET /store/emotes?filter=owned`, paged). | **Emotes** category: any still-priced catalogue emote (`emote_crown`) on top, then the Store emotes not owned yet (`excludeOwned=true`, infinite scroll), bought with diamonds. |
 | After a purchase | The item appears here (equip / apply it any time). | The item leaves the Shop; its sheet offers Equip/Apply now and View in Collection. |
 
 An empty Collection tab, and every tab with items for sale, links to that
@@ -151,3 +152,42 @@ TestPictureSeedMatchesManifest`), and copy the files into the bucket with
 (`https://assets.sungamestudio.com/`), validates it, uploads it to `path`
 with the headers above, skips objects that already exist with the same size
 and verifies every upload.
+
+## Store emotes
+
+Besides the five catalogue emotes above, players buy **Store emotes** —
+animated Lottie emojis — in the Shop's **Emotes** category with
+**diamonds**. Each emote has a fixed price (10–40 diamonds, chosen once in
+the manifest; owner-approved 2026-10-21) and, once bought, is the player's
+**forever** and moves to the Collection's Emotes tab and the in-match emote
+picker. Emotes are owned, not equipped. API:
+[`rest-api.md` → Store emotes](rest-api.md#store-emotes).
+
+**Catalogue** — `progression.emotes` (owner-approved table, 2026-10-21;
+migration `010_emotes.sql`), shaped like `progression.profile_pictures`
+(`id` `em_[a-z0-9_]{1,61}`, `name`, `format` `lottie` \| `image`, `path`
+under `emotes/`, `price_diamonds`, `sort_order`, `active`), seeded from
+`backend/config/emotes.tsv` by `011_emotes_seed.sql` (89 Lottie emotes;
+regenerate with `UPDATE_EMOTE_SEED=1 go test ./migrations -run
+TestEmoteSeedMatchesManifest`). Operator rules are the pictures' (SQL
+updates, reload within a minute, retire with `active = false`, never delete,
+new art = new path). Ownership is a `progression.inventory` row (`item_id` =
+emote id), removed with the account.
+
+**In a match** — an owned Store emote is sent with `chat.emote` like the
+catalogue emotes. The server checks ownership on the chat hot path through
+the same Redis set of owned emotes (`emotes:{userId}`, PostgreSQL only on a
+miss; a purchase is written through), and the broadcast carries the emote's
+art (`asset: {path, format}`) so the other players can draw it. Bot personas
+may own one or two Store emotes (about 1.8 of 89 on average), like players
+who bought some; bot-play sends those that fit the moment (no wallet, no
+inventory).
+
+**Storage** — the objects live in the private bucket `ludo-royale` at
+`emotes/<file>.json` with `Content-Type: application/json` and
+`Cache-Control: private, max-age=31536000, immutable`, copied from the
+`source_key` objects named in the manifest. `POST /assets/sign` signs emote
+paths like picture paths. The app downloads each emote once into
+`<applicationSupportDirectory>/assets/emotes/<file>.json` (validated, then
+renamed into place) and never downloads it again; decoded animations are kept
+in a small in-memory cache, and reduced motion shows the first frame.
