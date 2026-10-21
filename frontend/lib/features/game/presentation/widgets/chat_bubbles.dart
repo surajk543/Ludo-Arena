@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../core/audio_haptics/reduced_motion.dart';
+import '../../../../core/protocol/models.dart' show EmoteAsset;
 import '../../../../core/theme/app_theme.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/game_visuals/game_visuals.dart';
 import '../../../../shared/widgets/widgets.dart';
 
@@ -15,6 +17,7 @@ class ChatBubbleData {
     required this.serial,
     this.text,
     this.emoteId,
+    this.emoteAsset,
   });
 
   final int seat;
@@ -23,6 +26,10 @@ class ChatBubbleData {
   final int serial;
   final String? text;
   final String? emoteId;
+
+  /// The art of a Store emote (`chat.emote` `asset`), drawn from the emote
+  /// cache; null for built-in emotes.
+  final EmoteAsset? emoteAsset;
 }
 
 /// Holds the latest bubble per seat and expires it after [lifetime].
@@ -35,7 +42,7 @@ class ChatBubbleHub extends ValueNotifier<Map<int, ChatBubbleData>> {
   int _serial = 0;
   bool _disposed = false;
 
-  void show(int seat, {String? text, String? emoteId}) {
+  void show(int seat, {String? text, String? emoteId, EmoteAsset? emoteAsset}) {
     if (_disposed || (text == null && emoteId == null)) return;
     _timers[seat]?.cancel();
     value = {
@@ -45,6 +52,7 @@ class ChatBubbleHub extends ValueNotifier<Map<int, ChatBubbleData>> {
         serial: ++_serial,
         text: text,
         emoteId: emoteId,
+        emoteAsset: emoteId == null ? null : emoteAsset,
       ),
     };
     _timers[seat] = Timer(lifetime, () => _expire(seat));
@@ -179,8 +187,12 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
     final palette = GamePalette.of(context);
     final accent = widget.color == null ? c.brand : palette.seat(widget.color!);
     final d = widget.data;
-    final content = d.emoteId != null
-        ? EmoteIcon(emoteId: d.emoteId!, size: 40)
+    final emoteId = d.emoteId;
+    final asset = d.emoteAsset;
+    final content = emoteId != null && asset != null
+        ? _StoreEmote(emoteId: emoteId, asset: asset)
+        : emoteId != null
+        ? EmoteIcon(emoteId: emoteId, size: 40)
         : Text(
             d.text ?? '',
             maxLines: 2,
@@ -212,6 +224,31 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
             child: content,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A Store emote in a bubble: its animation (48 px) from the emote cache,
+/// the generic emote glyph while it downloads or when it is unavailable.
+class _StoreEmote extends StatelessWidget {
+  const _StoreEmote({required this.emoteId, required this.asset});
+
+  final String emoteId;
+  final EmoteAsset asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      image: true,
+      label: l10n.widgetsEmoteLabel(cosmeticName(l10n, emoteId)),
+      excludeSemantics: true,
+      child: EmoteAssetView(
+        key: const ValueKey('bubble-store-emote'),
+        asset: asset,
+        size: 48,
+        placeholder: Center(child: EmoteIcon(emoteId: emoteId, size: 40)),
       ),
     );
   }

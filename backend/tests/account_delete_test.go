@@ -48,6 +48,7 @@ var accountRowQueries = map[string]string{
 // player's purchases of them live in progression.inventory and loadout).
 var catalogueTables = map[string]bool{
 	"progression.profile_pictures": true,
+	"progression.emotes":           true,
 }
 
 func (e *env) accountRows(t *testing.T, userID string) map[string]int {

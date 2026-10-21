@@ -269,3 +269,54 @@ func TestManifestRejectsBadRows(t *testing.T) {
 		t.Fatalf("valid manifest: %v %v", rows, err)
 	}
 }
+
+func TestEmoteManifestFileIsValid(t *testing.T) {
+	f, err := os.Open("../../config/emotes.tsv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	rows, err := assets.ReadEmoteManifest(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 89 {
+		t.Fatalf("%d rows, want 89", len(rows))
+	}
+	for _, r := range rows {
+		// Owner-approved prices: fixed per emote, 10..40 diamonds.
+		if r.PriceDiamonds < 10 || r.PriceDiamonds > 40 || r.Format != assets.FormatLottie || !assets.ValidEmoteID(r.ID) {
+			t.Errorf("%s: price %d, format %s", r.ID, r.PriceDiamonds, r.Format)
+		}
+	}
+}
+
+func TestEmoteManifestRules(t *testing.T) {
+	const ok = "em_a\tA\tlottie\temojis/a.json\temotes/a.json\t10\t1"
+	cases := map[string]string{
+		"picture id":     assets.ManifestHeader + "\npp_a\tA\tlottie\temojis/a.json\temotes/a.json\t10\t1",
+		"picture path":   assets.ManifestHeader + "\nem_a\tA\tlottie\temojis/a.json\tprofile_pictures/lottie_animation/a.json\t10\t1",
+		"nested path":    assets.ManifestHeader + "\nem_a\tA\tlottie\temojis/a.json\temotes/x/a.json\t10\t1",
+		"format/path":    assets.ManifestHeader + "\nem_a\tA\timage\temojis/a.json\temotes/a.json\t10\t1",
+		"upper-case id":  assets.ManifestHeader + "\nEM_A\tA\tlottie\temojis/a.json\temotes/a.json\t10\t1",
+		"dup id":         assets.ManifestHeader + "\n" + ok + "\n" + ok,
+		"negative price": assets.ManifestHeader + "\nem_a\tA\tlottie\temojis/a.json\temotes/a.json\t-1\t1",
+	}
+	for name, in := range cases {
+		if _, err := assets.ReadEmoteManifest(strings.NewReader(in)); err == nil {
+			t.Errorf("%s: accepted", name)
+		}
+	}
+	if rows, err := assets.ReadEmoteManifest(strings.NewReader(assets.ManifestHeader + "\n" + ok + "\n")); err != nil || len(rows) != 1 {
+		t.Fatalf("valid manifest: %v %v", rows, err)
+	}
+	// An emote row is not a picture row.
+	if _, err := assets.ReadPictureManifest(strings.NewReader(assets.ManifestHeader + "\n" + ok + "\n")); err == nil {
+		t.Fatal("picture manifest accepted an emote row")
+	}
+	for id, want := range map[string]bool{"em_angry": true, "em_": false, "pp_bear": false, "em_Bad": false, "emote_crown": false} {
+		if assets.ValidEmoteID(id) != want {
+			t.Errorf("ValidEmoteID(%q) != %v", id, want)
+		}
+	}
+}

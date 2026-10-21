@@ -68,7 +68,8 @@ const (
 	personaLevelUpP     = 0.12 // per seating: the persona levelled up meanwhile
 	personaEquipNewP    = 0.5  // a newly unlocked slot item gets equipped
 	personaBestTitleP   = 0.6  // shows its best unlocked title (else a random owned one)
-	personaPurchasedEmP = 0.1  // owns a Store emote
+	personaPurchasedEmP = 0.1  // owns a priced catalogue emote (emote_crown)
+	personaStoreEmoteP  = 0.02 // owns one Store shelf emote (em_…; ~1.8 of 89 on average)
 	pictureOffP         = 0.15 // wardrobe change: a wearer goes back to no picture
 )
 
@@ -218,7 +219,11 @@ func (p *persona) dress(rng *mrand.Rand, items []playerinfo.CatalogItem) {
 	p.Title = pickTitle(rng, itemsOf(items, "title"), p.Level)
 	p.Emotes = earnedEmotes(items, p.Level)
 	for _, it := range itemsOf(items, "emote") {
-		if it.Purchase && rng.Float64() < personaPurchasedEmP {
+		chance := personaPurchasedEmP
+		if it.StoreEmote { // one of ~90 on the Store shelf: a few at most
+			chance = personaStoreEmoteP
+		}
+		if it.Purchase && rng.Float64() < chance {
 			p.Emotes = append(p.Emotes, it.ID)
 		}
 	}

@@ -39,7 +39,9 @@ of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
   `progression.*` holds XP, missions/claims, inventory, loadout, friendships,
   player reports (metadata only), idempotency receipts and the
   profile-picture catalogue (`progression.profile_pictures`: paths and
-  prices only; ownership = inventory, equipped = loadout slot `avatar`). **Do not add
+  prices only; ownership = inventory, equipped = loadout slot `avatar`) and
+  the Store emote catalogue (`progression.emotes`: paths and prices only;
+  ownership = inventory). **Do not add
   tables** (no match history, ledger or profile tables) without asking. Live
   game state lives in Redis only — enforced by
   `backend/tests/schema_guard_test.go` (table allowlist + no gameplay-state columns).
@@ -104,7 +106,8 @@ real data.
   `backend/config/profile_pictures.tsv` (manifest → `migrations/008` seed,
   `UPDATE_PICTURE_SEED=1 go test ./migrations` regenerates it),
   `backend/cmd/r2-import-pictures` (copies manifest files into R2; env creds,
-  `-dry-run`).
+  `-dry-run`). Store emotes follow the same pattern:
+  `backend/config/emotes.tsv` → `migrations/011` seed, R2 keys `emotes/*.json`.
 - `backend/config/` — app policy per environment, `catalog.json`, `missions.json`.
 - `frontend/lib/core/` — config, network (Dio + refresh), protocol (models, reducer, FNV hash), realtime (socket, `ActiveRoomController`), analytics, theme, localization.
 - `frontend/lib/features/` — feature folders; routes are registered in `lib/app/feature_routes.dart` via `play_routes.dart` and `meta_routes.dart`, except the five bottom-navigation tabs (Home, Games, Missions, Friends, Profile), which are one `StatefulShellRoute` in `lib/app/shell/main_shell.dart` (switch tabs with `context.go`, never push them).
@@ -132,7 +135,8 @@ real data.
 - Per-connection command limit is 10/s (burst 20); bots and tests that act
   instantly need a small think delay.
 - The R2 bucket is private: never log a signed URL or `R2_SECRET_ACCESS_KEY`,
-  never sign a path that is not in `progression.profile_pictures`, and never
+  never sign a path that is not in `progression.profile_pictures` or
+  `progression.emotes`, and never
   run `r2-import-pictures` against the real bucket from tests (they use
   `internal/assets/r2test`). Package tests share the test database:
   `internal/progression` adds temporary `pp_unit_*` catalogue rows that e2e

@@ -20,16 +20,23 @@ const List<String> kDefaultShopKinds = [
   'emote',
 ];
 
+/// Shop / Collection category of emotes: the catalogue's priced emotes
+/// plus the Store's animated emotes (`GET /store/emotes`).
+const String kShopEmoteCategory = 'emote';
+
 /// The Shop's categories: Pictures, then every cosmetic kind with priced
 /// items (owned or not; a kind whose items are all owned shows an "all
-/// yours" state rather than disappearing), in Collection order.
+/// yours" state rather than disappearing), in Collection order. Emotes are
+/// always sold (the Store's animated emotes).
 List<String> shopCategories(CollectionData? data) => [
   kPictureCategory,
   if (data == null)
     ...kDefaultShopKinds
   else
     for (final k in kCollectionKinds)
-      if (data.items.any((i) => i.kind == k && i.inShopCatalog)) k,
+      if (k == kShopEmoteCategory ||
+          data.items.any((i) => i.kind == k && i.inShopCatalog))
+        k,
 ];
 
 /// The Shop category chosen last, remembered while the app runs (not

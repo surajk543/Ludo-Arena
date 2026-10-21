@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ludo_royale/core/assets/assets_api.dart';
 import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
 import 'package:ludo_royale/core/network/api_exception.dart';
-import 'package:ludo_royale/core/protocol/models.dart' show PlayerPicture;
+import 'package:ludo_royale/core/protocol/models.dart'
+    show EmoteAsset, PlayerPicture;
 
 import '../../helpers/picture_fixtures.dart';
 
@@ -159,6 +160,61 @@ void main() {
     expect(await restarted.file(p), isNotNull);
     expect(signer.calls, hasLength(1));
     expect(downloader.urls, hasLength(1));
+  });
+
+  group('Store emote art (emotes/… paths)', () {
+    File emoteFile(EmoteAsset a) => File('${root.path}/${a.path}');
+
+    test('on disk: used without any network, also by a new instance (app '
+        'restart)', () async {
+      final a = emoteAsset();
+      emoteFile(a)
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(kTestLottieBytes);
+      for (var run = 0; run < 2; run++) {
+        final cache = newCache();
+        addTearDown(cache.dispose);
+        expect(cache.peek(a), isNull);
+        expect(await cache.load(a), isA<LoadedLottiePicture>());
+        // Decoded once per instance; later views draw synchronously.
+        expect(cache.peek(a), isA<LoadedLottiePicture>());
+      }
+      expect(signer.calls, isEmpty);
+      expect(downloader.urls, isEmpty);
+    });
+
+    test('a miss is signed and downloaded once into emotes/, then read from '
+        'disk; unsafe paths are never requested', () async {
+      final a = emoteAsset('woozy');
+      downloader.bodies[a.path] = kTestLottieBytes;
+      final cache = newCache();
+      addTearDown(cache.dispose);
+      expect(await cache.load(a), isA<LoadedLottiePicture>());
+      expect(signer.calls, [
+        ['emotes/woozy.json'],
+      ]);
+      expect(emoteFile(a).readAsBytesSync(), kTestLottieBytes);
+      expect(leftovers(), isEmpty);
+
+      final restarted = newCache();
+      addTearDown(restarted.dispose);
+      expect(await restarted.load(a), isA<LoadedLottiePicture>());
+      expect(downloader.urls, hasLength(1));
+
+      const unsafe = EmoteAsset(format: 'lottie', path: 'emotes/../x.json');
+      expect(await cache.load(unsafe), isNull);
+      expect(signer.calls, hasLength(1));
+    });
+
+    test('an invalid animation is not kept', () async {
+      final a = emoteAsset('broken');
+      downloader.bodies[a.path] = Uint8List.fromList('{"v":1}'.codeUnits);
+      final cache = newCache();
+      addTearDown(cache.dispose);
+      expect(await cache.load(a), isNull);
+      expect(emoteFile(a).existsSync(), isFalse);
+      expect(leftovers(), isEmpty);
+    });
   });
 
   test('concurrent requests share one sign batch and one download per '

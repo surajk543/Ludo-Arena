@@ -21,5 +21,11 @@
   "storeAllOwnedMessage": "یہاں کی ہر چیز پہلے سے آپ کے کلیکشن میں ہے۔",
   "storeViewInCollection": "کلیکشن میں دیکھیں",
   "storeLoadMoreFailed": "مزید تصویریں لوڈ نہیں ہو سکیں۔",
-  "storeTileSemantics": "{name}، {status}"
+  "storeTileSemantics": "{name}، {status}",
+  "storeEmotesHeroTitle": "اینیمیٹڈ ایموٹس",
+  "storeEmotesHeroSubtitle": "انہیں کسی بھی میچ میں بھیجیں۔ ہیروں سے ایک بار خریدیں، ہمیشہ کے لیے آپ کے۔",
+  "storeEmoteKind": "اینیمیٹڈ ایموٹ",
+  "storeEmoteUseInMatchNote": "میچ کے دوران چیٹ بٹن سے اسے بھیجیں۔",
+  "storeEmotesLoadMoreFailed": "مزید ایموٹس لوڈ نہیں ہو سکے۔",
+  "storeEmotesOwnedEmpty": "شاپ سے خریدے گئے اینیمیٹڈ ایموٹس یہاں نظر آئیں گے۔"
 }

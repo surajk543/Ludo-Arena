@@ -294,7 +294,7 @@ func (s *Service) dispatch(ctx context.Context, c Caller, in protocol.Inbound) (
 			Msg    string `json:"msg"`
 			Emote  string `json:"emote"`
 		}
-		if err := decode(in.P, &p); err != nil || !validRoomID(p.RoomID) || len(p.Msg) > 32 || len(p.Emote) > 48 {
+		if err := decode(in.P, &p); err != nil || !validRoomID(p.RoomID) || len(p.Msg) > 32 || len(p.Emote) > protocol.MaxEmoteID {
 			return nil, protocol.ErrBadRequest
 		}
 		if in.T == protocol.TChatQuick {

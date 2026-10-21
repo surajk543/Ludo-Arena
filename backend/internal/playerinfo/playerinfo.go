@@ -128,6 +128,9 @@ type CatalogItem struct {
 	Starter  bool   // every account owns it
 	Level    int    // level that unlocks it (acquisition "level"); 0 otherwise
 	Purchase bool   // sold in the Store (coins or diamonds)
+	// StoreEmote marks an emote of the Store shelf (progression.emotes, id
+	// em_…; Purchase is true): one of many, so a player owns few of them.
+	StoreEmote bool
 }
 
 // CatalogSource lists the cosmetics catalogue (implemented by progression).

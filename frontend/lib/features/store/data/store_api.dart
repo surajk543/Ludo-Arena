@@ -4,7 +4,8 @@ import '../../../core/network/api_client.dart';
 import '../../../core/protocol/json_read.dart';
 import '../domain/store_models.dart';
 
-/// Profile-picture REST endpoints (`/store/…`, shown as the Shop).
+/// Store REST endpoints (`/store/…`, shown as the Shop): profile pictures
+/// and emotes.
 class StoreApi {
   StoreApi(this._api);
 
@@ -43,6 +44,42 @@ class StoreApi {
     );
     return (
       ProfilePicture.fromJson(readMap(json['item'])),
+      Wallet.fromJson(readMap(json['wallet'])),
+    );
+  }
+
+  /// `GET /store/emotes`. [excludeOwned] leaves out the emotes the player
+  /// owns (the Shop; not with [EmoteFilter.owned]). Throws [ApiException]
+  /// (`bad_request` for a stale cursor).
+  Future<EmotePage> listEmotes({
+    EmoteFilter filter = EmoteFilter.all,
+    bool excludeOwned = false,
+    String? cursor,
+    int limit = kStorePageSize,
+  }) async => EmotePage.fromJson(
+    await _api.get(
+      '/store/emotes',
+      query: {
+        'filter': filter.wire,
+        if (excludeOwned) 'excludeOwned': 'true',
+        'limit': '$limit',
+        'cursor': ?cursor,
+      },
+    ),
+  );
+
+  /// `POST /store/emotes/{id}/purchase` with [idempotencyKey]. Throws
+  /// [ApiException] (`insufficient_funds`, `already_owned`, `not_found`).
+  Future<(ShopEmote, Wallet)> purchaseEmote(
+    String id, {
+    required String idempotencyKey,
+  }) async {
+    final json = await _api.post(
+      '/store/emotes/${Uri.encodeComponent(id)}/purchase',
+      idempotencyKey: idempotencyKey,
+    );
+    return (
+      ShopEmote.fromJson(readMap(json['item'])),
       Wallet.fromJson(readMap(json['wallet'])),
     );
   }

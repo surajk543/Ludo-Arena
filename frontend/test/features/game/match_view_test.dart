@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lottie/lottie.dart';
+import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
 import 'package:ludo_royale/core/protocol/protocol.dart';
 import 'package:ludo_royale/core/realtime/active_room_controller.dart';
 import 'package:ludo_royale/core/state/in_match_provider.dart';
+import 'package:ludo_royale/features/game/application/owned_emotes.dart';
 import 'package:ludo_royale/features/game/presentation/game_route_screen.dart';
 import 'package:ludo_royale/features/game/presentation/widgets/player_panel.dart';
 import 'package:ludo_royale/features/ludo/presentation/board/board.dart';
@@ -13,6 +16,7 @@ import 'package:ludo_royale/features/snakes_ladders/presentation/screens/snakes_
 import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
 import 'package:ludo_royale/shared/widgets/widgets.dart';
 
+import '../../helpers/picture_fixtures.dart';
 import 'support/play_test_support.dart';
 
 const _roomId = 'r_1';
@@ -330,6 +334,101 @@ void main() {
     expect(find.text('Good luck!'), findsOneWidget);
     expect(find.byType(EmoteIcon), findsOneWidget);
     expect(h.audio.played, isNotEmpty);
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('the picker lists bought Store emotes with their art; sending '
+      'one sends its em_ id', (tester) async {
+    final h = PlayHarness(
+      initial: ActiveRoomState(room: ludoRoom(turnSeat: 1), selfUid: 'u_0'),
+    );
+    h.emotes.ready['emotes/angry.json'] = LoadedLottiePicture(
+      testComposition(),
+    );
+    await h.pump(
+      tester,
+      GameRouteScreen(roomId: ludoRoom().id),
+      extra: [
+        ownedEmotesProvider.overrideWith(
+          (ref) async => [
+            ...kStarterOwnedEmotes,
+            OwnedEmote('em_angry', asset: emoteAsset(), name: 'Angry'),
+            OwnedEmote('em_woozy', asset: emoteAsset('woozy'), name: 'Woozy'),
+          ],
+        ),
+      ],
+    );
+    await flush(tester);
+    await tester.tap(find.byTooltip('Quick chat'));
+    await settleAnimations(tester);
+    expect(find.byKey(const ValueKey('chat-emote-emote_wave')), findsOneWidget);
+    final angry = find.byKey(const ValueKey('chat-emote-em_angry'));
+    expect(angry, findsOneWidget);
+    // Cached art animates; art still downloading shows the generic glyph.
+    expect(
+      find.descendant(of: angry, matching: find.byType(Lottie)),
+      findsOneWidget,
+    );
+    final woozy = find.byKey(const ValueKey('chat-emote-em_woozy'));
+    expect(
+      find.descendant(of: woozy, matching: find.byType(EmoteIcon)),
+      findsOneWidget,
+    );
+    expect(h.emotes.requested, contains('emotes/woozy.json'));
+    expect(find.bySemanticsLabel(RegExp('Angry')), findsOneWidget);
+
+    await tester.tap(angry);
+    await settleAnimations(tester);
+    expect(h.controller.calls, ['chat.emote:em_angry']);
+  });
+
+  testWidgets('a received Store emote animates in the sender\'s bubble; a '
+      'malformed asset falls back to the built-in glyph', (tester) async {
+    final h = await _pumpGame(tester, ludoRoom(turnSeat: 1));
+    h.emotes.ready['emotes/angry.json'] = LoadedLottiePicture(
+      testComposition(),
+    );
+    h.controller.emit(
+      EmoteReceived(
+        EmoteEvent.fromJson({
+          'roomId': _roomId,
+          'seat': 2,
+          'emote': 'em_angry',
+          'asset': {'path': 'emotes/angry.json', 'format': 'lottie'},
+        }),
+        fromSelf: false,
+      ),
+    );
+    await tester.pump();
+    final bubble = find.byKey(const ValueKey('bubble-2'));
+    expect(bubble, findsOneWidget);
+    expect(
+      find.descendant(of: bubble, matching: find.byType(Lottie)),
+      findsOneWidget,
+    );
+
+    h.controller.emit(
+      EmoteReceived(
+        EmoteEvent.fromJson({
+          'roomId': _roomId,
+          'seat': 3,
+          'emote': 'em_angry',
+          'asset': {'path': '../../etc/passwd', 'format': 'lottie'},
+        }),
+        fromSelf: false,
+      ),
+    );
+    await tester.pump();
+    final fallback = find.byKey(const ValueKey('bubble-3'));
+    expect(
+      find.descendant(of: fallback, matching: find.byType(EmoteIcon)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: fallback, matching: find.byType(Lottie)),
+      findsNothing,
+    );
+    expect(h.emotes.requested, isNot(contains('../../etc/passwd')));
     await tester.pump(const Duration(seconds: 3));
   });
 

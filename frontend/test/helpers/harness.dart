@@ -45,6 +45,9 @@ class TestEnv {
   /// Profile pictures: none resolve unless a test adds them to `ready`.
   final FakeProfilePictureCache pictures = FakeProfilePictureCache();
 
+  /// Store emote art: none resolves unless a test adds it to `ready`.
+  final FakeProfilePictureCache emotes = FakeProfilePictureCache();
+
   /// No device id by default (behaves like before device binding); set
   /// `device.id` to simulate an Android 8+ / iOS device.
   final FakeDeviceIdentity device = FakeDeviceIdentity();
@@ -147,6 +150,7 @@ class TestEnv {
     deviceLocalesProvider.overrideWithValue(const [Locale('en')]),
     // No file system or network for profile pictures in widget tests.
     profilePictureCacheProvider.overrideWithValue(pictures),
+    emoteAssetCacheProvider.overrideWithValue(emotes),
     realtimeConnectionProvider.overrideWith((ref) {
       final c = RealtimeConnection(
         uri: Uri.parse('ws://test.local/api/v1/ws'),

@@ -5509,6 +5509,42 @@ abstract class AppLocalizations {
   /// **'{name}, {status}'**
   String storeTileSemantics(String name, String status);
 
+  /// Shop Emotes category header card title, and the section title of the animated Store emotes (Shop and Collection).
+  ///
+  /// In en, this message translates to:
+  /// **'Animated emotes'**
+  String get storeEmotesHeroTitle;
+
+  /// Shop Emotes category header card text: emotes are sent in matches, bought once with diamonds and owned forever.
+  ///
+  /// In en, this message translates to:
+  /// **'Send them in any match. Buy once with diamonds, keep them forever.'**
+  String get storeEmotesHeroSubtitle;
+
+  /// Emote sheet subtitle: an animated emote from the Shop.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated emote'**
+  String get storeEmoteKind;
+
+  /// Note on an owned Store emote: how to send it during a match (the quick-chat button).
+  ///
+  /// In en, this message translates to:
+  /// **'Send it from the chat button during a match.'**
+  String get storeEmoteUseInMatchNote;
+
+  /// Inline error at the end of an emote grid (next page failed).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load more emotes.'**
+  String get storeEmotesLoadMoreFailed;
+
+  /// Collection Emotes tab, animated section: none bought yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated emotes you buy in the Shop show up here.'**
+  String get storeEmotesOwnedEmpty;
+
   /// Wallet sheet title.
   ///
   /// In en, this message translates to:

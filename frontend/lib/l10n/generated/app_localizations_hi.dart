@@ -3268,6 +3268,26 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String get storeEmotesHeroTitle => 'एनिमेटेड इमोट';
+
+  @override
+  String get storeEmotesHeroSubtitle =>
+      'इन्हें किसी भी मैच में भेजें। हीरों से एक बार खरीदें, हमेशा के लिए आपके।';
+
+  @override
+  String get storeEmoteKind => 'एनिमेटेड इमोट';
+
+  @override
+  String get storeEmoteUseInMatchNote => 'मैच के दौरान चैट बटन से इसे भेजें।';
+
+  @override
+  String get storeEmotesLoadMoreFailed => 'और इमोट लोड नहीं हो सके।';
+
+  @override
+  String get storeEmotesOwnedEmpty =>
+      'शॉप से खरीदे गए एनिमेटेड इमोट यहाँ दिखेंगे।';
+
+  @override
   String get walletTitle => 'आपका वॉलेट';
 
   @override

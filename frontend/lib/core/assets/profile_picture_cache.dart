@@ -11,6 +11,7 @@ import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../network/api_client.dart';
+import '../protocol/models.dart' show CatalogAsset;
 import 'assets_api.dart';
 
 /// Signs object paths (`POST /assets/sign`, ≤ [kMaxSignPaths] per call).
@@ -42,11 +43,15 @@ final class LoadedLottiePicture extends LoadedPicture {
   final LottieComposition composition;
 }
 
-/// Profile-picture disk cache.
+/// Disk cache of catalogue assets ([CatalogAsset]: profile pictures and
+/// the art of Store emotes; one instance per kind, see
+/// [profilePictureCacheProvider] and [emoteAssetCacheProvider]).
 ///
-/// - Files live at `<applicationSupportDirectory>/profile_pictures/<path>`;
-///   paths are immutable, so an existing file is used as is and never
-///   downloaded again (no expiry).
+/// - Files live at `<root>/<path>` (profile pictures:
+///   `<applicationSupportDirectory>/profile_pictures/<path>`, emotes:
+///   `<applicationSupportDirectory>/assets/<path>`); paths are immutable, so
+///   an existing file is used as is and never downloaded again (no expiry,
+///   also across app restarts).
 /// - Missing files are signed in debounced batches (`POST /assets/sign`,
 ///   ≤ 50 paths per call), downloaded to a temporary file next to the
 ///   target, validated (non-empty, size cap, image magic bytes / the Lottie
@@ -114,7 +119,7 @@ class ProfilePictureCache {
   /// What is ready right now without any I/O: a decoded Lottie or an image
   /// already known to be on disk. Lets lists draw cached pictures in the
   /// first frame.
-  LoadedPicture? peek(PlayerPicture picture) {
+  LoadedPicture? peek(CatalogAsset picture) {
     final path = picture.path;
     if (picture.isLottie) {
       final c = _compositions.remove(path);
@@ -129,8 +134,8 @@ class ProfilePictureCache {
 
   /// The picture ready to draw, downloading it once if needed. Never
   /// throws; `null` when it is unavailable right now.
-  Future<LoadedPicture?> load(PlayerPicture picture) {
-    if (_disposed || !PlayerPicture.isSafePath(picture.path)) {
+  Future<LoadedPicture?> load(CatalogAsset picture) {
+    if (_disposed || !picture.hasSafePath) {
       return Future.value(null);
     }
     final ready = peek(picture);
@@ -142,8 +147,8 @@ class ProfilePictureCache {
 
   /// Ensures [picture]'s file is on disk (downloading it once) and returns
   /// it, or `null`. Never throws.
-  Future<File?> file(PlayerPicture picture) async {
-    if (_disposed || !PlayerPicture.isSafePath(picture.path)) return null;
+  Future<File?> file(CatalogAsset picture) async {
+    if (_disposed || !picture.hasSafePath) return null;
     try {
       return await _ensureFile(picture);
     } catch (_) {
@@ -152,7 +157,7 @@ class ProfilePictureCache {
   }
 
   /// Warms the cache for [pictures] (e.g. a page of the Store).
-  void prefetch(Iterable<PlayerPicture> pictures) {
+  void prefetch(Iterable<CatalogAsset> pictures) {
     for (final p in pictures) {
       unawaited(load(p));
     }
@@ -184,7 +189,7 @@ class ProfilePictureCache {
 
   static String _join(Directory root, String path) => '${root.path}/$path';
 
-  Future<LoadedPicture?> _load(PlayerPicture picture) async {
+  Future<LoadedPicture?> _load(CatalogAsset picture) async {
     try {
       final file = await _ensureFile(picture);
       if (file == null || _disposed) return null;
@@ -209,14 +214,14 @@ class ProfilePictureCache {
   }
 
   /// One disk check / download per path at a time.
-  Future<File?> _ensureFile(PlayerPicture picture) =>
+  Future<File?> _ensureFile(CatalogAsset picture) =>
       _files[picture.path] ??= _fetchFile(picture).whenComplete(() {
         // (A block body: returning the removed future would make
         // whenComplete wait for itself.)
         _files.remove(picture.path);
       });
 
-  Future<File?> _fetchFile(PlayerPicture picture) async {
+  Future<File?> _fetchFile(CatalogAsset picture) async {
     final path = picture.path;
     final root = await _rootDir();
     final target = File(_join(root, path));
@@ -259,7 +264,7 @@ class ProfilePictureCache {
   /// Throws when [bytes] are not a usable picture of [picture.format].
   /// Returns the decoded composition for Lottie files.
   Future<LottieComposition?> _validate(
-    PlayerPicture picture,
+    CatalogAsset picture,
     Uint8List bytes,
   ) async {
     if (bytes.isEmpty || bytes.length > maxBytes) {
@@ -439,9 +444,9 @@ AssetDownloader dioAssetDownloader(Dio dio, {int maxBytes = 4 << 20}) =>
       );
     };
 
-/// The app-wide profile-picture cache. Tests override it with a fake (or a
-/// real cache over a temporary directory and fake transport).
-final profilePictureCacheProvider = Provider<ProfilePictureCache>((ref) {
+/// A cache under `<applicationSupportDirectory>/<folder>` that signs through
+/// `POST /assets/sign` and downloads with its own plain [Dio].
+ProfilePictureCache _supportDirCache(Ref ref, String folder) {
   final dio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 10),
@@ -451,7 +456,7 @@ final profilePictureCacheProvider = Provider<ProfilePictureCache>((ref) {
   final cache = ProfilePictureCache(
     root: () async {
       final support = await getApplicationSupportDirectory();
-      return Directory('${support.path}/profile_pictures');
+      return Directory('${support.path}/$folder');
     },
     sign: (paths) => AssetsApi(ref.read(apiClientProvider)).sign(paths),
     download: dioAssetDownloader(dio),
@@ -461,4 +466,18 @@ final profilePictureCacheProvider = Provider<ProfilePictureCache>((ref) {
     dio.close(force: true);
   });
   return cache;
-});
+}
+
+/// The app-wide profile-picture cache. Tests override it with a fake (or a
+/// real cache over a temporary directory and fake transport).
+final profilePictureCacheProvider = Provider<ProfilePictureCache>(
+  (ref) => _supportDirCache(ref, 'profile_pictures'),
+);
+
+/// The app-wide cache of Store emote art (`emotes/…` paths, stored at
+/// `<applicationSupportDirectory>/assets/emotes/…`). A separate instance from
+/// the profile pictures: its own in-memory LRU of decoded animations, so a
+/// match full of emotes never evicts the players' pictures.
+final emoteAssetCacheProvider = Provider<ProfilePictureCache>(
+  (ref) => _supportDirCache(ref, 'assets'),
+);
