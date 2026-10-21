@@ -51,6 +51,8 @@ class LudoBoardBinding extends MatchBoardBinding {
         seatColors: seatColorsOf(room, seats),
         tokensPerPlayer: perPlayer,
         positions: tokens,
+        // The local player's base is always drawn bottom-left.
+        quarterTurns: boardTurnsFor(room, selfSeat),
       ),
       dice: DiceController(
         initialValue: room.turn.dice > 0 ? room.turn.dice : 1,

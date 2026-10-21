@@ -179,6 +179,48 @@ void main() {
       c.dispose();
     });
 
+    testWidgets('a turned board maps taps to the turned tokens', (
+      tester,
+    ) async {
+      // Red seen from the bottom-left (three clockwise quarter turns).
+      final c = LudoBoardController(
+        seatColors: SeatColor.values,
+        tokensPerPlayer: 4,
+        positions: [
+          [-1, 0, -1, -1],
+          [-1, -1, -1, -1],
+          [-1, -1, -1, -1],
+          [-1, -1, -1, -1],
+        ],
+        quarterTurns: SeatColor.red.turnsToBottomLeft,
+      )..setInteraction(seat: 0, legalTokens: {0, 1});
+      final taps = <int>[];
+      await tester.pumpWidget(
+        _app(LudoBoard(controller: c, onTokenTap: taps.add)),
+      );
+      await tester.pump();
+
+      final base = c.restingCenter(0, 0);
+      expect(LudoGeometry.baseRect(SeatColor.blue).contains(base), isTrue);
+      // Red's start square is blue's start square in the turned view.
+      expect(
+        c.restingCenter(0, 1),
+        LudoGeometry.cellFor(
+          SeatColor.blue,
+          0,
+          tokenIndex: 1,
+          tokensPerPlayer: 4,
+        ).center,
+      );
+      await tester.tapAt(_gridToGlobal(tester, base));
+      await tester.tapAt(_gridToGlobal(tester, c.restingCenter(0, 1)));
+      // The unturned red base (top-left) is empty now.
+      await tester.tapAt(_gridToGlobal(tester, const Offset(2, 2)));
+      expect(taps, [0, 1]);
+      await tester.pumpWidget(const SizedBox());
+      c.dispose();
+    });
+
     testWidgets('accessibility labels and the semantic tap action', (
       tester,
     ) async {

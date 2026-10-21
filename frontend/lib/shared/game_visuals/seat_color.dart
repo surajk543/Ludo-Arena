@@ -11,6 +11,16 @@ enum SeatColor {
   /// Color index 0..3 as used by the rules (`start = 13 × colorIndex`).
   int get colorIndex => index;
 
+  /// Clockwise quarter turns of the board that bring this color's corner
+  /// (red top-left, green top-right, yellow bottom-right, blue bottom-left)
+  /// to the bottom-left, where the local player is shown.
+  int get turnsToBottomLeft => (SeatColor.blue.index - index) % 4;
+
+  /// The color whose corner this color occupies after [quarterTurns]
+  /// clockwise quarter turns of the board.
+  SeatColor rotated(int quarterTurns) =>
+      SeatColor.values[(index + quarterTurns) % 4];
+
   /// Parses the protocol name (`"red"`, `"green"`, `"yellow"`, `"blue"`),
   /// case-insensitively. Throws [ArgumentError] for anything else.
   static SeatColor fromName(String name) {
