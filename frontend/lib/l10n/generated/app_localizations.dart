@@ -1658,10 +1658,10 @@ abstract class AppLocalizations {
   /// **'Daily & weekly goals'**
   String get homeMissionsSubtitle;
 
-  /// Entry tile: Collection Room.
+  /// Entry tile: the Collection Room (short name).
   ///
   /// In en, this message translates to:
-  /// **'Collection Room'**
+  /// **'Collection'**
   String get homeCollection;
 
   /// Entry tile subtitle.
@@ -1694,16 +1694,16 @@ abstract class AppLocalizations {
   /// **'Limited-time cups'**
   String get homeEventsSubtitle;
 
-  /// Section header above entry tiles.
+  /// Section header above the entry tiles (missions, collection, friends, events).
   ///
   /// In en, this message translates to:
-  /// **'Explore'**
+  /// **'More to Explore'**
   String get homeExploreHeader;
 
   /// Section header above the game cards.
   ///
   /// In en, this message translates to:
-  /// **'Games'**
+  /// **'Choose a Game'**
   String get homeGamesHeader;
 
   /// Tooltip of the cloud-save button for guests.
@@ -1885,6 +1885,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+{amount} coins'**
   String homeCoinsGainedToast(String amount);
+
+  /// Quick Play card subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find random players and start now'**
+  String get homeQuickPlaySubtitle;
+
+  /// Quick Play main button: start public matchmaking with the selected game and player count.
+  ///
+  /// In en, this message translates to:
+  /// **'Play Now'**
+  String get homePlayNow;
+
+  /// Game option: Ludo with the quick (shorter) rules variant.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Ludo'**
+  String get homeQuickLudo;
+
+  /// Accessibility hint of the Quick Play game selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Change game'**
+  String get homeChangeGameHint;
+
+  /// Accessibility hint of the Quick Play player-count selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Change number of players'**
+  String get homeChangePlayersHint;
+
+  /// Subtitle of the Games tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a game, then play online, with friends or against bots.'**
+  String get homeGamesSubtitle;
+
+  /// Bottom navigation label: home lobby.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeNavHome;
+
+  /// Bottom navigation label and Games tab title.
+  ///
+  /// In en, this message translates to:
+  /// **'Games'**
+  String get homeNavGames;
+
+  /// Bottom navigation label: missions.
+  ///
+  /// In en, this message translates to:
+  /// **'Missions'**
+  String get homeNavMissions;
+
+  /// Bottom navigation label: friends.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get homeNavFriends;
+
+  /// Bottom navigation label: the player's profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get homeNavProfile;
 
   /// Missions screen title.
   ///

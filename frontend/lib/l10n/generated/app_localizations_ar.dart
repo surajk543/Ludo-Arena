@@ -899,7 +899,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeMissionsSubtitle => 'أهداف يومية وأسبوعية';
 
   @override
-  String get homeCollection => 'غرفة المجموعة';
+  String get homeCollection => 'المجموعة';
 
   @override
   String get homeCollectionSubtitle => 'نرد وقطع وإطارات';
@@ -917,10 +917,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeEventsSubtitle => 'كؤوس لفترة محدودة';
 
   @override
-  String get homeExploreHeader => 'استكشف';
+  String get homeExploreHeader => 'استكشف المزيد';
 
   @override
-  String get homeGamesHeader => 'الألعاب';
+  String get homeGamesHeader => 'اختر لعبة';
 
   @override
   String get homeSaveProgressTooltip => 'احفظ التقدّم';
@@ -1037,6 +1037,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String homeCoinsGainedToast(String amount) {
     return '+$amount عملة';
   }
+
+  @override
+  String get homeQuickPlaySubtitle => 'اعثر على لاعبين عشوائيين وابدأ الآن';
+
+  @override
+  String get homePlayNow => 'العب الآن';
+
+  @override
+  String get homeQuickLudo => 'لودو سريع';
+
+  @override
+  String get homeChangeGameHint => 'تغيير اللعبة';
+
+  @override
+  String get homeChangePlayersHint => 'تغيير عدد اللاعبين';
+
+  @override
+  String get homeGamesSubtitle =>
+      'اختر لعبة، ثم العب عبر الإنترنت أو مع الأصدقاء أو ضد الروبوتات.';
+
+  @override
+  String get homeNavHome => 'الرئيسية';
+
+  @override
+  String get homeNavGames => 'الألعاب';
+
+  @override
+  String get homeNavMissions => 'المهام';
+
+  @override
+  String get homeNavFriends => 'الأصدقاء';
+
+  @override
+  String get homeNavProfile => 'ملفي';
 
   @override
   String get metaMissionsTitle => 'المهام';

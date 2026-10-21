@@ -900,7 +900,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMissionsSubtitle => 'Daily & weekly goals';
 
   @override
-  String get homeCollection => 'Collection Room';
+  String get homeCollection => 'Collection';
 
   @override
   String get homeCollectionSubtitle => 'Dice, tokens & frames';
@@ -918,10 +918,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEventsSubtitle => 'Limited-time cups';
 
   @override
-  String get homeExploreHeader => 'Explore';
+  String get homeExploreHeader => 'More to Explore';
 
   @override
-  String get homeGamesHeader => 'Games';
+  String get homeGamesHeader => 'Choose a Game';
 
   @override
   String get homeSaveProgressTooltip => 'Save progress';
@@ -1035,6 +1035,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeCoinsGainedToast(String amount) {
     return '+$amount coins';
   }
+
+  @override
+  String get homeQuickPlaySubtitle => 'Find random players and start now';
+
+  @override
+  String get homePlayNow => 'Play Now';
+
+  @override
+  String get homeQuickLudo => 'Quick Ludo';
+
+  @override
+  String get homeChangeGameHint => 'Change game';
+
+  @override
+  String get homeChangePlayersHint => 'Change number of players';
+
+  @override
+  String get homeGamesSubtitle =>
+      'Pick a game, then play online, with friends or against bots.';
+
+  @override
+  String get homeNavHome => 'Home';
+
+  @override
+  String get homeNavGames => 'Games';
+
+  @override
+  String get homeNavMissions => 'Missions';
+
+  @override
+  String get homeNavFriends => 'Friends';
+
+  @override
+  String get homeNavProfile => 'Profile';
 
   @override
   String get metaMissionsTitle => 'Missions';

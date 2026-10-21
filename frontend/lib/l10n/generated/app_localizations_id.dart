@@ -895,7 +895,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeMissionsSubtitle => 'Target harian & mingguan';
 
   @override
-  String get homeCollection => 'Ruang Koleksi';
+  String get homeCollection => 'Koleksi';
 
   @override
   String get homeCollectionSubtitle => 'Dadu, bidak & bingkai';
@@ -913,10 +913,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeEventsSubtitle => 'Piala waktu terbatas';
 
   @override
-  String get homeExploreHeader => 'Jelajahi';
+  String get homeExploreHeader => 'Jelajahi Lainnya';
 
   @override
-  String get homeGamesHeader => 'Permainan';
+  String get homeGamesHeader => 'Pilih Permainan';
 
   @override
   String get homeSaveProgressTooltip => 'Simpan progres';
@@ -1030,6 +1030,40 @@ class AppLocalizationsId extends AppLocalizations {
   String homeCoinsGainedToast(String amount) {
     return '+$amount koin';
   }
+
+  @override
+  String get homeQuickPlaySubtitle => 'Temukan pemain acak dan mulai sekarang';
+
+  @override
+  String get homePlayNow => 'Main Sekarang';
+
+  @override
+  String get homeQuickLudo => 'Ludo Cepat';
+
+  @override
+  String get homeChangeGameHint => 'Ganti permainan';
+
+  @override
+  String get homeChangePlayersHint => 'Ubah jumlah pemain';
+
+  @override
+  String get homeGamesSubtitle =>
+      'Pilih permainan, lalu main online, bersama teman, atau melawan bot.';
+
+  @override
+  String get homeNavHome => 'Beranda';
+
+  @override
+  String get homeNavGames => 'Permainan';
+
+  @override
+  String get homeNavMissions => 'Misi';
+
+  @override
+  String get homeNavFriends => 'Teman';
+
+  @override
+  String get homeNavProfile => 'Profil';
 
   @override
   String get metaMissionsTitle => 'Misi';
