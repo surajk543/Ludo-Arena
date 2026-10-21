@@ -9,6 +9,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
+import '../../../../core/network/api_models.dart';
 import '../../../authentication/application/session_controller.dart';
 import '../../../profile/progression.dart';
 import '../../../wallet/presentation/wallet_sheet.dart';
@@ -43,84 +44,115 @@ class HomeHeader extends ConsumerWidget {
       borderRadius: AppRadii.xlAll,
       elevation: c.isDark ? AppElevation.flat : AppElevation.low,
       border: Border.all(color: c.cardBorder),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Semantics(
-                button: true,
-                label: l10n.homeProfileTooltip,
-                excludeSemantics: true,
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  // Profile is a bottom-navigation tab: switch to it.
-                  onTap: () => context.go(AppRoutes.profile),
-                  child: PlayerAvatar(
-                    avatarIndex: user.avatar,
-                    frameId: user.loadout.frame,
-                    size: 54,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Row(
-                      children: [
-                        LevelBadge(level: level, size: 24),
-                        const SizedBox(width: AppSpacing.xs),
-                        Flexible(child: TitleChip(titleId: title)),
-                      ],
-                    ),
-                    if (progression != null) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      XpProgressBar(
-                        current: progression.isMaxLevel
-                            ? progression.nextLevelXp
-                            : progression.xpIntoLevel,
-                        total: progression.nextLevelXp <= 0
-                            ? 1
-                            : progression.nextLevelXp,
-                        showLabel: false,
-                        height: 6,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              if (user.needsSaveProgress)
-                IconCircleButton(
-                  icon: Icons.cloud_upload_rounded,
-                  tooltip: l10n.homeSaveProgressTooltip,
-                  highlighted: true,
-                  size: 40,
-                  onPressed: () => context.push(AppRoutes.linkAccount),
-                ),
-              IconCircleButton(
-                icon: Icons.settings_rounded,
-                tooltip: l10n.homeSettingsTooltip,
-                size: 40,
-                onPressed: () => context.push(AppRoutes.settings),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          const _StatusRow(),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Narrow phone or large text: smaller avatar, more room for text.
+          final scale = MediaQuery.textScalerOf(context).scale(1);
+          final compact = constraints.maxWidth < 330 * scale;
+          return _layout(
+            context,
+            l10n,
+            user,
+            progression,
+            level,
+            title,
+            compact,
+          );
+        },
       ),
+    );
+  }
+
+  Widget _layout(
+    BuildContext context,
+    AppLocalizations l10n,
+    User user,
+    ProgressionSummary? progression,
+    int level,
+    String title,
+    bool compact,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Semantics(
+              button: true,
+              label: l10n.homeProfileTooltip,
+              excludeSemantics: true,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                // Profile is a bottom-navigation tab: switch to it.
+                onTap: () => context.go(AppRoutes.profile),
+                child: PlayerAvatar(
+                  avatarIndex: user.avatar,
+                  frameId: user.loadout.frame,
+                  size: compact ? 44 : 54,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  // Wraps under the badge on narrow phones / large text
+                  // instead of truncating the title.
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      LevelBadge(level: level, size: 24),
+                      TitleChip(titleId: title),
+                    ],
+                  ),
+                  if (progression != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    XpProgressBar(
+                      current: progression.isMaxLevel
+                          ? progression.nextLevelXp
+                          : progression.xpIntoLevel,
+                      total: progression.nextLevelXp <= 0
+                          ? 1
+                          : progression.nextLevelXp,
+                      showLabel: false,
+                      height: 6,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            if (user.needsSaveProgress)
+              IconCircleButton(
+                icon: Icons.cloud_upload_rounded,
+                tooltip: l10n.homeSaveProgressTooltip,
+                highlighted: true,
+                size: 40,
+                onPressed: () => context.push(AppRoutes.linkAccount),
+              ),
+            IconCircleButton(
+              icon: Icons.settings_rounded,
+              tooltip: l10n.homeSettingsTooltip,
+              size: 40,
+              onPressed: () => context.push(AppRoutes.settings),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        const _StatusRow(),
+      ],
     );
   }
 }
