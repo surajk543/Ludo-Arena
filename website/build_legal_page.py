@@ -121,7 +121,7 @@ FOOT = """\
           <li><a href="/ludo-royale/legal/" aria-current="page">Ludo Royale Open-Source Notices</a></li>
           <li><a href="/terms">Terms of Service</a></li>
           <li><a href="/refund">Refund Policy</a></li>
-          <li><a href="/delete-account">Delete Account</a></li>
+          <li><a href="/ludo-royale/delete-account/">Delete Account</a></li>
         </ul>
       </nav>
       <div class="footer-col">

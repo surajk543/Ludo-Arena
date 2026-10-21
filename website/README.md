@@ -19,7 +19,8 @@ inserts them.
 | `ludo-royale.html` | `ludo-royale.html` | `/ludo-royale` |
 | `ludo-royale-logo.png` (app icon, 256 px) | `ludo-royale-logo.png` | `/ludo-royale-logo.png` |
 | `ludo-royale-shots/` (screenshots, 1280×720 banner) | `ludo-royale-shots/` | `/ludo-royale-shots/…` |
-| `ludo-royale/privacy/index.html` (**draft**) | `ludo-royale/privacy/index.html` | `/ludo-royale/privacy/` |
+| `ludo-royale/privacy/index.html` | `ludo-royale/privacy/index.html` | `/ludo-royale/privacy/` |
+| `ludo-royale/delete-account/index.html` | `ludo-royale/delete-account/index.html` | `/ludo-royale/delete-account/` |
 | `ludo-royale/legal/index.html` (generated) | `ludo-royale/legal/index.html` | `/ludo-royale/legal/` |
 | `snippets/index-games-card.html` | inserted into `index.html` | homepage Games section |
 | `snippets/footer-games-link.html` | inserted into every page footer | footer "Games" list |
@@ -46,7 +47,7 @@ viewer) and the same markup as `brain-train.html`:
   `feature-grid three` with `ico`, `phones` / `phone` with `data-gallery`
   (lightbox), `notice`, `two-col` + `facts-table`, `cta-band`, `btn btn-soon`,
   `text-link`;
-- privacy policy: `doc`, `doc-head`, `prose`, `card`, `table-wrap`, `doc-foot`
+- privacy policy and account deletion page: `doc`, `doc-head`, `prose`, `card`, `table-wrap`, `doc-foot`
   (the structure of `/brain-train/privacy/`);
 - open-source notices: `doc` / `doc-head` plus a small page-only `<style>` built
   from the site's CSS variables for the component index and the notice texts;
@@ -91,9 +92,10 @@ WebP at 540×960 (thumbnails) and 720×1280 (lightbox), 20–70 KB each. The ban
 Run these steps yourself; nothing here does them for you. `HOST` is the web
 server, `ROOT=/var/www/gameplay/sungamestudio.com`.
 
-1. **Review first.** The privacy policy is a draft: work through
-   "Privacy policy: points to confirm" below, set its effective date, and remove
-   the `<!-- DRAFT … -->` comments.
+1. **Review first.** Publishing the privacy policy was approved; still work
+   through "Privacy policy: points to confirm" below, check its effective date,
+   and make sure the in-app Settings → Delete account has shipped (the policy
+   and `/ludo-royale/delete-account/` describe it).
 2. **Back up the web root.**
 
    ```bash
@@ -127,7 +129,7 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
    the third card (skip with `--keep-more-card-full-width`); inserts the footer
    links after `<li><a href="/brain-train">Brain Train</a></li>` and after
    `<li><a href="/brain-train/privacy/">Brain Train Privacy Policy</a></li>`.
-   In `sitemap.xml`: the three URLs before `</urlset>`. A page whose footer
+   In `sitemap.xml`: the four URLs before `</urlset>`. A page whose footer
    lacks those anchors is refused (`privacy.html`, `refund.html` and
    `delete-account.html` were not available to check); add the footer `<li>`s
    there by hand if they have the same lists.
@@ -149,7 +151,7 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
 8. **Verify:**
 
    ```bash
-   for u in /ludo-royale /ludo-royale/privacy/ /ludo-royale/legal/ /ludo-royale-logo.png \
+   for u in /ludo-royale /ludo-royale/privacy/ /ludo-royale/legal/ /ludo-royale/delete-account/ /ludo-royale-logo.png \
             /ludo-royale-shots/ludo-royale-banner.jpg /ludo-royale-shots/01-classic-board-540.webp; do
      curl -s -o /dev/null -w "%{http_code} %{content_type} $u\n" "https://sungamestudio.com$u"
    done   # expect 200 and text/html, image/png, image/jpeg, image/webp
@@ -187,14 +189,23 @@ docs/rest-api.md, backend/migrations, frontend/lib/core/analytics,
 frontend/lib/core/device). These statements could not be verified from the
 repository and must be confirmed or changed before publishing:
 
-- **Account deletion.** The app has no "Delete account" button and the backend
-  has no deletion endpoint or tool. The page offers deletion by e-mail within 30
-  days; someone must actually be able to do it. App Store and Google Play both
-  require a deletion path for apps with accounts. `/delete-account` today covers
-  King Teen Patti only, so the Ludo Royale pages link to the privacy policy's
-  section 6 (`/ludo-royale/privacy/#delete`) instead.
-- **Age 13+.** Nothing in the repository sets an age; the app has no age gate.
-  The pages state 13+; the store age ratings must match.
+- **Account deletion.** The policy and `/ludo-royale/delete-account/` describe
+  the in-app **Settings → Delete account** (immediate; deletes the account,
+  wallet, progress, friends, reports, device link and sessions) that is being
+  built; it was not in the repository when these pages were written. Check the
+  final button names and steps against the app. Reports *about* the player are
+  listed as deleted because `progression.player_reports` cascades on both
+  accounts. E-mailed requests (friend code + display name, within 30 days) need
+  someone who can actually carry them out. `/delete-account` covers King Teen
+  Patti only; the Ludo Royale pages' "Delete Account" links go to
+  `/ludo-royale/delete-account/`. Use that URL for the store listings' account
+  deletion field.
+- **Rating 3+.** Decided by the user (like Ludo King). The real rating comes
+  from the store questionnaires (IARC); the answers must give 3+. The app has
+  no age gate; the policy describes a general-audience game not directed
+  primarily at children under 13 and makes no COPPA claim.
+- **Backups** of the database are not mentioned on the deletion page; their
+  retention is not documented (see "Logs and backups").
 - **Google Analytics retention** "at most 14 months" assumes a standard GA4
   property; set the property's retention to match.
 - **Hosting.** The provider and the country of the servers are not documented;
