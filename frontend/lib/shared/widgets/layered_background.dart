@@ -105,19 +105,20 @@ class _RoyalBackdropPainter extends CustomPainter {
       );
     }
 
-    // Faint diamond lattice, fading towards the bottom.
+    // Faint repeating diamond lattice, easing off slightly towards the
+    // bottom so dense content stays calm.
     final lattice = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
           pattern,
-          pattern.withValues(alpha: pattern.a * 0.25),
+          pattern.withValues(alpha: pattern.a * 0.55),
         ],
       ).createShader(Offset.zero & size)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
-    const step = 46.0;
+    const step = 40.0;
     final path = Path();
     for (double d = -h; d < w + h; d += step) {
       path
@@ -131,7 +132,7 @@ class _RoyalBackdropPainter extends CustomPainter {
     // Tiny gems at a sparse subset of intersections.
     final dot = Paint()
       ..color = pattern.withValues(alpha: math.min(1, pattern.a * 2.2));
-    for (double yy = step / 2; yy < h * 0.55; yy += step * 2) {
+    for (double yy = step / 2; yy < h; yy += step * 2) {
       for (
         double xx = (yy ~/ step).isEven ? step / 2 : step * 1.5;
         xx < w;
