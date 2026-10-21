@@ -248,6 +248,16 @@ void main() {
         expect(m.event.type, entry.key, reason: entry.key);
       }
 
+      // A built-in emote has no asset.
+      expect(
+        (decodeServerMessage(
+                  jsonEncode({'t': 'chat.emote', 'p': samples['chat.emote']}),
+                ).event
+                as EmoteEvent)
+            .asset,
+        isNull,
+      );
+
       final wallet =
           decodeServerMessage(
                 jsonEncode({

@@ -367,7 +367,7 @@ claims and purchases), apply 60/min (shared with the loadout), sign 120/min.
 | `GET /store/profile-pictures?filter=&excludeOwned=&limit=&cursor=` | – | `{"items":[ProfilePicture],"nextCursor":"…"\|null,"total":160,"equipped":"pp_x"\|null}` |
 | `POST /store/profile-pictures/{id}/purchase` | – (`Idempotency-Key`) | `{"item": ProfilePicture, "wallet": Wallet}`; 409 `already_owned`, 422 `insufficient_funds`, 404 `not_found` (unknown or retired picture). Pushes `wallet.updated` (`reason: "purchase"`, `delta.diamonds` = −price). |
 | `PUT /me/profile-picture` | `{"id":"pp_x"}` or `{"id":null}` | `{"equipped": ProfilePicture\|null}`; 422 `item_locked` (not owned), 404 `not_found` (unknown id), 400 `bad_request` (missing `id`, `""`, wrong type, unknown field). `null` = back to the built-in avatar. |
-| `POST /assets/sign` | `{"paths":["profile_pictures/…", …]}` (1–50) | `{"urls":{"<path>":"https://…"},"expiresAt":1792588328065}`; 400 `bad_request` (0 or > 50 paths, empty or > 255-character path), 503 `assets_unavailable` (asset storage not configured on this server). |
+| `POST /assets/sign` | `{"paths":["profile_pictures/…", "emotes/…", …]}` (1–50) | `{"urls":{"<path>":"https://…"},"expiresAt":1792588328065}`; 400 `bad_request` (0 or > 50 paths, empty or > 255-character path), 503 `assets_unavailable` (asset storage not configured on this server). Signs profile-picture and [Store emote](#store-emotes) paths. |
 
 **ProfilePicture**: `{"id":"pp_wolf","name":"Wolf","format":"image|lottie","path":"profile_pictures/image/wolf.png","price":{"diamonds":10},"owned":false,"equipped":false}`
 
@@ -406,6 +406,38 @@ out of `urls` (never an error, never signed). Duplicates are signed once.
 Download each URL once and keep the file (objects are immutable:
 `Cache-Control: private, max-age=31536000, immutable`); never cache the URL
 itself. Signed URLs are never logged by the server.
+
+### Store emotes
+
+Animated emotes (Lottie) bought with **diamonds** at a fixed price per emote
+(10–40) and owned **forever**. Emotes are owned, not equipped: an owned Store
+emote is sent in any match with `chat.emote` like the built-in emotes, and the
+broadcast carries its art (`asset`) so every player can draw it — see
+[`websocket-protocol.md`](websocket-protocol.md) §5–6. Catalogue and storage:
+[`cosmetics-catalog.md` → Store emotes](cosmetics-catalog.md#store-emotes).
+Same auth, version gate and rate limits as the pictures (list 120/min,
+purchase 30/min).
+
+| Method & path | Body | Response |
+|---|---|---|
+| `GET /store/emotes?filter=&excludeOwned=&limit=&cursor=` | – | `{"items":[ShopEmote],"nextCursor":"…"\|null,"total":89}` |
+| `POST /store/emotes/{id}/purchase` | – (`Idempotency-Key`) | `{"item": ShopEmote, "wallet": Wallet}`; 409 `already_owned`, 422 `insufficient_funds`, 404 `not_found` (unknown or retired emote, or not an `em_…` id). Pushes `wallet.updated` (`reason: "purchase"`, `delta.diamonds` = −price). |
+
+**ShopEmote**: `{"id":"em_party","name":"Party","format":"lottie|image","path":"emotes/party.json","price":{"diamonds":25},"owned":false}`
+
+**List** works like the picture list: `filter` = `all` (default) \| `owned`;
+`excludeOwned` = `true` \| `false` (not with `owned`); `limit` 1–50 (default
+24); order `sort_order`, then `id`; position-based `cursor` (a purchase
+between two pages never repeats or skips an item; a picture cursor is
+refused); `total` = items matching for the caller; retired emotes only to
+their owners; anything else → 400 `bad_request`. The app's **Shop** lists
+`excludeOwned=true`; the **Collection**'s Emotes tab and the in-match emote
+picker list `filter=owned`.
+
+**Purchase** is the picture purchase (same transaction and lock order, paid
+exactly once, catalogue price at that moment, `Idempotency-Key` replay). The
+emote is usable in a match right away (it is added to the server's cached set
+of owned emotes).
 
 ## Social
 

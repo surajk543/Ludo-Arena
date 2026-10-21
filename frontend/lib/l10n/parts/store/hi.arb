@@ -21,5 +21,11 @@
   "storeAllOwnedMessage": "यहाँ का सब कुछ पहले से आपके कलेक्शन में है।",
   "storeViewInCollection": "कलेक्शन में देखें",
   "storeLoadMoreFailed": "और तस्वीरें लोड नहीं हो सकीं।",
-  "storeTileSemantics": "{name}, {status}"
+  "storeTileSemantics": "{name}, {status}",
+  "storeEmotesHeroTitle": "एनिमेटेड इमोट",
+  "storeEmotesHeroSubtitle": "इन्हें किसी भी मैच में भेजें। हीरों से एक बार खरीदें, हमेशा के लिए आपके।",
+  "storeEmoteKind": "एनिमेटेड इमोट",
+  "storeEmoteUseInMatchNote": "मैच के दौरान चैट बटन से इसे भेजें।",
+  "storeEmotesLoadMoreFailed": "और इमोट लोड नहीं हो सके।",
+  "storeEmotesOwnedEmpty": "शॉप से खरीदे गए एनिमेटेड इमोट यहाँ दिखेंगे।"
 }

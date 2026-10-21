@@ -46,6 +46,9 @@ func (s *Service) Register(rt *httpapi.Router) {
 	rt.Handle("POST /api/v1/store/profile-pictures/{pictureId}/purchase", route(write), s.handlePurchasePicture)
 	rt.Handle("PUT /api/v1/me/profile-picture", route(equip), s.handleApplyPicture)
 	rt.Handle("POST /api/v1/assets/sign", route(sign), s.handleSignAssets)
+	// Store emotes (emotes_http.go).
+	rt.Handle("GET /api/v1/store/emotes", route(read), s.handleStoreEmotes)
+	rt.Handle("POST /api/v1/store/emotes/{emoteId}/purchase", route(write), s.handlePurchaseEmote)
 }
 
 func caller(r *http.Request) (uuid.UUID, error) {
@@ -162,6 +165,8 @@ func mapErr(err error) error {
 		return httpapi.Errf(http.StatusNotFound, "not_found", "Item not found.")
 	case errors.Is(err, ErrPictureNotFound):
 		return httpapi.Errf(http.StatusNotFound, "not_found", "This profile picture is not available.")
+	case errors.Is(err, ErrEmoteNotFound):
+		return httpapi.Errf(http.StatusNotFound, "not_found", "This emote is not available.")
 	case errors.Is(err, ErrBadStoreQuery):
 		return httpapi.Errf(http.StatusBadRequest, "bad_request", "Invalid filter, limit or cursor.")
 	case errors.Is(err, ErrItemLocked):

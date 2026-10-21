@@ -33,11 +33,13 @@ account mappings, plus the internal `device` binding that restores an account
 after an app update or reinstall) and `progression`. There are no match-history, ledger or
 profile tables (a player-chosen display name is one nullable
 `progression.player_progress` column; other display data is a Redis cache).
-Profile pictures sold in the Store are catalogued in
-`progression.profile_pictures` (paths, formats, prices) and stored as Lottie
-/ PNG files in a **private Cloudflare R2 bucket**; the backend hands the app
-10-minute SigV4-presigned URLs for catalogue paths only
-([cosmetics-catalog.md](cosmetics-catalog.md#profile-pictures)). Identity providers only prove identity: **Firebase
+Profile pictures and Store emotes sold in the Shop are catalogued in
+`progression.profile_pictures` and `progression.emotes` (paths, formats,
+prices) and stored as Lottie / PNG files in a **private Cloudflare R2
+bucket**; the backend hands the app 10-minute SigV4-presigned URLs for
+catalogue paths only
+([cosmetics-catalog.md](cosmetics-catalog.md#profile-pictures),
+[Store emotes](cosmetics-catalog.md#store-emotes)). Identity providers only prove identity: **Firebase
 Authentication is not used**, and Firebase is in the app for consent-gated
 Analytics only. A separate Go service, **bot-play**, plays as server-marked
 bots through the same protocol with room-scoped bot tokens.

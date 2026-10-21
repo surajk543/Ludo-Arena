@@ -3266,6 +3266,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get storeEmotesHeroTitle => 'Animated emotes';
+
+  @override
+  String get storeEmotesHeroSubtitle =>
+      'Send them in any match. Buy once with diamonds, keep them forever.';
+
+  @override
+  String get storeEmoteKind => 'Animated emote';
+
+  @override
+  String get storeEmoteUseInMatchNote =>
+      'Send it from the chat button during a match.';
+
+  @override
+  String get storeEmotesLoadMoreFailed => 'Couldn\'t load more emotes.';
+
+  @override
+  String get storeEmotesOwnedEmpty =>
+      'Animated emotes you buy in the Shop show up here.';
+
+  @override
   String get walletTitle => 'Your wallet';
 
   @override

@@ -4,7 +4,8 @@ import 'package:lottie/lottie.dart';
 
 import '../../core/assets/profile_picture_cache.dart';
 import '../../core/audio_haptics/reduced_motion.dart';
-import '../../core/protocol/models.dart' show PlayerPicture;
+import '../../core/protocol/models.dart'
+    show CatalogAsset, EmoteAsset, PlayerPicture;
 
 /// Draws a Store profile picture from the on-device cache: a Lottie
 /// animation or an image, filling a [size]×[size] square.
@@ -13,7 +14,7 @@ import '../../core/protocol/models.dart' show PlayerPicture;
 /// showing it when the picture is unavailable (offline, storage not
 /// configured, corrupt file). With reduced motion (or [animate] false) a
 /// Lottie shows its first frame and never ticks.
-class ProfilePictureView extends ConsumerStatefulWidget {
+class ProfilePictureView extends StatelessWidget {
   const ProfilePictureView({
     super.key,
     required this.picture,
@@ -30,10 +31,71 @@ class ProfilePictureView extends ConsumerStatefulWidget {
   final BoxFit fit;
 
   @override
-  ConsumerState<ProfilePictureView> createState() => _ProfilePictureViewState();
+  Widget build(BuildContext context) => CatalogAssetView(
+    asset: picture,
+    cache: profilePictureCacheProvider,
+    size: size,
+    placeholder: placeholder,
+    animate: animate,
+    fit: fit,
+  );
 }
 
-class _ProfilePictureViewState extends ConsumerState<ProfilePictureView> {
+/// Draws the art of a Store emote from the on-device emote cache
+/// ([emoteAssetCacheProvider]), contained in a [size]×[size] square, with
+/// [placeholder] until it is ready. Same rules as [ProfilePictureView].
+class EmoteAssetView extends StatelessWidget {
+  const EmoteAssetView({
+    super.key,
+    required this.asset,
+    required this.size,
+    this.placeholder,
+    this.animate = true,
+  });
+
+  final EmoteAsset asset;
+  final double size;
+  final Widget? placeholder;
+  final bool animate;
+
+  @override
+  Widget build(BuildContext context) => CatalogAssetView(
+    asset: asset,
+    cache: emoteAssetCacheProvider,
+    size: size,
+    placeholder: placeholder,
+    animate: animate,
+    fit: BoxFit.contain,
+  );
+}
+
+/// Draws a [CatalogAsset] from [cache]: a Lottie animation or an image in a
+/// [size]×[size] square, [placeholder] until it is on disk and decoded (and
+/// whenever it is unavailable). With reduced motion (or [animate] false) a
+/// Lottie shows its first frame and never ticks.
+class CatalogAssetView extends ConsumerStatefulWidget {
+  const CatalogAssetView({
+    super.key,
+    required this.asset,
+    required this.cache,
+    required this.size,
+    this.placeholder,
+    this.animate = true,
+    this.fit = BoxFit.cover,
+  });
+
+  final CatalogAsset asset;
+  final Provider<ProfilePictureCache> cache;
+  final double size;
+  final Widget? placeholder;
+  final bool animate;
+  final BoxFit fit;
+
+  @override
+  ConsumerState<CatalogAssetView> createState() => _CatalogAssetViewState();
+}
+
+class _CatalogAssetViewState extends ConsumerState<CatalogAssetView> {
   LoadedPicture? _loaded;
   int _request = 0;
 
@@ -44,9 +106,9 @@ class _ProfilePictureViewState extends ConsumerState<ProfilePictureView> {
   }
 
   @override
-  void didUpdateWidget(ProfilePictureView oldWidget) {
+  void didUpdateWidget(CatalogAssetView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.picture != widget.picture) {
+    if (oldWidget.asset != widget.asset || oldWidget.cache != widget.cache) {
       _loaded = null;
       _resolve();
     }
@@ -54,13 +116,13 @@ class _ProfilePictureViewState extends ConsumerState<ProfilePictureView> {
 
   void _resolve() {
     final request = ++_request;
-    final cache = ref.read(profilePictureCacheProvider);
-    final ready = cache.peek(widget.picture);
+    final cache = ref.read(widget.cache);
+    final ready = cache.peek(widget.asset);
     if (ready != null) {
       _loaded = ready;
       return;
     }
-    cache.load(widget.picture).then((loaded) {
+    cache.load(widget.asset).then((loaded) {
       if (!mounted || request != _request || loaded == null) return;
       setState(() => _loaded = loaded);
     });

@@ -271,7 +271,7 @@ currency for `purchase` items). Level milestones are derived from the
 | `idem:{userId}:{key}` / `…:lock` | string | 24 h / 30 s | cached successful claim/purchase response |
 | `au:d:{yyyymmdd}`, `au:w:{yyyy-Www}` | HyperLogLog | 40 days | pseudonymous active-user sketches |
 | `seat:{userId}` (+ `…:lease`, 5 s) | string | 1 h | seat summary cache (level, non-starter loadout, equipped profile-picture id) for room joins; deleted after level-ups, equips and profile-picture applies ([architecture.md → PostgreSQL on the hot path](architecture.md#postgresql-on-the-hot-path)) |
-| `emotes:{userId}` | set | 1 h | owned non-starter emotes for `chat.emote`; grants add to it, misses are confirmed in PostgreSQL |
+| `emotes:{userId}` | set | 1 h | owned non-starter emotes (catalogue and Store `em_…` emotes) for `chat.emote`; grants add to it, misses are confirmed in PostgreSQL |
 | `rl:invite_user:…`, `rl:friend_request_user:…`, `rl:report_user:…`, `rl:report_read_user:…`, `rl:admin_ip:…` | counter | window | rate limits |
 | read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}`, `user:{userId}:room`, `botsess:{uid}`, `botprof:{uid}` | | | set by the gateway / profile service / room engine (reports verify seats; friend requests and recent players find bots) |
 

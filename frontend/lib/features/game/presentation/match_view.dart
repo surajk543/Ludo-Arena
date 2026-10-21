@@ -247,7 +247,12 @@ class _MatchViewState extends ConsumerState<MatchView> {
       case QuickChatReceived(:final chat, :final fromSelf):
         _showBubble(chat.seat, fromSelf, text: chat.msg);
       case EmoteReceived(:final emote, :final fromSelf):
-        _showBubble(emote.seat, fromSelf, emoteId: emote.emote);
+        _showBubble(
+          emote.seat,
+          fromSelf,
+          emoteId: emote.emote,
+          emoteAsset: emote.asset,
+        );
       case RoomCleared(:final reason):
         if (_leaving || _navigating) return;
         _navigating = true;
@@ -421,7 +426,13 @@ class _MatchViewState extends ConsumerState<MatchView> {
 
   // ---------------------------------------------------------- chat
 
-  void _showBubble(int seat, bool fromSelf, {String? text, String? emoteId}) {
+  void _showBubble(
+    int seat,
+    bool fromSelf, {
+    String? text,
+    String? emoteId,
+    EmoteAsset? emoteAsset,
+  }) {
     final policy = ChatMutePolicy(
       settingsMuted: ref.read(settingsControllerProvider).quickChatMuted,
       localMuted: _localMute,
@@ -431,7 +442,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
     final l10n = AppLocalizations.of(context);
     final line = text == null ? null : PlayText.quickChat(l10n, text);
     if (text != null && line == null) return; // unknown id: never shown raw
-    _bubbles.show(seat, text: line, emoteId: emoteId);
+    _bubbles.show(seat, text: line, emoteId: emoteId, emoteAsset: emoteAsset);
     _feedback.chat();
   }
 

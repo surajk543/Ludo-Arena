@@ -151,3 +151,24 @@ var QuickChat = map[string]bool{
 	"gg": true, "nice_move": true, "well_played": true, "rematch": true,
 	"again": true, "good_luck": true, "oops": true, "thanks": true,
 }
+
+// MaxEmoteID is the longest emote id a chat.emote may name (Store emote ids
+// are "em_" + up to 61 characters).
+const MaxEmoteID = 64
+
+// ChatEmote is the chat.emote broadcast (not versioned).
+type ChatEmote struct {
+	RoomID string `json:"roomId"`
+	Seat   int    `json:"seat"`
+	Emote  string `json:"emote"`
+	// Asset is the art of a Store emote (em_… ids) so every receiver can
+	// download (POST /assets/sign) and cache it; absent for built-in emotes.
+	Asset *EmoteAsset `json:"asset,omitempty"`
+}
+
+// EmoteAsset is the downloadable art of a Store emote: an immutable object
+// path in the private asset bucket and its format (lottie | image).
+type EmoteAsset struct {
+	Path   string `json:"path"`
+	Format string `json:"format"`
+}

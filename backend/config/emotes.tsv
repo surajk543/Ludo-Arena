@@ -1,0 +1,90 @@
+id	name	format	source_key	path	price_diamonds	sort_order
+em_angry	Angry	lottie	emojis/angry.json	emotes/angry.json	25	10
+em_astonished	Astonished	lottie	emojis/astonished.json	emotes/astonished.json	10	20
+em_back_hand	Back Hand	lottie	emojis/back-hand.json	emotes/back-hand.json	25	30
+em_bandage_face	Bandage Face	lottie	emojis/bandage-face.json	emotes/bandage-face.json	20	40
+em_blush	Blush	lottie	emojis/blush.json	emotes/blush.json	40	50
+em_bunny	Bunny	lottie	emojis/bunny.json	emotes/bunny.json	15	60
+em_chill_face	Chill Face	lottie	emojis/chill-face.json	emotes/chill-face.json	40	70
+em_clapping_hands	Clapping Hands	lottie	emojis/clapping-hands.json	emotes/clapping-hands.json	40	80
+em_cold_face	Cold Face	lottie	emojis/cold-face.json	emotes/cold-face.json	40	90
+em_confounded	Confounded	lottie	emojis/confounded.json	emotes/confounded.json	40	100
+em_cowboy_hat_face	Cowboy Hat Face	lottie	emojis/cowboy-hat-face.json	emotes/cowboy-hat-face.json	40	110
+em_crazy_face	Crazy Face	lottie	emojis/crazy-face.json	emotes/crazy-face.json	25	120
+em_crying	Crying	lottie	emojis/crying.json	emotes/crying.json	40	130
+em_crying_2	Crying 2	lottie	emojis/crying-2.json	emotes/crying-2.json	20	140
+em_crying_face	Crying Face	lottie	emojis/crying-face.json	emotes/crying-face.json	20	150
+em_devil	Devil	lottie	emojis/devil.json	emotes/devil.json	40	160
+em_dizzy	Dizzy	lottie	emojis/dizzy.json	emotes/dizzy.json	15	170
+em_dollar	Dollar	lottie	emojis/dollar.json	emotes/dollar.json	25	180
+em_drool	Drool	lottie	emojis/drool.json	emotes/drool.json	35	190
+em_eat	Eat	lottie	emojis/eat.json	emotes/eat.json	10	200
+em_enraged_face	Enraged Face	lottie	emojis/enraged-face.json	emotes/enraged-face.json	25	210
+em_exhausted_face	Exhausted Face	lottie	emojis/exhausted-face.json	emotes/exhausted-face.json	30	220
+em_expensive	Expensive	lottie	emojis/expensive.json	emotes/expensive.json	15	230
+em_eyes	Eyes	lottie	emojis/eyes.json	emotes/eyes.json	20	240
+em_face_blowing_a_kiss	Face Blowing A Kiss	lottie	emojis/face-blowing-a-kiss.json	emotes/face-blowing-a-kiss.json	35	250
+em_face_exhaling	Face Exhaling	lottie	emojis/face-exhaling.json	emotes/face-exhaling.json	40	260
+em_face_with_raised_eyebrow	Face With Raised Eyebrow	lottie	emojis/face-with-raised-eyebrow.json	emotes/face-with-raised-eyebrow.json	40	270
+em_fist	Fist	lottie	emojis/fist.json	emotes/fist.json	10	280
+em_fist_2	Fist 2	lottie	emojis/fist-2.json	emotes/fist-2.json	10	290
+em_flushed	Flushed	lottie	emojis/flushed.json	emotes/flushed.json	35	300
+em_flushed_2	Flushed 2	lottie	emojis/flushed-2.json	emotes/flushed-2.json	30	310
+em_frowning_face	Frowning Face	lottie	emojis/frowning-face.json	emotes/frowning-face.json	10	320
+em_grimacing	Grimacing	lottie	emojis/grimacing.json	emotes/grimacing.json	30	330
+em_gum	Gum	lottie	emojis/gum.json	emotes/gum.json	20	340
+em_heart_face	Heart Face	lottie	emojis/heart-face.json	emotes/heart-face.json	35	350
+em_hi_face	Hi Face	lottie	emojis/hi-face.json	emotes/hi-face.json	15	360
+em_hot_face	Hot Face	lottie	emojis/hot-face.json	emotes/hot-face.json	35	370
+em_hot_face_2	Hot Face 2	lottie	emojis/hot-face-2.json	emotes/hot-face-2.json	30	380
+em_innocent	Innocent	lottie	emojis/innocent.json	emotes/innocent.json	40	390
+em_joy	Joy	lottie	emojis/joy.json	emotes/joy.json	40	400
+em_kiss_face	Kiss Face	lottie	emojis/kiss-face.json	emotes/kiss-face.json	30	410
+em_kissing	Kissing	lottie	emojis/kissing.json	emotes/kissing.json	30	420
+em_knife	Knife	lottie	emojis/knife.json	emotes/knife.json	25	430
+em_knife_2	Knife 2	lottie	emojis/knife-2.json	emotes/knife-2.json	10	440
+em_liar	Liar	lottie	emojis/liar.json	emotes/liar.json	20	450
+em_liar_2	Liar 2	lottie	emojis/liar-2.json	emotes/liar-2.json	35	460
+em_line_emoji	Line Emoji	lottie	emojis/line-emoji.json	emotes/line-emoji.json	25	470
+em_love_gesture	Love Gesture	lottie	emojis/love-gesture.json	emotes/love-gesture.json	10	480
+em_money_mouth	Money Mouth	lottie	emojis/money-mouth.json	emotes/money-mouth.json	25	490
+em_muscle	Muscle	lottie	emojis/muscle.json	emotes/muscle.json	20	500
+em_music	Music	lottie	emojis/music.json	emotes/music.json	15	510
+em_no_face	No Face	lottie	emojis/no-face.json	emotes/no-face.json	40	520
+em_ok	Ok	lottie	emojis/ok.json	emotes/ok.json	20	530
+em_ok_2	Ok 2	lottie	emojis/ok-2.json	emotes/ok-2.json	10	540
+em_open_mouth	Open Mouth	lottie	emojis/open-mouth.json	emotes/open-mouth.json	20	550
+em_party	Party	lottie	emojis/party.json	emotes/party.json	25	560
+em_party_2	Party 2	lottie	emojis/party-2.json	emotes/party-2.json	35	570
+em_pensive	Pensive	lottie	emojis/pensive.json	emotes/pensive.json	10	580
+em_persevere	Persevere	lottie	emojis/persevere.json	emotes/persevere.json	15	590
+em_plane_face	Plane Face	lottie	emojis/plane-face.json	emotes/plane-face.json	30	600
+em_rage	Rage	lottie	emojis/rage.json	emotes/rage.json	35	610
+em_rage_2	Rage 2	lottie	emojis/rage-2.json	emotes/rage-2.json	35	620
+em_rainbow	Rainbow	lottie	emojis/rainbow.json	emotes/rainbow.json	40	630
+em_rolling_eyes	Rolling Eyes	lottie	emojis/rolling-eyes.json	emotes/rolling-eyes.json	10	640
+em_sad	Sad	lottie	emojis/sad.json	emotes/sad.json	20	650
+em_scream	Scream	lottie	emojis/scream.json	emotes/scream.json	25	660
+em_sick	Sick	lottie	emojis/sick.json	emotes/sick.json	30	670
+em_sick_2	Sick 2	lottie	emojis/sick-2.json	emotes/sick-2.json	25	680
+em_silent_money	Silent Money	lottie	emojis/silent-money.json	emotes/silent-money.json	35	690
+em_sleeping	Sleeping	lottie	emojis/sleeping.json	emotes/sleeping.json	25	700
+em_sleeping_2	Sleeping 2	lottie	emojis/sleeping-2.json	emotes/sleeping-2.json	30	710
+em_sleeping_3	Sleeping 3	lottie	emojis/sleeping-3.json	emotes/sleeping-3.json	20	720
+em_smiley	Smiley	lottie	emojis/smiley.json	emotes/smiley.json	15	730
+em_smoking	Smoking	lottie	emojis/smoking.json	emotes/smoking.json	30	740
+em_squinting_face_with_tongue	Squinting Face With Tongue	lottie	emojis/squinting-face-with-tongue.json	emotes/squinting-face-with-tongue.json	10	750
+em_stuck_out_tongue	Stuck Out Tongue	lottie	emojis/stuck-out-tongue.json	emotes/stuck-out-tongue.json	20	760
+em_sunglasses	Sunglasses	lottie	emojis/sunglasses.json	emotes/sunglasses.json	30	770
+em_tasty	Tasty	lottie	emojis/tasty.json	emotes/tasty.json	10	780
+em_thermometer	Thermometer	lottie	emojis/thermometer.json	emotes/thermometer.json	20	790
+em_thinking	Thinking	lottie	emojis/thinking.json	emotes/thinking.json	10	800
+em_tongue_face	Tongue Face	lottie	emojis/tongue-face.json	emotes/tongue-face.json	35	810
+em_unamused	Unamused	lottie	emojis/unamused.json	emotes/unamused.json	10	820
+em_unamused_2	Unamused 2	lottie	emojis/unamused-2.json	emotes/unamused-2.json	15	830
+em_upside_down	Upside Down	lottie	emojis/upside-down.json	emotes/upside-down.json	30	840
+em_v_sign	V Sign	lottie	emojis/v-sign.json	emotes/v-sign.json	25	850
+em_vomiting	Vomiting	lottie	emojis/vomiting.json	emotes/vomiting.json	25	860
+em_weary	Weary	lottie	emojis/weary.json	emotes/weary.json	15	870
+em_woozy	Woozy	lottie	emojis/woozy.json	emotes/woozy.json	30	880
+em_zipper_mouth	Zipper Mouth	lottie	emojis/zipper-mouth.json	emotes/zipper-mouth.json	20	890

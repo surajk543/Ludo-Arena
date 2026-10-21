@@ -25,6 +25,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
+	"ludoroyale/internal/assets"
 	"ludoroyale/internal/gameevents"
 	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/profile"
@@ -100,6 +101,7 @@ type Service struct {
 	minMatch time.Duration
 
 	pics      pictures      // profile-picture catalogue snapshot (pictures.go)
+	emos      pictures      // Store emote catalogue snapshot (emotes.go)
 	picReload time.Duration // catalogue reload interval
 	signer    AssetSigner   // nil: asset signing unavailable
 
@@ -159,16 +161,28 @@ func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, notif
 	if err := s.ReloadPictures(ctx); err != nil {
 		return nil, fmt.Errorf("load profile-picture catalogue: %w", err)
 	}
-	log.Info("profile-picture catalogue loaded", "pictures", len(s.pics.get().rows),
-		"active", len(s.pics.get().active), "assetSigning", s.signer != nil)
+	if err := s.ReloadEmotes(ctx); err != nil {
+		return nil, fmt.Errorf("load emote catalogue: %w", err)
+	}
+	log.Info("profile-picture and emote catalogues loaded", "pictures", len(s.pics.get().rows),
+		"active", len(s.pics.get().active), "emotes", len(s.emos.get().rows),
+		"activeEmotes", len(s.emos.get().active), "assetSigning", s.signer != nil)
 	return s, nil
 }
 
 // Catalog returns the cosmetics catalog.
 func (s *Service) Catalog() *Catalog { return s.catalog }
 
-// CatalogItems implements playerinfo.CatalogSource (bot personas).
-func (s *Service) CatalogItems() []playerinfo.CatalogItem { return s.catalog.BotItems() }
+// CatalogItems implements playerinfo.CatalogSource (bot personas): the
+// cosmetics catalogue plus the active Store emotes, which a persona may own
+// like a player who bought them (no wallet, no inventory).
+func (s *Service) CatalogItems() []playerinfo.CatalogItem {
+	items := s.catalog.BotItems()
+	for _, r := range s.emos.get().active {
+		items = append(items, playerinfo.CatalogItem{ID: r.ID, Kind: KindEmote, Purchase: true, StoreEmote: true})
+	}
+	return items
+}
 
 var _ playerinfo.CatalogSource = (*Service)(nil)
 
@@ -422,7 +436,12 @@ func (s *Service) loadoutRows(ctx context.Context, q querier, ids []uuid.UUID) (
 // ---------------------------------------------------------------- inventory
 
 // Owns implements gameevents.Inventory. Starter items are always owned.
+// Store emotes (em_… ids, emotes.go) are answered like the other non-starter
+// emotes, from the cached set of owned emotes.
 func (s *Service) Owns(ctx context.Context, userID uuid.UUID, itemID string) (bool, error) {
+	if assets.ValidEmoteID(itemID) {
+		return s.ownsStoreEmote(ctx, userID, itemID)
+	}
 	it := s.catalog.Get(itemID)
 	if it == nil {
 		return false, nil
@@ -626,7 +645,7 @@ func (s *Service) purgeBatches(ctx context.Context, sql string, args ...any) (in
 // catalogue reload) until ctx is cancelled. Running it on several instances
 // is harmless.
 func (s *Service) Run(ctx context.Context) {
-	go s.runPictureReload(ctx)
+	go s.runCatalogueReload(ctx)
 	t := time.NewTimer(time.Minute)
 	defer t.Stop()
 	for {

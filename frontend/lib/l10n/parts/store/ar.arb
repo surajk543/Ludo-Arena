@@ -21,5 +21,11 @@
   "storeAllOwnedMessage": "كل ما هنا موجود بالفعل في مجموعتك.",
   "storeViewInCollection": "عرض في المجموعة",
   "storeLoadMoreFailed": "تعذّر تحميل المزيد من الصور.",
-  "storeTileSemantics": "{name}، {status}"
+  "storeTileSemantics": "{name}، {status}",
+  "storeEmotesHeroTitle": "تعبيرات متحركة",
+  "storeEmotesHeroSubtitle": "أرسلها في أي مباراة. اشترِها مرة واحدة بالماس واحتفظ بها إلى الأبد.",
+  "storeEmoteKind": "تعبير متحرك",
+  "storeEmoteUseInMatchNote": "أرسله من زر الدردشة أثناء المباراة.",
+  "storeEmotesLoadMoreFailed": "تعذّر تحميل المزيد من التعبيرات.",
+  "storeEmotesOwnedEmpty": "ستظهر هنا التعبيرات المتحركة التي تشتريها من المتجر."
 }

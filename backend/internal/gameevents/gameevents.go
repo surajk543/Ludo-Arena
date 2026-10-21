@@ -94,6 +94,11 @@ type Inviter interface {
 // Inventory answers cosmetic ownership questions (implemented by progression).
 type Inventory interface {
 	Owns(ctx context.Context, userID uuid.UUID, itemID string) (bool, error)
+	// EmoteAsset returns the downloadable art (object path in the private
+	// asset bucket and its format) of a Store emote, or ok false for any other
+	// id (built-in emotes are drawn by the app). It reads an in-memory
+	// snapshot: no I/O.
+	EmoteAsset(itemID string) (path, format string, ok bool)
 }
 
 type errorString string

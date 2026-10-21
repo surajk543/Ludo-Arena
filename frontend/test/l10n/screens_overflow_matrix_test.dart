@@ -145,6 +145,7 @@ void main() {
             env.backend.offline = true;
           case 'shop':
             routeStore(env);
+            routeStoreEmotes(env);
             env.backend.json('GET', '/collection', collectionJson());
         }
         await pumpScreen(

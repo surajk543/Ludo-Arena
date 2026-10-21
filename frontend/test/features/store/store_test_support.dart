@@ -103,3 +103,86 @@ void routeStore(
     );
   });
 }
+
+/// Store emote JSON (`ShopEmote`) shaped like the real manifest rows.
+Map<String, dynamic> shopEmoteJson(
+  int i, {
+  String? name,
+  int? price,
+  bool owned = false,
+}) => {
+  'id': 'em_item_$i',
+  'name': name ?? 'Emote $i',
+  'format': 'lottie',
+  'path': 'emotes/item-$i.json',
+  'price': {'diamonds': price ?? 10 + i % 31},
+  'owned': owned,
+};
+
+/// The test emote shelf: 30 emotes. #1 and #2 owned, #3 costs 60 diamonds
+/// (the test wallet has 50), a long name on #4.
+List<Map<String, dynamic>> emoteShelf() => [
+  for (var i = 0; i < 30; i++)
+    shopEmoteJson(
+      i,
+      name: i == 4 ? 'Face With Open Eyes And Hand Over Mouth' : null,
+      price: switch (i) {
+        0 => 10,
+        3 => 60,
+        _ => null,
+      },
+      owned: i == 1 || i == 2,
+    ),
+];
+
+Map<String, dynamic> emotePageJson(
+  List<Map<String, dynamic>> items, {
+  String? nextCursor,
+  int? total,
+}) => {
+  'items': items,
+  'nextCursor': nextCursor,
+  'total': total ?? items.length,
+};
+
+/// `GET /store/emotes` over [shelf] (returned, mutable: a test marks an
+/// emote owned by setting its `owned`), paged by [pageSize] with cursors
+/// `c<offset>`, honouring `filter` and `excludeOwned`.
+/// `filter=owned&excludeOwned=true` is a 400 like the server.
+List<Map<String, dynamic>> routeStoreEmotes(
+  TestEnv env, {
+  List<Map<String, dynamic>>? shelf,
+  int pageSize = 24,
+}) {
+  final all = shelf ?? emoteShelf();
+  env.backend.on('GET', '/store/emotes', (req) {
+    final filter = req.query['filter'] ?? 'all';
+    final excludeOwned = req.query['excludeOwned'] == 'true';
+    if (excludeOwned && filter == 'owned') {
+      return FakeResponse.error(400, 'bad_request');
+    }
+    final items = [
+      for (final i in all)
+        if (!(excludeOwned && i['owned'] == true) &&
+            (filter != 'owned' || i['owned'] == true))
+          i,
+    ];
+    final limit = int.tryParse(req.query['limit'] as String? ?? '') ?? pageSize;
+    final size = limit < pageSize ? limit : pageSize;
+    final cursor = req.query['cursor'] as String?;
+    final start = (cursor == null ? 0 : int.parse(cursor.substring(1))).clamp(
+      0,
+      items.length,
+    );
+    final end = (start + size).clamp(0, items.length);
+    return FakeResponse(
+      200,
+      emotePageJson(
+        items.sublist(start, end),
+        nextCursor: end < items.length ? 'c$end' : null,
+        total: items.length,
+      ),
+    );
+  });
+  return all;
+}
