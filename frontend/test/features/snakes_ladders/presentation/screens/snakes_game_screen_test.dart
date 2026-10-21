@@ -126,7 +126,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 150));
     }
     expect(find.text('Bolt (bot) is playing…'), findsOneWidget);
-    expect(find.text('Square 44'), findsOneWidget);
+    // The mover's pod presents the new square (shown as "44" beside the
+    // avatar on card pods; the full text is in the pod's label).
+    final semantics = tester.ensureSemantics();
+    expect(find.bySemanticsLabel(RegExp(r'Square 44')), findsOneWidget);
+    semantics.dispose();
     expect(h.audio.played, isNotEmpty);
   });
 }
