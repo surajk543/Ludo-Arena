@@ -826,12 +826,13 @@ class _MatchViewState extends ConsumerState<MatchView> {
                               ),
                             ),
                       ),
-                      dice: _DiceDock(
+                      dice: (size) => _DiceDock(
                         binding: stage.binding,
                         room: presented,
                         enabled: canRoll,
                         onRoll: _roll,
                         reducedMotion: reduce,
+                        size: size,
                       ),
                       status: _StatusLine(
                         room: presented,
@@ -1004,7 +1005,9 @@ class _MatchLayout extends StatelessWidget {
   /// Players muted from their pod (a muted icon on the pod).
   final Set<String> mutedUids;
   final Widget topBar;
-  final Widget dice;
+
+  /// The dice dock at a diameter (see [_PortraitFit.dock]).
+  final Widget Function(double size) dice;
   final Widget status;
 
   RoomPlayer? _at(_Corner corner) {
@@ -1015,7 +1018,7 @@ class _MatchLayout extends StatelessWidget {
     return null;
   }
 
-  Widget _panel(BuildContext context, RoomPlayer? p, {bool stacked = false}) {
+  Widget _panel(BuildContext context, RoomPlayer? p, {double? height}) {
     if (p == null) return const SizedBox.shrink();
     final ambient = Directionality.of(context);
     final link = links.putIfAbsent(p.seat, LayerLink.new);
@@ -1030,7 +1033,7 @@ class _MatchLayout extends StatelessWidget {
           isSelf: p.seat == selfSeat,
           isTurn: isTurn,
           turnTotalMs: isTurn ? turnTotal(room) : 20000,
-          stacked: stacked,
+          height: height,
           muted: p.seat != selfSeat && mutedUids.contains(p.uid),
           onTap: p.seat == selfSeat ? null : () => onPlayerTap(p),
         ),
@@ -1044,63 +1047,82 @@ class _MatchLayout extends StatelessWidget {
       builder: (context, constraints) {
         final wide = constraints.maxWidth > constraints.maxHeight * 1.15;
         if (wide) return _landscape(context, constraints);
-        return _portrait(context, constraints);
+        return _portrait(context);
       },
     );
   }
 
-  Widget _portrait(BuildContext context, BoxConstraints constraints) {
-    const diceSlot = 84.0;
-    // Large card pods when two rows of them fit around a full-width board
-    // (most phones have spare height there); otherwise compact row pods, so
-    // the (slightly taller than wide) board keeps its full width.
-    const stackedPodHeight = 136.0;
-    const chromeHeight = 116.0; // top bar + status line + paddings
-    final stacked =
-        constraints.maxHeight - chromeHeight - 2 * stackedPodHeight >=
-        (constraints.maxWidth - 12) / boardAspectRatio * 0.96;
+  Widget _portrait(BuildContext context) {
     final ambient = Directionality.of(context);
-    Widget row(_Corner start, _Corner end, Widget middle) => Directionality(
-      // Panels follow the board's physical corners (the board is LTR).
-      textDirection: TextDirection.ltr,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(child: _panel(context, _at(start), stacked: stacked)),
-          Directionality(textDirection: ambient, child: middle),
-          Expanded(child: _panel(context, _at(end), stacked: stacked)),
-        ],
-      ),
-    );
-
     return Column(
       children: [
         topBar,
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-          child: row(
-            _Corner.topLeft,
-            _Corner.topRight,
-            // Same middle width as the dice slot below, so all four pods
-            // get the same width (and size tier).
-            const SizedBox(width: diceSlot),
-          ),
-        ),
+        // Measured below the top bar and above the status line (both follow
+        // the text scale), inside the SafeArea.
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-            child: Center(child: board),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-          child: row(
-            _Corner.bottomLeft,
-            _Corner.bottomRight,
-            SizedBox(
-              width: diceSlot,
-              child: Center(child: dice),
-            ),
+          child: LayoutBuilder(
+            builder: (context, area) {
+              final fit = _PortraitFit(context, area.biggest, boardAspectRatio);
+              Widget row(
+                _Corner start,
+                _Corner end,
+                Widget middle,
+              ) => Directionality(
+                // Panels follow the board's physical corners (the
+                // board is LTR).
+                textDirection: TextDirection.ltr,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: _panel(context, _at(start), height: fit.podHeight),
+                    ),
+                    Directionality(textDirection: ambient, child: middle),
+                    Expanded(
+                      child: _panel(context, _at(end), height: fit.podHeight),
+                    ),
+                  ],
+                ),
+              );
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      _PortraitFit.sidePad,
+                      _PortraitFit.topGap,
+                      _PortraitFit.sidePad,
+                      0,
+                    ),
+                    child: row(
+                      _Corner.topLeft,
+                      _Corner.topRight,
+                      // Same middle width as the dice slot below, so all
+                      // four pods get the same width (and size).
+                      SizedBox(width: fit.diceSlot),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(_PortraitFit.boardPad),
+                      child: Center(child: board),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: _PortraitFit.sidePad,
+                    ),
+                    child: row(
+                      _Corner.bottomLeft,
+                      _Corner.bottomRight,
+                      SizedBox(
+                        width: fit.diceSlot,
+                        child: Center(child: dice(fit.dock)),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         status,
@@ -1135,7 +1157,7 @@ class _MatchLayout extends StatelessWidget {
                         const SizedBox(height: AppSpacing.sm),
                       ],
                       const SizedBox(height: AppSpacing.sm),
-                      Center(child: dice),
+                      Center(child: dice(_DiceDock.defaultSize)),
                       status,
                     ],
                   ),
@@ -1147,6 +1169,66 @@ class _MatchLayout extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Portrait sizing between the top bar and the status line: the board keeps
+/// its full width (area width − 2 × [boardPad]) at its own aspect ratio, and
+/// the two pod rows split the height left over, so pods and board fill the
+/// screen instead of leaving gaps around the board. Pods never take height
+/// from the board: shorter than a row pod, they keep their natural size.
+class _PortraitFit {
+  factory _PortraitFit(
+    BuildContext context,
+    Size area,
+    double boardAspectRatio,
+  ) {
+    final board = (area.width - 2 * boardPad) / boardAspectRatio;
+    final podHeight = ((area.height - topGap - 2 * boardPad - board) / 2)
+        .floorToDouble();
+    return _PortraitFit._(podHeight, _dockFor(context, area, podHeight));
+  }
+
+  _PortraitFit._(this.podHeight, this.dock);
+
+  /// The dock grows a little with tall rows, but only into width the pods
+  /// cannot use (their avatars are limited by the height). In 64–80 dp rows
+  /// it shrinks to the row, so the bottom row is no taller than the pods
+  /// and the board keeps its width; in shorter (cramped) layouts, where
+  /// the board gives way anyway, it keeps its default size.
+  static double _dockFor(BuildContext context, Size area, double podHeight) {
+    if (podHeight < _DiceDock.minSize) return _DiceDock.defaultSize;
+    if (podHeight < _DiceDock.defaultSize) return podHeight;
+    final podWidth = (area.width - 2 * sidePad - _baseSlot) / 2;
+    final spare = math.max(
+      0.0,
+      podWidth - PlayerPanel.fillWidthFor(context, podHeight),
+    );
+    return math
+        .min(
+          (podHeight * 0.75).clamp(_DiceDock.defaultSize, _DiceDock.maxSize),
+          _DiceDock.defaultSize + 2 * spare,
+        )
+        .floorToDouble();
+  }
+
+  /// Middle slot for the default dock.
+  static const double _baseSlot = _DiceDock.defaultSize + 4;
+
+  static const double sidePad = 8;
+  static const double topGap = 4;
+
+  /// Between the pod rows and the board (and at the board's sides).
+  static const double boardPad = 6;
+
+  /// Height each pod row may fill (see [PlayerPanel.height]).
+  final double podHeight;
+
+  /// Dice dock diameter.
+  final double dock;
+
+  /// Middle slot of both pod rows (dock + 4 dp): all four pods share the
+  /// same width.
+  double get diceSlot => dock + 4;
 }
 
 class _TopBar extends StatelessWidget {
@@ -1226,13 +1308,21 @@ class _DiceDock extends StatelessWidget {
     required this.enabled,
     required this.onRoll,
     required this.reducedMotion,
+    this.size = defaultSize,
   });
+
+  static const double defaultSize = 80;
+  static const double minSize = 64;
+  static const double maxSize = 92;
 
   final MatchBoardBinding binding;
   final RoomSnapshot room;
   final bool enabled;
   final VoidCallback onRoll;
   final bool reducedMotion;
+
+  /// Dock diameter; the die is 70 % of it (56 dp in the 80 dp dock).
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -1247,8 +1337,8 @@ class _DiceDock extends StatelessWidget {
       onTap: enabled ? onRoll : null,
       excludeFromSemantics: true,
       child: Container(
-        width: 80,
-        height: 80,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: c.surface.withValues(alpha: c.isDark ? 0.6 : 0.85),
@@ -1269,7 +1359,7 @@ class _DiceDock extends StatelessWidget {
         child: DiceView(
           controller: binding.dice,
           skin: DiceSkins.resolve(current?.cosmetics.dice),
-          size: 56,
+          size: (size * 0.7).roundToDouble(),
           enabled: enabled,
           onTap: enabled ? onRoll : null,
           accent: accent,

@@ -175,6 +175,10 @@ func TestSeatAndEmoteCachesE2E(t *testing.T) {
 	ctx := context.Background()
 	a := e.guest()
 	caller := rooms.Caller{UserID: a.UserID}
+	// Shop items cost more diamonds than the welcome grant.
+	if _, err := e.app.PG.Exec(ctx, `UPDATE wallet.wallets SET diamonds = 1000 WHERE user_id = $1`, a.UserID); err != nil {
+		t.Fatal(err)
+	}
 	for _, item := range []string{"token_crown", "emote_crown"} {
 		if r := e.do("POST", "/api/v1/collection/items/"+item+"/purchase", a.Token, nil); r.Status != 200 {
 			t.Fatalf("purchase %s: %d %s", item, r.Status, r.Raw)
