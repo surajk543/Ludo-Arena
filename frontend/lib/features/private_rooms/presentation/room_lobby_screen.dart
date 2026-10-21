@@ -612,7 +612,6 @@ class _SeatTile extends StatelessWidget {
                     avatarIndex: player.avatar,
                     frameId: player.cosmetics.frame,
                     size: 56,
-                    isBot: player.bot,
                     seatColor: seat,
                     dimmed: !player.connected,
                     semanticLabel: name,

@@ -305,12 +305,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonNothingHereYet => 'Belum ada apa-apa';
 
   @override
-  String get commonBotBadge => 'BOT';
-
-  @override
-  String get commonBotPlayerLabel => 'Pemain komputer';
-
-  @override
   String get commonYou => 'Kamu';
 
   @override
@@ -2294,7 +2288,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get playPracticeNote =>
-      'Latihan gratis dan tidak memberi koin. Bot adalah pemain komputer dan selalu diberi lencana bot.';
+      'Latihan gratis dan tidak memberi koin. Kamu bermain melawan pemain komputer.';
 
   @override
   String get playPracticeSettingUp => 'Menyiapkan meja latihanmu…';
@@ -2329,7 +2323,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String playTurnBot(String name) {
-    return '$name (bot) sedang bermain…';
+    return '$name sedang bermain…';
   }
 
   @override
@@ -2512,8 +2506,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get playRewardNoCoinsBots =>
-      'Pertandingan dengan bot tidak memberi koin.';
+  String get playRewardNoCoinsMatch => 'Pertandingan ini tidak memberi koin.';
 
   @override
   String get playRewardNoCoins =>

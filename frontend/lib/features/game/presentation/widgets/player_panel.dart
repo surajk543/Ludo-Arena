@@ -10,8 +10,7 @@ import '../../../../shared/game_visuals/game_visuals.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../play_text.dart';
 
-/// Per-seat summary shown around the board: avatar with frame + BOT badge,
-/// name, seat color, connection / forfeit state, missed-turn strikes and
+/// Per-seat summary shown around the board: avatar with frame, name, seat color, connection / forfeit state, missed-turn strikes and
 /// progress (Ludo tokens home, Snakes square). The current turn is
 /// emphasised with a seat-colored glow and a server-clock [CountdownRing].
 ///
@@ -88,7 +87,6 @@ class PlayerPanel extends StatelessWidget {
       avatarIndex: player.avatar,
       frameId: player.cosmetics.frame,
       size: avatarSize,
-      isBot: player.bot,
       seatColor: _seat,
       dimmed: out || offline,
       semanticLabel: name,
@@ -114,7 +112,6 @@ class PlayerPanel extends StatelessWidget {
     final semantics = [
       name,
       if (isSelf) l10n.commonYou,
-      if (player.bot) l10n.commonBotPlayerLabel,
       if (isTurn) l10n.playPanelTurnA11y,
       if (offline) l10n.playPlayerDisconnected,
       if (out) l10n.playPlayerForfeited,
@@ -128,13 +125,7 @@ class PlayerPanel extends StatelessWidget {
               ? Colors.white.withValues(alpha: 0.08)
               : c.outline.withValues(alpha: 0.7));
 
-    // In the compact row layout the avatar's own badge already reads
-    // "BOT", so a leading "Bot " in the name is dropped to make room.
-    final shownName = isSelf
-        ? l10n.commonYou
-        : (!stacked && player.bot && avatarSize >= 36)
-        ? _withoutBotPrefix(name)
-        : name;
+    final shownName = isSelf ? l10n.commonYou : name;
 
     Widget nameLine({required bool center, bool strikes = false}) => Row(
       mainAxisAlignment: center
@@ -162,15 +153,6 @@ class PlayerPanel extends StatelessWidget {
             ),
           ),
         ),
-        // Below 36 dp the avatar badge shows only a glyph: repeat the label.
-        if (player.bot && avatarSize < 36) ...[
-          const SizedBox(width: 3),
-          const FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: AlignmentDirectional.centerStart,
-            child: BotBadge(height: 16),
-          ),
-        ],
         if (strikes && player.strikes > 0) ...[
           const SizedBox(width: 4),
           _Strikes(count: player.strikes),
@@ -460,13 +442,6 @@ double _lineHeight(BuildContext context, TextStyle? style) {
   final height = painter.height;
   painter.dispose();
   return height;
-}
-
-String _withoutBotPrefix(String name) {
-  final m = RegExp(r'^bot\s+', caseSensitive: false).firstMatch(name);
-  if (m == null) return name;
-  final rest = name.substring(m.end).trim();
-  return rest.isEmpty ? name : rest;
 }
 
 /// Pod dimensions by available width: the pod grows on roomy layouts

@@ -40,7 +40,20 @@ abstract final class PlayText {
     _ => null,
   };
 
-  /// Player display name; empty names fall back to a neutral label.
-  static String playerName(AppLocalizations l10n, RoomPlayer p) =>
-      p.name.trim().isEmpty ? l10n.playSeatPlayer(p.seat + 1) : p.name.trim();
+  /// Player display name; empty names fall back to a neutral label. Bots
+  /// are never labelled, so a legacy leading "Bot " in a bot's name is
+  /// dropped.
+  static String playerName(AppLocalizations l10n, RoomPlayer p) {
+    final name = p.name.trim();
+    if (name.isEmpty) return l10n.playSeatPlayer(p.seat + 1);
+    return p.bot ? withoutBotPrefix(name) : name;
+  }
+
+  /// `Bot Bolt` → `Bolt` (unchanged when nothing would remain).
+  static String withoutBotPrefix(String name) {
+    final m = RegExp(r'^bot\s+', caseSensitive: false).firstMatch(name);
+    if (m == null) return name;
+    final rest = name.substring(m.end).trim();
+    return rest.isEmpty ? name : rest;
+  }
 }

@@ -50,9 +50,13 @@ void main() {
   testWidgets('host sees Start, Allow bots, remove-bot and invite', (
     tester,
   ) async {
-    final h = await _pump(tester, selfUid: 'u_0', room: _lobby(allowBots: true));
+    final h = await _pump(
+      tester,
+      selfUid: 'u_0',
+      room: _lobby(allowBots: true),
+    );
     expect(find.text('K7Q2MX'), findsOneWidget);
-    expect(find.text('BOT'), findsWidgets);
+    expect(find.text('BOT'), findsNothing);
     expect(find.byTooltip('Remove Robo'), findsOneWidget);
     await scrollTo(tester, find.text('Start game'));
     expect(find.text('Start game'), findsOneWidget);

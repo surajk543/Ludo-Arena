@@ -614,18 +614,6 @@ abstract class AppLocalizations {
   /// **'Nothing here yet'**
   String get commonNothingHereYet;
 
-  /// Short badge shown on bot players' avatars. Keep very short (≤ 4 characters if possible).
-  ///
-  /// In en, this message translates to:
-  /// **'BOT'**
-  String get commonBotBadge;
-
-  /// Accessibility label for the BOT badge.
-  ///
-  /// In en, this message translates to:
-  /// **'Computer player'**
-  String get commonBotPlayerLabel;
-
   /// Label for the current user in player lists.
   ///
   /// In en, this message translates to:
@@ -3898,7 +3886,7 @@ abstract class AppLocalizations {
   /// Practice explanation.
   ///
   /// In en, this message translates to:
-  /// **'Practice is free and pays no coins. Bots are computer players and always carry a bot badge.'**
+  /// **'Practice is free and pays no coins. You play against computer players.'**
   String get playPracticeNote;
 
   /// Practice status: creating the table.
@@ -3955,10 +3943,10 @@ abstract class AppLocalizations {
   /// **'{name}\'s turn'**
   String playTurnOther(String name);
 
-  /// Status: a bot player's turn.
+  /// Status: a computer player's turn (bots are never labelled).
   ///
   /// In en, this message translates to:
-  /// **'{name} (bot) is playing…'**
+  /// **'{name} is playing…'**
   String playTurnBot(String name);
 
   /// Ludo: the third six in a row is void.
@@ -4243,11 +4231,11 @@ abstract class AppLocalizations {
   /// **'Wallet: {amount} coins'**
   String playRewardCoinsBalance(String amount);
 
-  /// No coins because a bot was seated.
+  /// No coins from this match (a computer player was seated, or practice).
   ///
   /// In en, this message translates to:
-  /// **'Matches with bots don\'t pay coins.'**
-  String get playRewardNoCoinsBots;
+  /// **'This match doesn\'t pay coins.'**
+  String get playRewardNoCoinsMatch;
 
   /// No coins for a player who did not win.
   ///

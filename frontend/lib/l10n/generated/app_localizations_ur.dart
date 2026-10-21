@@ -307,12 +307,6 @@ class AppLocalizationsUr extends AppLocalizations {
   String get commonNothingHereYet => 'یہاں ابھی کچھ نہیں ہے';
 
   @override
-  String get commonBotBadge => 'بوٹ';
-
-  @override
-  String get commonBotPlayerLabel => 'کمپیوٹر کھلاڑی';
-
-  @override
   String get commonYou => 'آپ';
 
   @override
@@ -2301,7 +2295,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get playPracticeNote =>
-      'پریکٹس مفت ہے اور اس میں سکے نہیں ملتے۔ بوٹس کمپیوٹر کھلاڑی ہیں اور ان پر ہمیشہ بوٹ بیج ہوتا ہے۔';
+      'پریکٹس مفت ہے اور اس میں سکے نہیں ملتے۔ آپ کمپیوٹر کھلاڑیوں کے خلاف کھیلتے ہیں۔';
 
   @override
   String get playPracticeSettingUp => 'آپ کی پریکٹس ٹیبل تیار ہو رہی ہے…';
@@ -2336,7 +2330,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String playTurnBot(String name) {
-    return '$name (بوٹ) کھیل رہا ہے…';
+    return '$name کھیل رہا ہے…';
   }
 
   @override
@@ -2517,7 +2511,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get playRewardNoCoinsBots => 'بوٹس والے میچ میں سکے نہیں ملتے۔';
+  String get playRewardNoCoinsMatch => 'اس میچ میں سکے نہیں ملتے۔';
 
   @override
   String get playRewardNoCoins =>

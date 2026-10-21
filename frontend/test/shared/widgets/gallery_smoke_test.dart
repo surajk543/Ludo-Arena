@@ -63,7 +63,6 @@ class _Gallery extends StatelessWidget {
                   const PlayerAvatar(
                     avatarIndex: 3,
                     frameId: 'frame_royal',
-                    isBot: true,
                     seatColor: SeatColor.green,
                   ),
                   const SizedBox(width: 8),

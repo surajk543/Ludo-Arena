@@ -194,7 +194,6 @@ class _SeatOrbitState extends State<SeatOrbit>
         avatarIndex: player.avatar,
         frameId: player.cosmetics.frame,
         size: seatSize,
-        isBot: player.bot,
         seatColor: SeatColor.tryFromName(player.color),
         semanticLabel: PlayText.playerName(l10n, player),
       );

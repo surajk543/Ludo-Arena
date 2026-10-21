@@ -194,6 +194,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final l10n = AppLocalizations.of(context);
     final winner = view.winner;
     final palette = GamePalette.of(context);
     final seat = SeatColor.tryFromName(winner?.color);
@@ -209,10 +210,9 @@ class _Header extends StatelessWidget {
                 child: PlayerAvatar(
                   avatarIndex: winner.avatar,
                   frameId: winner.cosmetics.frame,
-                  isBot: winner.bot,
                   size: 76,
                   seatColor: seat,
-                  semanticLabel: winner.name,
+                  semanticLabel: PlayText.playerName(l10n, winner),
                 ),
               ),
               Icon(
@@ -275,11 +275,10 @@ class _Placements extends StatelessWidget {
                   PlayerAvatar(
                     avatarIndex: row.player.avatar,
                     frameId: row.player.cosmetics.frame,
-                    isBot: row.player.bot,
                     size: 34,
                     seatColor: SeatColor.tryFromName(row.player.color),
                     dimmed: row.player.forfeited,
-                    semanticLabel: row.player.name,
+                    semanticLabel: PlayText.playerName(l10n, row.player),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
@@ -296,10 +295,6 @@ class _Placements extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (row.player.bot) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    const BotBadge(height: 18),
-                  ],
                   if (row.player.forfeited) ...[
                     const SizedBox(width: AppSpacing.xs),
                     Text(
@@ -392,13 +387,9 @@ class _Rewards extends StatelessWidget {
             confirmed: payoutConfirmed != null,
           )
         : _RewardRow(
-            leading: Icon(
-              view.botMatch ? Icons.smart_toy_rounded : Icons.toll_rounded,
-              color: c.textMuted,
-              size: 22,
-            ),
+            leading: Icon(Icons.toll_rounded, color: c.textMuted, size: 22),
             text: view.botMatch
-                ? l10n.playRewardNoCoinsBots
+                ? l10n.playRewardNoCoinsMatch
                 : l10n.playRewardNoCoins,
             muted: true,
           );
@@ -705,11 +696,7 @@ class _ConsentChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PlayerAvatar(
-              avatarIndex: seat.player.avatar,
-              size: 24,
-              isBot: seat.player.bot,
-            ),
+            PlayerAvatar(avatarIndex: seat.player.avatar, size: 24),
             const SizedBox(width: 4),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 96),

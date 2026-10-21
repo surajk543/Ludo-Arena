@@ -306,12 +306,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonNothingHereYet => 'لا يوجد شيء هنا بعد';
 
   @override
-  String get commonBotBadge => 'بوت';
-
-  @override
-  String get commonBotPlayerLabel => 'لاعب آلي';
-
-  @override
   String get commonYou => 'أنت';
 
   @override
@@ -2327,7 +2321,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get playPracticeNote =>
-      'التدريب مجاني ولا يمنح عملات. البوتات لاعبون آليون وتحمل دائمًا شارة البوت.';
+      'التدريب مجاني ولا يمنح عملات. ستلعب ضد لاعبين آليين.';
 
   @override
   String get playPracticeSettingUp => 'جارٍ تجهيز طاولة التدريب…';
@@ -2362,7 +2356,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String playTurnBot(String name) {
-    return '$name (بوت) يلعب…';
+    return '$name يلعب…';
   }
 
   @override
@@ -2545,7 +2539,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get playRewardNoCoinsBots => 'المباريات مع البوتات لا تمنح عملات.';
+  String get playRewardNoCoinsMatch => 'هذه المباراة لا تمنح عملات.';
 
   @override
   String get playRewardNoCoins =>
