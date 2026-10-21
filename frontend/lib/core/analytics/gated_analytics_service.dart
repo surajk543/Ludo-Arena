@@ -117,6 +117,11 @@ class GatedAnalyticsService implements AnalyticsService {
   void accountLinkSucceeded(LoginMethod method) =>
       _log('account_link_succeeded', {'method': method.name});
 
+  // Profile -------------------------------------------------------------------
+
+  @override
+  void displayNameChanged() => _log('display_name_changed');
+
   // Matchmaking / rooms -------------------------------------------------------
 
   Map<String, Object?> _mm(AnalyticsGameType game, int seats) => {
@@ -223,4 +228,14 @@ class GatedAnalyticsService implements AnalyticsService {
   @override
   void appUpdatePromptShown(String mode) =>
       _log('app_update_prompt_shown', {'mode': mode}, mode);
+
+  // Social --------------------------------------------------------------------
+
+  @override
+  void playerReported(String reason) =>
+      _log('player_reported', {'reason': reason});
+
+  @override
+  void friendRequestSent(String source) =>
+      _log('friend_request_sent', {'source': source});
 }

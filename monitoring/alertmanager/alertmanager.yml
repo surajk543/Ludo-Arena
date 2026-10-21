@@ -1,0 +1,40 @@
+# Alertmanager for Ludo Royale: every alert goes to the ops bot's webhook,
+# which posts it to Telegram with the current CPU, RAM and player counts.
+#
+# Timing (edit here, then: curl -X POST http://127.0.0.1:9093/-/reload):
+#   group_wait      first notification delay for a new group (lets related alerts batch)
+#   group_interval  delay before notifying about changes to an already-notified group
+#   repeat_interval how often a still-firing alert is sent again (hourly by default);
+#                   keep the ops bot's ALERT_DEDUPE_WINDOW below this value
+route:
+  receiver: ops-bot
+  group_by: [alertname, instance]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  routes:
+    - matchers: [severity="critical"]
+      receiver: ops-bot
+      group_wait: 10s
+
+receivers:
+  - name: ops-bot
+    webhook_configs:
+      - url: http://ops-bot:9097/alertmanager
+        send_resolved: true
+        max_alerts: 20
+        # With WEBHOOK_BEARER_TOKEN set on the ops bot, put the same value in a
+        # file next to this config (never commit it) and enable:
+        # http_config:
+        #   authorization:
+        #     type: Bearer
+        #     credentials_file: /etc/alertmanager/webhook-token
+
+# A critical alert silences the matching warning for the same instance.
+inhibit_rules:
+  - source_matchers: [severity="critical"]
+    target_matchers: [severity="warning"]
+    equal: [alertname, instance]
+  # While a backend instance is down, its derived alerts are noise.
+  - source_matchers: [alertname="BackendInstanceDown"]
+    target_matchers: [alertname=~"GameStatsStale|MatchmakingWaitHigh|WebSocketSlowConsumers"]

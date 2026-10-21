@@ -124,6 +124,10 @@ abstract interface class AnalyticsService {
   void guestLoginSucceeded();
   void accountLinkSucceeded(LoginMethod method);
 
+  // Profile
+  /// The server accepted a new display name. Never carries the name.
+  void displayNameChanged();
+
   // Matchmaking / rooms
   void matchmakingStarted(AnalyticsGameType game, int seatCount);
   void matchmakingSucceeded(AnalyticsGameType game, int seatCount);
@@ -158,4 +162,13 @@ abstract interface class AnalyticsService {
 
   /// [mode]: `optional_update` | `force_update`.
   void appUpdatePromptShown(String mode);
+
+  // Social (after server confirmation only; never ids or names)
+
+  /// [reason]: `cheating` | `offensive_name` | `abusive_behavior` |
+  /// `leaving_or_stalling` | `other`.
+  void playerReported(String reason);
+
+  /// [source]: `match` | `recent` | `code`.
+  void friendRequestSent(String source);
 }

@@ -1,0 +1,7 @@
+# Secrets and local output of the monitoring stack (never commit).
+.env
+secrets/
+alertmanager/webhook-token
+ops-bot/bin/
+ops-bot/fake-telegram-out/
+ops-bot/dry-run/

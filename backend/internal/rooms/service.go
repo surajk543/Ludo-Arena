@@ -85,13 +85,17 @@ type Deps struct {
 	FullSnaps   bool // benchmark: attach a full snapshot to every delta event
 	Dice        Dice
 	Now         func() time.Time
+	// StatsInterval is how often the live-game gauges are refreshed
+	// (GAME_STATS_INTERVAL; default 15 s). See stats.go.
+	StatsInterval time.Duration
 }
 
 // Service is the room engine.
 type Service struct {
 	Deps
-	st    store
-	locks [256]sync.Mutex
+	st       store
+	locks    [256]sync.Mutex
+	instance string // random per process: owner id of the game-stats lease
 }
 
 // New returns a Service.
@@ -105,7 +109,7 @@ func New(d Deps) *Service {
 	if d.Progression == nil {
 		d.Progression = playerinfo.StarterProvider{}
 	}
-	return &Service{Deps: d, st: store{rdb: d.RDB}}
+	return &Service{Deps: d, st: store{rdb: d.RDB}, instance: uuid.NewString()}
 }
 
 func (s *Service) nowMs() int64 { return s.Now().UnixMilli() }

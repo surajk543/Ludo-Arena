@@ -56,9 +56,7 @@ void main() {
     expect(find.text('10 Lakh'), findsOneWidget);
   });
 
-  testWidgets('PlayerAvatar renders all 12 avatars x 5 frames + bot badge', (
-    tester,
-  ) async {
+  testWidgets('PlayerAvatar renders all 12 avatars x 5 frames', (tester) async {
     await tester.pumpWidget(
       await buildHarness(
         SingleChildScrollView(
@@ -70,32 +68,29 @@ void main() {
                     avatarIndex: i,
                     frameId: f,
                     size: 48,
-                    isBot: i.isEven,
                     seatColor: SeatColor.values[i % 4],
                     dimmed: i == 3,
                   ),
               const PlayerAvatar(avatarIndex: 25, frameId: 'frame_unknown'),
-              const PlayerAvatar(avatarIndex: 1, size: 24, isBot: true),
+              const PlayerAvatar(avatarIndex: 1, size: 24),
             ],
           ),
         ),
       ),
     );
     expect(find.byType(PlayerAvatar), findsNWidgets(62));
-    expect(find.byType(BotBadge), findsNWidgets(31));
-    expect(find.text('BOT'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('BOT badge is localized and announced', (tester) async {
+  testWidgets('avatars announce only the player name', (tester) async {
     await tester.pumpWidget(
       await buildHarness(
-        const PlayerAvatar(avatarIndex: 2, isBot: true, semanticLabel: 'Asha'),
+        const PlayerAvatar(avatarIndex: 2, semanticLabel: 'Asha'),
         locale: const Locale('hi'),
       ),
     );
-    expect(find.text('बॉट'), findsOneWidget);
-    expect(find.bySemanticsLabel('Asha, कंप्यूटर खिलाड़ी'), findsOneWidget);
+    expect(find.bySemanticsLabel('Asha'), findsOneWidget);
+    expect(find.text('बॉट'), findsNothing);
   });
 
   testWidgets('Level, XP, title, emote and badge widgets render', (

@@ -1,0 +1,50 @@
+# Prometheus for Ludo Royale. Paths are relative to this file, so the same
+# config works in the compose stack (/etc/prometheus) and with a local
+# binary (prometheus --config.file=monitoring/prometheus/prometheus.yml).
+#
+# Scrape targets live in targets/*.yml (file service discovery, re-read
+# every minute without a restart). Alert thresholds live in
+# rules/thresholds.yml. Reload after editing rules:
+#   curl -X POST http://127.0.0.1:9095/-/reload
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: ludo-royale
+
+rule_files:
+  - rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [alertmanager:9093]
+
+scrape_configs:
+  # Backend instances: METRICS_ADDR of every instance (never public).
+  - job_name: backend
+    file_sd_configs:
+      - files: [targets/backend.yml]
+        refresh_interval: 1m
+
+  # bot-play: metrics.listen_addr in its YAML config.
+  - job_name: bot-play
+    file_sd_configs:
+      - files: [targets/bot-play.yml]
+        refresh_interval: 1m
+
+  # node_exporter on every host: CPU, RAM and disk.
+  - job_name: node
+    file_sd_configs:
+      - files: [targets/node.yml]
+        refresh_interval: 1m
+
+  # The ops bot's own metrics (deliveries, failures).
+  - job_name: ops-bot
+    file_sd_configs:
+      - files: [targets/ops-bot.yml]
+        refresh_interval: 1m
+
+  - job_name: prometheus
+    static_configs:
+      - targets: [localhost:9090]

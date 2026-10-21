@@ -440,7 +440,7 @@ td code { font-size: 0.8rem; }
   <section class="doc-section hero" id="overview" aria-labelledby="overview-h">
     <div class="eyebrow">System documentation · repository state 2026-10-21</div>
     <h1 id="overview-h">Ludo Royale — System Architecture &amp; Flows</h1>
-    <p class="lead">Ludo Royale is a multiplayer <strong>Ludo</strong> (classic and Quick) and <strong>Snakes &amp; Ladders</strong> game: a Flutter app for Android and iOS, an authoritative Go backend (REST + WebSocket) backed by PostgreSQL and Redis, and a separate Go <strong>bot-play</strong> service that plays as labelled bots. This page documents what is implemented in the repository today, verified against the code. Anything not implemented or not yet configured is labelled <span class="badge b-pending">Pending</span>.</p>
+    <p class="lead">Ludo Royale is a multiplayer <strong>Ludo</strong> (classic and Quick) and <strong>Snakes &amp; Ladders</strong> game: a Flutter app for Android and iOS, an authoritative Go backend (REST + WebSocket) backed by PostgreSQL and Redis, and a separate Go <strong>bot-play</strong> service whose players are marked as bots by the server (the app shows no bot labels). This page documents what is implemented in the repository today, verified against the code. Anything not implemented or not yet configured is labelled <span class="badge b-pending">Pending</span>.</p>
 
     <div class="facts">
       <div class="fact"><div class="k">Projects</div><div class="v"><code>frontend/</code> · <code>backend/</code> · <code>bot-play/</code></div></div>
@@ -466,7 +466,7 @@ td code { font-size: 0.8rem; }
           <tr><td><code>frontend/lib/core/</code></td><td><code>analytics</code>, <code>app_policy</code>, <code>realtime</code>, <code>protocol</code>, <code>network</code>, <code>localization</code>, <code>theme</code>, <code>storage</code>, <code>telemetry</code>, <code>errors</code>, <code>settings</code>, <code>time</code>, <code>lifecycle</code>, <code>audio_haptics</code></td></tr>
           <tr><td><code>frontend/lib/features/</code></td><td><code>app_update</code>, <code>authentication</code>, <code>home</code>, <code>profile</code>, <code>settings</code>, <code>wallet</code>; play screens in <code>matchmaking</code>, <code>practice</code>, <code>private_rooms</code>, <code>game</code> (routes in <code>play_routes.dart</code>); meta screens in <code>missions</code>, <code>events</code>, <code>collection</code>, <code>social</code>, <code>leaderboard</code>, <code>progression</code> (routes in <code>meta_routes.dart</code>); board renderers/controllers in <code>ludo</code> + <code>snakes_ladders</code></td></tr>
           <tr><td><code>backend/internal/</code></td><td><code>server</code> (wiring), <code>httpapi</code>, <code>websocket</code>, <code>auth</code>, <code>identity</code>, <code>wallet</code>, <code>rooms</code>, <code>game/ludo</code>, <code>game/snakes_ladders</code>, <code>apppolicy</code>, <code>progression</code>, <code>social</code>, <code>analytics</code>, <code>profile</code>, <code>notify</code>, <code>ratelimit</code>, <code>metrics</code>, <code>protocol</code></td></tr>
-          <tr><td><code>backend/migrations/</code></td><td><code>001_wallet.sql</code>, <code>002_identity.sql</code>, <code>003_progression.sql</code> (embedded, idempotent, applied at startup)</td></tr>
+          <tr><td><code>backend/migrations/</code></td><td><code>001_wallet.sql</code>, <code>002_identity.sql</code>, <code>003_progression.sql</code>, <code>004_device_identity.sql</code>, <code>006_player_reports.sql</code> (embedded, idempotent, applied at startup)</td></tr>
           <tr><td><code>backend/config/</code></td><td><code>app-policy.{development,preproduction,production}.json</code>, <code>catalog.json</code>, <code>missions.json</code></td></tr>
           <tr><td><code>bot-play/</code></td><td>Separate module <code>ludoroyale/botplay</code>: <code>cmd/bot-play</code>, <code>internal/{config,client,connection,runner,strategy,ludo,matchmaking,...}</code>, <code>configs/</code>, <code>tests/</code></td></tr>
           <tr><td><code>docs/</code></td><td>Contracts and operations docs (this page, <a href="websocket-protocol.md">websocket-protocol.md</a>, <a href="rest-api.md">rest-api.md</a>, <a href="authentication.md">authentication.md</a>, <a href="app-version-policy.md">app-version-policy.md</a>, <a href="progression.md">progression.md</a>, <a href="bot-play.md">bot-play.md</a>, <a href="deployment.md">deployment.md</a>, <a href="performance.md">performance.md</a>, <a href="cosmetics-catalog.md">cosmetics-catalog.md</a>)</td></tr>
@@ -489,7 +489,7 @@ td code { font-size: 0.8rem; }
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 1">flowchart TB
   App["Flutter app, Android and iOS&lt;br/&gt;com.ludoroyale.app"]
-  Bots["bot-play&lt;br/&gt;separate Go service, labelled bots"]
+  Bots["bot-play&lt;br/&gt;separate Go service, server-marked bots"]
   subgraph IdP["Identity providers: prove identity only"]
     Google["Google Sign-In&lt;br/&gt;project ludo-royale-63887&lt;br/&gt;ID token verified by Go via JWKS"]
     Apple["Sign in with Apple&lt;br/&gt;Pending: Apple Developer"]
@@ -578,8 +578,9 @@ td code { font-size: 0.8rem; }
           <tr><td>Coin and diamond balances</td><td>PostgreSQL</td><td><code>wallet.wallets</code></td></tr>
           <tr><td>Provider identity → account</td><td>PostgreSQL</td><td><code>identity.auth_identities</code></td></tr>
           <tr><td>Sessions, refresh rotation, revocation, one active device per account</td><td>Go <code>auth</code> + Redis</td><td><code>sess:{sid}</code>, <code>rt:{sha256}</code>, <code>usess:{userId}</code>, <code>sessrep:{sid}</code></td></tr>
-          <tr><td>XP, levels, missions, claims, inventory, loadout, friendships</td><td>PostgreSQL</td><td><code>progression.*</code></td></tr>
-          <tr><td>Display name / avatar</td><td>Redis cache (non-authoritative, regenerated)</td><td><code>profile:{userId}</code>; public id <code>u_…</code> = HMAC of the account id with <code>PUBLIC_ID_KEY</code></td></tr>
+          <tr><td>XP, levels, missions, claims, inventory, loadout, friendships, player reports (metadata only)</td><td>PostgreSQL</td><td><code>progression.*</code></td></tr>
+          <tr><td>Player-chosen display name (<code>PATCH /api/v1/me</code>)</td><td>Go backend (validation, 3 changes / rolling 24 h), stored in PostgreSQL</td><td><code>progression.player_progress.display_name</code> (authoritative; sign-ins never overwrite it), cached in <code>profile:{userId}</code></td></tr>
+          <tr><td>Provider / generated display name, avatar</td><td>Redis cache (non-authoritative, refreshed on sign-in, regenerated)</td><td><code>profile:{userId}</code>; public id <code>u_…</code> = HMAC of the account id with <code>PUBLIC_ID_KEY</code></td></tr>
           <tr><td>Online presence</td><td>WebSocket gateway</td><td><code>presence:{userId}</code> (60 s, refreshed)</td></tr>
           <tr><td>App version / maintenance policy</td><td>Go backend</td><td><code>APP_POLICY_FILE</code> + <code>APP_MAINTENANCE_FLAG_FILE</code></td></tr>
           <tr><td>Bot status (<code>players[].bot</code>, <code>actorType</code>)</td><td>Go backend, from the session token</td><td><code>auth.BotAuth</code>; bots never send a bot flag</td></tr>
@@ -597,8 +598,8 @@ td code { font-size: 0.8rem; }
     <ul>
       <li><strong><code>wallet.wallets</code></strong> holds <em>only balances</em>: <code>user_id</code>, <code>coins</code>, <code>diamonds</code> (both <code>CHECK &gt;= 0</code>). No ledger, history or profile columns.</li>
       <li><strong><code>identity.auth_identities</code></strong> maps <code>(provider, subject)</code> → <code>user_id</code>; <code>provider</code> ∈ guest, google, facebook, apple, device; <code>PRIMARY KEY (provider, subject)</code> and <code>UNIQUE (user_id, provider)</code>. A guest's subject is the SHA-256 of its guest secret. <code>device</code> (migration 004) is the internal device binding used to restore an account after an app update or reinstall: its subject is an HMAC-SHA256 of <code>platform:deviceId</code> keyed from <code>PUBLIC_ID_KEY</code>, never the raw id; it is never listed as a linked provider. No email or provider-profile columns.</li>
-      <li><strong><code>progression.*</code></strong>: <code>player_progress</code>, <code>mission_progress</code>, <code>mission_claims</code>, <code>match_receipts</code> (idempotency receipts only), <code>inventory</code>, <code>loadout</code>, <code>friendships</code>.</li>
-      <li>There are <strong>no match-history, currency-ledger or profile tables</strong> anywhere. Display names and avatars are presentation data cached in Redis.</li>
+      <li><strong><code>progression.*</code></strong>: <code>player_progress</code> (incl. the nullable player-chosen <code>display_name</code>, migration 005), <code>mission_progress</code>, <code>mission_claims</code>, <code>match_receipts</code> (idempotency receipts only), <code>inventory</code>, <code>loadout</code>, <code>friendships</code>, <code>player_reports</code> (user-approved: reporter, reported, reason, review status, operator note, timestamps; <code>room_id</code> and <code>game</code> are plain references — no room or game state).</li>
+      <li>There are <strong>no match-history, currency-ledger or profile tables</strong> anywhere. Only a name the player chose is durable (one column); provider/generated names and avatars are presentation data cached in Redis. <code>backend/tests/schema_guard_test.go</code> fails on any table outside this list or any gameplay-state column.</li>
     </ul>
 
 <figure class="diagram" id="fig-arch-er">
@@ -615,6 +616,7 @@ td code { font-size: 0.8rem; }
   WALLETS ||--o{ INVENTORY : "owns"
   WALLETS ||--o{ LOADOUT : "equips"
   WALLETS ||--o{ FRIENDSHIPS : "pairs"
+  WALLETS ||--o{ PLAYER_REPORTS : "reports"
   WALLETS["wallet.wallets"] {
     uuid user_id PK
     bigint coins "CHECK &gt;= 0"
@@ -631,6 +633,7 @@ td code { font-size: 0.8rem; }
     text public_id UK "u_ friend code"
     bigint xp
     int level "1 to 50"
+    text display_name "nullable, player-chosen"
   }
   MISSION_PROGRESS["progression.mission_progress"] {
     uuid user_id PK
@@ -665,6 +668,16 @@ td code { font-size: 0.8rem; }
     text status "pending or accepted"
     uuid requested_by
   }
+  PLAYER_REPORTS["progression.player_reports"] {
+    uuid id PK
+    uuid reporter_id FK
+    uuid reported_id FK
+    text reason
+    text room_id "reference only"
+    text game
+    text status "submitted reviewing action_taken dismissed"
+    text note "operator only"
+  }
 </pre>
 </figure>
 
@@ -682,6 +695,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Pub/sub</td><td><code>ev:room:{roomId}</code>, <code>ev:user:{userId}</code></td></tr>
           <tr><td>Bots</td><td><code>bot:assignments</code>, <code>botasg:{id}</code>, <code>botsess:{uid}</code></td></tr>
           <tr><td>Progression/social/analytics caches</td><td><code>lb:xp:{weekKey}</code>, <code>recent:{userId}</code>, <code>invite:*</code>, <code>idem:{userId}:{key}</code>, <code>au:d:*</code>/<code>au:w:*</code> (HyperLogLog)</td></tr>
+          <tr><td>Hot-path caches (<a href="architecture.md#postgresql-on-the-hot-path">PostgreSQL on the hot path</a>)</td><td><code>seat:{userId}</code> + <code>seat:{userId}:lease</code> (seat summary for room joins, 1 h, deleted on level-up/equip), <code>emotes:{userId}</code> (owned emotes for chat, 1 h)</td></tr>
         </tbody>
       </table>
     </div>
@@ -1042,7 +1056,7 @@ td code { font-size: 0.8rem; }
   BE--&gt;&gt;FA: room.updated joined
   opt Host allows bots
     HA-&gt;&gt;BE: room.allow_bots,&lt;br/&gt;room.add_bot
-    BE-&gt;&gt;R: Queue bot assignment&lt;br/&gt;(BOT-labelled seat)
+    BE-&gt;&gt;R: Queue bot assignment&lt;br/&gt;(seat marked bot:true)
   end
   HA-&gt;&gt;BE: game.start (host only,&lt;br/&gt;2+ connected, no pending bots)
   BE--&gt;&gt;HA: game.started
@@ -1192,7 +1206,7 @@ td code { font-size: 0.8rem; }
   subgraph Ops["Operations"]
     SM["Secret manager or environment"]
     PF["Policy files and&lt;br/&gt;maintenance flag file"]
-    MON["Prometheus and alerting"]
+    MON["Prometheus, Alertmanager,&lt;br/&gt;Telegram ops bot"]
   end
   A --&gt; LB
   BP --&gt;|"https and wss in production"| LB
@@ -1208,7 +1222,7 @@ td code { font-size: 0.8rem; }
 </pre>
 </figure>
     <ul>
-      <li>Three independent projects with their own dependencies: <code>frontend/</code> (Flutter), <code>backend/</code> (Go module <code>ludoroyale</code>), <code>bot-play/</code> (Go module <code>ludoroyale/botplay</code>).</li>
+      <li>Four independent projects with their own dependencies: <code>frontend/</code> (Flutter), <code>backend/</code> (Go module <code>ludoroyale</code>), <code>bot-play/</code> (Go module <code>ludoroyale/botplay</code>), <code>monitoring/</code> (Prometheus, Alertmanager, node_exporter and the Telegram ops bot, Go module <code>ludoroyale/opsbot</code>; see <a href="#monitoring">Monitoring and alerting</a>).</li>
       <li>TLS terminates at the load balancer; set <code>TRUSTED_PROXY_HOPS</code> to the number of proxies and <code>PUBLIC_URL</code> to the https URL. Expose <code>METRICS_ADDR</code> only to the monitoring network. Run ≥ 2 backend instances; rolling deploys close sockets with <code>1001</code> and clients resync. Graceful shutdown: SIGTERM → stop accepting, close sockets, drain HTTP (20 s).</li>
       <li>Docker images: <code>backend/Dockerfile</code> (golang:1.27-alpine build → <code>gcr.io/distroless/static-debian12:nonroot</code>, exposes 8080/9090, ships <code>config/</code>) and <code>bot-play/Dockerfile</code> (static binary, distroless <code>nonroot</code>, configs under <code>/app/configs</code>). <code>backend/docker-compose.yml</code> is for local dependencies only (PostgreSQL 16, Redis 7.4 on 127.0.0.1).</li>
     </ul>
@@ -1227,6 +1241,15 @@ td code { font-size: 0.8rem; }
 </pre>
 </figure>
 
+    <h3 id="monitoring">Monitoring and alerting<a class="heading-anchor" href="#monitoring" aria-label="Link to this heading">#</a></h3>
+    <p class="section-meta">Code: <code>monitoring/docker-compose.yml</code>, <code>monitoring/prometheus/</code> (<code>targets/</code>, <code>rules/thresholds.yml</code>, <code>rules/alerts.yml</code>, <code>tests/</code>), <code>monitoring/alertmanager/alertmanager.yml</code>, <code>monitoring/ops-bot/</code> · Docs: <a href="../monitoring/README.md">monitoring/README.md</a> · Status: <span class="badge b-impl">Implemented</span>; production provisioning, Telegram bot, Play and GA4 access <span class="badge b-pending">Pending</span></p>
+    <ul>
+      <li><strong>Prometheus</strong> scrapes every backend instance (<code>METRICS_ADDR</code>), bot-play and node_exporter on each host (targets via file service discovery) and evaluates the alert rules; <strong>Alertmanager</strong> groups alerts (repeat every hour while firing) and posts them to the ops bot's webhook. All of it stays on the private network.</li>
+      <li>The <strong>Telegram ops bot</strong> reads the Prometheus API and sends an hourly PDF status (real players vs bots in game and online, rooms, lobby, matches started/finished, new accounts, DAU, CPU / RAM / disk per host, process memory and CPU, firing alerts, 24-hour charts), a daily KPI PDF at 09:00 IST for yesterday (accounts by provider, DAU/WAU, matches by game and mode, human-only vs bot-filled, abandons, peaks, matchmaking wait, 5xx, settlement failures, Google Play installs/uninstalls from the bulk reports in Cloud Storage, GA4 <code>first_open</code>/<code>app_remove</code>, 30-day trends) and every alert as a short message with the current CPU, RAM and player counts. <code>/status</code> and <code>/digest</code> answer on demand in the configured chats.</li>
+      <li>Alerts: backend instance down (1 min), bot-play down, host CPU &gt; 85 % and RAM &gt; 90 % for 5 min, disk &gt; 90 %, process memory &gt; 2 GiB, 5xx &gt; 2 %, any wallet settlement failure, WebSocket slow-consumer spikes, matchmaking p95 &gt; 45 s, stale game stats (&gt; 120 s). Thresholds live in one file; intervals and formats (PDF or text) are environment variables.</li>
+      <li>Cluster-wide gauges (<code>players_in_game</code>, <code>rooms_in_game</code>, <code>players_in_lobby</code>, <code>active_users_estimate</code>) are combined with <code>max</code>; per-instance <code>ws_connections_active</code> is summed. The bot token and Google keys come only from the environment; the token is redacted from every error.</li>
+    </ul>
+
     <h3 id="env-vars">Configuration by name<a class="heading-anchor" href="#env-vars" aria-label="Link to this heading">#</a></h3>
     <p>Names only — values live in the environment or a secret manager (backend), YAML files (bot-play) and dart-defines (Flutter). <strong>Secrets</strong> are marked.</p>
     <div class="table-wrap compact">
@@ -1243,6 +1266,7 @@ td code { font-size: 0.8rem; }
           <tr><td>WebSocket</td><td><code>WS_COMPRESSION</code>, <code>WS_COMPRESSION_THRESHOLD</code>, <code>WS_READ_LIMIT</code>, <code>WS_OUTBOUND_QUEUE</code>, <code>WS_WRITE_TIMEOUT</code>, <code>WS_PING_INTERVAL</code>, <code>WS_PONG_TIMEOUT</code>, <code>WS_MSG_RATE</code>, <code>WS_MSG_BURST</code>, <code>WS_MAX_CONNECTIONS</code>, <code>WS_FULL_SNAPSHOTS</code> (benchmark only)</td></tr>
           <tr><td>Bot boundary</td><td><code>BOT_SERVICE_KEY_SHA256</code> (hash only; empty disables <code>/bot/*</code>), <code>BOT_PUBLIC_FILL_ENABLED</code>, <code>BOT_MAX_PER_ROOM</code>, <code>BOT_LOADTEST_ENABLED</code> (refused in production), <code>BOT_SESSION_TTL</code>, <code>BOT_ASSIGNMENT_TTL</code></td></tr>
           <tr><td>Progression</td><td><code>PROGRESSION_MIN_MATCH_DURATION</code> (≥ 10 s in production), <code>CATALOG_FILE</code>, <code>MISSIONS_FILE</code></td></tr>
+          <tr><td>Profile</td><td><code>NAME_CHANGES_PER_DAY</code> (successful display-name changes per account per rolling 24 h; default 3, ≥ 1)</td></tr>
           <tr><td>Load tests / tests only</td><td><code>RATE_LIMIT_DISABLED</code> (refused in production); <code>GOOGLE_JWKS_URL</code>, <code>APPLE_JWKS_URL</code>, <code>FACEBOOK_JWKS_URL</code>, <code>FACEBOOK_GRAPH_URL</code> (test hooks, refused in production); <code>TEST_DATABASE_URL</code>, <code>TEST_REDIS_ADDR</code> (integration tests)</td></tr>
         </tbody>
       </table>
@@ -1647,7 +1671,7 @@ td code { font-size: 0.8rem; }
         <li>Bots are visibly labelled and never earn XP; practice and bot rooms charge no fees.</li>
       </ul>
     </div>
-    <p class="small">Social (friends by public-id friend code, requests that auto-accept when reciprocal, invites to private rooms for accepted friends only, recent human opponents, weekly friends leaderboard) is implemented in <code>backend/internal/social</code>; <code>online</code> is reported only for accepted friends. Retention: <code>match_receipts</code> 14 days, mission progress/claims 60 days after the period, the rest for the life of the account.</p>
+    <p class="small">Social (friends by public-id friend code, requests that auto-accept when reciprocal, invites to private rooms for accepted friends only, recent human opponents, weekly friends leaderboard) is implemented in <code>backend/internal/social</code>; <code>online</code> is reported only for accepted friends, and <code>GET /friends</code> adds <code>onlineCount</code>, <code>friendCount</code> and <code>maxFriends</code>. At most <code>FRIENDS_MAX</code> (default 20) accepted friends per account, enforced for both players atomically. Player reports (<code>backend/internal/reports</code>): a human reports a human seated in the same room (from the player pod), at most <code>REPORTS_PER_DAY</code> (default 2) per rolling 24 h and once per player, enforced under a per-reporter advisory lock; operators review them through the key-protected <code>/api/v1/admin/reports</code> API (private network only). Retention: <code>match_receipts</code> 14 days, mission progress/claims 60 days after the period, the rest for the life of the account.</p>
   </section>
 
   <!-- ============================================================ 14 -->
@@ -1928,7 +1952,7 @@ td code { font-size: 0.8rem; }
       <table>
         <thead><tr><th>Area</th><th>Controls in place</th></tr></thead>
         <tbody>
-          <tr><td>Rate limits (Redis fixed windows)</td><td>Sign-in 30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config 120/min/IP · telemetry 60/min/IP · linking 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account · matchmaking 20/min/account · wallet operations 30/min/account · social writes 30/min/account · bot service 600/min/IP · per-socket commands 10/s (burst 20) · quick chat 1 per 3 s and 10/min · invites 10/min · friend requests 60/h</td></tr>
+          <tr><td>Rate limits (Redis fixed windows)</td><td>Sign-in 30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config 120/min/IP · telemetry 60/min/IP · linking 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account · matchmaking 20/min/account · wallet operations 30/min/account · social writes 30/min/account · <code>PATCH /me</code> 20/min/account · player reports 20/min/account (plus 2 stored per rolling 24 h) · admin API 60/min/IP · bot service 600/min/IP · per-socket commands 10/s (burst 20) · quick chat 1 per 3 s and 10/min · invites 10/min · friend requests 60/h · display-name changes <code>NAME_CHANGES_PER_DAY</code> (3) per rolling 24 h</td></tr>
           <tr><td>Token handling</td><td>Provider tokens verified server-side (go-oidc JWKS, Apple nonce, Facebook <code>debug_token</code>); emails never used to match or merge; HS256 access JWT 15 min checked against the live session; refresh rotation with reuse detection; only SHA-256 of refresh tokens, guest secrets and the bot service key is stored, and only an HMAC of the device id (used solely to restore the account after an update or reinstall); client tokens in <code>flutter_secure_storage</code>; sessions re-checked on live sockets every 60 s</td></tr>
           <tr><td>Validation</td><td>Strict JSON decoding (unknown fields rejected); WebSocket text frames only, ≤ 4096 bytes after decompression, ids 1–64 chars, known message types, phase/seat/<code>turnSeq</code> checks, repeated invalid messages close with <code>4400</code>; server-side rules for everything; <code>Idempotency-Key</code> format checks</td></tr>
           <tr><td>Transport</td><td>TLS at the load balancer; bot-play requires https/wss in production; <code>TRUSTED_PROXY_HOPS</code> controls which <code>X-Forwarded-For</code> hop is trusted</td></tr>
@@ -1967,7 +1991,7 @@ td code { font-size: 0.8rem; }
         <thead><tr><th>Suite</th><th>Command</th><th>What it covers (from the test files)</th></tr></thead>
         <tbody>
           <tr><td>Backend unit (+ race detector)</td><td><code>cd backend &amp;&amp; go test -race ./...</code></td><td>Ludo board/engine/hash/simulation (entering, captures, no blocking, extra turns, three sixes, dedupe, auto-move, forfeits, win), Snakes engine (transitions, turn order, hash), app policy (version compare, modes, localization, empty store URL, validation, windows, flag file, invalid reload keeps previous, shipped files valid), progression (XP once, concurrent duplicates, eligibility, bots ignored, milestones, resets, claims exactly once, purchases, wallet consistency, retention), social, analytics, compression report</td></tr>
-          <tr><td>Backend end-to-end</td><td><code>TEST_DATABASE_URL=… TEST_REDIS_ADDR=… go test -race ./...</code></td><td>Guest/wallet/sessions, Google login linking and conflicts, concurrent first login provisions once, guest rate limit, Apple Android callback, full public games, private room and rematch, reconnect restores game, duplicate/concurrent and malicious commands, compression negotiated and decoded, single connection, bot auth and practice game, public fill limits, load-test isolation, version gate and maintenance (incl. paused games), turn timeouts forfeit, match awards progression/missions/social. Skipped unless the env vars are set; uses a dedicated test database and flushes its Redis DB.</td></tr>
+          <tr><td>Backend end-to-end</td><td><code>TEST_DATABASE_URL=… TEST_REDIS_ADDR=… go test -race ./...</code></td><td>Guest/wallet/sessions, Google login linking and conflicts, concurrent first login provisions once, guest rate limit, Apple Android callback, full public games, private room and rematch, reconnect restores game, duplicate/concurrent and malicious commands, compression negotiated and decoded, single connection, bot auth and practice game, public fill limits, load-test isolation, version gate and maintenance (incl. paused games), turn timeouts forfeit, match awards progression/missions/social, display-name change (propagation, sign-in precedence, cache rebuild, limit, validation, bot refusal), player reports (limits, duplicates, seat rules, concurrent burst, admin review), friend cap and online count, bot seats unlabelled and not reportable, schema guard (approved tables, no gameplay-state columns). Skipped unless the env vars are set; uses a dedicated test database and flushes its Redis DB.</td></tr>
           <tr><td>bot-play</td><td><code>cd bot-play &amp;&amp; go test -race ./...</code></td><td>Config validation and shipped configs, load-test guard and refusals, secrets never logged, reload rollback, reducer rules and hash vectors, evaluator (captures, safe squares, server-legal only), think-time caps, fill planning, controller token caching; integration: practice games to completion, multiple bots per match, Snakes, gaps/out-of-order/hash mismatch resync, reconnects, 4409, maintenance back-off, capacity and per-game limits, runtime enable/disable, graceful shutdown policies, load-test churn and report</td></tr>
           <tr><td>Flutter</td><td><code>cd frontend &amp;&amp; flutter analyze &amp;&amp; flutter test</code></td><td>App smoke test; envelope parsing, room-state reducer and state hash vectors, realtime connection/backoff/providers, active room controller, app gate controller and gate screens, auth screens and session controller, home and settings screens, analytics gate and Firebase bootstrap, telemetry, audio, theme and language controllers, number formatting, error messages, Ludo and Snakes geometry/controllers/widgets, match event sequencer, turn-input guard, match results, rematch view, quick chat, private-room code/lobby rules and join/lobby screens, missions controller and cards, collection, dice, cosmetics, victory effects, shared widgets, localization overflow matrix. <code>test/integration/backend_contract_test.dart</code> runs the app's protocol code (deflate-negotiating socket, envelopes, reducer with version and hash checks) against a real backend when <code>BACKEND_URL</code> is set.</td></tr>
         </tbody>

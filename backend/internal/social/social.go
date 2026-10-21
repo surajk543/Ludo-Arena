@@ -73,9 +73,16 @@ var (
 	ErrInviteRateLimited = errors.New("too many invites")
 )
 
+// DefaultMaxFriends is the accepted-friend cap when Options.MaxFriends is
+// unset (FRIENDS_MAX in production wiring).
+const DefaultMaxFriends = 20
+
 // Options configure the service.
 type Options struct {
-	MaxFriends  int              // accepted friends per account (default 200)
+	// MaxFriends caps accepted friends per account (default 20). A new
+	// friendship (request, auto-accept or accept) is refused when EITHER
+	// side already has MaxFriends; accounts above the cap keep their friends.
+	MaxFriends  int
 	MaxOutgoing int              // pending requests sent per account (default 100)
 	MaxIncoming int              // pending requests received per account (default 100)
 	Now         func() time.Time // default time.Now
@@ -100,7 +107,7 @@ var _ gameevents.Inviter = (*Service)(nil)
 func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, prog *progression.Service,
 	notifier gameevents.Notifier, log *slog.Logger, opts Options) *Service {
 	if opts.MaxFriends <= 0 {
-		opts.MaxFriends = 200
+		opts.MaxFriends = DefaultMaxFriends
 	}
 	if opts.MaxOutgoing <= 0 {
 		opts.MaxOutgoing = 100
@@ -136,7 +143,16 @@ type FriendsView struct {
 	Friends  []Friend `json:"friends"`
 	Incoming []Friend `json:"incoming"`
 	Outgoing []Friend `json:"outgoing"`
+	// OnlineCount is the number of accepted friends online now.
+	OnlineCount int `json:"onlineCount"`
+	// FriendCount is the number of accepted friends (len(Friends)).
+	FriendCount int `json:"friendCount"`
+	// MaxFriends is the accepted-friend cap (FRIENDS_MAX).
+	MaxFriends int `json:"maxFriends"`
 }
+
+// MaxFriends returns the configured accepted-friend cap.
+func (s *Service) MaxFriends() int { return s.opts.MaxFriends }
 
 func (s *Service) notify(ctx context.Context, userID uuid.UUID, msgType string, payload any) {
 	if s.notifier != nil {
@@ -307,11 +323,14 @@ func (s *Service) Friends(ctx context.Context, me uuid.UUID) (FriendsView, error
 	if err != nil {
 		return FriendsView{}, err
 	}
-	out := FriendsView{Friends: []Friend{}, Incoming: []Friend{}, Outgoing: []Friend{}}
+	out := FriendsView{Friends: []Friend{}, Incoming: []Friend{}, Outgoing: []Friend{}, MaxFriends: s.opts.MaxFriends}
 	for _, f := range all {
 		switch f.Status {
 		case StatusFriend:
 			out.Friends = append(out.Friends, f)
+			if f.Online {
+				out.OnlineCount++
+			}
 		case StatusIncoming:
 			out.Incoming = append(out.Incoming, f)
 		case StatusOutgoing:
@@ -325,6 +344,7 @@ func (s *Service) Friends(ctx context.Context, me uuid.UUID) (FriendsView, error
 		}
 		return strings.ToLower(a.Name) < strings.ToLower(b.Name)
 	})
+	out.FriendCount = len(out.Friends)
 	return out, nil
 }
 
@@ -356,6 +376,10 @@ func countPending(ctx context.Context, tx pgx.Tx, id uuid.UUID, outgoing bool) (
 	return n, err
 }
 
+// checkFriendLimit refuses a new friendship when any of ids already has
+// MaxFriends accepted friends. Callers hold both accounts' row locks
+// (LockAccountsTx), and every change that adds a friendship takes the same
+// locks, so two transactions can never both pass for the last slot.
 func (s *Service) checkFriendLimit(ctx context.Context, tx pgx.Tx, ids ...uuid.UUID) error {
 	for _, id := range ids {
 		n, err := countFriends(ctx, tx, id)
@@ -414,7 +438,8 @@ func (s *Service) Request(ctx context.Context, me uuid.UUID, friendCode string) 
 		}
 		st, event = StatusFriend, "auto_accepted"
 	case StatusNone:
-		if err := s.checkFriendLimit(ctx, tx, me); err != nil {
+		// Either side at the cap: the request could never be accepted.
+		if err := s.checkFriendLimit(ctx, tx, me, target); err != nil {
 			metrics.FriendRequests.WithLabelValues("rejected").Inc()
 			return Friend{}, err
 		}

@@ -306,12 +306,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonNothingHereYet => 'Nothing here yet';
 
   @override
-  String get commonBotBadge => 'BOT';
-
-  @override
-  String get commonBotPlayerLabel => 'Computer player';
-
-  @override
   String get commonYou => 'You';
 
   @override
@@ -729,6 +723,30 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get errorInvalidName =>
+      'That name can\'t be used. Please choose another one.';
+
+  @override
+  String get errorInvalidNameTooShort =>
+      'Your name needs at least 3 characters.';
+
+  @override
+  String get errorInvalidNameTooLong =>
+      'Your name can have at most 16 characters.';
+
+  @override
+  String get errorInvalidNameCharacters =>
+      'Use only letters, numbers, spaces, _ . or - (with at least one letter). No emoji or symbols.';
+
+  @override
+  String get errorInvalidNameReserved =>
+      'That name is reserved. Please choose another one.';
+
+  @override
+  String get errorInvalidNameInappropriate =>
+      'That name isn\'t allowed. Please choose a friendly one.';
 
   @override
   String get gateSplashTagline => 'Roll. Race. Rule.';
@@ -1889,8 +1907,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get metaErrorCannotFriendSelf => 'That\'s your own friend code.';
 
   @override
-  String get metaErrorFriendLimit =>
-      'The friend or request limit has been reached. Remove a friend or request and try again.';
+  String metaErrorFriendLimit(int max) {
+    return 'You can have up to $max friends. Remove a friend to add someone new.';
+  }
 
   @override
   String get metaErrorUnknownFriendCode =>
@@ -2302,7 +2321,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playPracticeNote =>
-      'Practice is free and pays no coins. Bots are computer players and always carry a bot badge.';
+      'Practice is free and pays no coins. You play against computer players.';
 
   @override
   String get playPracticeSettingUp => 'Setting up your practice table…';
@@ -2333,11 +2352,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String playTurnOther(String name) {
     return '$name\'s turn';
-  }
-
-  @override
-  String playTurnBot(String name) {
-    return '$name (bot) is playing…';
   }
 
   @override
@@ -2517,7 +2531,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get playRewardNoCoinsBots => 'Matches with bots don\'t pay coins.';
+  String get playRewardNoCoinsMatch => 'This match doesn\'t pay coins.';
 
   @override
   String get playRewardNoCoins =>
@@ -2662,6 +2676,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileStatsSection => 'Progress';
 
   @override
+  String get profileEditNameTooltip => 'Edit name';
+
+  @override
+  String get profileEditNameTitle => 'Change your name';
+
+  @override
+  String get profileNameLabel => 'Display name';
+
+  @override
+  String get profileNameRules =>
+      '3–16 characters. Letters, numbers, spaces, _ . and - are allowed.';
+
+  @override
+  String get profileNameNote =>
+      'Friends, leaderboards and new games will show your new name. A game in progress keeps the old one.';
+
+  @override
+  String profileNameCounterSemantics(int count, int max) {
+    return '$count of $max characters';
+  }
+
+  @override
+  String profileNameSaved(String name) {
+    return 'Your name is now $name';
+  }
+
+  @override
+  String get profileNameChangeLimit =>
+      'You\'ve changed your name too often. Please try again later.';
+
+  @override
+  String profileNameChangeLimitRetry(String wait) {
+    return 'You\'ve changed your name too often. Try again in $wait.';
+  }
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -2777,6 +2827,165 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsConsentDeny => 'No thanks';
+
+  @override
+  String get socialPodOptionsHint => 'Show player options';
+
+  @override
+  String get socialRequestSent => 'Request sent';
+
+  @override
+  String get socialAcceptRequest => 'Accept request';
+
+  @override
+  String get socialReportPlayer => 'Report player';
+
+  @override
+  String get socialReported => 'Reported';
+
+  @override
+  String get socialAlreadyReported =>
+      'You reported this player in the last 24 hours.';
+
+  @override
+  String socialReportsLeft(int remaining, int total) {
+    return 'Reports left today: $remaining of $total';
+  }
+
+  @override
+  String socialReportLimitAt(int total, String time) {
+    return 'You\'ve used today\'s $total reports. You can report again at $time.';
+  }
+
+  @override
+  String socialReportLimitLater(int total) {
+    return 'You\'ve used today\'s $total reports. Try again later.';
+  }
+
+  @override
+  String socialReportTitle(String name) {
+    return 'Report $name';
+  }
+
+  @override
+  String get socialReportWhy => 'What happened?';
+
+  @override
+  String get socialReasonCheating => 'Cheating';
+
+  @override
+  String get socialReasonOffensiveName => 'Offensive name';
+
+  @override
+  String get socialReasonAbusiveBehavior => 'Abusive behavior';
+
+  @override
+  String get socialReasonLeavingOrStalling => 'Leaving or stalling';
+
+  @override
+  String get socialReasonOther => 'Something else';
+
+  @override
+  String get socialReportReviewNote =>
+      'Our team reviews every report. Follow its status in the Reported tab on the Friends screen.';
+
+  @override
+  String get socialSendReport => 'Send report';
+
+  @override
+  String socialReportSent(int remaining, int total) {
+    return 'Report sent. $remaining of $total reports left today.';
+  }
+
+  @override
+  String socialFriendLimitNote(int max) {
+    return 'You can have up to $max friends — remove one to add more.';
+  }
+
+  @override
+  String get socialErrorCannotReportSelf => 'You can\'t report yourself.';
+
+  @override
+  String get socialErrorCannotReportBot => 'This player can\'t be reported.';
+
+  @override
+  String get socialErrorNotInRoom =>
+      'You can only report players from a match you\'re in.';
+
+  @override
+  String get socialErrorRoomNotFound =>
+      'This match can\'t be found anymore, so the report wasn\'t sent.';
+
+  @override
+  String get socialErrorPlayerNotFound => 'This player couldn\'t be found.';
+
+  @override
+  String get socialTabReported => 'Reported';
+
+  @override
+  String socialOnlineNow(int count) {
+    return 'Online now ($count)';
+  }
+
+  @override
+  String socialOfflineCount(int count) {
+    return 'Offline ($count)';
+  }
+
+  @override
+  String socialFriendsCount(int count, int max) {
+    return 'Friends $count/$max';
+  }
+
+  @override
+  String socialReportsResetAt(String time) {
+    return 'You can report again at $time.';
+  }
+
+  @override
+  String socialReportsInfo(int total) {
+    return 'You can report up to $total players a day. Our team reviews every report.';
+  }
+
+  @override
+  String get socialNoReportsTitle => 'No reports';
+
+  @override
+  String get socialNoReportsMessage =>
+      'Players you report from a match show up here with the status of each report.';
+
+  @override
+  String get socialStatusSubmitted => 'Submitted';
+
+  @override
+  String get socialStatusReviewing => 'Under review';
+
+  @override
+  String get socialStatusActionTaken => 'Action taken';
+
+  @override
+  String get socialStatusDismissed => 'Dismissed';
+
+  @override
+  String get socialJustNow => 'Just now';
+
+  @override
+  String socialMinutesAgo(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String socialHoursAgo(int hours) {
+    return '$hours h ago';
+  }
+
+  @override
+  String get socialYesterday => 'Yesterday';
+
+  @override
+  String socialReportStatusA11y(String status) {
+    return 'Status: $status';
+  }
 
   @override
   String get walletTitle => 'Your wallet';

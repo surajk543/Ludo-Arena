@@ -91,5 +91,9 @@ func run() error {
 	cancelRun() // closes WebSockets with 1001 so clients reconnect elsewhere
 	_ = srv.Shutdown(shutdownCtx)
 	_ = metricsSrv.Shutdown(shutdownCtx)
+	// Drain background work (bounded) before the pools close.
+	if err := app.Wait(shutdownCtx); err != nil {
+		log.Warn("background work not drained", "error", err.Error())
+	}
 	return nil
 }

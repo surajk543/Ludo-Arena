@@ -20,6 +20,7 @@ func openKey(game, variant string, capacity int, pool string) string {
 
 const (
 	schedKey        = "sched"
+	liveRoomsKey    = "idx:rooms:live" // live-room index (see stats.go)
 	roomChanPrefix  = "ev:room:"
 	userChanPrefix  = "ev:user:"
 	botQueueKey     = "bot:assignments"
@@ -42,9 +43,14 @@ type guard struct {
 }
 
 // commitScript performs, atomically: optimistic revision check, guards,
-// state write + TTL, side ops, and PUBLISH of the event batch. Because Redis
-// executes scripts serially, events are published in commit order even when
-// several backend instances mutate the same room.
+// state write + TTL, side ops, the live-room index entry, and PUBLISH of the
+// event batch. Because Redis executes scripts serially, events are published
+// in commit order even when several backend instances mutate the same room.
+//
+// KEYS[1] room hash, KEYS[2] live-room index. ARGV[8] is the index op
+// ('set' | 'del'), ARGV[9] the room id and ARGV[10] the room summary; the
+// entry is stored as "{rev}|{summary}" so readers can verify it belongs to
+// the room's current revision (stats.go).
 var commitScript = redis.NewScript(`
 local cur = redis.call('HGET', KEYS[1], 'rev')
 if ARGV[1] == '0' then
@@ -57,7 +63,7 @@ for _, g in ipairs(guards) do
   local v = redis.call('GET', g.k)
   if v and v ~= g.eq then return -2 end
 end
-local rev = tonumber(ARGV[1]) + 1
+local rev = tostring(tonumber(ARGV[1]) + 1)
 redis.call('HSET', KEYS[1], 'rev', rev, 's', ARGV[2])
 redis.call('PEXPIRE', KEYS[1], ARGV[3])
 local ops = cjson.decode(ARGV[5])
@@ -76,8 +82,13 @@ for _, o in ipairs(ops) do
     redis.call('RPUSH', o.k, o.v)
   end
 end
+if ARGV[8] == 'set' then
+  redis.call('HSET', KEYS[2], ARGV[9], rev .. '|' .. ARGV[10])
+elseif ARGV[8] == 'del' then
+  redis.call('HDEL', KEYS[2], ARGV[9])
+end
 if ARGV[7] ~= '' then redis.call('PUBLISH', ARGV[6], ARGV[7]) end
-return rev`)
+return tonumber(rev)`)
 
 var (
 	errConflict = errors.New("room revision conflict")
@@ -113,6 +124,19 @@ func (st *store) load(ctx context.Context, id string) (*Room, string, error) {
 	return &r, rev, nil
 }
 
+// ErrRoomGone is returned by LoadRoom when the room no longer exists
+// (finished rooms are kept for FINISHED_ROOM_TTL + the rematch window,
+// closed rooms for 2 minutes).
+var ErrRoomGone = errNoRoom
+
+// LoadRoom reads a room's current state from Redis without a Service. It is
+// read-only (player reports use it to verify seats) and returns ErrRoomGone
+// when the room no longer exists.
+func LoadRoom(ctx context.Context, rdb *redis.Client, roomID string) (*Room, error) {
+	r, _, err := (&store{rdb: rdb}).load(ctx, roomID)
+	return r, err
+}
+
 func (st *store) commit(ctx context.Context, r *Room, rev string, ttl time.Duration,
 	guards []guard, ops []sideOp, b *Batch) error {
 	raw, err := json.Marshal(r)
@@ -138,8 +162,10 @@ func (st *store) commit(ctx context.Context, r *Room, rev string, ttl time.Durat
 	if rev == "" {
 		rev = "0"
 	}
-	res, err := commitScript.Run(ctx, st.rdb, []string{roomKey(r.ID)},
-		rev, string(raw), ttl.Milliseconds(), string(g), string(o), roomChanPrefix+r.ID, pub).Int64()
+	idxOp, summary := liveEntry(r)
+	res, err := commitScript.Run(ctx, st.rdb, []string{roomKey(r.ID), liveRoomsKey},
+		rev, string(raw), ttl.Milliseconds(), string(g), string(o), roomChanPrefix+r.ID, pub,
+		idxOp, r.ID, summary).Int64()
 	if err != nil {
 		return err
 	}

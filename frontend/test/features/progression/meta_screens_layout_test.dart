@@ -37,6 +37,7 @@ void main() {
     'friends': () => const FriendsScreen(),
     'friends-requests': () => const FriendsScreen(initialTab: 'requests'),
     'friends-recent': () => const FriendsScreen(initialTab: 'recent'),
+    'friends-reported': () => const FriendsScreen(initialTab: 'reported'),
     'leaderboard': () => const LeaderboardScreen(),
     'level-road': () => const ProgressionScreen(),
   };

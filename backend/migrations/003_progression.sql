@@ -1,8 +1,9 @@
 -- Progression, missions, Collection Room and friendships (approved design,
 -- see docs/progression.md). Idempotent: applied on every start.
 --
--- Deliberately minimal: no match history, no currency ledger, no profile or
--- display-name columns. Every user_id is an account (wallet.wallets) and is
+-- Deliberately minimal: no match history, no currency ledger, no profile
+-- table (the optional player-chosen display name is one nullable column,
+-- added by 005_display_name.sql). Every user_id is an account (wallet.wallets) and is
 -- removed with it (ON DELETE CASCADE) so erasing an account erases its
 -- progression data.
 CREATE SCHEMA IF NOT EXISTS progression;

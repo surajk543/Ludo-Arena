@@ -47,5 +47,11 @@
   "errorBadResponse": "سرور سے غیر متوقع جواب ملا۔ براہِ کرم دوبارہ کوشش کریں۔",
   "errorCancelled": "منسوخ کر دیا گیا۔",
   "errorNotConnected": "ابھی آپ کنیکٹ نہیں ہیں۔ دوبارہ کنیکٹ ہو رہا ہے…",
-  "errorRateLimitedRetry": "{seconds, plural, =1{بہت زیادہ کوششیں۔ 1 سیکنڈ بعد دوبارہ کوشش کریں۔} other{بہت زیادہ کوششیں۔ {seconds} سیکنڈ بعد دوبارہ کوشش کریں۔}}"
+  "errorRateLimitedRetry": "{seconds, plural, =1{بہت زیادہ کوششیں۔ 1 سیکنڈ بعد دوبارہ کوشش کریں۔} other{بہت زیادہ کوششیں۔ {seconds} سیکنڈ بعد دوبارہ کوشش کریں۔}}",
+  "errorInvalidName": "یہ نام استعمال نہیں کیا جا سکتا۔ براہِ کرم کوئی اور نام چنیں۔",
+  "errorInvalidNameTooShort": "نام میں کم از کم 3 حروف ہونے چاہییں۔",
+  "errorInvalidNameTooLong": "نام میں زیادہ سے زیادہ 16 حروف ہو سکتے ہیں۔",
+  "errorInvalidNameCharacters": "صرف حروف، اعداد، اسپیس، _ . یا - استعمال کریں (کم از کم ایک حرف)۔ ایموجی یا علامات نہیں۔",
+  "errorInvalidNameReserved": "یہ نام مخصوص ہے۔ براہِ کرم کوئی اور نام چنیں۔",
+  "errorInvalidNameInappropriate": "اس نام کی اجازت نہیں ہے۔ براہِ کرم کوئی مناسب نام چنیں۔"
 }

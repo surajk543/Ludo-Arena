@@ -87,6 +87,8 @@ class RecordingAnalytics extends NoopAnalyticsService {
   void accountLinkSucceeded(LoginMethod method) =>
       events.add('account_link_succeeded:${method.name}');
   @override
+  void displayNameChanged() => events.add('display_name_changed');
+  @override
   void appUpdatePromptShown(String mode) =>
       events.add('app_update_prompt_shown:$mode');
   @override

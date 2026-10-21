@@ -1,0 +1,8 @@
+# node_exporter on every host (CPU, RAM, disk).
+# Development default: the node-exporter container of this stack. On macOS
+# it measures Docker's Linux VM; to see the Mac itself, run node_exporter
+# natively (brew install node_exporter) and use "host.docker.internal:9100".
+# Production: one entry per host, e.g. - targets: ["10.0.1.11:9100", "10.0.1.12:9100"]
+- targets: ["node-exporter:9100"]
+  labels:
+    env: development

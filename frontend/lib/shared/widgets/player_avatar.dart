@@ -18,14 +18,13 @@ const List<String> kAvatarFrameIds = [
 ];
 
 /// A player's portrait: one of 12 painted characters, an optional seat-color
-/// ring, the equipped frame, and a BOT badge for server-flagged bots.
+/// ring and the equipped frame. Bots are never labelled in the UI.
 class PlayerAvatar extends StatelessWidget {
   const PlayerAvatar({
     super.key,
     required this.avatarIndex,
     this.frameId = 'frame_none',
     this.size = 56,
-    this.isBot = false,
     this.seatColor,
     this.dimmed = false,
     this.semanticLabel,
@@ -37,9 +36,6 @@ class PlayerAvatar extends StatelessWidget {
   /// `frame_none|frame_bronze|frame_silver|frame_gold|frame_royal`.
   final String frameId;
   final double size;
-
-  /// From the server room snapshot (`players[].bot`). Shows a BOT badge.
-  final bool isBot;
   final SeatColor? seatColor;
 
   /// Desaturated look (disconnected / forfeited players).
@@ -105,124 +101,13 @@ class PlayerAvatar extends StatelessWidget {
       );
     }
 
-    final label = [
-      semanticLabel ?? l10n.widgetsAvatarLabel,
-      if (isBot) l10n.commonBotPlayerLabel,
-    ].join(', ');
-
     return Semantics(
       image: true,
-      label: label,
+      label: semanticLabel ?? l10n.widgetsAvatarLabel,
       excludeSemantics: true,
-      child: SizedBox.square(
-        dimension: size,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(child: art),
-            if (isBot)
-              PositionedDirectional(
-                bottom: -size * 0.05,
-                start: -size * 0.1,
-                end: -size * 0.1,
-                child: Center(
-                  // Scale the pill down rather than overflow on mid-size
-                  // avatars (the label appears from 36 dp).
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: BotBadge(
-                      height: (size * 0.28).clamp(16.0, 24.0),
-                      showLabel: size >= 36,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+      child: SizedBox.square(dimension: size, child: art),
     );
   }
-}
-
-/// Small "BOT" pill with a painted robot glyph.
-class BotBadge extends StatelessWidget {
-  const BotBadge({super.key, this.height = 18, this.showLabel = true});
-
-  final double height;
-
-  /// Text label next to the robot glyph (glyph only on tiny avatars).
-  final bool showLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    final l10n = AppLocalizations.of(context);
-    final showText = showLabel;
-    return Container(
-      height: height,
-      padding: EdgeInsetsDirectional.symmetric(horizontal: height * 0.28),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [BrandPalette.royal600, BrandPalette.royal800],
-        ),
-        borderRadius: AppRadii.pillAll,
-        border: Border.all(color: c.surface, width: 1.4),
-        boxShadow: c.shadow(AppElevation.low),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomPaint(
-            size: Size.square(height * 0.62),
-            painter: const RobotGlyphPainter(),
-          ),
-          if (showText) ...[
-            SizedBox(width: height * 0.18),
-            Text(
-              l10n.commonBotBadge,
-              maxLines: 1,
-              style: context.textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontSize: height * 0.56,
-                height: 1,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Robot head glyph.
-class RobotGlyphPainter extends CustomPainter {
-  const RobotGlyphPainter({this.color = Colors.white});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s = size.shortestSide;
-    final p = Paint()..color = color;
-    final head = RRect.fromRectAndRadius(
-      Rect.fromLTWH(s * 0.1, s * 0.3, s * 0.8, s * 0.62),
-      Radius.circular(s * 0.18),
-    );
-    canvas.drawRRect(head, p);
-    canvas.drawLine(
-      Offset(s * 0.5, s * 0.3),
-      Offset(s * 0.5, s * 0.1),
-      p..strokeWidth = s * 0.1,
-    );
-    canvas.drawCircle(Offset(s * 0.5, s * 0.08), s * 0.09, p);
-    final eye = Paint()..color = BrandPalette.royal700;
-    canvas.drawCircle(Offset(s * 0.34, s * 0.58), s * 0.09, eye);
-    canvas.drawCircle(Offset(s * 0.66, s * 0.58), s * 0.09, eye);
-  }
-
-  @override
-  bool shouldRepaint(RobotGlyphPainter old) => old.color != color;
 }
 
 // ----------------------------------------------------------------- avatars

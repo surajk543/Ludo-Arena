@@ -15,6 +15,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"ludoroyale/internal/apppolicy"
+	"ludoroyale/internal/async"
 	"ludoroyale/internal/auth"
 	"ludoroyale/internal/config"
 	"ludoroyale/internal/gameevents"
@@ -62,6 +63,7 @@ type App struct {
 	Gateway  *websocket.Gateway
 	Router   *httpapi.Router
 	Legal    *legal.Notices
+	Async    *async.Runner
 	ext      Extensions
 }
 
@@ -74,13 +76,20 @@ type Core struct {
 	Profiles *profile.Service
 	Notifier *notify.Publisher
 	Wallets  *wallet.Store
+	// Async runs best-effort work off the request path (bounded queue,
+	// drained on shutdown); see docs/architecture.md → PostgreSQL on the hot path.
+	Async *async.Runner
 }
 
 // NewCore builds the shared base services.
 func NewCore(cfg *config.Config, log *slog.Logger, pg *pgxpool.Pool, rdb *redis.Client) *Core {
+	// Player-chosen display names live in PostgreSQL (authoritative) and the
+	// Redis profile cache; see package profile.
+	profiles := profile.New(rdb, cfg.Auth.PublicIDKey).
+		WithPostgres(pg, profile.Options{NameChangesPerDay: cfg.NameChangesPerDay})
 	return &Core{Cfg: cfg, Log: log, PG: pg, RDB: rdb,
-		Profiles: profile.New(rdb, cfg.Auth.PublicIDKey), Notifier: notify.New(rdb, log),
-		Wallets: wallet.NewStore(pg)}
+		Profiles: profiles, Notifier: notify.New(rdb, log),
+		Wallets: wallet.NewStore(pg), Async: async.New(async.Options{Log: log})}
 }
 
 // New assembles the application.
@@ -124,6 +133,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 		Recorder: ext.Recorder, Inviter: ext.Inviter, Inventory: ext.Inventory, Policy: policy,
 		BotAuth: botAuth, Limiter: limiter, Notifier: core.Notifier, Log: log, Game: cfg.Game,
 		Bots: cfg.Bots, Env: cfg.Env, FullSnaps: cfg.WS.FullSnapshots, Dice: dice,
+		StatsInterval: cfg.GameStatsInterval,
 	})
 	gw := websocket.New(cfg.WS, log, authSvc, policy, limiter, roomSvc, core.RDB, cfg.TrustedProxyHops)
 	gw.OnHumanConnect = ext.OnActivity
@@ -179,7 +189,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 
 	return &App{Cfg: cfg, Log: log, PG: core.PG, RDB: core.RDB, Policy: policy, Auth: authSvc, BotAuth: botAuth,
 		IDs: ids, Wallets: core.Wallets, Profiles: core.Profiles, Notifier: core.Notifier, Rooms: roomSvc,
-		Gateway: gw, Router: rt, Legal: notices, ext: ext}, nil
+		Gateway: gw, Router: rt, Legal: notices, Async: core.Async, ext: ext}, nil
 }
 
 // Handler is the public HTTP handler.
@@ -198,10 +208,16 @@ func (a *App) Start(ctx context.Context) {
 	go a.Gateway.Run(ctx)
 	go a.Rooms.RunScheduler(ctx, 16)
 	go a.Legal.Run(ctx)
+	go a.Rooms.RunGameStats(ctx)
+	go a.Async.Run(ctx)
 	for _, bg := range a.ext.Background {
 		go bg(ctx)
 	}
 }
+
+// Wait blocks until background work has drained after the Start context was
+// cancelled (bounded by the runner's drain timeout) or ctx is done.
+func (a *App) Wait(ctx context.Context) error { return a.Async.Wait(ctx) }
 
 // checkDice refuses any dice source other than crypto/rand in production
 // (nil means the default CryptoDice). Deterministic dice exist for tests and

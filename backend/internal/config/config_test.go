@@ -3,6 +3,7 @@ package config
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 // minimalEnv sets the variables Load requires; ENTRY_FEE_* start unset (an
@@ -13,6 +14,7 @@ func minimalEnv(t *testing.T) {
 		"APP_ENV": EnvDevelopment, "DATABASE_URL": "postgres://unused",
 		"JWT_SIGNING_KEY": strings.Repeat("k", 40), "PUBLIC_ID_KEY": strings.Repeat("p", 40),
 		"ENTRY_FEE_LUDO": "", "ENTRY_FEE_SNAKES": "", "WELCOME_COINS": "", "WELCOME_DIAMONDS": "",
+		"GAME_STATS_INTERVAL": "",
 	} {
 		t.Setenv(k, v)
 	}
@@ -96,6 +98,116 @@ func TestWelcomeFallbacks(t *testing.T) {
 	}
 	if DefaultWelcomeCoins != 1_000_000 || DefaultWelcomeDiamonds != 50 {
 		t.Fatalf("built-in welcome defaults changed: %d / %d", DefaultWelcomeCoins, DefaultWelcomeDiamonds)
+	}
+}
+
+func TestSocialAndAdminSettings(t *testing.T) {
+	hash := strings.Repeat("ab", 32)
+	cases := []struct {
+		name                     string
+		friends, reports, admin  string
+		wantFriends, wantReports int
+		wantAdmin                bool
+		wantErr                  string
+	}{
+		{"defaults", "", "", "", 20, 2, false, ""},
+		{"overrides", "35", "5", hash, 35, 5, true, ""},
+		{"minimums", "1", "1", "", 1, 1, false, ""},
+		{"zero friends", "0", "", "", 0, 0, false, "FRIENDS_MAX must be >= 1"},
+		{"negative reports", "", "-2", "", 0, 0, false, "REPORTS_PER_DAY must be >= 1"},
+		{"friends not an integer", "twenty", "", "", 0, 0, false, "FRIENDS_MAX: not an integer"},
+		{"admin hash not hex", "", "", strings.Repeat("zz", 32), 0, 0, false, "ADMIN_API_KEY_SHA256 must be 64 hex characters"},
+		{"admin hash too short", "", "", "abcd", 0, 0, false, "ADMIN_API_KEY_SHA256 must be 64 hex characters"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			t.Setenv("FRIENDS_MAX", c.friends)
+			t.Setenv("REPORTS_PER_DAY", c.reports)
+			t.Setenv("ADMIN_API_KEY_SHA256", c.admin)
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Social.FriendsMax != c.wantFriends || cfg.Social.ReportsPerDay != c.wantReports ||
+				(len(cfg.AdminKeySHA256) == 32) != c.wantAdmin {
+				t.Fatalf("social = %+v admin = %x", cfg.Social, cfg.AdminKeySHA256)
+			}
+		})
+	}
+}
+
+func TestNameChangesPerDay(t *testing.T) {
+	cases := []struct {
+		name, raw string
+		want      int
+		wantErr   string
+	}{
+		{"default", "", 3, ""},
+		{"override", "5", 5, ""},
+		{"minimum", "1", 1, ""},
+		{"zero", "0", 0, "NAME_CHANGES_PER_DAY must be >= 1"},
+		{"negative", "-2", 0, "NAME_CHANGES_PER_DAY must be >= 1"},
+		{"not an integer", "three", 0, "NAME_CHANGES_PER_DAY: not an integer"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			t.Setenv("NAME_CHANGES_PER_DAY", c.raw)
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.NameChangesPerDay != c.want {
+				t.Fatalf("NameChangesPerDay = %d, want %d", cfg.NameChangesPerDay, c.want)
+			}
+		})
+	}
+}
+
+func TestGameStatsInterval(t *testing.T) {
+	cases := []struct {
+		raw     string
+		want    time.Duration
+		wantErr string
+	}{
+		{"", 15 * time.Second, ""},
+		{"30s", 30 * time.Second, ""},
+		{"5", 5 * time.Second, ""}, // plain integers are seconds
+		{"1s", time.Second, ""},
+		{"500ms", 0, "GAME_STATS_INTERVAL must be at least 1s"},
+		{"soon", 0, "GAME_STATS_INTERVAL: not a duration"},
+	}
+	for _, c := range cases {
+		t.Run(c.raw, func(t *testing.T) {
+			minimalEnv(t)
+			t.Setenv("GAME_STATS_INTERVAL", c.raw)
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.GameStatsInterval != c.want {
+				t.Fatalf("interval = %v, want %v", cfg.GameStatsInterval, c.want)
+			}
+		})
 	}
 }
 

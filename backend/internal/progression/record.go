@@ -198,6 +198,10 @@ func (s *Service) recordPlayer(ctx context.Context, rec *gameevents.MatchRecord,
 
 // afterRecord runs the post-commit effects of a first-time match record.
 func (s *Service) afterRecord(ctx context.Context, userID uuid.UUID, at time.Time, out *matchOutcome) {
+	if out.xp.level != out.xp.oldLevel {
+		s.InvalidateSeat(ctx, userID)
+	}
+	s.cacheGranted(ctx, userID, out.unlocked)
 	metrics.XPAwarded.WithLabelValues("match").Add(float64(out.gained))
 	if n := out.xp.level - out.xp.oldLevel; n > 0 {
 		metrics.LevelUps.WithLabelValues().Add(float64(n))

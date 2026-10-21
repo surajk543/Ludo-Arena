@@ -36,6 +36,11 @@ abstract interface class AuthApi {
   /// `GET /me`.
   Future<MeResponse> me();
 
+  /// `PATCH /me` `{"displayName": …}` → the updated user + wallet. 400
+  /// `invalid_name` (`details.reason`), 429 `rate_limited` (`Retry-After`).
+  /// The server trims, collapses whitespace and NFC-normalizes the name.
+  Future<MeResponse> updateDisplayName(String displayName);
+
   /// `POST /account/link/{provider}`.
   Future<MeResponse> link(ProviderCredential credential);
 }
@@ -107,6 +112,12 @@ class RestAuthApi implements AuthApi {
 
   @override
   Future<MeResponse> me() async => MeResponse.fromJson(await _api.get('/me'));
+
+  @override
+  Future<MeResponse> updateDisplayName(String displayName) async =>
+      MeResponse.fromJson(
+        await _api.patch('/me', body: {'displayName': displayName}),
+      );
 
   @override
   Future<MeResponse> link(ProviderCredential credential) async =>

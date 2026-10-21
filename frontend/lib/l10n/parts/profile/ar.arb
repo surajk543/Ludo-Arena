@@ -15,5 +15,14 @@
   "profileNotLinked": "غير مرتبط",
   "profileSaveProgressCta": "احفظ التقدّم",
   "profileTotalXp": "إجمالي الخبرة",
-  "profileStatsSection": "التقدّم"
+  "profileStatsSection": "التقدّم",
+  "profileEditNameTooltip": "تعديل الاسم",
+  "profileEditNameTitle": "غيّر اسمك",
+  "profileNameLabel": "الاسم المعروض",
+  "profileNameRules": "من 3 إلى 16 حرفًا. يُسمح بالحروف والأرقام والمسافات و_ . و-.",
+  "profileNameNote": "سيظهر اسمك الجديد للأصدقاء وفي لوحات الصدارة والألعاب الجديدة. تحتفظ اللعبة الجارية بالاسم القديم.",
+  "profileNameCounterSemantics": "{count} من {max} حرفًا",
+  "profileNameSaved": "اسمك الآن {name}",
+  "profileNameChangeLimit": "لقد غيّرت اسمك مرات كثيرة. يُرجى المحاولة لاحقًا.",
+  "profileNameChangeLimitRetry": "لقد غيّرت اسمك مرات كثيرة. حاول مرة أخرى بعد {wait}."
 }

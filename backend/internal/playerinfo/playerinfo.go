@@ -42,6 +42,21 @@ type Provider interface {
 	Summaries(ctx context.Context, userIDs []uuid.UUID) (map[uuid.UUID]Summary, error)
 }
 
+// SeatProvider is an optional Provider extension serving the summary a room
+// seat shows (level, title, loadout; XP may be 0) from a cache, so joining a
+// room does not read PostgreSQL (progression.Service implements it).
+type SeatProvider interface {
+	SeatSummary(ctx context.Context, userID uuid.UUID) (Summary, error)
+}
+
+// SeatSummary returns p's seat summary for userID, cached when p supports it.
+func SeatSummary(ctx context.Context, p Provider, userID uuid.UUID) (Summary, error) {
+	if sp, ok := p.(SeatProvider); ok {
+		return sp.SeatSummary(ctx, userID)
+	}
+	return p.Summary(ctx, userID)
+}
+
 // StarterProvider returns starter summaries for everyone (used when the
 // progression subsystem is not wired, e.g. in narrow tests).
 type StarterProvider struct{}

@@ -1,0 +1,147 @@
+# Ludo Royale alert rules. Numbers come from thresholds.yml; durations
+# ("for:") are set here. Every alert has a severity (critical | warning),
+# a one-line summary and a description; the ops bot adds the current CPU,
+# RAM and player counts when it posts the alert to Telegram.
+groups:
+  - name: ludo-royale-availability
+    rules:
+      - alert: BackendInstanceDown
+        expr: up{job="backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend {{ $labels.instance }} is down"
+          description: "Prometheus has not been able to scrape this backend instance for 1 minute. Check the process, its logs and the host."
+
+      - alert: BotPlayDown
+        expr: up{job="bot-play"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "bot-play {{ $labels.instance }} is down"
+          description: "Practice games and bot-filled rooms cannot get bots until bot-play is back."
+
+      - alert: NodeExporterDown
+        expr: up{job="node"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host metrics missing for {{ $labels.instance }}"
+          description: "node_exporter is not answering, so CPU, RAM and disk alerts for this host are blind."
+
+  - name: ludo-royale-hosts
+    rules:
+      - alert: HostCPUHigh
+        expr: |
+          100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job="node",mode="idle"}[5m])))
+            > scalar(threshold:host_cpu_percent)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'CPU usage on {{ $labels.instance }} is {{ printf "%.0f" $value }}%'
+          description: 'Above {{ with query "threshold:host_cpu_percent" }}{{ . | first | value }}{{ end }}% for 5 minutes.'
+
+      - alert: HostMemoryHigh
+        expr: |
+          max by (instance) (
+            100 * (1 - node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"})
+            or
+            100 * (node_memory_internal_bytes{job="node"} - node_memory_purgeable_bytes{job="node"}
+                   + node_memory_wired_bytes{job="node"} + node_memory_compressed_bytes{job="node"})
+                 / node_memory_total_bytes{job="node"}
+          ) > scalar(threshold:host_ram_percent)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RAM usage on {{ $labels.instance }} is {{ printf "%.0f" $value }}%'
+          description: 'Above {{ with query "threshold:host_ram_percent" }}{{ . | first | value }}{{ end }}% for 5 minutes. The macOS formula (app + wired + compressed memory) is used for local runs.'
+
+      - alert: HostDiskFull
+        expr: |
+          max by (instance, mountpoint) (
+            100 * (1 - node_filesystem_avail_bytes{job="node",fstype!~"tmpfs|overlay|squashfs|devtmpfs|devfs|devicefs|nullfs|autofs|ramfs|fuse.*",mountpoint!~"/(boot|snap|System|Volumes|Library|private|run|var/lib/docker)(/.*)?"}
+                     / node_filesystem_size_bytes{job="node",fstype!~"tmpfs|overlay|squashfs|devtmpfs|devfs|devicefs|nullfs|autofs|ramfs|fuse.*",mountpoint!~"/(boot|snap|System|Volumes|Library|private|run|var/lib/docker)(/.*)?"})
+          ) > scalar(threshold:host_disk_percent)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.instance }} is {{ printf "%.0f" $value }}% full'
+          description: "PostgreSQL, Redis (AOF/RDB) and logs need free space. Clean up or grow the volume."
+
+  - name: ludo-royale-backend
+    rules:
+      - alert: ProcessMemoryHigh
+        expr: process_resident_memory_bytes{job=~"backend|bot-play"} > scalar(threshold:process_rss_bytes)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: '{{ $labels.job }} {{ $labels.instance }} uses {{ humanize1024 $value }}B of memory'
+          description: "Resident memory has stayed above the threshold for 10 minutes (leak or load). Compare with players online."
+
+      - alert: HTTP5xxRateHigh
+        expr: |
+          (
+            100 * sum(rate(http_requests_total{job="backend",class="5xx"}[5m]))
+                / sum(rate(http_requests_total{job="backend"}[5m]))
+            > scalar(threshold:http_5xx_percent)
+          )
+          and
+          (sum(rate(http_requests_total{job="backend",class="5xx"}[5m])) > scalar(threshold:http_5xx_min_per_second))
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Backend HTTP 5xx at {{ printf "%.1f" $value }}% of requests'
+          description: "Server errors stayed above the threshold for 5 minutes. Check backend logs, PostgreSQL and Redis."
+
+      - alert: WalletSettlementFailures
+        # increase() misses the first failure of a new series, so a series
+        # that did not exist 15 minutes ago also fires.
+        expr: |
+          sum by (op) (increase(wallet_settlement_failures_total{job="backend"}[15m])) > 0
+          or
+          (sum by (op) (wallet_settlement_failures_total{job="backend"})
+            unless sum by (op) (wallet_settlement_failures_total{job="backend"} offset 15m))
+        labels:
+          severity: critical
+        annotations:
+          summary: "Wallet settlement failures ({{ $labels.op }})"
+          description: "Entry-fee, refund or payout operations failed in the last 15 minutes. Check backend logs for the affected rooms; coins may need reconciliation."
+
+      - alert: WebSocketSlowConsumers
+        expr: sum(rate(ws_slow_client_events_total{job="backend"}[5m])) * 60 > scalar(threshold:ws_slow_events_per_minute)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'WebSocket slow-consumer events at {{ printf "%.0f" $value }}/min'
+          description: "Outbound queues overflow or writes time out (slow networks or an overloaded instance). See docs/performance.md."
+
+      - alert: MatchmakingWaitHigh
+        expr: |
+          histogram_quantile(0.95, sum by (le, game) (rate(matchmaking_wait_seconds_bucket{job="backend"}[15m])))
+            > scalar(threshold:matchmaking_wait_p95_seconds)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Matchmaking p95 wait for {{ $labels.game }} is {{ printf "%.0f" $value }} s'
+          description: "Players wait too long for a match. Consider enabling public bot fill or check matchmaking errors."
+
+      - alert: GameStatsStale
+        expr: |
+          (time() - max(game_stats_refreshed_timestamp_seconds{job="backend"}) > scalar(threshold:game_stats_stale_seconds))
+          and on() (sum(up{job="backend"}) > 0)
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Game stats are {{ printf "%.0f" $value }} s old'
+          description: "The cluster-wide players/rooms gauges (players_in_game, rooms_in_game, players_in_lobby) are not being refreshed, so status reports show stale numbers."

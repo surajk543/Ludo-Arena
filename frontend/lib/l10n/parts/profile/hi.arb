@@ -15,5 +15,14 @@
   "profileNotLinked": "जुड़ा नहीं",
   "profileSaveProgressCta": "प्रोग्रेस सेव करें",
   "profileTotalXp": "कुल XP",
-  "profileStatsSection": "प्रोग्रेस"
+  "profileStatsSection": "प्रोग्रेस",
+  "profileEditNameTooltip": "नाम बदलें",
+  "profileEditNameTitle": "अपना नाम बदलें",
+  "profileNameLabel": "डिस्प्ले नाम",
+  "profileNameRules": "3–16 अक्षर। अक्षर, अंक, स्पेस, _ . और - इस्तेमाल कर सकते हैं।",
+  "profileNameNote": "दोस्तों, लीडरबोर्ड और नए गेम में आपका नया नाम दिखेगा। चल रहे गेम में पुराना नाम ही रहेगा।",
+  "profileNameCounterSemantics": "{max} में से {count} अक्षर",
+  "profileNameSaved": "अब आपका नाम {name} है",
+  "profileNameChangeLimit": "आपने बहुत बार नाम बदला है। कृपया बाद में फिर कोशिश करें।",
+  "profileNameChangeLimitRetry": "आपने बहुत बार नाम बदला है। {wait} बाद फिर कोशिश करें।"
 }
