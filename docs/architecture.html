@@ -824,6 +824,19 @@ td code { font-size: 0.8rem; }
       </table>
     </div>
     <p class="small">The binding never appears in <code>linkedProviders</code> and does not make an account "linked": a guest with a device binding still has <code>isGuest = true</code> and is offered Save Progress. Device sign-ins replace the account's previous session like every other sign-in. See <a href="authentication.md#device-binding-restore-after-update-or-reinstall">authentication.md</a>.</p>
+    <h3 id="account-deletion">Deleting an account (Settings → Delete account)<a class="heading-anchor" href="#account-deletion" aria-label="Link to this heading">#</a></h3>
+    <div class="table-wrap compact">
+      <table>
+        <thead><tr><th>Request</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td><code>DELETE /account {"confirm":"DELETE"}</code></td><td>204: leaves the active room (a running game is forfeited and continues for the others), then one PostgreSQL transaction deletes the wallet, every identity (guest, device binding, Google/Facebook/Apple), progression, missions, claims, receipts, inventory, loadout, friendships on both sides and reports by and against the account; then all sessions are revoked, the socket is closed with <code>4401</code> reason <code>account deleted</code> and the account's Redis keys are purged</td></tr>
+          <tr><td>Wrong or missing confirmation · bot token</td><td>400 <code>confirmation_required</code> · 403 <code>forbidden</code> (nothing deleted)</td></tr>
+          <tr><td>Same token again · concurrent second call</td><td>401 <code>unauthorized</code> (exactly one call deletes)</td></tr>
+          <tr><td>Afterwards on the same device / provider account</td><td>Device resume 404; guest sign-in or provider sign-in creates a <strong>new</strong> account with a new welcome grant</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">Humans only, not version-gated, 5 requests per hour per account. What remains is only pseudonymous or short-lived (HLL active-user sketches, Prometheus counters, ≤ 24 h replay/de-duplication keys). See <a href="authentication.md#deleting-an-account">authentication.md</a>.</p>
   </section>
 
   <!-- ============================================================ 4 -->
@@ -1134,7 +1147,7 @@ td code { font-size: 0.8rem; }
         <thead><tr><th>Signal</th><th>Meaning</th><th>Client behaviour</th></tr></thead>
         <tbody>
           <tr><td><code>1001</code>, <code>1008</code>, <code>4400</code>, <code>4508</code>, heartbeat timeout, abnormal close</td><td>Shutdown / policy / protocol / slow consumer / dead link</td><td>Reconnect with full-jitter backoff; snapshot follows</td></tr>
-          <tr><td><code>4401</code></td><td>Session revoked or expired, or the account signed in on another device (sent immediately)</td><td>Refresh token, then reconnect; refresh fails → sign-in; refresh fails with <code>session_replaced</code> → “Signed in on another device” popup, sign-in without automatic re-login</td></tr>
+          <tr><td><code>4401</code></td><td>Session revoked or expired, or the account signed in on another device (sent immediately), or the account was deleted (reason <code>account deleted</code>, sent immediately)</td><td>Refresh token, then reconnect; refresh fails → sign-in; refresh fails with <code>session_replaced</code> → “Signed in on another device” popup, sign-in without automatic re-login; reason <code>account deleted</code> → no refresh, no popup: forget the local session and show sign-in (“Your account was deleted”)</td></tr>
           <tr><td><code>4409</code></td><td>Replaced by a newer connection of the same session (one live socket per user, across instances)</td><td><strong>No auto-reconnect</strong>; Reconnect button</td></tr>
           <tr><td><code>4426</code> / <code>4503</code></td><td>Version unsupported / maintenance</td><td>Policy re-check → force-update or maintenance screen</td></tr>
           <tr><td><code>4429</code></td><td>Rate-limit abuse</td><td>Reconnect after ≥ 10 s</td></tr>
@@ -1952,7 +1965,7 @@ td code { font-size: 0.8rem; }
       <table>
         <thead><tr><th>Area</th><th>Controls in place</th></tr></thead>
         <tbody>
-          <tr><td>Rate limits (Redis fixed windows)</td><td>Sign-in 30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config 120/min/IP · telemetry 60/min/IP · linking 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account · matchmaking 20/min/account · wallet operations 30/min/account · social writes 30/min/account · <code>PATCH /me</code> 20/min/account · player reports 20/min/account (plus 2 stored per rolling 24 h) · admin API 60/min/IP · bot service 600/min/IP · per-socket commands 10/s (burst 20) · quick chat 1 per 3 s and 10/min · invites 10/min · friend requests 60/h · display-name changes <code>NAME_CHANGES_PER_DAY</code> (3) per rolling 24 h</td></tr>
+          <tr><td>Rate limits (Redis fixed windows)</td><td>Sign-in 30/min/IP · guest creation 10/h/IP · refresh + logout 60/min/IP · app config 120/min/IP · telemetry 60/min/IP · linking 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account · matchmaking 20/min/account · wallet operations 30/min/account · social writes 30/min/account · <code>PATCH /me</code> 20/min/account · account deletion 5/h/account · player reports 20/min/account (plus 2 stored per rolling 24 h) · admin API 60/min/IP · bot service 600/min/IP · per-socket commands 10/s (burst 20) · quick chat 1 per 3 s and 10/min · invites 10/min · friend requests 60/h · display-name changes <code>NAME_CHANGES_PER_DAY</code> (3) per rolling 24 h</td></tr>
           <tr><td>Token handling</td><td>Provider tokens verified server-side (go-oidc JWKS, Apple nonce, Facebook <code>debug_token</code>); emails never used to match or merge; HS256 access JWT 15 min checked against the live session; refresh rotation with reuse detection; only SHA-256 of refresh tokens, guest secrets and the bot service key is stored, and only an HMAC of the device id (used solely to restore the account after an update or reinstall); client tokens in <code>flutter_secure_storage</code>; sessions re-checked on live sockets every 60 s</td></tr>
           <tr><td>Validation</td><td>Strict JSON decoding (unknown fields rejected); WebSocket text frames only, ≤ 4096 bytes after decompression, ids 1–64 chars, known message types, phase/seat/<code>turnSeq</code> checks, repeated invalid messages close with <code>4400</code>; server-side rules for everything; <code>Idempotency-Key</code> format checks</td></tr>
           <tr><td>Transport</td><td>TLS at the load balancer; bot-play requires https/wss in production; <code>TRUSTED_PROXY_HOPS</code> controls which <code>X-Forwarded-For</code> hop is trusted</td></tr>

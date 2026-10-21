@@ -53,6 +53,43 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم تسجيل الدخول إلى حسابك على جهاز آخر.';
 
   @override
+  String get authAccountDeleted => 'تم حذف حسابك.';
+
+  @override
+  String get authDeleteAccountTitle => 'هل تريد حذف حسابك؟';
+
+  @override
+  String get authDeleteAccountIntro =>
+      'سيؤدي هذا إلى حذف حسابك وكل ما فيه نهائيًا:';
+
+  @override
+  String get authDeleteAccountItemWallet => 'العملات والماسات';
+
+  @override
+  String get authDeleteAccountItemProgress => 'المستوى ونقاط الخبرة والمهام';
+
+  @override
+  String get authDeleteAccountItemCollection => 'عناصر غرفة المجموعة';
+
+  @override
+  String get authDeleteAccountItemFriends => 'الأصدقاء وطلبات الصداقة';
+
+  @override
+  String get authDeleteAccountWarning =>
+      'لا يمكن التراجع عن ذلك. إذا لعبت مرة أخرى لاحقًا، فستبدأ بحساب جديد.';
+
+  @override
+  String get authDeleteAccountConfirmCheck =>
+      'أفهم أن حسابي وتقدّمي سيُحذفان نهائيًا.';
+
+  @override
+  String get authDeleteAccountConfirm => 'حذف الحساب';
+
+  @override
+  String get authDeleteAccountFailed =>
+      'لم يتم حذف حسابك. تحقّق من اتصالك وحاول مرة أخرى.';
+
+  @override
   String get authChangeLanguage => 'تغيير اللغة';
 
   @override
@@ -2900,6 +2937,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'تسجيل الخروج';
+
+  @override
+  String get settingsDeleteAccount => 'حذف الحساب';
+
+  @override
+  String get settingsDeleteAccountSubtitle => 'احذف حسابك وبياناته نهائيًا';
 
   @override
   String get settingsAbout => 'حول التطبيق';

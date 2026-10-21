@@ -194,6 +194,8 @@ abstract final class AnalyticsCatalog {
     'login_failed': {'method': _P.loginMethod},
     'guest_login_succeeded': {},
     'account_link_succeeded': {'method': _P.linkMethod},
+    // No parameters (never ids, providers or reasons).
+    'account_deleted': {},
     // No parameters: the name itself is PII and never sent.
     'display_name_changed': {},
     'matchmaking_started': _P.matchmaking,

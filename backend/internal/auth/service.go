@@ -205,6 +205,12 @@ func (s *Service) LogoutRefresh(ctx context.Context, refresh string) error {
 	return s.sessions.EndByRefresh(ctx, refresh)
 }
 
+// EndAccountSessions revokes every human session of the account (account
+// deletion), including sid (the caller's), and returns how many were live.
+func (s *Service) EndAccountSessions(ctx context.Context, userID uuid.UUID, sid string) (int, error) {
+	return s.sessions.EndAccount(ctx, userID, sid)
+}
+
 // Authenticate validates an access token and that its session is active.
 // A dead session yields ErrSessionReplaced (newer sign-in of the account) or
 // ErrRevoked (logout, refresh reuse, expiry).

@@ -592,6 +592,23 @@ func (s *Service) Leave(ctx context.Context, c Caller, roomID string) error {
 	return err
 }
 
+// LeaveActive takes userID out of its active room exactly like room.leave (a
+// lobby seat is released, a game in progress is forfeited and continues for
+// the others, a finished room's rematch is declined) and clears a stale
+// pointer. Used by account deletion; a no-op without an active room.
+func (s *Service) LeaveActive(ctx context.Context, userID string) error {
+	roomID := s.ActiveRoom(ctx, userID)
+	if roomID == "" {
+		return nil
+	}
+	err := s.Leave(ctx, Caller{UserID: userID}, roomID)
+	if err != nil && !errors.Is(err, protocol.ErrNotInRoom) && !errors.Is(err, protocol.ErrRoomNotFound) {
+		return err
+	}
+	s.clearStalePointer(ctx, userID, roomID)
+	return nil
+}
+
 // removeSeat removes a lobby seat, compacting seats and transferring host.
 // It closes the room when no humans remain. Returns bot session ids to revoke.
 func (s *Service) removeSeat(m *mutation, seat int) []string {

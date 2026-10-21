@@ -124,6 +124,10 @@ abstract interface class AnalyticsService {
   void guestLoginSucceeded();
   void accountLinkSucceeded(LoginMethod method);
 
+  /// The server confirmed `DELETE /account` (204). Sent before the local
+  /// session is cleared, so only a human actor is ever counted. No params.
+  void accountDeleted();
+
   // Profile
   /// The server accepted a new display name. Never carries the name.
   void displayNameChanged();

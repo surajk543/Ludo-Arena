@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -290,6 +291,24 @@ void main() {
         'AT /matchmaking?game=snakes_ladders&variant=classic&capacity=3',
       ),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('the game picker shows full game names on a phone', (
+    tester,
+  ) async {
+    setViewportSize(tester, Viewports.phone);
+    await pumpHome(tester);
+    await tester.tap(_selector('Change game'));
+    await tester.pumpAndSettle();
+    final name = find.descendant(
+      of: find.byType(AppBottomSheetFrame),
+      matching: find.text('Snakes & Ladders'),
+    );
+    expect(name, findsOneWidget);
+    expect(
+      tester.renderObject<RenderParagraph>(name).didExceedMaxLines,
+      isFalse,
     );
   });
 

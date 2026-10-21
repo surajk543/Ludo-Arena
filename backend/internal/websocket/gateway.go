@@ -281,6 +281,7 @@ func (g *Gateway) register(c *conn) {
 //
 //	{"ctl":"kick","conn":"<connId>"}  a newer connection of this user exists
 //	{"ctl":"revoke","sid":"<sid>"}    session sid was replaced by a newer sign-in
+//	{"ctl":"deleted"}                 the account was deleted (any session)
 type controlMsg struct {
 	Ctl  string `json:"ctl"`
 	Conn string `json:"conn,omitempty"`
@@ -298,6 +299,25 @@ func (g *Gateway) RevokeSession(ctx context.Context, userID, sid string) {
 	ctl, _ := json.Marshal(controlMsg{Ctl: "revoke", Sid: sid})
 	if err := g.rdb.Publish(ctx, notify.UserChannel(userID), ctl).Err(); err != nil {
 		g.log.Warn("session revoke publish failed", "error", err.Error())
+	}
+}
+
+// CloseReasonAccountDeleted is the close reason (with 4401) of a socket whose
+// account was deleted; clients sign out without refreshing or showing the
+// "signed in on another device" popup (docs/websocket-protocol.md §1).
+const CloseReasonAccountDeleted = "account deleted"
+
+// CloseAccount closes, on every instance, the live connection of userID
+// whatever its session (4401 "account deleted"). Called after the account
+// was deleted; its sessions are already revoked, so the periodic session
+// re-check remains the fallback if the publish is lost.
+func (g *Gateway) CloseAccount(ctx context.Context, userID string) {
+	if userID == "" {
+		return
+	}
+	ctl, _ := json.Marshal(controlMsg{Ctl: "deleted"})
+	if err := g.rdb.Publish(ctx, notify.UserChannel(userID), ctl).Err(); err != nil {
+		g.log.Warn("account close publish failed", "error", err.Error())
 	}
 }
 
@@ -376,6 +396,8 @@ func (g *Gateway) route(msg *redis.Message) {
 				c.close(CloseReplaced, "session replaced by a newer connection")
 			case ctl.Ctl == "revoke" && ctl.Sid != "" && ctl.Sid == c.principal.SessionID:
 				c.close(CloseUnauthorized, "session replaced")
+			case ctl.Ctl == "deleted" && !c.principal.IsBot():
+				c.close(CloseUnauthorized, CloseReasonAccountDeleted)
 			}
 			return
 		}

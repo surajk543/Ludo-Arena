@@ -51,6 +51,7 @@ abstract final class KnownErrorCodes {
     'cannot_report_bot',
     'item_locked',
     'invalid_name',
+    'confirmation_required',
     'provider_unavailable',
     'assets_unavailable',
     'network_error',
@@ -146,6 +147,8 @@ String localizedErrorMessage(
     'cannot_report_self' => l10n.socialErrorCannotReportSelf,
     'cannot_report_bot' => l10n.socialErrorCannotReportBot,
     'item_locked' => l10n.errorItemLocked,
+    // DELETE /account without {"confirm":"DELETE"}: a client bug.
+    'confirmation_required' => l10n.errorBadRequest,
     'provider_unavailable' => l10n.errorProviderUnavailable,
     'assets_unavailable' => l10n.errorAssetsUnavailable,
     'network_error' => l10n.errorNetwork,

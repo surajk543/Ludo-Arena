@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
+	"ludoroyale/internal/account"
 	"ludoroyale/internal/apppolicy"
 	"ludoroyale/internal/async"
 	"ludoroyale/internal/auth"
@@ -26,9 +27,12 @@ import (
 	"ludoroyale/internal/notify"
 	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/profile"
+	"ludoroyale/internal/progression"
 	"ludoroyale/internal/protocol"
 	"ludoroyale/internal/ratelimit"
+	"ludoroyale/internal/reports"
 	"ludoroyale/internal/rooms"
+	"ludoroyale/internal/social"
 	"ludoroyale/internal/wallet"
 	"ludoroyale/internal/websocket"
 )
@@ -144,6 +148,11 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	}
 
 	rt := httpapi.NewRouter(log, authSvc, policy, limiter, cfg.TrustedProxyHops)
+	// DELETE /api/v1/account: leaves the active room, erases the account in
+	// PostgreSQL, revokes its sessions, closes its socket, purges Redis.
+	account.New(account.Deps{PG: core.PG, RDB: core.RDB, Log: log, Auth: authSvc, Profiles: core.Profiles,
+		Limiter: limiter, LeaveRoom: roomSvc.LeaveActive, CloseSockets: gw.CloseAccount,
+		UserRules: accountRateRules()}).Register(rt)
 	acct := &httpapi.Account{Log: log, Auth: authSvc, IDs: ids, Profiles: core.Profiles,
 		Progression: ext.Progression, Policy: policy, Env: cfg.Env,
 		DeviceKey: identity.DeviceKey(cfg.Auth.PublicIDKey),
@@ -218,6 +227,19 @@ func (a *App) Start(ctx context.Context) {
 // Wait blocks until background work has drained after the Start context was
 // cancelled (bounded by the runner's drain timeout) or ctx is done.
 func (a *App) Wait(ctx context.Context) error { return a.Async.Wait(ctx) }
+
+// accountRateRules lists every rate limit keyed by account id; deleting an
+// account removes their counters (ratelimit.Limiter.Forget).
+func accountRateRules() []ratelimit.Rule {
+	rules := []ratelimit.Rule{
+		ratelimit.LinkPerUser, ratelimit.ProfilePerUser, ratelimit.RoomCodePerUser, ratelimit.MatchmakePerUser,
+		ratelimit.WalletOpPerUser, ratelimit.SocialPerUser, ratelimit.WSConnectPerUser, ratelimit.AccountDeletePerUser,
+		social.InvitePerUser, social.FriendRequestPerHour, social.ReadPerUser,
+		progression.ReadPerUser, progression.LoadoutPerUser,
+		reports.WritePerUser, reports.ReadPerUser,
+	}
+	return append(rules, rooms.ChatRules()...)
+}
 
 // checkDice refuses any dice source other than crypto/rand in production
 // (nil means the default CryptoDice). Deterministic dice exist for tests and

@@ -15,8 +15,11 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ludo_royale/core/protocol/envelope.dart';
 import 'package:ludo_royale/core/protocol/events.dart';
+import 'package:ludo_royale/core/protocol/message_types.dart';
 import 'package:ludo_royale/core/protocol/room_state_reducer.dart';
 import 'package:ludo_royale/core/realtime/realtime_socket.dart';
+import 'package:ludo_royale/features/authentication/data/auth_api.dart'
+    show deleteAccountConfirmation;
 import 'package:ludo_royale/features/profile/domain/display_name.dart';
 
 final String? _backend = Platform.environment['BACKEND_URL'];
@@ -257,6 +260,58 @@ void main() {
       expect(body['wallet'], isA<Map<String, dynamic>>());
       final (_, me, _) = await _send('GET', '/api/v1/me', token);
       expect((me['user'] as Map)['displayName'], wanted);
+    },
+    skip: _backend == null
+        ? 'set BACKEND_URL to run against a live backend'
+        : false,
+  );
+
+  test(
+    'DELETE /account: the app\'s confirmation is accepted, the live socket '
+    'closes with 4401 "account deleted" and the session is dead',
+    () async {
+      final base = Uri.parse(_backend!);
+      final wsUri = base.replace(
+        scheme: base.scheme == 'https' ? 'wss' : 'ws',
+        path: '/api/v1/ws',
+      );
+      // A throwaway guest (never the reused contract guests).
+      final created = await _post('/api/v1/auth/guest', {});
+      final token = created['accessToken'] as String;
+      final socket = await ioWebSocketConnector(wsUri, {
+        'Authorization': 'Bearer $token',
+        ..._appHeaders,
+      });
+      final closed = socket.stream.drain<void>();
+
+      // The server never accepts a localized or missing confirmation.
+      final (bad, badBody, _) = await _send(
+        'DELETE',
+        '/api/v1/account',
+        token,
+        {'confirm': 'delete'},
+      );
+      expect(bad, 400, reason: '$badBody');
+      expect((badBody['error'] as Map)['code'], 'confirmation_required');
+
+      final (status, body, _) = await _send(
+        'DELETE',
+        '/api/v1/account',
+        token,
+        {'confirm': deleteAccountConfirmation},
+      );
+      expect(status, 204, reason: '$body');
+      await closed.timeout(const Duration(seconds: 5));
+      expect(socket.closeCode, WsCloseCodes.sessionRevoked);
+      expect(socket.closeReason, WsCloseReasons.accountDeleted);
+
+      // Already deleted: 401 (the app treats it as deleted).
+      final (again, _, _) = await _send('DELETE', '/api/v1/account', token, {
+        'confirm': deleteAccountConfirmation,
+      });
+      expect(again, 401);
+      final (me, _, _) = await _send('GET', '/api/v1/me', token);
+      expect(me, 401);
     },
     skip: _backend == null
         ? 'set BACKEND_URL to run against a live backend'

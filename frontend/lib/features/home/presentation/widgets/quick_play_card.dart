@@ -97,6 +97,8 @@ class _QuickPlayCardState extends ConsumerState<QuickPlayCard> {
       title: l10n.homeGameLabel,
       builder: (sheet) => ChoiceChips<QuickPlayGame>(
         value: current,
+        // Full game names ("Snakes & Ladders"): two columns on phones.
+        minTileWidth: 150,
         options: [
           for (final g in QuickPlayGame.values)
             ChoiceOption(

@@ -17,6 +17,10 @@ var (
 	chatMinute = ratelimit.Rule{Name: "chat_minute", Limit: 10, Window: time.Minute}
 )
 
+// ChatRules are the room engine's own per-account rate limits (quick chat),
+// keyed by account id; account deletion removes their counters.
+func ChatRules() []ratelimit.Rule { return []ratelimit.Rule{chatBurst, chatMinute} }
+
 // publishRoom sends a non-versioned message to current room members.
 func (s *Service) publishRoom(ctx context.Context, r *Room, msg []byte) error {
 	m := &mutation{s: s, r: r}

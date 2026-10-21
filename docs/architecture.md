@@ -90,7 +90,8 @@ these are the exact guarantees and failure windows
 |---|---|---|---|
 | Welcome grant (default 1,000,000 coins, 50 diamonds; live from `welcome` in the app-policy file) | Exactly once per account | Amounts read once per new account; wallet and identity row inserted in one transaction; the `(provider, subject)` primary key serializes concurrent first sign-ins. Refresh, reconnect, guest and device resume, device binding and linking never grant again; concurrent first `/auth/guest` calls with one `deviceId` create one account; a config change never alters existing wallets. | None known |
 | Entry fees | All players charged or none; at most once per room round | `wallet.DebitAll` (one transaction, `SELECT … FOR UPDATE`); guard key `settle:fee:{room}:{round}` (24 h) taken with `SETNX` first; if the lobby changed before the room switched to playing, every charged player is credited back (`entry_fee_refund`) | If the process dies after the debit commits but before the room commit, the in-process refund does not run and is not retried; the guard key prevents a second charge. A failed refund credit is logged and counted in `wallet_settlement_failures_total{op="refund"}` but not retried. Neither case is repaired automatically (by design there is no ledger to reconcile against). |
-| Payout (pot to the winner) | At most once — never twice | Scheduler job claims `settle:pay:{room}:{round}` with `SETNX` (7 d) **before** the PostgreSQL credit; on a credit error the claim is released and the job retried (attempt × 5 s, at most 10) | A crash between the claim and the PostgreSQL commit loses that payout (it is not retried). |
+| Payout (pot to the winner) | At most once — never twice | Scheduler job claims `settle:pay:{room}:{round}` with `SETNX` (7 d) **before** the PostgreSQL credit; on a credit error the claim is released and the job retried (attempt × 5 s, at most 10). A winner who deleted their account in the meantime is not paid (no retry; the key is set to `account_gone`) | A crash between the claim and the PostgreSQL commit loses that payout (it is not retried). |
+| Account deletion (`DELETE /account`) | All of the account's rows or none | One transaction locks the progression row, then the wallet (the order every progression write uses), and deletes reports, friendships, missions, claims, receipts, inventory, loadout, progress, identities and the wallet; concurrent deletions serialize and only one finds the account. The running game is left first (forfeit, entry fee not refunded) | Redis cleanup after the commit is best effort (logged; a retry repeats it) — see [authentication.md](authentication.md#deleting-an-account) |
 | Mission claims, purchases | Exactly once | Claim or inventory row and the wallet change in the same transaction (primary key); `Idempotency-Key` replays the stored response | None known |
 | Maintenance | No settlement while active | Turn and fill timers are pushed forward; no auto-moves, forfeits, payouts or debits | — |
 
@@ -175,7 +176,7 @@ concurrency and with a remote database.
   20/min/account · wallet operations 30/min/account · social 30/min/account ·
   device bind/unbind 10/min/account (linking budget) · device resume 30/min/IP
   (sign-in budget) · legal notices page 60/min/IP · `PATCH /me` 20/min/account ·
-  bot service 600/min/IP. Per socket: 10 commands/s (burst 20); quick chat
+  account deletion 5/h/account · bot service 600/min/IP. Per socket: 10 commands/s (burst 20); quick chat
   1 per 3 s and 10/min; invites 10/min; friend requests 60/h; player reports
   20/min per account (and `REPORTS_PER_DAY`, default 2, stored per rolling
   24 h); admin API 60/min per IP. Display-name
@@ -201,6 +202,14 @@ concurrency and with a remote database.
   stored only as `HMAC-SHA256(k, platform:deviceId)` (k derived from
   `PUBLIC_ID_KEY`) and used only to restore the account on that device
   ([authentication.md](authentication.md#device-binding-restore-after-update-or-reinstall)).
+- **Account deletion** (Settings → Delete account, `DELETE /api/v1/account`
+  `{"confirm":"DELETE"}`, humans only, not version-gated): one PostgreSQL
+  transaction deletes every row of the account — wallet, all identities
+  including the device binding, progression, friendships on both sides,
+  reports by and against it — then every session is revoked, the socket is
+  closed with `4401` `account deleted` and the account's Redis keys are
+  purged. Only pseudonymous aggregates and short-lived keys without personal
+  data remain ([authentication.md](authentication.md#deleting-an-account)).
 - **Validation**: strict JSON (unknown fields rejected); WebSocket text frames
   only, ≤ 4096 bytes after decompression, known message types, seat / phase /
   `turnSeq` checks, de-duplicated message ids.
