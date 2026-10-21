@@ -21,6 +21,7 @@ import (
 	"ludoroyale/internal/gameevents"
 	"ludoroyale/internal/httpapi"
 	"ludoroyale/internal/identity"
+	"ludoroyale/internal/legal"
 	"ludoroyale/internal/metrics"
 	"ludoroyale/internal/notify"
 	"ludoroyale/internal/playerinfo"
@@ -61,6 +62,7 @@ type App struct {
 	Rooms    *rooms.Service
 	Gateway  *websocket.Gateway
 	Router   *httpapi.Router
+	Legal    *legal.Notices
 	Async    *async.Runner
 	ext      Extensions
 }
@@ -164,6 +166,8 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	for _, reg := range ext.Routes {
 		reg(rt)
 	}
+	notices := legal.New(cfg.LegalNoticesFile, log)
+	notices.Register(rt)
 	mux := rt.Mux()
 	mux.Handle("GET /api/v1/ws", gw)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -185,7 +189,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 
 	return &App{Cfg: cfg, Log: log, PG: core.PG, RDB: core.RDB, Policy: policy, Auth: authSvc, BotAuth: botAuth,
 		IDs: ids, Wallets: core.Wallets, Profiles: core.Profiles, Notifier: core.Notifier, Rooms: roomSvc,
-		Gateway: gw, Router: rt, Async: core.Async, ext: ext}, nil
+		Gateway: gw, Router: rt, Legal: notices, Async: core.Async, ext: ext}, nil
 }
 
 // Handler is the public HTTP handler.
@@ -203,6 +207,7 @@ func (a *App) Start(ctx context.Context) {
 	go a.Policy.Run(ctx, a.Cfg.Policy.PollInterval)
 	go a.Gateway.Run(ctx)
 	go a.Rooms.RunScheduler(ctx, 16)
+	go a.Legal.Run(ctx)
 	go a.Rooms.RunGameStats(ctx)
 	go a.Async.Run(ctx)
 	for _, bg := range a.ext.Background {

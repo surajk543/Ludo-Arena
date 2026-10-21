@@ -210,3 +210,19 @@ func TestGameStatsInterval(t *testing.T) {
 		})
 	}
 }
+
+func TestLegalNoticesFile(t *testing.T) {
+	minimalEnv(t)
+	t.Setenv("LEGAL_NOTICES_FILE", "")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.LegalNoticesFile != "config/legal/open-source-notices.html" {
+		t.Fatalf("default = %q", cfg.LegalNoticesFile)
+	}
+	t.Setenv("LEGAL_NOTICES_FILE", "/srv/legal/notices.html")
+	if cfg, err = Load(); err != nil || cfg.LegalNoticesFile != "/srv/legal/notices.html" {
+		t.Fatalf("override = %v, %v", cfg, err)
+	}
+}

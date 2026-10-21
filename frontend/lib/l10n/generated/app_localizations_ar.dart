@@ -2833,10 +2833,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsVersion => 'الإصدار';
 
   @override
-  String get settingsLicenses => 'التراخيص';
+  String get settingsLegalNotices => 'الإشعارات القانونية';
 
   @override
-  String get settingsLicensesSubtitle => 'البرمجيات مفتوحة المصدر والخطوط';
+  String get settingsLegalNoticesSubtitle =>
+      'تراخيص المصادر المفتوحة · تُفتح في متصفحك';
+
+  @override
+  String get settingsLegalNoticesOpenFailed =>
+      'تعذّر فتح الصفحة. يُرجى المحاولة لاحقًا.';
 
   @override
   String get settingsConsentTitle => 'ساعدنا في تحسين لودو رويال';

@@ -174,7 +174,7 @@ concurrency and with a remote database.
   WebSocket connects 30/min/account · room codes 10/min/account · matchmaking
   20/min/account · wallet operations 30/min/account · social 30/min/account ·
   device bind/unbind 10/min/account (linking budget) · device resume 30/min/IP
-  (sign-in budget) · `PATCH /me` 20/min/account ·
+  (sign-in budget) · legal notices page 60/min/IP · `PATCH /me` 20/min/account ·
   bot service 600/min/IP. Per socket: 10 commands/s (burst 20); quick chat
   1 per 3 s and 10/min; invites 10/min; friend requests 60/h; player reports
   20/min per account (and `REPORTS_PER_DAY`, default 2, stored per rolling

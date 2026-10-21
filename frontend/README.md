@@ -50,6 +50,7 @@ network security config (`10.0.2.2`, `localhost`, `127.0.0.1`); iOS via
 | `APPLE_REDIRECT_URI` | empty | Redirect URI of that Services ID (the backend's `/api/v1/auth/apple/callback`). Both Apple values are needed to show Apple on Android; iOS always uses the native flow. |
 | `FACEBOOK_ENABLED` | `false` | Shows "Continue with Facebook". Also requires the native app id (below). |
 | `FIREBASE_*` | see *Firebase Analytics* | Read from `config/firebase.json` via `--dart-define-from-file`. |
+| `LEGAL_NOTICES_URL` | `${API_BASE_URL}/legal/open-source` | Page opened in the browser by Settings → About → Legal notices. |
 
 Provider client ids are public identifiers; **no secret is ever compiled
 into the app**.
@@ -110,7 +111,7 @@ lib/
   main.dart                 → app/bootstrap.dart (pre-first-frame setup)
   app/
     app.dart                LudoRoyaleApp: MaterialApp.router, theme, locale
-    bootstrap.dart          prefs, AppInfo, date symbols, font licenses, analytics init
+    bootstrap.dart          prefs, AppInfo, date symbols, release error fallback, analytics init
     gate/app_gate_controller.dart   startup/access state machine
     router.dart             GoRouter + gateRedirect (pure, tested)
     routes.dart             ALL route path constants + builders
@@ -233,7 +234,25 @@ friend codes and version numbers are rendered inside
 
 Fonts: Fredoka (display) and Nunito (body) with Baloo 2 (Devanagari) and
 Baloo Bhaijaan 2 (Arabic script) as fallbacks on every text style. All
-bundled fonts are OFL and listed on Settings → Licenses.
+bundled fonts are OFL; their license texts ship next to the fonts and are
+listed (`lib/core/legal/bundled_licenses.dart`) on the open-source notices
+page.
+
+## Branding, legal notices and release builds
+
+- **App icons and launch screens** are generated from the in-app crest
+  (`BrandCrestPainter`): `flutter test tool/generate_brand_assets.dart`
+  rewrites `assets/branding/` (masters) plus every iOS/Android icon size
+  (adaptive + monochrome themed icon) and the launch-screen crest. The XML
+  (adaptive icon, Android 12+ splash styles, `LaunchScreen.storyboard`) is
+  hand-written; see `docs/deployment.md` → "Brand assets".
+- **Open-source notices** are not shown inside the app. Settings → About →
+  "Legal notices" opens `LEGAL_NOTICES_URL` (default
+  `${API_BASE_URL}/legal/open-source`, served by the backend) in the browser.
+  Regenerate the page before each release: `flutter build bundle --release &&
+  dart run tool/export_oss_notices.dart`.
+- **Release error fallback**: in release/profile builds a widget whose build
+  fails renders a small branded "Something went wrong" (`lib/app/error_fallback.dart`).
 
 ## Sounds
 

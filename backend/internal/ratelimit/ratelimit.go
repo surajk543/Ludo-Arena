@@ -33,6 +33,7 @@ var (
 	WSConnectPerUser = Rule{"ws_connect_user", 30, time.Minute}
 	BotServicePerIP  = Rule{"bot_service_ip", 600, time.Minute}
 	TelemetryPerIP   = Rule{"telemetry_ip", 60, time.Minute}
+	LegalPerIP       = Rule{"legal_ip", 60, time.Minute}
 )
 
 var script = redis.NewScript(`

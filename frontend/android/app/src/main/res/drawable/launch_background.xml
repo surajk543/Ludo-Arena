@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Native launch background (brand color; light/dark via values-night). -->
+<!-- Native launch screen before Android 12: brand color (light/dark via
+     values-night) with the crest 90dp above center, where the in-app splash
+     draws it. Android 12+ uses the system splash (values-v31 styles). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/launch_background" />
+    <item android:bottom="180dp">
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/launch_logo" />
+    </item>
 </layer-list>

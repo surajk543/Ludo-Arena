@@ -54,6 +54,9 @@ type Config struct {
 
 	CatalogFile  string // cosmetics catalog (progression)
 	MissionsFile string // missions/events config (progression)
+	// LegalNoticesFile is the static open-source notices page served at
+	// GET /legal/open-source (404 while missing).
+	LegalNoticesFile string
 	// MinMatchDuration is the anti-farming minimum length of a match that
 	// earns XP and mission progress (>= 10 s in production).
 	MinMatchDuration time.Duration
@@ -314,6 +317,7 @@ func Load() (*Config, error) {
 
 	c.CatalogFile = get("CATALOG_FILE", "config/catalog.json")
 	c.MissionsFile = get("MISSIONS_FILE", "config/missions.json")
+	c.LegalNoticesFile = get("LEGAL_NOTICES_FILE", "config/legal/open-source-notices.html")
 	c.MinMatchDuration = getDur("PROGRESSION_MIN_MATCH_DURATION", 30*time.Second)
 	if c.MinMatchDuration < 0 || (c.Env == EnvProduction && c.MinMatchDuration < 10*time.Second) {
 		errs = append(errs, errors.New("PROGRESSION_MIN_MATCH_DURATION must be >= 10s in production and never negative"))

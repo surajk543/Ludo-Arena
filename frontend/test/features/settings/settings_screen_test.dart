@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ludo_royale/app/routes.dart';
 import 'package:ludo_royale/core/analytics/analytics_providers.dart';
+import 'package:ludo_royale/core/links/external_link_launcher.dart';
 import 'package:ludo_royale/core/localization/language_controller.dart';
 import 'package:ludo_royale/core/settings/app_settings.dart';
 import 'package:ludo_royale/core/storage/preferences_store.dart';
@@ -13,6 +14,17 @@ import 'package:ludo_royale/features/settings/presentation/settings_screen.dart'
 
 import '../../helpers/harness.dart';
 import '../../helpers/screen_harness.dart';
+
+class _FakeLinkLauncher implements ExternalLinkLauncher {
+  final List<String> opened = [];
+  bool result = true;
+
+  @override
+  Future<bool> open(String url) async {
+    opened.add(url);
+    return result;
+  }
+}
 
 class _FakeBackend implements AnalyticsBackend {
   final enabled = <bool>[];
@@ -48,6 +60,9 @@ void main() {
   Future<(TestEnv, ProviderContainer)> pumpSettings(
     WidgetTester tester, {
     AnalyticsBackend? analytics,
+    ExternalLinkLauncher? links,
+    Locale locale = const Locale('en'),
+    Size size = Viewports.phone,
   }) async {
     final env = await TestEnv.create(analyticsBackend: analytics);
     env.routeHappyPath();
@@ -56,11 +71,24 @@ void main() {
       env,
       const SizedBox(),
       router: router(),
+      locale: locale,
+      size: size,
+      extra: [
+        externalLinkLauncherProvider.overrideWithValue(
+          links ?? _FakeLinkLauncher(),
+        ),
+      ],
       prepare: (c) =>
           c.read(sessionControllerProvider.notifier).continueAsGuest(),
     );
     return (env, c);
   }
+
+  /// Every string painted on screen (all Text widgets build a RichText).
+  List<String> visibleTexts(WidgetTester tester) => [
+    for (final e in find.byType(RichText).evaluate())
+      (e.widget as RichText).text.toPlainText(),
+  ];
 
   testWidgets('toggles persist and report settings_changed', (tester) async {
     final (env, c) = await pumpSettings(tester);
@@ -142,10 +170,78 @@ void main() {
     expect(env.secure.values.containsKey('session.guest_secret'), isFalse);
   });
 
-  testWidgets('shows the version and the licenses entry', (tester) async {
+  testWidgets('About shows the version and a Legal notices entry', (
+    tester,
+  ) async {
     await pumpSettings(tester);
-    await reveal(tester, find.text('Licenses'));
+    await reveal(tester, find.text('Legal notices'));
     expect(find.text('1.0.0 (1)'), findsOneWidget);
-    expect(find.text('Open-source software and fonts'), findsOneWidget);
+    expect(
+      find.text('Open-source licenses · opens in your browser'),
+      findsOneWidget,
+    );
+    expect(find.text('Licenses'), findsNothing);
   });
+
+  testWidgets('Legal notices opens the backend page in the browser', (
+    tester,
+  ) async {
+    final links = _FakeLinkLauncher();
+    await pumpSettings(tester, links: links);
+    await reveal(tester, find.text('Legal notices'));
+    await tester.tap(find.text('Legal notices'));
+    await drain(tester);
+    expect(links.opened, ['http://test.local/legal/open-source']);
+    // Nothing is pushed inside the app: no framework license page.
+    expect(find.byType(LicensePage), findsNothing);
+    expect(find.byType(AboutDialog), findsNothing);
+    expect(find.text('Legal notices'), findsOneWidget);
+  });
+
+  testWidgets('a failed launch shows a toast instead of an in-app page', (
+    tester,
+  ) async {
+    final links = _FakeLinkLauncher()..result = false;
+    await pumpSettings(tester, links: links);
+    await reveal(tester, find.text('Legal notices'));
+    await tester.tap(find.text('Legal notices'));
+    await drain(tester);
+    expect(links.opened, hasLength(1));
+    expect(
+      find.text("Couldn't open the page. Please try again later."),
+      findsOneWidget,
+    );
+    expect(find.byType(LicensePage), findsNothing);
+  });
+
+  for (final locale in const ['en', 'hi', 'ur', 'id', 'ar']) {
+    testWidgets('settings never mention the UI framework ($locale)', (
+      tester,
+    ) async {
+      final links = _FakeLinkLauncher();
+      // Tall viewport: the whole list (incl. About) is built at once.
+      await pumpSettings(
+        tester,
+        links: links,
+        locale: Locale(locale),
+        size: const Size(390, 2400),
+      );
+      final texts = visibleTexts(tester);
+      expect(texts, isNotEmpty);
+      for (final t in texts) {
+        expect(t.toLowerCase(), isNot(contains('flutter')), reason: t);
+        expect(t.toLowerCase(), isNot(contains('dart')), reason: t);
+      }
+      // Tapping the legal entry stays out of the app.
+      final legal = find.byIcon(Icons.gavel_rounded);
+      expect(legal, findsOneWidget);
+      await tester.tap(legal);
+      await drain(tester);
+      expect(links.opened, ['http://test.local/legal/open-source']);
+      expect(find.byType(LicensePage), findsNothing);
+      for (final t in visibleTexts(tester)) {
+        expect(t.toLowerCase(), isNot(contains('flutter')), reason: t);
+      }
+    });
+  }
 }

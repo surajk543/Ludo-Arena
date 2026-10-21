@@ -2806,10 +2806,15 @@ class AppLocalizationsUr extends AppLocalizations {
   String get settingsVersion => 'ورژن';
 
   @override
-  String get settingsLicenses => 'لائسنس';
+  String get settingsLegalNotices => 'قانونی نوٹس';
 
   @override
-  String get settingsLicensesSubtitle => 'اوپن سورس سافٹ ویئر اور فونٹس';
+  String get settingsLegalNoticesSubtitle =>
+      'اوپن سورس لائسنس · آپ کے براؤزر میں کھلے گا';
+
+  @override
+  String get settingsLegalNoticesOpenFailed =>
+      'صفحہ نہیں کھل سکا۔ براہ کرم بعد میں دوبارہ کوشش کریں۔';
 
   @override
   String get settingsConsentTitle =>

@@ -2805,10 +2805,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsVersion => 'Version';
 
   @override
-  String get settingsLicenses => 'Licenses';
+  String get settingsLegalNotices => 'Legal notices';
 
   @override
-  String get settingsLicensesSubtitle => 'Open-source software and fonts';
+  String get settingsLegalNoticesSubtitle =>
+      'Open-source licenses · opens in your browser';
+
+  @override
+  String get settingsLegalNoticesOpenFailed =>
+      'Couldn\'t open the page. Please try again later.';
 
   @override
   String get settingsConsentTitle => 'Help us make Ludo Royale better';
