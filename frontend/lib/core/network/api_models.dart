@@ -1,5 +1,12 @@
 import 'package:flutter/foundation.dart';
 
+import '../protocol/models.dart' show PlayerPicture;
+
+export '../protocol/models.dart' show PlayerPicture;
+
+/// Sentinel for nullable `copyWith` parameters.
+const Object _unset = Object();
+
 int _int(Object? v, [int fallback = 0]) => switch (v) {
   int i => i,
   num n => n.toInt(),
@@ -117,6 +124,7 @@ class User {
     required this.nextLevelXp,
     required this.title,
     required this.loadout,
+    this.picture,
   });
 
   /// Internal account id. Never shown, logged, or sent to analytics.
@@ -144,6 +152,9 @@ class User {
   final String title;
   final Loadout loadout;
 
+  /// Applied Store profile picture; null shows the built-in [avatar].
+  final PlayerPicture? picture;
+
   bool get isHuman => actorType == 'human';
 
   /// True while no non-guest provider is linked → show "Save Progress".
@@ -168,8 +179,11 @@ class User {
     nextLevelXp: _int(j['nextLevelXp'], 100),
     title: _str(j['title'], 'title_rookie'),
     loadout: Loadout.fromJson(_map(j['loadout'])),
+    picture: PlayerPicture.tryParse(j['picture']),
   );
 
+  /// [picture]: pass `null` to go back to the built-in avatar; omit it to
+  /// keep the current one.
   User copyWith({
     int? level,
     int? xp,
@@ -179,6 +193,7 @@ class User {
     Loadout? loadout,
     Set<LinkedProvider>? linkedProviders,
     bool? isGuest,
+    Object? picture = _unset,
   }) => User(
     id: id,
     uid: uid,
@@ -193,6 +208,9 @@ class User {
     nextLevelXp: nextLevelXp ?? this.nextLevelXp,
     title: title ?? this.title,
     loadout: loadout ?? this.loadout,
+    picture: identical(picture, _unset)
+        ? this.picture
+        : picture as PlayerPicture?,
   );
 }
 

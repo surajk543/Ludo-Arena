@@ -61,6 +61,7 @@ class FriendSummary {
     required this.uid,
     required this.name,
     this.avatar = 0,
+    this.picture,
     this.level = 1,
     this.online = false,
   });
@@ -69,6 +70,9 @@ class FriendSummary {
   final String uid;
   final String name;
   final int avatar;
+
+  /// Store profile picture (null: the built-in [avatar]).
+  final PlayerPicture? picture;
   final int level;
   final bool online;
 
@@ -76,6 +80,7 @@ class FriendSummary {
     uid: readString(j['uid']),
     name: readString(j['name']),
     avatar: readInt(j['avatar']),
+    picture: PlayerPicture.tryParse(j['picture']),
     level: readInt(j['level'], 1),
     online: readBool(j['online']),
   );

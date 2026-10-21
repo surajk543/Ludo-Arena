@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/protocol/json_read.dart';
+import '../../../core/protocol/models.dart' show PlayerPicture;
 
 /// Why a player is reported (`POST /reports` `reason`).
 enum ReportReason {
@@ -42,6 +43,7 @@ class ReportedPlayer {
     required this.uid,
     required this.name,
     this.avatar = 0,
+    this.picture,
     this.level = 1,
   });
 
@@ -49,6 +51,7 @@ class ReportedPlayer {
     uid: readString(j['uid']),
     name: readString(j['name']),
     avatar: readInt(j['avatar']),
+    picture: PlayerPicture.tryParse(j['picture']),
     level: readInt(j['level'], 1),
   );
 
@@ -56,6 +59,9 @@ class ReportedPlayer {
   final String uid;
   final String name;
   final int avatar;
+
+  /// Store profile picture (null: the built-in [avatar]).
+  final PlayerPicture? picture;
   final int level;
 }
 
