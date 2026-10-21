@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/analytics/analytics_providers.dart';
 import '../../core/audio_haptics/audio_service.dart';
+import '../../core/localization/language_controller.dart';
 import '../../core/localization/number_format.dart';
 import '../../core/protocol/protocol.dart';
 import '../../core/realtime/realtime_providers.dart';
@@ -15,13 +16,15 @@ import '../../features/settings/presentation/analytics_consent_sheet.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../shared/widgets/widgets.dart';
 import '../gate/app_gate_controller.dart';
+import '../launch_intro.dart';
 import '../router.dart';
 
 /// App-wide, route-independent UI reactions, mounted once above the router:
 ///
 /// - the optional-update dialog (startup prompt and post-startup, never in a
-///   match);
-/// - the first-run analytics consent sheet (after sign-in, opt-in);
+///   match, never over the launch intro or the first-launch language screen);
+/// - the first-run analytics consent sheet (after sign-in, opt-in, after the
+///   launch intro and the language choice);
 /// - "signed in on another device" (WebSocket 4409) with Reconnect;
 /// - level-up and coin-gain celebrations outside matches (game screens
 ///   handle their own in-match feedback).
@@ -42,6 +45,19 @@ class _AppShellHostState extends ConsumerState<AppShellHost> {
 
   BuildContext? get _navContext => rootNavigatorKey.currentContext;
 
+  /// Startup dialogs wait for the launch intro and, on first launch, for the
+  /// language choice (they would cover either screen).
+  bool get _firstLaunchDone =>
+      !ref.read(launchIntroPlayingProvider) &&
+      ref.read(languageControllerProvider.notifier).hasExplicitChoice;
+
+  void _recheckStartupDialogs() {
+    if (!_firstLaunchDone) return;
+    final gate = ref.read(appGateControllerProvider);
+    _maybeShowOptionalUpdate(gate);
+    if (gate.phase == GatePhase.ready) _maybeAskConsent();
+  }
+
   void _afterFrame(VoidCallback action) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) action();
@@ -56,6 +72,7 @@ class _AppShellHostState extends ConsumerState<AppShellHost> {
         (gate.optionalPromptPending && gate.phase == GatePhase.ready);
     final policy = gate.policy;
     if (!wants || _optionalShowing || policy == null) return;
+    if (!_firstLaunchDone) return;
     _optionalShowing = true;
     _afterFrame(() async {
       final ctx = _navContext;
@@ -80,6 +97,7 @@ class _AppShellHostState extends ConsumerState<AppShellHost> {
 
   void _maybeAskConsent() {
     if (_consentHandledThisLaunch || _consentShowing) return;
+    if (!_firstLaunchDone) return;
     final gate = ref.read(appGateControllerProvider);
     if (gate.phase != GatePhase.ready || gate.optionalPromptPending) return;
     if (ref.read(analyticsConsentProvider) != AnalyticsConsent.unknown) return;
@@ -173,6 +191,14 @@ class _AppShellHostState extends ConsumerState<AppShellHost> {
     ref.listen<bool>(inMatchProvider, (_, inMatch) {
       if (!inMatch) _maybeAskConsent();
     });
+    ref.listen<bool>(
+      launchIntroPlayingProvider,
+      (_, _) => _recheckStartupDialogs(),
+    );
+    ref.listen<Locale>(
+      languageControllerProvider,
+      (_, _) => _recheckStartupDialogs(),
+    );
     ref.listen<RealtimeStatus>(realtimeStatusProvider, (_, s) {
       _onRealtimeStatus(s);
     });

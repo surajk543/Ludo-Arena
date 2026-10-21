@@ -180,4 +180,13 @@ Also downloaded but not shipped (no file used): UI Audio (UI SFX Set) (CC0 1.0).
 | Downloaded | By the project lead via the user's logged-in Freesound account, with the user's approval. |
 | Processing | Loudness-normalized (original −6.9 LUFS, far too loud for background music) and re-encoded: `ffmpeg -i 512340__mistermender__upbeat-loop.mp3 -af "loudnorm=I=-20:TP=-2:LRA=11" -ar 44100 -ac 2 -c:a aac -b:a 96k -movflags +faststart lobby_loop.m4a` → −20.7 LUFS integrated, true peak −2 dBTP. Documented as the `--music` step of `tool/import_kenney_audio.sh` (the mp3 is not in the repo). Played with `ReleaseMode.loop`; a tiny gap at the loop point (AAC padding) is acceptable. |
 
-Total shipped audio: 1431 KB.
+## Launch intro jingle — Sun Game Studio (the owner's own asset)
+
+| Field | Value |
+|---|---|
+| Local file | `jingles/studio_intro.m4a` (AAC-LC 96 kbps, 44.1 kHz stereo, 6.59 s, 79 KB) |
+| Source | The audio track of the owner's studio logo video "Sun Game Studio Logo.mp4" (H.264 768×768 24 fps + AAC 32 kHz stereo, 6.59 s), provided by the owner on 22 Oct 2026. |
+| License | Owned by Sun Game Studio (the app's publisher); not third-party. |
+| Processing | `ffmpeg -i "Sun Game Studio Logo.mp4" -vn -ac 2 -ar 44100 -af "volume=-3dB" -c:a aac -b:a 96k -map_metadata -1 -movflags +faststart studio_intro.m4a` (−3 dB: −18 dB mean, −7 dB peak, the jingle level). Streamed by the jingle player (`Jingle.studioIntro`), not an effects pool. The video's frames ship separately as `assets/animations/studio_intro.webp` (animated WebP, 158 frames at 24 fps, 768 px, `img2webp -loop 1 -lossy -q 80 -d 42`, 3.3 MB), played by `StudioIntro`. |
+
+Total shipped audio: 1510 KB.

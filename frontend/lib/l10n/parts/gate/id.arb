@@ -28,5 +28,6 @@
   "gateUnreachableLastKnownUpdate": "Status terakhir yang kami terima menyebutkan versi ini perlu diperbarui.",
   "gateNotFoundTitle": "Belum tersedia",
   "gateNotFoundMessage": "Bagian Ludo Royale ini belum tersedia di versi ini.",
-  "gateGoHome": "Kembali ke beranda"
+  "gateGoHome": "Kembali ke beranda",
+  "gateStudioIntroLabel": "Sun Game Studio"
 }

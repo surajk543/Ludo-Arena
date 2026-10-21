@@ -49,9 +49,8 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('reinstall on a bound device boots straight to Home', (
-    tester,
-  ) async {
+  testWidgets('reinstall on a bound device: language first (fresh install), '
+      'then straight to Home as the restored guest', (tester) async {
     // Fresh storage and preferences, as after a reinstall.
     final env = await TestEnv.create();
     env.routeHappyPath();
@@ -62,13 +61,22 @@ void main() {
       authJson(uid: 'u_dev', coins: 4321),
     );
     final c = await _boot(tester, env);
+    // The guest is restored underneath while the language is chosen.
     expect(c.read(appGateControllerProvider).phase, GatePhase.ready);
-    expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.byType(LanguageOnboardingScreen), findsNothing);
+    expect(find.byType(LanguageOnboardingScreen), findsOneWidget);
+    expect(find.byType(HomeScreen), findsNothing);
     expect(env.backend.calls('POST', '/auth/device/resume').single.json, {
       'deviceId': 'abcdef0123456789',
     });
     expect(env.backend.calls('POST', '/auth/guest'), isEmpty);
+
+    await tester.tap(find.text('Continue'));
+    for (var i = 0; i < 4; i++) {
+      await tester.runAsync(settle);
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.byType(LoginScreen), findsNothing);
     await tester.pumpWidget(const SizedBox());
   });
 

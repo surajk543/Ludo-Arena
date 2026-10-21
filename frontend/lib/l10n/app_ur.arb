@@ -277,6 +277,7 @@
   "gateNotFoundTitle": "ابھی دستیاب نہیں",
   "gateNotFoundMessage": "لوڈو رائل کا یہ حصہ اس ورژن میں ابھی دستیاب نہیں ہے۔",
   "gateGoHome": "ہوم پر واپس جائیں",
+  "gateStudioIntroLabel": "Sun Game Studio",
   "homeGreeting": "ہیلو، {name}",
   "homeQuickPlay": "فوری کھیل",
   "homeQuickPlayDetails": "{game} · {variant} · {players}",

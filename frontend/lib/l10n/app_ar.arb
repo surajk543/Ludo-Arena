@@ -277,6 +277,7 @@
   "gateNotFoundTitle": "غير متاح بعد",
   "gateNotFoundMessage": "هذا الجزء من لودو رويال غير متاح في هذا الإصدار بعد.",
   "gateGoHome": "العودة إلى الرئيسية",
+  "gateStudioIntroLabel": "Sun Game Studio",
   "homeGreeting": "مرحبًا، {name}",
   "homeQuickPlay": "لعب سريع",
   "homeQuickPlayDetails": "{game} · {variant} · {players}",

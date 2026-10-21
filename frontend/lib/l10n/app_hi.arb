@@ -277,6 +277,7 @@
   "gateNotFoundTitle": "अभी उपलब्ध नहीं",
   "gateNotFoundMessage": "लूडो रॉयल का यह हिस्सा इस वर्ज़न में अभी उपलब्ध नहीं है।",
   "gateGoHome": "होम पर वापस जाएँ",
+  "gateStudioIntroLabel": "Sun Game Studio",
   "homeGreeting": "नमस्ते, {name}",
   "homeQuickPlay": "क्विक प्ले",
   "homeQuickPlayDetails": "{game} · {variant} · {players}",

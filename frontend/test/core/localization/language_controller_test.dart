@@ -59,6 +59,35 @@ void main() {
     },
   );
 
+  test(
+    'a preview (confirm: false) applies the language without counting as '
+    'the choice; confirming notifies listeners even for the same language',
+    () async {
+      final c = await _container({}, const [Locale('en')]);
+      final ctl = c.read(languageControllerProvider.notifier);
+      var notified = 0;
+      final sub = c.listen(languageControllerProvider, (_, _) => notified++);
+      addTearDown(sub.close);
+
+      await ctl.setLocale(const Locale('hi'), confirm: false);
+      expect(c.read(languageControllerProvider), const Locale('hi'));
+      expect(ctl.hasExplicitChoice, isFalse);
+      expect(notified, 1);
+
+      await ctl.confirmCurrent();
+      expect(c.read(languageControllerProvider), const Locale('hi'));
+      expect(ctl.hasExplicitChoice, isTrue);
+      expect(
+        notified,
+        2,
+        reason: 'the first choice notifies (router, dialogs)',
+      );
+
+      await ctl.confirmCurrent();
+      expect(notified, 2, reason: 'later confirmations change nothing');
+    },
+  );
+
   test('persisted choice wins over the device and survives restart', () async {
     final c = await _container({}, const [Locale('en')]);
     expect(

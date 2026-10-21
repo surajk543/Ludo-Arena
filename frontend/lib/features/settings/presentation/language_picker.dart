@@ -16,10 +16,17 @@ String nativeLanguageName(Locale locale) =>
     lookupAppLocalizations(locale).languageNameNative;
 
 /// Applies [locale] immediately (no sign-out, no session/wallet/match
-/// changes) and reports `language_changed`.
-Future<void> applyLanguage(WidgetRef ref, Locale locale) async {
+/// changes) and reports `language_changed`. [confirm]: see
+/// `LanguageController.setLocale`.
+Future<void> applyLanguage(
+  WidgetRef ref,
+  Locale locale, {
+  bool confirm = true,
+}) async {
   final current = ref.read(languageControllerProvider);
-  await ref.read(languageControllerProvider.notifier).setLocale(locale);
+  await ref
+      .read(languageControllerProvider.notifier)
+      .setLocale(locale, confirm: confirm);
   if (current.languageCode != locale.languageCode) {
     ref.read(analyticsServiceProvider).languageChanged(locale.languageCode);
   }
@@ -28,9 +35,17 @@ Future<void> applyLanguage(WidgetRef ref, Locale locale) async {
 /// Selectable list of the supported languages with native names; the
 /// current one is highlighted.
 class LanguagePickerList extends ConsumerWidget {
-  const LanguagePickerList({super.key, this.onSelected});
+  const LanguagePickerList({
+    super.key,
+    this.onSelected,
+    this.confirmOnSelect = true,
+  });
 
   final ValueChanged<Locale>? onSelected;
+
+  /// Whether a tap is the user's final choice (Settings). The first-launch
+  /// screen previews taps and confirms with its Continue button.
+  final bool confirmOnSelect;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +63,7 @@ class LanguagePickerList extends ConsumerWidget {
               onTap: () async {
                 ref.read(hapticsServiceProvider).selection();
                 ref.read(audioServiceProvider).play(Sfx.uiTab);
-                await applyLanguage(ref, locale);
+                await applyLanguage(ref, locale, confirm: confirmOnSelect);
                 onSelected?.call(locale);
               },
             ),

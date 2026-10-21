@@ -14,6 +14,7 @@ import '../features/authentication/presentation/login_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import 'feature_routes.dart';
 import 'gate/app_gate_controller.dart';
+import 'launch_intro.dart';
 import 'routes.dart';
 import 'shell/main_shell.dart';
 
@@ -23,11 +24,17 @@ final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 /// Pure redirect decision for the gate (unit tested).
 ///
 /// [pending] receives the protected location the user tried to open before
-/// the gate was ready; it is resumed once ready.
+/// the gate was ready; it is resumed once ready. While [introPlaying] (the
+/// launch intro, `launchIntroPlayingProvider`) everything stays on the
+/// splash, whatever the gate phase: the gate keeps working underneath. Then,
+/// until the player has confirmed a language ([languageChosen]), the
+/// language screen comes first — signed in or not — except for the blocking
+/// gate screens (maintenance, update required, unreachable).
 String? gateRedirect({
   required GatePhase phase,
   required String location,
   required bool languageChosen,
+  bool introPlaying = false,
   String? pendingLocation,
   void Function(String location)? rememberPending,
 }) {
@@ -35,6 +42,15 @@ String? gateRedirect({
   final isGate = AppRoutes.gateRoutes.contains(path);
   final isPreAuth = AppRoutes.preAuthRoutes.contains(path);
   String? to(String target) => path == target ? null : target;
+
+  if (introPlaying) {
+    if (!isGate && !isPreAuth && path != '/') rememberPending?.call(location);
+    return to(AppRoutes.splash);
+  }
+  if (!languageChosen && !phase.isBlocking) {
+    if (!isGate && !isPreAuth && path != '/') rememberPending?.call(location);
+    return to(AppRoutes.languageOnboarding);
+  }
 
   switch (phase) {
     case GatePhase.initializing:
@@ -52,7 +68,6 @@ String? gateRedirect({
       return to(AppRoutes.unreachable);
     case GatePhase.signedOut:
       if (!isGate && !isPreAuth && path != '/') rememberPending?.call(location);
-      if (!languageChosen) return to(AppRoutes.languageOnboarding);
       return isPreAuth ? null : AppRoutes.login;
     case GatePhase.ready:
       if (isGate || isPreAuth || path == '/') {
@@ -69,6 +84,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     (_, _) => refresh.value++,
   );
   ref.listen(languageControllerProvider, (_, _) => refresh.value++);
+  ref.listen(launchIntroPlayingProvider, (_, _) => refresh.value++);
 
   String? pending;
 
@@ -85,6 +101,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         languageChosen: ref
             .read(languageControllerProvider.notifier)
             .hasExplicitChoice,
+        introPlaying: ref.read(launchIntroPlayingProvider),
         pendingLocation: pending,
         rememberPending: (l) => pending = l,
       );

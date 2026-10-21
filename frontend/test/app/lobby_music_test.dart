@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ludo_royale/app/gate/app_gate_controller.dart';
+import 'package:ludo_royale/app/launch_intro.dart';
 import 'package:ludo_royale/app/lobby_music.dart';
 import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/state/in_match_provider.dart';
@@ -23,7 +24,32 @@ void main() {
         reason: phase.name,
       );
       expect(lobbyMusicWanted(phase: phase, inMatch: true), isFalse);
+      expect(
+        lobbyMusicWanted(phase: phase, inMatch: false, introPlaying: true),
+        isFalse,
+        reason: 'the launch intro plays its jingle alone',
+      );
     }
+  });
+
+  test('waits for the launch intro, then loops', () async {
+    final audio = SilentAudioService();
+    final c = ProviderContainer(
+      overrides: [
+        audioServiceProvider.overrideWithValue(audio),
+        appGateControllerProvider.overrideWith(_Gate.new),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.read(lobbyMusicProvider);
+    // The gate signs in while the intro still plays: no music yet.
+    (c.read(appGateControllerProvider.notifier) as _Gate).go(GatePhase.ready);
+    await pumpEventQueue();
+    expect(audio.musicCalls, isEmpty);
+
+    c.read(launchIntroPlayingProvider.notifier).finish();
+    await pumpEventQueue();
+    expect(audio.musicCalls, ['load:lobby', 'resume']);
   });
 
   test('loops in the lobby, stops in a match, resumes after it', () async {
@@ -35,6 +61,7 @@ void main() {
       ],
     );
     addTearDown(c.dispose);
+    c.read(launchIntroPlayingProvider.notifier).finish();
     c.read(lobbyMusicProvider);
     await pumpEventQueue();
     expect(audio.musicCalls, isEmpty, reason: 'login / splash: no music');
@@ -89,6 +116,7 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(Consumer)),
     );
+    container.read(launchIntroPlayingProvider.notifier).finish();
     (container.read(appGateControllerProvider.notifier) as _Gate).go(
       GatePhase.ready,
     );

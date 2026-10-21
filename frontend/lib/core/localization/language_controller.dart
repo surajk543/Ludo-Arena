@@ -25,19 +25,27 @@ class LanguageController extends Notifier<Locale> {
         SupportedLocales.resolveDevice(ref.read(deviceLocalesProvider));
   }
 
-  /// Whether the user has explicitly picked a language (first-run onboarding
-  /// shows the picker until they do).
+  /// Whether the user has explicitly picked a language (the first-launch
+  /// language screen shows until they do, signed in or not).
   bool get hasExplicitChoice =>
       ref.read(preferencesStoreProvider).getBool(PrefKeys.languageChosen) ??
       false;
 
-  Future<void> setLocale(Locale locale) async {
+  /// Applies and saves [locale]. With [confirm] it also counts as the user's
+  /// explicit choice; the first-launch screen previews taps with
+  /// `confirm: false` and confirms on Continue ([confirmCurrent]).
+  Future<void> setLocale(Locale locale, {bool confirm = true}) async {
     final supported =
         SupportedLocales.match(locale) ?? SupportedLocales.fallback;
     final prefs = ref.read(preferencesStoreProvider);
+    final wasChosen = hasExplicitChoice;
     state = supported;
     await prefs.setString(PrefKeys.locale, supported.languageCode);
+    if (!confirm) return;
     await prefs.setBool(PrefKeys.languageChosen, true);
+    // Listeners (the router, startup dialogs) react to the first choice even
+    // when it keeps the current language.
+    if (!wasChosen) ref.notifyListeners();
   }
 
   /// Marks the current (default) language as confirmed without changing it.

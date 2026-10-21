@@ -215,6 +215,31 @@ enum Sfx {
 const Duration sfxVoiceRelease = Duration(milliseconds: 120);
 
 /// Background music tracks (`assets/audio/music/`).
+/// Longer one-shot jingles, shipped as AAC under `assets/audio/jingles/` and
+/// streamed by their own media player (effects pools are for short sounds).
+/// They follow the Sound switch; volume = effects volume × [gain].
+enum Jingle {
+  /// The launch intro: the studio logo animation on the splash (from the
+  /// owner's logo video, see assets/audio/ASSET_LICENSES.md).
+  studioIntro('studio_intro.m4a', gain: 0.9, length: 6592);
+
+  const Jingle(this.file, {required this.gain, required int length})
+    : _lengthMs = length;
+
+  final String file;
+
+  /// Mix level 0..1.
+  final double gain;
+
+  final int _lengthMs;
+
+  /// Approximate file duration.
+  Duration get length => Duration(milliseconds: _lengthMs);
+
+  /// Path relative to `assets/`.
+  String get assetPath => 'audio/jingles/$file';
+}
+
 enum MusicTrack {
   /// Loops on the lobby / meta screens (never during a match).
   lobby('lobby_loop.m4a');

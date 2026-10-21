@@ -1771,6 +1771,12 @@ abstract class AppLocalizations {
   /// **'Back to home'**
   String get gateGoHome;
 
+  /// Screen-reader label of the studio logo animation shown when the app launches (the studio's name; keep it as is in every language).
+  ///
+  /// In en, this message translates to:
+  /// **'Sun Game Studio'**
+  String get gateStudioIntroLabel;
+
   /// Header greeting with the display name.
   ///
   /// In en, this message translates to:

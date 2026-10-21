@@ -277,6 +277,7 @@
   "gateNotFoundTitle": "Belum tersedia",
   "gateNotFoundMessage": "Bagian Ludo Royale ini belum tersedia di versi ini.",
   "gateGoHome": "Kembali ke beranda",
+  "gateStudioIntroLabel": "Sun Game Studio",
   "homeGreeting": "Hai, {name}",
   "homeQuickPlay": "Main Cepat",
   "homeQuickPlayDetails": "{game} · {variant} · {players}",

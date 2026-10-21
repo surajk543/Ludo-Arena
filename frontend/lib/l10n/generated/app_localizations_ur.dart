@@ -977,6 +977,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get gateGoHome => 'ہوم پر واپس جائیں';
 
   @override
+  String get gateStudioIntroLabel => 'Sun Game Studio';
+
+  @override
   String homeGreeting(String name) {
     return 'ہیلو، $name';
   }
