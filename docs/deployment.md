@@ -10,8 +10,11 @@ Four independent projects, each with its own dependencies:
 | `monitoring/` | Prometheus 3, Alertmanager, node_exporter; ops bot in Go 1.27 (separate module) | `monitoring/docker-compose.yml`; `go build ./cmd/ops-bot` or `monitoring/ops-bot/Dockerfile` | env (`monitoring/.env.example`), targets and thresholds in `monitoring/prometheus/` |
 
 Backend secrets (`JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `FACEBOOK_APP_SECRET`,
-database/Redis passwords, the bot service key) are provided only through the
-environment or a secret manager — never in the Flutter app or in Git.
+`R2_SECRET_ACCESS_KEY`, database/Redis passwords, the bot service key) are
+provided only through the environment or a secret manager — never in the
+Flutter app or in Git. The profile-picture bucket (Cloudflare R2, private)
+needs all four `R2_*` variables or none; copy new pictures into it with
+`go run ./cmd/r2-import-pictures` ([cosmetics-catalog.md](cosmetics-catalog.md#profile-pictures)).
 
 ## Local development
 

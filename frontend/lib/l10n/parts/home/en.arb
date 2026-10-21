@@ -95,6 +95,14 @@
   "@homeEventsSubtitle": {
     "description": "Entry tile subtitle."
   },
+  "homeStore": "Store",
+  "@homeStore": {
+    "description": "Entry tile: the Store (profile pictures bought with diamonds)."
+  },
+  "homeStoreSubtitle": "Profile pictures",
+  "@homeStoreSubtitle": {
+    "description": "Entry tile subtitle."
+  },
   "homeExploreHeader": "More to Explore",
   "@homeExploreHeader": {
     "description": "Section header above the entry tiles (missions, collection, friends, events)."

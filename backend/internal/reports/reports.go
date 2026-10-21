@@ -156,10 +156,11 @@ func New(pool *pgxpool.Pool, profiles *profile.Service, players Players, rooms R
 
 // PlayerRef is the public profile of the reported player.
 type PlayerRef struct {
-	UID    string `json:"uid"`
-	Name   string `json:"name"`
-	Avatar int    `json:"avatar"`
-	Level  int    `json:"level"`
+	UID     string              `json:"uid"`
+	Name    string              `json:"name"`
+	Avatar  int                 `json:"avatar"`
+	Picture *playerinfo.Picture `json:"picture"`
+	Level   int                 `json:"level"`
 }
 
 // Report is what the reporter sees about one of their reports.
@@ -442,7 +443,8 @@ func (s *Service) render(ctx context.Context, rows []row) ([]Report, error) {
 	for _, r := range rows {
 		p := profs[r.reported]
 		out = append(out, Report{ID: r.id.String(),
-			Player: PlayerRef{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: sums[r.reported].Level},
+			Player: PlayerRef{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Picture: sums[r.reported].Picture,
+				Level: sums[r.reported].Level},
 			Reason: r.reason, Game: r.game, RoomID: r.roomID, Status: r.status,
 			CreatedAt: r.created.UnixMilli(), UpdatedAt: r.updated.UnixMilli()})
 	}

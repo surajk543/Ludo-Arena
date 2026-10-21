@@ -2,8 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../core/protocol/models.dart' show PlayerPicture;
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
+import 'profile_picture_view.dart';
 
 /// Number of built-in avatars (`User.avatar` / `players[].avatar` index).
 const int kAvatarCount = 12;
@@ -17,21 +19,32 @@ const List<String> kAvatarFrameIds = [
   'frame_royal',
 ];
 
-/// A player's portrait: one of 12 painted characters, an optional seat-color
-/// ring and the equipped frame. Bots are never labelled in the UI.
+/// A player's portrait: their Store profile picture when they wear one,
+/// else one of 12 painted characters (also while the picture loads or when
+/// it is unavailable), an optional seat-color ring and the equipped frame.
+/// Bots are never labelled in the UI.
 class PlayerAvatar extends StatelessWidget {
   const PlayerAvatar({
     super.key,
     required this.avatarIndex,
+    this.picture,
     this.frameId = 'frame_none',
     this.size = 56,
     this.seatColor,
     this.dimmed = false,
     this.semanticLabel,
+    this.animatePicture = true,
   });
 
   /// 0–11 (wraps).
   final int avatarIndex;
+
+  /// Store profile picture drawn inside the frame instead of the built-in
+  /// avatar.
+  final PlayerPicture? picture;
+
+  /// Whether an animated picture plays (it never does with reduced motion).
+  final bool animatePicture;
 
   /// `frame_none|frame_bronze|frame_silver|frame_gold|frame_royal`.
   final String frameId;
@@ -58,6 +71,26 @@ class PlayerAvatar extends StatelessWidget {
     final portrait = size * portraitFraction(frame);
     final seat = seatColor == null ? null : c.seats.of(seatColor!);
     final index = avatarIndex % kAvatarCount;
+    final builtIn = CustomPaint(painter: AvatarPainter(index));
+    final p = picture;
+    final Widget portraitArt = p == null
+        ? builtIn
+        : DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  c.surfaceRaised,
+                  Color.lerp(c.surface, c.brand, 0.18)!,
+                ],
+              ),
+            ),
+            child: ProfilePictureView(
+              picture: p,
+              size: portrait,
+              placeholder: builtIn,
+              animate: animatePicture,
+            ),
+          );
 
     Widget art = Stack(
       clipBehavior: Clip.none,
@@ -71,7 +104,7 @@ class PlayerAvatar extends StatelessWidget {
               (frame == 'frame_royal' ? size * 0.04 : 0),
           width: portrait,
           height: portrait,
-          child: ClipOval(child: CustomPaint(painter: AvatarPainter(index))),
+          child: ClipOval(child: portraitArt),
         ),
         Positioned.fill(
           child: CustomPaint(

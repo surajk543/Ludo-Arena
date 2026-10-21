@@ -33,3 +33,19 @@ var (
 	// are also active today (HyperLogLog inclusion-exclusion).
 	ReturningUsers = gauge("returning_users_estimate", "Approximate humans active in the previous window who are active again.", "window")
 )
+
+// Profile-picture Store and private asset signing (human players only).
+var (
+	// ProfilePicturePurchases counts pictures bought with diamonds, by
+	// format: image | lottie.
+	ProfilePicturePurchases = counter("profile_picture_purchases_total", "Profile pictures bought.", "format")
+	// ProfilePictureEquips counts PUT /me/profile-picture changes, by action:
+	// equip | remove.
+	ProfilePictureEquips = counter("profile_picture_equips_total", "Profile picture changes.", "action")
+	// AssetSignRequests counts POST /assets/sign outcomes: ok | unavailable.
+	AssetSignRequests = counter("asset_sign_requests_total", "Asset URL signing requests by result.", "result")
+	// AssetURLsSigned counts URLs handed out (catalogue paths only).
+	AssetURLsSigned = counter0("asset_urls_signed_total", "Presigned asset URLs handed out.")
+	// ProfilePictureCatalogReloads counts catalogue reloads: ok | error.
+	ProfilePictureCatalogReloads = counter("profile_picture_catalog_reloads_total", "Profile-picture catalogue reloads by result.", "result")
+)

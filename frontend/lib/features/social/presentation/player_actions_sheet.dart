@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/protocol/models.dart' show PlayerPicture;
 import '../../../core/theme/app_theme.dart';
 import '../../../core/time/server_clock.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -21,6 +22,7 @@ class PlayerSheetTarget {
     required this.uid,
     required this.name,
     this.avatar = 0,
+    this.picture,
     this.level = 1,
     this.frameId = 'frame_none',
     this.seatColor,
@@ -32,6 +34,9 @@ class PlayerSheetTarget {
   /// Display name (already resolved for empty names).
   final String name;
   final int avatar;
+
+  /// Store profile picture (null: the built-in [avatar]).
+  final PlayerPicture? picture;
   final int level;
   final String frameId;
   final SeatColor? seatColor;
@@ -448,6 +453,7 @@ class _Header extends StatelessWidget {
         children: [
           PlayerAvatar(
             avatarIndex: player.avatar,
+            picture: player.picture,
             frameId: player.frameId,
             seatColor: player.seatColor,
             size: 64,

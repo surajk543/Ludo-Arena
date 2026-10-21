@@ -50,6 +50,7 @@ class LoadoutSummaryCard extends ConsumerWidget {
                 onTap: () => onOpenKind('frame'),
                 child: PlayerAvatar(
                   avatarIndex: user?.avatar ?? 0,
+                  picture: user?.picture,
                   frameId: lo.frame,
                   size: 68,
                   semanticLabel: l10n.metaYourLook,

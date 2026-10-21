@@ -120,17 +120,28 @@ type Room struct {
 
 // Player is one seat in a room snapshot. Bot is server-determined.
 type Player struct {
-	Seat      int    `json:"seat"`
-	UID       string `json:"uid"`
-	Name      string `json:"name"`
-	Avatar    int    `json:"avatar"`
-	Level     int    `json:"level"`
-	Title     string `json:"title,omitempty"`
-	Color     string `json:"color"`
-	Connected bool   `json:"connected"`
-	Bot       bool   `json:"bot"`
-	Forfeited bool   `json:"forfeited"`
-	Strikes   int    `json:"strikes"`
+	Seat   int    `json:"seat"`
+	UID    string `json:"uid"`
+	Name   string `json:"name"`
+	Avatar int    `json:"avatar"`
+	Level  int    `json:"level"`
+	Title  string `json:"title,omitempty"`
+	// Picture is the seat's profile picture (null: built-in avatar). Bots
+	// only carry it; it is not part of the state hash.
+	Picture   *PlayerPicture `json:"picture,omitempty"`
+	Color     string         `json:"color"`
+	Connected bool           `json:"connected"`
+	Bot       bool           `json:"bot"`
+	Forfeited bool           `json:"forfeited"`
+	Strikes   int            `json:"strikes"`
+}
+
+// PlayerPicture is a seat's profile picture (catalogue id, "image" |
+// "lottie", object path in the private asset bucket).
+type PlayerPicture struct {
+	ID     string `json:"id"`
+	Format string `json:"format"`
+	Path   string `json:"path"`
 }
 
 // Turn is the current turn.

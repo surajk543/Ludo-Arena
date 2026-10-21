@@ -35,7 +35,9 @@ of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
 - **PostgreSQL boundaries (user-approved):** `wallet.wallets` holds balances
   only; `identity.auth_identities` maps providers → accounts;
   `progression.*` holds XP, missions/claims, inventory, loadout, friendships,
-  player reports (metadata only) and idempotency receipts. **Do not add
+  player reports (metadata only), idempotency receipts and the
+  profile-picture catalogue (`progression.profile_pictures`: paths and
+  prices only; ownership = inventory, equipped = loadout slot `avatar`). **Do not add
   tables** (no match history, ledger or profile tables) without asking. Live
   game state lives in Redis only — enforced by
   `backend/tests/schema_guard_test.go` (table allowlist + no gameplay-state columns).
@@ -93,6 +95,14 @@ real data.
 - `backend/internal/rooms` — room engine: Lua CAS commit + ordered publish (`store.go`), matchmaking/private/practice (`lobby.go`, `bots.go`), turns/finish (`game.go`), rematch, scheduler (`sched` ZSET timers), WS command dispatch (`commands.go`).
 - `backend/internal/websocket` — gateway: compression, bounded queues with snapshot coalescing, heartbeats, rate limits, pub/sub fan-out.
 - `backend/internal/{auth,identity,wallet,apppolicy,progression,social,analytics}`.
+- Profile-picture Store: `backend/internal/progression/pictures*.go` (catalogue
+  snapshot, store, purchase, apply, `POST /assets/sign`),
+  `backend/internal/assets` (stdlib SigV4 presign + R2 PUT/HEAD client,
+  manifest parser, `r2test` fake R2 that verifies signatures),
+  `backend/config/profile_pictures.tsv` (manifest → `migrations/008` seed,
+  `UPDATE_PICTURE_SEED=1 go test ./migrations` regenerates it),
+  `backend/cmd/r2-import-pictures` (copies manifest files into R2; env creds,
+  `-dry-run`).
 - `backend/config/` — app policy per environment, `catalog.json`, `missions.json`.
 - `frontend/lib/core/` — config, network (Dio + refresh), protocol (models, reducer, FNV hash), realtime (socket, `ActiveRoomController`), analytics, theme, localization.
 - `frontend/lib/features/` — feature folders; routes are registered in `lib/app/feature_routes.dart` via `play_routes.dart` and `meta_routes.dart`, except the five bottom-navigation tabs (Home, Games, Missions, Friends, Profile), which are one `StatefulShellRoute` in `lib/app/shell/main_shell.dart` (switch tabs with `context.go`, never push them).
@@ -119,6 +129,12 @@ real data.
   there is exactly one legal token.
 - Per-connection command limit is 10/s (burst 20); bots and tests that act
   instantly need a small think delay.
+- The R2 bucket is private: never log a signed URL or `R2_SECRET_ACCESS_KEY`,
+  never sign a path that is not in `progression.profile_pictures`, and never
+  run `r2-import-pictures` against the real bucket from tests (they use
+  `internal/assets/r2test`). Package tests share the test database:
+  `internal/progression` adds temporary `pp_unit_*` catalogue rows that e2e
+  listings ignore.
 - Anti-farming: matches shorter than `PROGRESSION_MIN_MATCH_DURATION`
   (30 s default, ≥ 10 s in production) earn no XP; e2e tests set it to `0s`.
 - `RATE_LIMIT_DISABLED` and `BOT_LOADTEST_ENABLED` are refused in production.

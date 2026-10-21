@@ -8,6 +8,7 @@ package rooms
 import (
 	"ludoroyale/internal/game/ludo"
 	snakes "ludoroyale/internal/game/snakes_ladders"
+	"ludoroyale/internal/playerinfo"
 )
 
 // Games, modes and statuses.
@@ -32,25 +33,26 @@ const (
 
 // Player is a seat's internal state. UserID is never sent to other clients.
 type Player struct {
-	UserID      string            `json:"userId"`
-	UID         string            `json:"uid"`
-	Name        string            `json:"name"`
-	Avatar      int               `json:"avatar"`
-	Level       int               `json:"level"`
-	Title       string            `json:"title"`
-	Cosmetics   map[string]string `json:"cosmetics"`
-	Bot         bool              `json:"bot"`
-	BotProfile  string            `json:"botProfile,omitempty"`
-	BotSID      string            `json:"botSid,omitempty"` // bot session id (revoked when the bot is removed)
-	Connected   bool              `json:"connected"`
-	ConnEpoch   int64             `json:"connEpoch"`
-	Forfeited   bool              `json:"forfeited"`
-	ForfeitWhy  string            `json:"forfeitWhy,omitempty"`
-	Strikes     int               `json:"strikes"`
-	Actions     int               `json:"actions"`
-	JoinedAt    int64             `json:"joinedAt"`
-	MatchmakeAt int64             `json:"matchmakeAt,omitempty"`
-	FeePaid     int64             `json:"feePaid,omitempty"`
+	UserID      string              `json:"userId"`
+	UID         string              `json:"uid"`
+	Name        string              `json:"name"`
+	Avatar      int                 `json:"avatar"`
+	Level       int                 `json:"level"`
+	Title       string              `json:"title"`
+	Cosmetics   map[string]string   `json:"cosmetics"`
+	Picture     *playerinfo.Picture `json:"picture,omitempty"`
+	Bot         bool                `json:"bot"`
+	BotProfile  string              `json:"botProfile,omitempty"`
+	BotSID      string              `json:"botSid,omitempty"` // bot session id (revoked when the bot is removed)
+	Connected   bool                `json:"connected"`
+	ConnEpoch   int64               `json:"connEpoch"`
+	Forfeited   bool                `json:"forfeited"`
+	ForfeitWhy  string              `json:"forfeitWhy,omitempty"`
+	Strikes     int                 `json:"strikes"`
+	Actions     int                 `json:"actions"`
+	JoinedAt    int64               `json:"joinedAt"`
+	MatchmakeAt int64               `json:"matchmakeAt,omitempty"`
+	FeePaid     int64               `json:"feePaid,omitempty"`
 }
 
 // Result of a finished round.
@@ -179,11 +181,14 @@ type PlayerView struct {
 	Level     int               `json:"level"`
 	Title     string            `json:"title"`
 	Cosmetics map[string]string `json:"cosmetics"`
-	Color     string            `json:"color"`
-	Connected bool              `json:"connected"`
-	Bot       bool              `json:"bot"`
-	Forfeited bool              `json:"forfeited"`
-	Strikes   int               `json:"strikes"`
+	// Picture is the seat's profile picture (null: the built-in avatar). Not
+	// part of the state hash.
+	Picture   *playerinfo.Picture `json:"picture"`
+	Color     string              `json:"color"`
+	Connected bool                `json:"connected"`
+	Bot       bool                `json:"bot"`
+	Forfeited bool                `json:"forfeited"`
+	Strikes   int                 `json:"strikes"`
 }
 
 // TurnView is the turn section of a snapshot.
@@ -265,7 +270,7 @@ func (r *Room) View() View {
 			color = colors[i]
 		}
 		v.Players[i] = PlayerView{Seat: i, UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level,
-			Title: p.Title, Cosmetics: p.Cosmetics, Color: color, Connected: p.Connected, Bot: p.Bot,
+			Title: p.Title, Cosmetics: p.Cosmetics, Picture: p.Picture, Color: color, Connected: p.Connected, Bot: p.Bot,
 			Forfeited: p.Forfeited, Strikes: p.Strikes}
 	}
 	seat, seq, phase, dice, legal, six := r.turnInfo()

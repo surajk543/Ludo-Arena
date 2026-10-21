@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"ludoroyale/internal/analytics"
+	"ludoroyale/internal/assets"
 	"ludoroyale/internal/httpapi"
 	"ludoroyale/internal/progression"
 	"ludoroyale/internal/reports"
@@ -19,9 +20,21 @@ import (
 // and pseudonymous analytics exactly as production runs them.
 func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 	minMatch := core.Cfg.MinMatchDuration
-	prog, err := progression.New(core.PG, core.RDB, core.Profiles, core.Notifier, core.Log, progression.Options{
+	opts := progression.Options{
 		CatalogPath: core.Cfg.CatalogFile, MissionsPath: core.Cfg.MissionsFile, MinMatchDuration: &minMatch,
-	})
+	}
+	// Profile pictures live in a private R2 bucket; without R2 the Store still
+	// works and POST /assets/sign answers 503 assets_unavailable.
+	if core.Cfg.Assets.Enabled() {
+		signer, err := assets.NewSigner(core.Cfg.Assets.R2, core.Cfg.Assets.URLTTL, nil)
+		if err != nil {
+			return Extensions{}, err
+		}
+		opts.Assets = signer
+	} else {
+		core.Log.Warn("R2 not configured: profile-picture downloads (POST /assets/sign) are unavailable")
+	}
+	prog, err := progression.New(core.PG, core.RDB, core.Profiles, core.Notifier, core.Log, opts)
 	if err != nil {
 		return Extensions{}, err
 	}
@@ -33,7 +46,7 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 		PerDay: core.Cfg.Social.ReportsPerDay, AdminKeySHA256: core.Cfg.AdminKeySHA256})
 	tracker := analytics.New(core.RDB, core.Cfg.Telemetry.ActiveUserKey, core.Log)
 	return Extensions{
-		Progression: prog, Recorder: prog, Inviter: soc, Inventory: prog,
+		Progression: prog, Pictures: prog, Recorder: prog, Inviter: soc, Inventory: prog,
 		Routes: []func(rt *httpapi.Router){prog.Register, soc.Register, rep.Register, tracker.Register},
 		OnNewAccount: func(ctx context.Context, id uuid.UUID) {
 			// Off the sign-up request path. Every progression read and write

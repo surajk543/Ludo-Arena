@@ -13,6 +13,7 @@ import 'package:ludo_royale/features/home/application/play_options.dart';
 import 'package:ludo_royale/features/home/presentation/home_screen.dart';
 import 'package:ludo_royale/features/home/presentation/join_code_sheet.dart';
 import 'package:ludo_royale/features/home/presentation/widgets/game_card.dart';
+import 'package:ludo_royale/features/home/presentation/widgets/home_tiles.dart';
 import 'package:ludo_royale/shared/widgets/widgets.dart';
 
 import '../../helpers/fake_backend.dart';
@@ -44,6 +45,7 @@ GoRouter _router({List<NavigatorObserver> observers = const []}) => GoRouter(
       AppRoutes.collection,
       AppRoutes.friends,
       AppRoutes.events,
+      AppRoutes.store,
       AppRoutes.profile,
       AppRoutes.settings,
       AppRoutes.linkAccount,
@@ -398,6 +400,7 @@ void main() {
     ('Collection', '/collection'),
     ('Friends', '/friends'),
     ('Events', '/events'),
+    ('Store', '/store'),
   ]) {
     testWidgets('More to Explore: $tile opens $route', (tester) async {
       await pumpHome(tester);
@@ -408,6 +411,21 @@ void main() {
       expect(find.text('AT $route'), findsOneWidget);
     });
   }
+
+  testWidgets('More to Explore stays balanced: a short last row spans the '
+      'full width', (tester) async {
+    await pumpHome(tester);
+    final store = find.bySemanticsLabel('Store');
+    await reveal(tester, store);
+    final events = find.bySemanticsLabel('Events');
+    final grid = find.byType(ExploreGrid);
+    // Five tiles on a phone: 2 + 2 + 1, the fifth as wide as the grid.
+    expect(tester.getSize(store).width, tester.getSize(grid).width);
+    expect(
+      tester.getSize(events).width,
+      lessThan(tester.getSize(grid).width / 2),
+    );
+  });
 
   testWidgets('theme shortcut flips and persists the theme', (tester) async {
     final c = await pumpHome(tester);

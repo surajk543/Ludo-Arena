@@ -64,6 +64,13 @@ class HomeScreen extends ConsumerWidget {
         subtitle: l10n.homeEventsSubtitle,
         onTap: () => context.push(AppRoutes.events),
       ),
+      ExploreTileData(
+        icon: Icons.storefront_rounded,
+        color: c.accentSky,
+        title: l10n.homeStore,
+        subtitle: l10n.homeStoreSubtitle,
+        onTap: () => context.push(AppRoutes.store),
+      ),
     ];
 
     const ludo = GameCard(game: GameId.ludo);

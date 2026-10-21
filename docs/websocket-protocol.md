@@ -199,6 +199,7 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
       "title": "title_rookie",
       "cosmetics": {"dice": "dice_classic", "token": "token_classic", "frame": "frame_none",
                     "trail": "trail_none", "victory": "victory_confetti"},
+      "picture": {"id": "pp_wolf", "format": "image", "path": "profile_pictures/image/wolf.png"},  // or null
       "color": "red",
       "connected": true,
       "bot": false,               // server-determined from the session; the app shows no bot badge (names carry no label) but hides friend/report actions on bots
@@ -238,6 +239,16 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
 `board` contains only the key for the room's game. `uid` is a per-account
 pseudonymous public id; account ids, provider ids and emails are never sent to
 other players.
+
+`picture` is the seat's profile picture (PlayerPicture, see
+[`rest-api.md`](rest-api.md#store-profile-pictures)) or `null` (show the
+built-in `avatar`). It is always present. It is taken when the player joins
+the room: `PUT /me/profile-picture` applies from the next room joined, so the
+value never changes inside a room and no delta carries it. Download the art
+through `POST /assets/sign` (cache the file forever; the path is immutable).
+Like every player field, `picture` is **not** part of the state hash `h`.
+Bots wear a random catalogue picture with probability `BOT_PICTURE_SHARE`
+(default 0.3) and `null` otherwise, so bot seats look like players' seats.
 
 ---
 
@@ -342,7 +353,8 @@ Typical event sequence for one Ludo turn with a single legal move:
 
 Any room that contains a bot seat at game start is played with **entry fee 0
 and no coin payout**. XP and mission progress for the human players work as in
-any other completed match. Bots have no wallet, XP or collection.
+any other completed match. Bots have no wallet, XP or collection (a bot's
+profile `picture` is chosen at seating, never bought).
 
 ## 8. Rematch policy
 

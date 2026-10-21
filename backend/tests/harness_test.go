@@ -33,6 +33,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 
+	"ludoroyale/internal/assets/r2test"
 	"ludoroyale/internal/config"
 	"ludoroyale/internal/postgres"
 	"ludoroyale/internal/redisstore"
@@ -45,6 +46,11 @@ const (
 	botKey     = "test-bot-service-key-0123456789abcdef0123456789"
 	redisDB    = 13
 	appVersion = "1.0.0"
+	// Fake R2 bucket (internal/assets/r2test); never a real account.
+	testR2Account = "0123456789abcdef0123456789abcdef"
+	testR2Bucket  = "ludo-royale"
+	testR2KeyID   = "AKIDE2ETEST"
+	testR2Secret  = "e2e-fake-r2-secret"
 )
 
 // runID makes provider subjects unique per test run (the test database
@@ -112,6 +118,12 @@ type envOpts struct {
 	// pgTracer, when set, traces every PostgreSQL query of the app's pool
 	// (query counting in hotpath_test.go).
 	pgTracer pgx.QueryTracer
+	// r2, when set, configures the four R2_* variables and R2_ENDPOINT for
+	// this fake bucket (profile-picture signing). Without it R2 is
+	// unconfigured, whatever the shell environment holds.
+	r2 *r2test.Server
+	// botPictureShare sets BOT_PICTURE_SHARE ("" = default 0.3).
+	botPictureShare string
 }
 
 func newEnv(t *testing.T, o envOpts) *env {
@@ -139,6 +151,14 @@ func newEnv(t *testing.T, o envOpts) *env {
 		"BOT_PUBLIC_FILL_ENABLED": "true", "WS_COMPRESSION": o.compression,
 		"WS_COMPRESSION_THRESHOLD": "256", "LOG_LEVEL": "error",
 		"CATALOG_FILE": "../config/catalog.json", "MISSIONS_FILE": "../config/missions.json",
+		// Never pick up a real bucket from the shell.
+		"R2_ACCOUNT_ID": "", "R2_BUCKET": "", "R2_ACCESS_KEY_ID": "", "R2_SECRET_ACCESS_KEY": "",
+		"R2_ENDPOINT": "", "ASSET_URL_TTL": "", "BOT_PICTURE_SHARE": o.botPictureShare,
+	}
+	if o.r2 != nil {
+		envVars["R2_ACCOUNT_ID"], envVars["R2_BUCKET"] = testR2Account, o.r2.Bucket
+		envVars["R2_ACCESS_KEY_ID"], envVars["R2_SECRET_ACCESS_KEY"] = o.r2.AccessKeyID, o.r2.Secret
+		envVars["R2_ENDPOINT"] = o.r2.URL
 	}
 	if o.queue > 0 {
 		envVars["WS_OUTBOUND_QUEUE"] = fmt.Sprint(o.queue)

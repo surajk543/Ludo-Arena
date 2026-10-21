@@ -1,0 +1,95 @@
+{
+  "storeTitle": "Store",
+  "@storeTitle": {
+    "description": "Title of the Store screen (profile pictures bought with diamonds)."
+  },
+  "storeHeroTitle": "Profile pictures",
+  "@storeHeroTitle": {
+    "description": "Store header card title."
+  },
+  "storeHeroSubtitle": "Buy once with diamonds and keep it forever.",
+  "@storeHeroSubtitle": {
+    "description": "Store header card text: pictures are bought once and owned forever."
+  },
+  "storeFilterAnimated": "Animated",
+  "@storeFilterAnimated": {
+    "description": "Store filter pill: animated (Lottie) pictures."
+  },
+  "storeFilterStatic": "Static",
+  "@storeFilterStatic": {
+    "description": "Store filter pill: still images."
+  },
+  "storeKindAnimated": "Animated picture",
+  "@storeKindAnimated": {
+    "description": "Detail sheet subtitle for an animated profile picture."
+  },
+  "storeKindStatic": "Picture",
+  "@storeKindStatic": {
+    "description": "Detail sheet subtitle for a still profile picture."
+  },
+  "storeApply": "Apply",
+  "@storeApply": {
+    "description": "Button: use this owned picture as your profile picture."
+  },
+  "storeRemove": "Use classic avatar",
+  "@storeRemove": {
+    "description": "Button: stop using the applied picture and go back to the built-in avatar."
+  },
+  "storeAppliedToast": "Picture applied!",
+  "@storeAppliedToast": {
+    "description": "Toast after the server applied a profile picture."
+  },
+  "storeRemovedToast": "Back to your classic avatar.",
+  "@storeRemovedToast": {
+    "description": "Toast after going back to the built-in avatar."
+  },
+  "storePurchasedToast": "{name} is yours forever!",
+  "@storePurchasedToast": {
+    "description": "Toast after buying a profile picture.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storeNextMatchNote": "Shows on your profile now, and to other players from your next match.",
+  "@storeNextMatchNote": {
+    "description": "Note under Apply: rooms already joined keep the previous picture."
+  },
+  "storeEmptyOwnedTitle": "No pictures yet",
+  "@storeEmptyOwnedTitle": {
+    "description": "Empty state of the Owned filter."
+  },
+  "storeEmptyOwnedMessage": "Pictures you buy are yours forever.",
+  "@storeEmptyOwnedMessage": {
+    "description": "Empty state of the Owned filter."
+  },
+  "storeEmptyTitle": "Nothing here yet",
+  "@storeEmptyTitle": {
+    "description": "Empty state of a Store filter."
+  },
+  "storeEmptyMessage": "New pictures are on their way.",
+  "@storeEmptyMessage": {
+    "description": "Empty state of a Store filter."
+  },
+  "storeBrowseAll": "Browse all",
+  "@storeBrowseAll": {
+    "description": "Button in the empty Owned filter: show every picture."
+  },
+  "storeLoadMoreFailed": "Couldn't load more pictures.",
+  "@storeLoadMoreFailed": {
+    "description": "Inline error at the end of the Store grid (next page failed)."
+  },
+  "storeTileSemantics": "{name}, {status}",
+  "@storeTileSemantics": {
+    "description": "Screen-reader label of a Store tile: picture name and its price or state.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  }
+}
