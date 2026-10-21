@@ -416,18 +416,6 @@ abstract class AppLocalizations {
   /// **'Sign out of your guest account?'**
   String get authGuestLogoutTitle;
 
-  /// Warning that guest progress is lost unless saved.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re playing as a guest. If you sign out now, your coins, level and collection will be lost unless you save your progress first.'**
-  String get authGuestLogoutMessage;
-
-  /// Destructive guest sign-out button.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign out and lose progress'**
-  String get authGuestLogoutConfirm;
-
   /// Button leading to Save Progress from the guest sign-out dialog.
   ///
   /// In en, this message translates to:
@@ -463,6 +451,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome, {name}!'**
   String authWelcomeBack(String name);
+
+  /// Guest sign-out confirmation: nothing is lost; “Play as guest” on this device brings the same guest account back. Quote the Play as guest button label (authPlayAsGuest).
+  ///
+  /// In en, this message translates to:
+  /// **'Your coins, level and collection stay on this device. Tap “Play as guest” to carry on where you left off. Save your progress to keep them on a new phone too.'**
+  String get authGuestLogoutKeptMessage;
 
   /// Seat color name used in game-board accessibility labels.
   ///

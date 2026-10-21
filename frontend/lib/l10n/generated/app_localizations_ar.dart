@@ -186,13 +186,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authGuestLogoutTitle => 'تسجيل الخروج من حساب الضيف؟';
 
   @override
-  String get authGuestLogoutMessage =>
-      'أنت تلعب كضيف. إذا سجّلت الخروج الآن فستفقد عملاتك ومستواك ومجموعتك ما لم تحفظ تقدّمك أولًا.';
-
-  @override
-  String get authGuestLogoutConfirm => 'تسجيل الخروج وفقدان التقدّم';
-
-  @override
   String get authSaveProgressFirst => 'احفظ التقدّم أولًا';
 
   @override
@@ -212,6 +205,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String authWelcomeBack(String name) {
     return 'أهلًا، $name!';
   }
+
+  @override
+  String get authGuestLogoutKeptMessage =>
+      'تبقى عملاتك ومستواك ومجموعتك على هذا الجهاز. اضغط «العب كضيف» لتكمل من حيث توقفت. احفظ تقدّمك لتحتفظ بها على هاتف جديد أيضًا.';
 
   @override
   String get boardsColorRed => 'الأحمر';

@@ -252,7 +252,7 @@ void main() {
         env.backend.json(
           'POST',
           '/account/link/google',
-          meJson(isGuest: false, providers: ['guest', 'google']),
+          meJson(isGuest: false, providers: ['google']),
         );
         final outcome = await session().link(LinkedProvider.google);
         expect(outcome, isA<LinkSucceeded>());
@@ -262,8 +262,39 @@ void main() {
         expect(state().user!.id, 'acc-1');
         expect(state().user!.needsSaveProgress, isFalse);
         expect(env.analytics.events, ['account_link_succeeded:google']);
+        // No longer the device guest: the server dropped its guest secret,
+        // so the app forgets it too (no "Switch back to guest").
+        expect(env.secure.values.containsKey('session.guest_secret'), isFalse);
+        expect(env.secure.values['session.last_was_guest'], '0');
+        expect(state().hasStoredGuest, isFalse);
+        expect(state().canSwitchBackToGuest, isFalse);
       },
     );
+
+    test('a linked account linking one more provider keeps the device '
+        "guest's secret", () async {
+      await setUpEnv();
+      env.secure.values['session.guest_secret'] = 'gs_device_guest';
+      env.identity[LinkedProvider.facebook]!.available = true;
+      env.backend
+        ..json(
+          'POST',
+          '/auth/google',
+          authJson(isGuest: false, providers: ['google']),
+        )
+        ..json(
+          'POST',
+          '/account/link/facebook',
+          meJson(isGuest: false, providers: ['facebook', 'google']),
+        );
+      await session().signIn(LinkedProvider.google);
+      expect(
+        await session().link(LinkedProvider.facebook),
+        isA<LinkSucceeded>(),
+      );
+      expect(env.secure.values['session.guest_secret'], 'gs_device_guest');
+      expect(state().canSwitchBackToGuest, isTrue);
+    });
 
     test(
       '409 identity_conflict → nothing merged; sign in keeps guest secret',
@@ -368,27 +399,47 @@ void main() {
   });
 
   group('logout', () {
-    test(
-      'guest logout with forgetGuest clears tokens and guest secret',
-      () async {
-        await setUpEnv();
+    test('guest logout clears the session but keeps the guest: Play as '
+        'guest brings the same account back', () async {
+      await setUpEnv();
+      env.backend
+        ..json(
+          'POST',
+          '/auth/guest',
+          authJson(guestSecret: 'gs_1', isNewUser: true),
+          status: 201,
+        )
+        ..json('POST', '/auth/logout', const {}, status: 204)
+        ..json(
+          'POST',
+          '/auth/guest/resume',
+          authJson(access: 'at-2', refresh: 'rt-2', coins: 4321),
+        );
+      await session().continueAsGuest();
+      await session().logout();
+      expect(state().status, SessionStatus.signedOut);
+      expect(state().signOutReason, SignOutReason.userAction);
+      expect(env.secure.values.containsKey('session.refresh_token'), isFalse);
+      expect(env.secure.values['session.guest_secret'], 'gs_1');
+      expect(state().hasStoredGuest, isTrue);
+      expect(container.read(walletControllerProvider).isLoaded, isFalse);
+      expect(env.analytics.actor, isNull);
+
+      final again = await session().continueAsGuest();
+      expect(again, isA<AuthSucceeded>());
+      expect((again as AuthSucceeded).isNewUser, isFalse);
+      expect(state().user!.id, 'acc-1');
+      expect(container.read(walletControllerProvider).coins, 4321);
+      expect(
         env.backend
-          ..json(
-            'POST',
-            '/auth/guest',
-            authJson(guestSecret: 'gs_1'),
-            status: 201,
-          )
-          ..json('POST', '/auth/logout', const {}, status: 204);
-        await session().continueAsGuest();
-        await session().logout(forgetGuest: true);
-        expect(state().status, SessionStatus.signedOut);
-        expect(env.secure.values.containsKey('session.refresh_token'), isFalse);
-        expect(env.secure.values.containsKey('session.guest_secret'), isFalse);
-        expect(container.read(walletControllerProvider).isLoaded, isFalse);
-        expect(env.analytics.actor, isNull);
-      },
-    );
+            .calls('POST', '/auth/guest/resume')
+            .single
+            .json['guestSecret'],
+        'gs_1',
+      );
+      // No second guest was created.
+      expect(env.backend.calls('POST', '/auth/guest'), hasLength(1));
+    });
 
     test('provider-account logout keeps a stored guest secret', () async {
       await setUpEnv();
@@ -399,7 +450,7 @@ void main() {
         authJson(isGuest: false, providers: ['google']),
       );
       await session().signIn(LinkedProvider.google);
-      await session().logout(forgetGuest: false);
+      await session().logout();
       expect(env.secure.values['session.guest_secret'], 'gs_keep');
       expect(state().hasStoredGuest, isTrue);
       expect(env.identity[LinkedProvider.google]!.signOuts, 1);
@@ -567,7 +618,7 @@ void main() {
         )
         ..json('POST', '/auth/logout', const {}, status: 204);
       await session().continueAsGuest();
-      await session().logout(forgetGuest: false);
+      await session().logout();
       await settle();
       final req = env.backend.calls('POST', '/auth/logout').single;
       expect(req.header('Authorization'), 'Bearer at-1');
@@ -586,7 +637,7 @@ void main() {
         )
         ..json('POST', '/auth/logout', const {}, status: 204);
       await session().continueAsGuest();
-      await session().logout(forgetGuest: false);
+      await session().logout();
       await settle();
       final req = env.backend.calls('POST', '/auth/logout').single;
       expect(req.header('Authorization'), isNull);

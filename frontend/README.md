@@ -157,14 +157,18 @@ maintenance screen. The last policy is cached for display only.
 `SessionController.restore()` tries, in order: the stored refresh token;
 nothing more if the user signed out or was signed out by a sign-in on
 another device (`session.signed_out` / `session.replaced`, cleared by the
-next explicit sign-in); the stored guest secret (installs from before device
-binding); then `POST /auth/device/resume` with the device id, so an update
-or reinstall lands back in the same account with its coins and progress
-(404 → login screen). "Play as guest" sends the device id to
-`POST /auth/guest` (the device's existing account, or a new guest bound to
-it), every other human sign-in binds the device once
-(`PUT /account/device`, a 409 is ignored), and signing out an unsaved guest
-unbinds it (`DELETE /account/device`).
+next explicit sign-in); the stored guest secret; then
+`POST /auth/device/resume` with the device id, so an update or reinstall
+lands back in the same guest with its coins and progress (404 → login
+screen). "Play as guest" resumes the stored guest secret, else sends the
+device id to `POST /auth/guest` (the device's guest, or a new guest bound to
+it). A guest sign-out keeps the guest secret and the binding, so "Play as
+guest" always brings the same guest back (docs/authentication.md "Guest
+persistence"). Guests restored without a binding bind the device once
+(`PUT /account/device`, a 409 is final); linked accounts are never bound.
+Save Progress turns the guest into a linked account: the server drops its
+guest secret and binding and the app forgets them, so the next "Play as
+guest" on the device is a new guest.
 
 The device id (`lib/core/device/device_identity.dart`) is
 `Settings.Secure.ANDROID_ID` on Android 8+ (scoped to the signing key,

@@ -190,13 +190,6 @@ class AppLocalizationsUr extends AppLocalizations {
   String get authGuestLogoutTitle => 'مہمان اکاؤنٹ سے سائن آؤٹ کریں؟';
 
   @override
-  String get authGuestLogoutMessage =>
-      'آپ مہمان کے طور پر کھیل رہے ہیں۔ اگر آپ ابھی سائن آؤٹ کرتے ہیں تو پیش رفت محفوظ کیے بغیر آپ کے سکے، لیول اور کلیکشن ضائع ہو جائیں گے۔';
-
-  @override
-  String get authGuestLogoutConfirm => 'سائن آؤٹ کریں اور پیش رفت کھو دیں';
-
-  @override
   String get authSaveProgressFirst => 'پہلے پیش رفت محفوظ کریں';
 
   @override
@@ -216,6 +209,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String authWelcomeBack(String name) {
     return 'خوش آمدید، $name!';
   }
+
+  @override
+  String get authGuestLogoutKeptMessage =>
+      'آپ کے سکے، لیول اور کلیکشن اس ڈیوائس پر محفوظ رہیں گے۔ جہاں چھوڑا تھا وہیں سے جاری رکھنے کے لیے “مہمان کے طور پر کھیلیں” پر ٹیپ کریں۔ نئے فون پر بھی انہیں رکھنے کے لیے اپنی پیش رفت محفوظ کریں۔';
 
   @override
   String get boardsColorRed => 'سرخ';

@@ -13,8 +13,9 @@ enum _SignOutChoice { saveFirst, signOut, cancel }
 
 /// Confirmation flows shared by Settings and Profile.
 abstract final class AccountActions {
-  /// Sign out. An unsaved guest is warned that progress is lost unless saved;
-  /// the guest secret is deleted only after explicit confirmation.
+  /// Sign out. A guest loses nothing — "Play as guest" on this device brings
+  /// the same account back — and is offered Save Progress to keep it on
+  /// other devices too.
   static Future<void> confirmSignOut(
     BuildContext context,
     WidgetRef ref,
@@ -27,7 +28,7 @@ abstract final class AccountActions {
       context,
       title: unsavedGuest ? l10n.authGuestLogoutTitle : l10n.authLogoutTitle,
       message: unsavedGuest
-          ? l10n.authGuestLogoutMessage
+          ? l10n.authGuestLogoutKeptMessage
           : l10n.authLogoutMessage,
       actions: [
         if (unsavedGuest)
@@ -37,9 +38,7 @@ abstract final class AccountActions {
             value: _SignOutChoice.saveFirst,
           ),
         AppDialogAction(
-          label: unsavedGuest
-              ? l10n.authGuestLogoutConfirm
-              : l10n.authLogoutConfirm,
+          label: l10n.authLogoutConfirm,
           variant: PremiumButtonVariant.danger,
           value: _SignOutChoice.signOut,
         ),
@@ -55,9 +54,7 @@ abstract final class AccountActions {
       case _SignOutChoice.saveFirst:
         await context.push(AppRoutes.linkAccount);
       case _SignOutChoice.signOut:
-        await ref
-            .read(sessionControllerProvider.notifier)
-            .logout(forgetGuest: unsavedGuest);
+        await ref.read(sessionControllerProvider.notifier).logout();
       case _SignOutChoice.cancel:
       case null:
         break;

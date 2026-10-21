@@ -227,14 +227,6 @@
   "@authGuestLogoutTitle": {
     "description": "Sign-out confirmation title for an unsaved guest."
   },
-  "authGuestLogoutMessage": "You're playing as a guest. If you sign out now, your coins, level and collection will be lost unless you save your progress first.",
-  "@authGuestLogoutMessage": {
-    "description": "Warning that guest progress is lost unless saved."
-  },
-  "authGuestLogoutConfirm": "Sign out and lose progress",
-  "@authGuestLogoutConfirm": {
-    "description": "Destructive guest sign-out button."
-  },
   "authSaveProgressFirst": "Save progress first",
   "@authSaveProgressFirst": {
     "description": "Button leading to Save Progress from the guest sign-out dialog."
@@ -263,5 +255,9 @@
         "type": "String"
       }
     }
+  },
+  "authGuestLogoutKeptMessage": "Your coins, level and collection stay on this device. Tap “Play as guest” to carry on where you left off. Save your progress to keep them on a new phone too.",
+  "@authGuestLogoutKeptMessage": {
+    "description": "Guest sign-out confirmation: nothing is lost; “Play as guest” on this device brings the same guest account back. Quote the Play as guest button label (authPlayAsGuest)."
   }
 }

@@ -190,13 +190,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get authGuestLogoutTitle => 'मेहमान अकाउंट से साइन आउट करें?';
 
   @override
-  String get authGuestLogoutMessage =>
-      'आप मेहमान के रूप में खेल रहे हैं। अगर आप अभी साइन आउट करते हैं, तो पहले प्रोग्रेस सेव किए बिना आपके सिक्के, लेवल और कलेक्शन खो जाएँगे।';
-
-  @override
-  String get authGuestLogoutConfirm => 'साइन आउट करें और प्रोग्रेस खोएँ';
-
-  @override
   String get authSaveProgressFirst => 'पहले प्रोग्रेस सेव करें';
 
   @override
@@ -216,6 +209,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String authWelcomeBack(String name) {
     return 'स्वागत है, $name!';
   }
+
+  @override
+  String get authGuestLogoutKeptMessage =>
+      'आपके सिक्के, लेवल और कलेक्शन इस डिवाइस पर बने रहेंगे। जहाँ छोड़ा था वहीं से खेलने के लिए “मेहमान के रूप में खेलें” पर टैप करें। नए फ़ोन पर भी इन्हें रखने के लिए अपनी प्रोग्रेस सेव करें।';
 
   @override
   String get boardsColorRed => 'लाल';
