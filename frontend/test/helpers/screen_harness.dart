@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ludo_royale/core/audio_haptics/reduced_motion.dart';
 import 'package:ludo_royale/core/localization/language_controller.dart';
+import 'package:ludo_royale/core/localization/number_system_delegate.dart';
+import 'package:ludo_royale/core/settings/app_settings.dart';
 import 'package:ludo_royale/core/theme/app_theme.dart';
 import 'package:ludo_royale/l10n/generated/app_localizations.dart';
 
@@ -64,29 +66,38 @@ Future<ProviderContainer> pumpScreen(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: router != null
-          ? MaterialApp.router(
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.light(),
-              darkTheme: AppTheme.dark(),
-              themeMode: themeMode,
-              locale: locale,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              routerConfig: router,
-              builder: wrap,
-            )
-          : MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.light(),
-              darkTheme: AppTheme.dark(),
-              themeMode: themeMode,
-              locale: locale,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              builder: wrap,
-              home: screen,
-            ),
+      // Same number-system wiring as the app root: changing the setting
+      // reformats every amount.
+      child: Consumer(
+        builder: (context, ref, _) {
+          final delegates = appLocalizationsDelegates(
+            ref.watch(settingsControllerProvider.select((s) => s.numberSystem)),
+          );
+          return router != null
+              ? MaterialApp.router(
+                  debugShowCheckedModeBanner: false,
+                  theme: AppTheme.light(),
+                  darkTheme: AppTheme.dark(),
+                  themeMode: themeMode,
+                  locale: locale,
+                  localizationsDelegates: delegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  routerConfig: router,
+                  builder: wrap,
+                )
+              : MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  theme: AppTheme.light(),
+                  darkTheme: AppTheme.dark(),
+                  themeMode: themeMode,
+                  locale: locale,
+                  localizationsDelegates: delegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  builder: wrap,
+                  home: screen,
+                );
+        },
+      ),
     ),
   );
   await tester.pump();
