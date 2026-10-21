@@ -1,0 +1,12 @@
+{
+  "connectionLostTitle": "Connection lost",
+  "@connectionLostTitle": {"description": "Title of the full-screen overlay that blocks the app while the internet / game-server connection is down (after sign-in, on any screen, including a match)."},
+  "connectionLostMessage": "Reconnecting… You can continue as soon as you're back online.",
+  "@connectionLostMessage": {"description": "Body of the connection-lost overlay: the app reconnects by itself and unblocks when the connection is back."},
+  "connectionLostMatchHint": "Your match keeps running. Missed turns are played for you automatically.",
+  "@connectionLostMatchHint": {"description": "Extra line on the connection-lost overlay during a match: the server keeps the match going and plays timed-out turns for the player."},
+  "connectionLostRetryNow": "Try now",
+  "@connectionLostRetryNow": {"description": "Button on the connection-lost overlay: retry the connection immediately instead of waiting for the next automatic attempt."},
+  "connectionBackOnline": "Back online",
+  "@connectionBackOnline": {"description": "Screen-reader announcement when the connection is restored and the connection-lost overlay disappears."}
+}

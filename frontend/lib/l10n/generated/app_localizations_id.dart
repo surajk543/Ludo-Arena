@@ -507,6 +507,23 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonFree => 'Gratis';
 
   @override
+  String get connectionLostTitle => 'Koneksi terputus';
+
+  @override
+  String get connectionLostMessage =>
+      'Menyambung ulang… Kamu bisa lanjut begitu kembali online.';
+
+  @override
+  String get connectionLostMatchHint =>
+      'Pertandinganmu tetap berjalan. Giliran yang terlewat dimainkan otomatis.';
+
+  @override
+  String get connectionLostRetryNow => 'Coba sekarang';
+
+  @override
+  String get connectionBackOnline => 'Kembali online';
+
+  @override
   String get appTitle => 'Ludo Royale';
 
   @override

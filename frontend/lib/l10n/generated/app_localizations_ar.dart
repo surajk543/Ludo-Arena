@@ -513,6 +513,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonFree => 'مجاني';
 
   @override
+  String get connectionLostTitle => 'انقطع الاتصال';
+
+  @override
+  String get connectionLostMessage =>
+      'جارٍ إعادة الاتصال… يمكنك المتابعة فور عودة الإنترنت.';
+
+  @override
+  String get connectionLostMatchHint =>
+      'تستمر مباراتك. تُلعب الأدوار الفائتة تلقائيًا.';
+
+  @override
+  String get connectionLostRetryNow => 'حاول الآن';
+
+  @override
+  String get connectionBackOnline => 'أنت متصل مجددًا';
+
+  @override
   String get appTitle => 'لودو رويال';
 
   @override

@@ -511,6 +511,23 @@ class AppLocalizationsUr extends AppLocalizations {
   String get commonFree => 'مفت';
 
   @override
+  String get connectionLostTitle => 'کنکشن ٹوٹ گیا';
+
+  @override
+  String get connectionLostMessage =>
+      'دوبارہ کنیکٹ ہو رہا ہے… انٹرنیٹ واپس آتے ہی آپ جاری رکھ سکتے ہیں۔';
+
+  @override
+  String get connectionLostMatchHint =>
+      'آپ کا میچ جاری رہے گا۔ چھوٹی ہوئی باریاں خود بخود کھیلی جائیں گی۔';
+
+  @override
+  String get connectionLostRetryNow => 'ابھی کوشش کریں';
+
+  @override
+  String get connectionBackOnline => 'دوبارہ آن لائن';
+
+  @override
   String get appTitle => 'لوڈو رائل';
 
   @override
