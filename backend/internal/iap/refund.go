@@ -58,7 +58,7 @@ func (s *Service) refund(ctx context.Context, store, txID string) (RefundResult,
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
 	var bal wallet.Wallet
-	err = tx.QueryRow(ctx, `SELECT coins, diamonds FROM wallet.wallets WHERE user_id = $1 FOR UPDATE`, owner).
+	err = tx.QueryRow(ctx, `SELECT coins, diamonds FROM wallet.wallets WHERE user_id = $1 AND NOT is_bot FOR UPDATE`, owner).
 		Scan(&bal.Coins, &bal.Diamonds)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return RefundUnknown, nil

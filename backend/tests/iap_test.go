@@ -530,3 +530,49 @@ func TestDeleteAccountRemovesPurchases(t *testing.T) {
 		t.Fatalf("refund after deletion: %d %s", r.Status, r.Raw)
 	}
 }
+
+// Purchases credit and refunds debit people's wallets only: a bot wallet
+// (wallet.wallets.is_bot, migration 012) is never touched.
+func TestPurchasesNeverTouchBotWallets(t *testing.T) {
+	apple := iaptest.NewApple(t, appBundle)
+	e := newEnv(t, envOpts{apple: apple, proxyHops: 1})
+	ctx := context.Background()
+	a := e.guestFromFreshIP()
+	tok := e.coinPacks(a.Token, iosHeaders...).AccountToken
+	// A grant to a row flagged as a bot wallet is refused and records nothing.
+	if _, err := e.app.PG.Exec(ctx, `UPDATE wallet.wallets SET is_bot = TRUE WHERE user_id = $1`, a.UserID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { // the test database persists between runs
+		_, _ = e.app.PG.Exec(context.Background(), `DELETE FROM progression.purchases WHERE user_id = $1`, a.UserID)
+		_, _ = e.app.PG.Exec(context.Background(), `UPDATE wallet.wallets SET is_bot = FALSE WHERE user_id = $1`, a.UserID)
+	})
+	id := appleTxID()
+	signed := apple.Sign(t, apple.Transaction(id, "coins_starter", tok))
+	if r := e.buyIOS(a.Token, "coins_starter", id, signed); r.Status != 401 {
+		t.Fatalf("grant to a bot wallet: %d %s", r.Status, r.Raw)
+	}
+	var coins int64
+	if err := e.app.PG.QueryRow(ctx, `SELECT coins FROM wallet.wallets WHERE user_id = $1`, a.UserID).Scan(&coins); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := purchaseRows(t, e, a.UserID); n != 0 || coins != a.Coins {
+		t.Fatalf("bot wallet credited: %d rows, %d coins (was %d)", n, coins, a.Coins)
+	}
+	// A purchase row pointing at a bot wallet is never debited by a refund.
+	if _, err := e.app.PG.Exec(ctx, `INSERT INTO progression.purchases (user_id, store, product_id, transaction_id, coins, diamonds)
+		VALUES ($1, 'app_store', 'coins_starter', $2, 5000000, 5)`, a.UserID, id); err != nil {
+		t.Fatal(err)
+	}
+	r := e.do("POST", "/api/v1/iap/apple/notifications", "", map[string]any{
+		"signedPayload": apple.Notification(t, "REFUND", "Sandbox", signed)})
+	if r.Status != 200 || r.Body["result"] != "unknown" {
+		t.Fatalf("refund against a bot wallet: %d %s", r.Status, r.Raw)
+	}
+	if err := e.app.PG.QueryRow(ctx, `SELECT coins FROM wallet.wallets WHERE user_id = $1`, a.UserID).Scan(&coins); err != nil {
+		t.Fatal(err)
+	}
+	if coins != a.Coins {
+		t.Fatalf("bot wallet debited: %d coins, want %d", coins, a.Coins)
+	}
+}

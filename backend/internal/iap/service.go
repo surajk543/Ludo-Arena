@@ -399,6 +399,16 @@ func (s *Service) grant(ctx context.Context, userID uuid.UUID, pack *Pack, v *ve
 	if v.orderID != "" {
 		order = &v.orderID
 	}
+	// A person's wallet only (bot wallets, is_bot, are not accounts), locked
+	// first: the lock order of refunds and account deletion.
+	var one int
+	err = tx.QueryRow(ctx, `SELECT 1 FROM wallet.wallets WHERE user_id = $1 AND NOT is_bot FOR UPDATE`, userID).Scan(&one)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUnknownAccount
+	}
+	if err != nil {
+		return nil, err
+	}
 	var id uuid.UUID
 	err = tx.QueryRow(ctx, `
 		INSERT INTO progression.purchases (user_id, store, product_id, transaction_id, order_id, coins, diamonds)
