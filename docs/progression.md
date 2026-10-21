@@ -14,6 +14,7 @@ privacy-conscious analytics. HTTP contract: [`rest-api.md`](rest-api.md); push m
 | `backend/internal/analytics` | Pseudonymous active-user sketches, `POST /telemetry/events`. |
 | `backend/config/catalog.json`, `backend/config/missions.json` | Cosmetics catalog and missions/events configuration (validated at startup). |
 | `backend/migrations/003_progression.sql`, `006_player_reports.sql` | The `progression` schema. |
+| `backend/migrations/005_display_name.sql`, `backend/internal/profile` | The nullable `player_progress.display_name` column: player-chosen display names (`PATCH /me`), written and read by the `profile` package. |
 
 Every item is cosmetic. Nothing here changes dice, rules, matchmaking or
 payouts, and there are no random rewards.
@@ -25,11 +26,12 @@ payouts, and there are no random rewards.
 Same database as `wallet` and `identity`. Every `user_id` references
 `wallet.wallets(user_id)` (the account) with `ON DELETE CASCADE`, so erasing
 an account erases its progression data. **No match history, no currency
-ledger, no profile or display-name columns.**
+ledger, no profile table** — the only profile data is the optional
+player-chosen display name (one nullable column, below).
 
 | Table | Primary key | Why it exists |
 |---|---|---|
-| `player_progress(user_id, public_id, xp, level, updated_at)` | `user_id` | XP (`CHECK xp >= 0`) and the level already reached, so milestone items are granted exactly when a level is first reached. `public_id` (UNIQUE) is the durable public-id → account mapping that resolves friend codes when the Redis profile cache is cold. Created lazily on first access or by `Bootstrap`. |
+| `player_progress(user_id, public_id, xp, level, updated_at, display_name)` | `user_id` | XP (`CHECK xp >= 0`) and the level already reached, so milestone items are granted exactly when a level is first reached. `public_id` (UNIQUE) is the durable public-id → account mapping that resolves friend codes when the Redis profile cache is cold. `display_name` (nullable `TEXT`, `CHECK octet_length BETWEEN 1 AND 64`, migration 005) is the name the player chose with `PATCH /me`; NULL = never chose one (provider or generated name). It is authoritative: sign-ins never overwrite it and the Redis `profile:{userId}` cache is rebuilt from it. Created lazily on first access or by `Bootstrap`. |
 | `mission_progress(user_id, period_key, mission_id, value, updated_at)` | `(user_id, period_key, mission_id)` | Counters for the running periods. Capped at the mission target. |
 | `mission_claims(user_id, period_key, mission_id, claimed_at)` | `(user_id, period_key, mission_id)` | The PK makes each reward claim exactly-once. |
 | `match_receipts(user_id, match_id, processed_at)` | `(user_id, match_id)` | Idempotency receipts only (no results). Makes a finished match count exactly once per player. |
@@ -252,8 +254,10 @@ reset, pending invites disappear (the sender can re-invite), idempotency
 replays are unavailable for the past 24 h (a retried claim/purchase gets the
 normal `409 already_claimed` / `already_owned` instead of a replay), and the
 day/week active-user estimates restart. Nothing durable is lost: XP, levels,
-missions, claims, inventory, loadouts, friendships and wallets live in
-PostgreSQL, and friend codes resolve from `player_progress.public_id`.
+missions, claims, inventory, loadouts, friendships, chosen display names and
+wallets live in PostgreSQL, and friend codes resolve from
+`player_progress.public_id`. (The rolling name-change counter
+`namechg:{userId}` resets, see `backend/docs/redis-keys.md`.)
 
 ## 9. Analytics (privacy-conscious)
 

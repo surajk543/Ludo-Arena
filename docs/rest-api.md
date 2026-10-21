@@ -26,7 +26,7 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 
 | HTTP | Typical codes |
 |---|---|
-| 400 | `bad_request`, `client_version_required`, `environment_mismatch` |
+| 400 | `bad_request`, `client_version_required`, `environment_mismatch`, `invalid_name` (details = `{"reason"}`) |
 | 401 | `unauthorized`, `invalid_credential`, `refresh_reused`, `session_replaced` |
 | 403 | `forbidden` |
 | 404 | `not_found`, `invalid_code`, `room_not_found` |
@@ -114,7 +114,7 @@ All return **AuthResponse**:
   "id": "6f1d…",                       // internal account id (only ever sent to its owner)
   "uid": "u_3f9a1c2b7d",               // public id shown to others / friend code
   "actorType": "human",                // server-determined: "human" | "bot" (analytics gate)
-  "displayName": "Asha",
+  "displayName": "Asha",              // chosen name (PATCH /me) if any, else provider name, else "Player XXXX"
   "avatar": 3,
   "isGuest": true,
   "linkedProviders": ["guest"],        // subset of guest|google|facebook|apple (never the internal device binding)
@@ -199,7 +199,51 @@ gate → 400 `client_version_required`. The same `deviceId` on `android` and
 | Method & path | Response |
 |---|---|
 | `GET /me` | `{"user": User, "wallet": Wallet}` |
+| `PATCH /me` | Body `{"displayName": "…"}` → 200 `{"user": User, "wallet": Wallet}` (same as `GET /me`, with the new name). See [Changing the display name](#changing-the-display-name). |
 | `GET /wallet` | `Wallet` |
+
+### Changing the display name
+
+`PATCH /me` with `{"displayName": "Asha Verma"}`. Authenticated **humans
+only** (bot and bot-controller tokens → 403 `forbidden`); version gated. The
+body must contain exactly `displayName` as a string: a missing or `null`
+value, another type or any unknown field → 400 `bad_request`.
+
+The server is authoritative and stores the **normalized** name: Unicode NFC,
+leading/trailing whitespace removed, every internal whitespace run collapsed
+to one space (case is kept). The response carries the stored form.
+
+Rules, checked in this order → **400 `invalid_name`** with
+`details.reason`:
+
+| `details.reason` | Rule |
+|---|---|
+| `too_short` | fewer than 3 characters (Unicode code points, after normalization) |
+| `too_long` | more than 16 characters |
+| `invalid_characters` | only Unicode letters, combining marks (Mn/Mc, e.g. Hindi matras, Arabic harakat; directly after a letter, at most 4 in a row), decimal digits, space, `_`, `.`, `-`; at least one letter. Rejected: emoji and other symbols, punctuation, control and format characters (zero-width joiner/space, bidi controls), enclosing marks (keycaps), variation selectors, invisible fillers (e.g. U+3164). |
+| `reserved` | after lower-casing, removing spaces/`_`/`.`/`-`, folding look-alikes (`0→o`, `1→i`, `4→a`, `ａ→a`, Cyrillic `а→a`, …) and accents: starts with `bot` (bots are shown as "Bot …"), or contains `admin`, `moderator`, `support`, `official`, `system`, `ludoroyale` (also "Ludo Royale") |
+| `inappropriate` | contains an entry of the server blocklist (same folding; a starting list in English and Hindi/Urdu, Indonesian and Arabic transliterations that operators extend: `backend/internal/profile/blocklist.txt`) |
+
+Example: `{"error":{"code":"invalid_name","message":"This name is reserved. Please choose another one.","details":{"reason":"reserved"}}}`.
+Clients localize from `details.reason`, not from `message`.
+
+**Limit:** at most `NAME_CHANGES_PER_DAY` (default **3**) successful
+changes per account per **rolling 24 h** → **429 `rate_limited`** with a
+`Retry-After` header (seconds until the oldest change leaves the window) and
+`details` `{"reason":"name_change_limit","limit":3}`. Not counted: setting
+the current name again (200, no-op), invalid names, and pinning the name
+currently shown (provider or generated name) as the chosen one. The route also
+has the usual abuse limit of 20 requests/min/account (429 `rate_limited`
+without `details`).
+
+**Where the name applies:** the chosen name is stored in PostgreSQL and
+always wins over provider names — later Google/Facebook/Apple sign-ins,
+linking and guest/device sign-ins never overwrite it (accounts that never
+chose a name keep the provider's or a generated name, as before). Friends
+lists, the friends leaderboard, recent players, friend-request and invite
+pushes, room previews (`hostName`) and **rooms joined afterwards** show the
+new name. Seats in rooms that were already open or playing keep the name the
+player joined with (room snapshots are not rewritten).
 
 ### Rooms
 

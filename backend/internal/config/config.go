@@ -63,6 +63,10 @@ type Config struct {
 	// AdminKeySHA256 is the sha256 of the operator key sent as X-Admin-Key
 	// to /api/v1/admin/*; empty disables the admin API (routes answer 404).
 	AdminKeySHA256 []byte
+
+	// NameChangesPerDay is how many successful display-name changes an
+	// account may make per rolling 24 h (NAME_CHANGES_PER_DAY, >= 1).
+	NameChangesPerDay int
 }
 
 // AuthConfig configures application sessions and identity providers.
@@ -130,6 +134,9 @@ const (
 	DefaultEntryFeeLudo   int64 = 100_000
 	DefaultEntryFeeSnakes int64 = 50_000
 )
+
+// DefaultNameChangesPerDay is the default NAME_CHANGES_PER_DAY.
+const DefaultNameChangesPerDay = 3
 
 // BotConfig configures the bot service boundary.
 type BotConfig struct {
@@ -302,6 +309,10 @@ func Load() (*Config, error) {
 	c.MinMatchDuration = getDur("PROGRESSION_MIN_MATCH_DURATION", 30*time.Second)
 	if c.MinMatchDuration < 0 || (c.Env == EnvProduction && c.MinMatchDuration < 10*time.Second) {
 		errs = append(errs, errors.New("PROGRESSION_MIN_MATCH_DURATION must be >= 10s in production and never negative"))
+	}
+	c.NameChangesPerDay = getInt("NAME_CHANGES_PER_DAY", DefaultNameChangesPerDay)
+	if c.NameChangesPerDay < 1 {
+		errs = append(errs, errors.New("NAME_CHANGES_PER_DAY must be >= 1"))
 	}
 	c.Policy = PolicyConfig{
 		File:         get("APP_POLICY_FILE", "config/app-policy.development.json"),

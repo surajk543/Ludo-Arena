@@ -164,6 +164,8 @@ func (s *Service) SignInWithProvider(ctx context.Context, ident Identity) (Resul
 }
 
 func (s *Service) signIn(ctx context.Context, userID uuid.UUID, created bool, name string) (Result, error) {
+	// name is the provider's name ("" for guest/device sign-ins); a name the
+	// player chose (PATCH /me) always wins over it (profile.Save).
 	if _, err := s.profiles.Save(ctx, userID, name); err != nil {
 		return Result{}, err
 	}
@@ -236,6 +238,7 @@ func (s *Service) Link(ctx context.Context, userID uuid.UUID, ident Identity) er
 		return err
 	}
 	if ident.Name != "" {
+		// Adopts the provider's name unless the player chose one.
 		_, _ = s.profiles.Save(ctx, userID, ident.Name)
 	}
 	return nil

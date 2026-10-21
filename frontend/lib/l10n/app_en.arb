@@ -955,6 +955,30 @@
       }
     }
   },
+  "errorInvalidName": "That name can't be used. Please choose another one.",
+  "@errorInvalidName": {
+    "description": "Error code invalid_name (display name rejected, unknown reason)."
+  },
+  "errorInvalidNameTooShort": "Your name needs at least 3 characters.",
+  "@errorInvalidNameTooShort": {
+    "description": "invalid_name reason too_short (fewer than 3 characters)."
+  },
+  "errorInvalidNameTooLong": "Your name can have at most 16 characters.",
+  "@errorInvalidNameTooLong": {
+    "description": "invalid_name reason too_long (more than 16 characters)."
+  },
+  "errorInvalidNameCharacters": "Use only letters, numbers, spaces, _ . or - (with at least one letter). No emoji or symbols.",
+  "@errorInvalidNameCharacters": {
+    "description": "invalid_name reason invalid_characters (emoji, symbols, or no letter)."
+  },
+  "errorInvalidNameReserved": "That name is reserved. Please choose another one.",
+  "@errorInvalidNameReserved": {
+    "description": "invalid_name reason reserved (e.g. starts with \"bot\" or contains \"admin\")."
+  },
+  "errorInvalidNameInappropriate": "That name isn't allowed. Please choose a friendly one.",
+  "@errorInvalidNameInappropriate": {
+    "description": "invalid_name reason inappropriate (blocked word)."
+  },
   "gateSplashTagline": "Roll. Race. Rule.",
   "@gateSplashTagline": {
     "description": "Splash screen tagline under the logo."
@@ -3663,6 +3687,60 @@
   "profileStatsSection": "Progress",
   "@profileStatsSection": {
     "description": "Progress section header."
+  },
+  "profileEditNameTooltip": "Edit name",
+  "@profileEditNameTooltip": {
+    "description": "Tooltip and screen-reader label of the pencil button next to the player name."
+  },
+  "profileEditNameTitle": "Change your name",
+  "@profileEditNameTitle": {
+    "description": "Title of the change-display-name sheet."
+  },
+  "profileNameLabel": "Display name",
+  "@profileNameLabel": {
+    "description": "Label of the display-name text field."
+  },
+  "profileNameRules": "3–16 characters. Letters, numbers, spaces, _ . and - are allowed.",
+  "@profileNameRules": {
+    "description": "Helper text under the display-name field: the naming rules."
+  },
+  "profileNameNote": "Friends, leaderboards and new games will show your new name. A game in progress keeps the old one.",
+  "@profileNameNote": {
+    "description": "Note in the name sheet: where the new name appears; a running game keeps the old name."
+  },
+  "profileNameCounterSemantics": "{count} of {max} characters",
+  "@profileNameCounterSemantics": {
+    "description": "Screen-reader text of the name character counter.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "profileNameSaved": "Your name is now {name}",
+  "@profileNameSaved": {
+    "description": "Toast after the name was changed. {name} is the new name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNameChangeLimit": "You've changed your name too often. Please try again later.",
+  "@profileNameChangeLimit": {
+    "description": "Too many name changes (429) without a known wait."
+  },
+  "profileNameChangeLimitRetry": "You've changed your name too often. Try again in {wait}.",
+  "@profileNameChangeLimitRetry": {
+    "description": "Too many name changes (429). {wait} is a compact duration like \"5 h 12 min\".",
+    "placeholders": {
+      "wait": {
+        "type": "String"
+      }
+    }
   },
   "settingsTitle": "Settings",
   "@settingsTitle": {

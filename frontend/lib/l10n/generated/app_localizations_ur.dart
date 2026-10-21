@@ -726,6 +726,29 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String get errorInvalidName =>
+      'یہ نام استعمال نہیں کیا جا سکتا۔ براہِ کرم کوئی اور نام چنیں۔';
+
+  @override
+  String get errorInvalidNameTooShort => 'نام میں کم از کم 3 حروف ہونے چاہییں۔';
+
+  @override
+  String get errorInvalidNameTooLong =>
+      'نام میں زیادہ سے زیادہ 16 حروف ہو سکتے ہیں۔';
+
+  @override
+  String get errorInvalidNameCharacters =>
+      'صرف حروف، اعداد، اسپیس، _ . یا - استعمال کریں (کم از کم ایک حرف)۔ ایموجی یا علامات نہیں۔';
+
+  @override
+  String get errorInvalidNameReserved =>
+      'یہ نام مخصوص ہے۔ براہِ کرم کوئی اور نام چنیں۔';
+
+  @override
+  String get errorInvalidNameInappropriate =>
+      'اس نام کی اجازت نہیں ہے۔ براہِ کرم کوئی مناسب نام چنیں۔';
+
+  @override
   String get gateSplashTagline => 'پانسہ پھینکو۔ دوڑ لگاؤ۔ راج کرو۔';
 
   @override
@@ -2651,6 +2674,42 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get profileStatsSection => 'پیش رفت';
+
+  @override
+  String get profileEditNameTooltip => 'نام بدلیں';
+
+  @override
+  String get profileEditNameTitle => 'اپنا نام بدلیں';
+
+  @override
+  String get profileNameLabel => 'ظاہری نام';
+
+  @override
+  String get profileNameRules =>
+      '3 سے 16 حروف۔ حروف، اعداد، اسپیس، _ . اور - کی اجازت ہے۔';
+
+  @override
+  String get profileNameNote =>
+      'دوستوں، لیڈر بورڈ اور نئے گیمز میں آپ کا نیا نام دکھے گا۔ جاری گیم میں پرانا نام ہی رہے گا۔';
+
+  @override
+  String profileNameCounterSemantics(int count, int max) {
+    return '$max میں سے $count حروف';
+  }
+
+  @override
+  String profileNameSaved(String name) {
+    return 'اب آپ کا نام $name ہے';
+  }
+
+  @override
+  String get profileNameChangeLimit =>
+      'آپ نے بہت بار نام بدلا ہے۔ براہِ کرم بعد میں دوبارہ کوشش کریں۔';
+
+  @override
+  String profileNameChangeLimitRetry(String wait) {
+    return 'آپ نے بہت بار نام بدلا ہے۔ $wait بعد دوبارہ کوشش کریں۔';
+  }
 
   @override
   String get settingsTitle => 'سیٹنگز';

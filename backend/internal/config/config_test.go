@@ -140,3 +140,37 @@ func TestSocialAndAdminSettings(t *testing.T) {
 		})
 	}
 }
+
+func TestNameChangesPerDay(t *testing.T) {
+	cases := []struct {
+		name, raw string
+		want      int
+		wantErr   string
+	}{
+		{"default", "", 3, ""},
+		{"override", "5", 5, ""},
+		{"minimum", "1", 1, ""},
+		{"zero", "0", 0, "NAME_CHANGES_PER_DAY must be >= 1"},
+		{"negative", "-2", 0, "NAME_CHANGES_PER_DAY must be >= 1"},
+		{"not an integer", "three", 0, "NAME_CHANGES_PER_DAY: not an integer"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			t.Setenv("NAME_CHANGES_PER_DAY", c.raw)
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.NameChangesPerDay != c.want {
+				t.Fatalf("NameChangesPerDay = %d, want %d", cfg.NameChangesPerDay, c.want)
+			}
+		})
+	}
+}
