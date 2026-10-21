@@ -368,6 +368,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Pembayaranmu masih tertunda. Koin akan masuk begitu pembayaran selesai.';
 
   @override
+  String get coinsErrorStoreUnreachable =>
+      'Toko tidak dapat dihubungi. Pembelianmu aman dan akan ditambahkan secara otomatis.';
+
+  @override
   String get commonOk => 'OK';
 
   @override

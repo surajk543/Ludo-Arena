@@ -98,6 +98,7 @@
   "coinsErrorUnavailable": "Paket ini belum tersedia.",
   "coinsErrorInvalid": "Pembelian ini tidak dapat diverifikasi, jadi tidak ada yang ditambahkan.",
   "coinsErrorPending": "Pembayaranmu masih tertunda. Koin akan masuk begitu pembayaran selesai.",
+  "coinsErrorStoreUnreachable": "Toko tidak dapat dihubungi. Pembelianmu aman dan akan ditambahkan secara otomatis.",
   "commonOk": "OK",
   "commonCancel": "Batal",
   "commonRetry": "Coba lagi",

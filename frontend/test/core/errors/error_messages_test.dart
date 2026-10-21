@@ -64,6 +64,7 @@ void main() {
     'iap_unavailable',
     'purchase_invalid',
     'purchase_pending',
+    'store_unreachable',
     'internal',
   ];
   const clientCodes = [

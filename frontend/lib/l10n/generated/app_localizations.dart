@@ -697,6 +697,12 @@ abstract class AppLocalizations {
   /// **'Your payment is pending. The coins arrive as soon as it completes.'**
   String get coinsErrorPending;
 
+  /// Error store_unreachable: Google Play / the App Store did not answer while the server verified a paid purchase; it stays pending and is delivered automatically later.
+  ///
+  /// In en, this message translates to:
+  /// **'The store couldn\'t be reached. Your purchase is safe and will be added automatically.'**
+  String get coinsErrorStoreUnreachable;
+
   /// Generic confirmation button.
   ///
   /// In en, this message translates to:

@@ -98,6 +98,7 @@
   "coinsErrorUnavailable": "यह पैक अभी उपलब्ध नहीं है।",
   "coinsErrorInvalid": "इस खरीदारी की पुष्टि नहीं हो सकी, इसलिए कुछ नहीं जोड़ा गया।",
   "coinsErrorPending": "आपका भुगतान अभी लंबित है। पूरा होते ही सिक्के आ जाएँगे।",
+  "coinsErrorStoreUnreachable": "स्टोर से संपर्क नहीं हो सका। आपकी खरीदारी सुरक्षित है और अपने आप जुड़ जाएगी।",
   "commonOk": "ठीक है",
   "commonCancel": "रद्द करें",
   "commonRetry": "फिर कोशिश करें",

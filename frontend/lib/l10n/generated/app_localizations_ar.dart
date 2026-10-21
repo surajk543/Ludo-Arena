@@ -370,6 +370,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'دفعتك قيد الانتظار. ستصل العملات فور اكتمالها.';
 
   @override
+  String get coinsErrorStoreUnreachable =>
+      'تعذّر الاتصال بالمتجر. عملية شرائك آمنة وستُضاف تلقائيًا.';
+
+  @override
   String get commonOk => 'حسنًا';
 
   @override

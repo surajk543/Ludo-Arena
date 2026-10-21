@@ -98,6 +98,7 @@
   "coinsErrorUnavailable": "هذه الباقة غير متاحة بعد.",
   "coinsErrorInvalid": "تعذّر التحقق من عملية الشراء هذه، لذا لم يُضَف شيء.",
   "coinsErrorPending": "دفعتك قيد الانتظار. ستصل العملات فور اكتمالها.",
+  "coinsErrorStoreUnreachable": "تعذّر الاتصال بالمتجر. عملية شرائك آمنة وستُضاف تلقائيًا.",
   "commonOk": "حسنًا",
   "commonCancel": "إلغاء",
   "commonRetry": "إعادة المحاولة",

@@ -370,6 +370,10 @@ class AppLocalizationsHi extends AppLocalizations {
       'आपका भुगतान अभी लंबित है। पूरा होते ही सिक्के आ जाएँगे।';
 
   @override
+  String get coinsErrorStoreUnreachable =>
+      'स्टोर से संपर्क नहीं हो सका। आपकी खरीदारी सुरक्षित है और अपने आप जुड़ जाएगी।';
+
+  @override
   String get commonOk => 'ठीक है';
 
   @override

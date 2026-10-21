@@ -370,6 +370,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your payment is pending. The coins arrive as soon as it completes.';
 
   @override
+  String get coinsErrorStoreUnreachable =>
+      'The store couldn\'t be reached. Your purchase is safe and will be added automatically.';
+
+  @override
   String get commonOk => 'OK';
 
   @override

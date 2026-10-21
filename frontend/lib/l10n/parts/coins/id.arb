@@ -17,5 +17,6 @@
   "coinsNote": "Koin dan berlian adalah item virtual tanpa nilai uang. Pembayaran diproses oleh Google Play atau App Store.",
   "coinsErrorUnavailable": "Paket ini belum tersedia.",
   "coinsErrorInvalid": "Pembelian ini tidak dapat diverifikasi, jadi tidak ada yang ditambahkan.",
-  "coinsErrorPending": "Pembayaranmu masih tertunda. Koin akan masuk begitu pembayaran selesai."
+  "coinsErrorPending": "Pembayaranmu masih tertunda. Koin akan masuk begitu pembayaran selesai.",
+  "coinsErrorStoreUnreachable": "Toko tidak dapat dihubungi. Pembelianmu aman dan akan ditambahkan secara otomatis."
 }

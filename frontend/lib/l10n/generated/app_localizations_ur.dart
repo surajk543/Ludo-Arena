@@ -371,6 +371,10 @@ class AppLocalizationsUr extends AppLocalizations {
       'آپ کی ادائیگی ابھی زیرِ التوا ہے۔ مکمل ہوتے ہی سکے آ جائیں گے۔';
 
   @override
+  String get coinsErrorStoreUnreachable =>
+      'اسٹور سے رابطہ نہیں ہو سکا۔ آپ کی خریداری محفوظ ہے اور خود بخود شامل ہو جائے گی۔';
+
+  @override
   String get commonOk => 'ٹھیک ہے';
 
   @override

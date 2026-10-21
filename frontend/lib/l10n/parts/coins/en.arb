@@ -111,5 +111,9 @@
   "coinsErrorPending": "Your payment is pending. The coins arrive as soon as it completes.",
   "@coinsErrorPending": {
     "description": "Error purchase_pending / pending store purchase: the payment has not completed yet."
+  },
+  "coinsErrorStoreUnreachable": "The store couldn't be reached. Your purchase is safe and will be added automatically.",
+  "@coinsErrorStoreUnreachable": {
+    "description": "Error store_unreachable: Google Play / the App Store did not answer while the server verified a paid purchase; it stays pending and is delivered automatically later."
   }
 }
