@@ -345,12 +345,17 @@ endpoint → 422 `idempotency_key_reused`; a malformed key → 400.
 Slots: `dice, token, ludo_board, snakes_board, frame, title, victory, trail`.
 Emotes and badges are owned, not equipped. Every item is cosmetic only.
 A purchase debits the fixed price and adds the item in one transaction; an
-insufficient balance changes nothing.
+insufficient balance changes nothing. The app shows this one list in two
+places: the **Collection Room** (owned items plus `level`/`mission`/`event`
+items still to earn) and the **Shop** (`purchase` items not owned yet) — see
+[`cosmetics-catalog.md` → Collection vs Shop](cosmetics-catalog.md#collection-vs-shop-app).
 
 ## Store (profile pictures)
 
 Profile pictures (Lottie animations and PNG images) bought with **diamonds**
-and owned **forever**; the owner applies any picture they own. Catalogue,
+and owned **forever**; the owner applies any picture they own. The app
+calls this the **Shop** (`/shop`; its old `/store` route redirects); the API
+paths keep `/store`. Catalogue,
 storage and privacy model: [`cosmetics-catalog.md`](cosmetics-catalog.md#profile-pictures).
 
 All routes: authenticated humans, version gated. Rate limits per account:
