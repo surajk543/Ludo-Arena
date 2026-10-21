@@ -2331,11 +2331,6 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String playTurnBot(String name) {
-    return '$name खेल रहा है…';
-  }
-
-  @override
   String get playVoidedThreeSixes => 'लगातार तीन छक्के! बारी आगे गई।';
 
   @override

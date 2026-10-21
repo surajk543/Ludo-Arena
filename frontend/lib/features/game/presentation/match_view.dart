@@ -1217,8 +1217,8 @@ class _StatusLine extends StatelessWidget {
       } else if (mine) {
         text = l10n.playTurnYours;
       } else if (current != null) {
-        final name = PlayText.playerName(l10n, current);
-        text = current.bot ? l10n.playTurnBot(name) : l10n.playTurnOther(name);
+        // Same wording for every opponent: bots are never distinguishable.
+        text = l10n.playTurnOther(PlayText.playerName(l10n, current));
       }
     }
     return SizedBox(

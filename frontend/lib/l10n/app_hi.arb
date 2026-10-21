@@ -639,7 +639,6 @@
   "playTurnPickToken": "चलाने के लिए चमकती गोटी चुनें",
   "playTurnYours": "आपकी बारी",
   "playTurnOther": "{name} की बारी",
-  "playTurnBot": "{name} खेल रहा है…",
   "playVoidedThreeSixes": "लगातार तीन छक्के! बारी आगे गई।",
   "playAutoPlayed": "समय खत्म — {name} की चाल अपने आप चली गई",
   "playForfeitLeft": "{name} ने मैच छोड़ दिया",

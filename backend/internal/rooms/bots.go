@@ -18,6 +18,7 @@ import (
 	"ludoroyale/internal/config"
 	"ludoroyale/internal/httpapi"
 	"ludoroyale/internal/metrics"
+	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/profile"
 	"ludoroyale/internal/protocol"
 	"ludoroyale/internal/ratelimit"
@@ -253,8 +254,15 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 		if r.PendingBots > 0 {
 			r.PendingBots--
 		}
+		// Seated like a brand-new player (starter title and cosmetics) so the
+		// seat looks the same as a human's in the app.
+		starter := playerinfo.Starter()
+		cos := map[string]string{}
+		for _, slot := range []string{"dice", "token", "frame", "trail", "victory"} {
+			cos[slot] = starter.Loadout[slot]
+		}
 		r.Players = append(r.Players, Player{UserID: sess.BotID.String(), UID: uid, Name: display,
-			Avatar: int(sess.BotID[15]) % 12, Level: 1, Title: "", Cosmetics: map[string]string{},
+			Avatar: int(sess.BotID[15]) % 12, Level: starter.Level, Title: starter.Title, Cosmetics: cos,
 			Bot: true, BotProfile: profile.SanitizeName(profileName), BotSID: sess.SessionID, JoinedAt: s.nowMs()})
 		m.setPointer(sess.BotID.String())
 		full := len(r.Players) == r.Capacity

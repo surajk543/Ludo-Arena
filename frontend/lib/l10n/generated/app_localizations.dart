@@ -3943,12 +3943,6 @@ abstract class AppLocalizations {
   /// **'{name}\'s turn'**
   String playTurnOther(String name);
 
-  /// Status: a computer player's turn (bots are never labelled).
-  ///
-  /// In en, this message translates to:
-  /// **'{name} is playing…'**
-  String playTurnBot(String name);
-
   /// Ludo: the third six in a row is void.
   ///
   /// In en, this message translates to:

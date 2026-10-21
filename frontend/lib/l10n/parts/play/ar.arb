@@ -105,7 +105,6 @@
   "playTurnPickToken": "اختر قطعة متوهجة لتحريكها",
   "playTurnYours": "دورك",
   "playTurnOther": "دور {name}",
-  "playTurnBot": "{name} يلعب…",
   "playVoidedThreeSixes": "ثلاث ستات متتالية! ينتقل الدور.",
   "playAutoPlayed": "انتهى الوقت — تم اللعب تلقائيًا عن {name}",
   "playForfeitLeft": "غادر {name} المباراة",

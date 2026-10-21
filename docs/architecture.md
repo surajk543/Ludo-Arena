@@ -32,7 +32,7 @@ account mappings, plus the internal `device` binding that restores an account
 after an app update or reinstall) and `progression`. There are no match-history, ledger or
 profile tables. Identity providers only prove identity: **Firebase
 Authentication is not used**, and Firebase is in the app for consent-gated
-Analytics only. A separate Go service, **bot-play**, plays as server-labelled
+Analytics only. A separate Go service, **bot-play**, plays as server-marked
 bots through the same protocol with room-scoped bot tokens.
 
 ## Sections of the HTML page

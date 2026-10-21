@@ -331,7 +331,7 @@ has no choices — bots only roll; profiles affect only think time there.
 1. Backend: set `BOT_SERVICE_KEY_SHA256` = hex SHA-256 of your key; restart.
 2. `export BOT_SERVICE_KEY=…` (32–256 chars, e.g. `openssl rand -hex 32`).
 3. `go run ./cmd/bot-play --config configs/environments/development.yaml --profiles configs/profiles.yaml`
-4. In the app start a practice game; bots appear with the BOT badge
+4. In the app start a practice game; bots take seats like other players (no bot label in the app)
    (server-side `players[].bot`).
 
 ### Enabling / disabling public fill per game (no restart)

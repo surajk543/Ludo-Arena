@@ -105,7 +105,6 @@
   "playTurnPickToken": "Pilih bidak yang menyala",
   "playTurnYours": "Giliranmu",
   "playTurnOther": "Giliran {name}",
-  "playTurnBot": "{name} sedang bermain…",
   "playVoidedThreeSixes": "Tiga kali enam berturut-turut! Giliran berpindah.",
   "playAutoPlayed": "Waktu habis — dimainkan otomatis untuk {name}",
   "playForfeitLeft": "{name} meninggalkan pertandingan",

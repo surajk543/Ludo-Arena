@@ -440,7 +440,7 @@ td code { font-size: 0.8rem; }
   <section class="doc-section hero" id="overview" aria-labelledby="overview-h">
     <div class="eyebrow">System documentation · repository state 2026-10-21</div>
     <h1 id="overview-h">Ludo Royale — System Architecture &amp; Flows</h1>
-    <p class="lead">Ludo Royale is a multiplayer <strong>Ludo</strong> (classic and Quick) and <strong>Snakes &amp; Ladders</strong> game: a Flutter app for Android and iOS, an authoritative Go backend (REST + WebSocket) backed by PostgreSQL and Redis, and a separate Go <strong>bot-play</strong> service that plays as labelled bots. This page documents what is implemented in the repository today, verified against the code. Anything not implemented or not yet configured is labelled <span class="badge b-pending">Pending</span>.</p>
+    <p class="lead">Ludo Royale is a multiplayer <strong>Ludo</strong> (classic and Quick) and <strong>Snakes &amp; Ladders</strong> game: a Flutter app for Android and iOS, an authoritative Go backend (REST + WebSocket) backed by PostgreSQL and Redis, and a separate Go <strong>bot-play</strong> service whose players are marked as bots by the server (the app shows no bot labels). This page documents what is implemented in the repository today, verified against the code. Anything not implemented or not yet configured is labelled <span class="badge b-pending">Pending</span>.</p>
 
     <div class="facts">
       <div class="fact"><div class="k">Projects</div><div class="v"><code>frontend/</code> · <code>backend/</code> · <code>bot-play/</code></div></div>
@@ -489,7 +489,7 @@ td code { font-size: 0.8rem; }
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 1">flowchart TB
   App["Flutter app, Android and iOS&lt;br/&gt;com.ludoroyale.app"]
-  Bots["bot-play&lt;br/&gt;separate Go service, labelled bots"]
+  Bots["bot-play&lt;br/&gt;separate Go service, server-marked bots"]
   subgraph IdP["Identity providers: prove identity only"]
     Google["Google Sign-In&lt;br/&gt;project ludo-royale-63887&lt;br/&gt;ID token verified by Go via JWKS"]
     Apple["Sign in with Apple&lt;br/&gt;Pending: Apple Developer"]

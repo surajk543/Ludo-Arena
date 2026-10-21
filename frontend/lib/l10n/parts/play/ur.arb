@@ -105,7 +105,6 @@
   "playTurnPickToken": "چلانے کے لیے چمکتی گوٹی چنیں",
   "playTurnYours": "آپ کی باری",
   "playTurnOther": "{name} کی باری",
-  "playTurnBot": "{name} کھیل رہا ہے…",
   "playVoidedThreeSixes": "لگاتار تین چھکے! باری آگے چلی گئی۔",
   "playAutoPlayed": "وقت ختم — {name} کی چال خودکار چلی گئی",
   "playForfeitLeft": "{name} نے میچ چھوڑ دیا",

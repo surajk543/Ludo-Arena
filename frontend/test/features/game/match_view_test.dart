@@ -188,7 +188,7 @@ void main() {
         ],
       ),
     );
-    expect(find.text('Bolt is playing…'), findsOneWidget);
+    expect(find.text("Bolt's turn"), findsOneWidget);
     expect(
       find.textContaining(RegExp(r'\bbot\b', caseSensitive: false)),
       findsNothing,

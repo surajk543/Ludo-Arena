@@ -528,15 +528,6 @@
       }
     }
   },
-  "playTurnBot": "{name} is playing…",
-  "@playTurnBot": {
-    "description": "Status: a computer player's turn (bots are never labelled).",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "playVoidedThreeSixes": "Three sixes in a row! The turn passes.",
   "@playVoidedThreeSixes": {
     "description": "Ludo: the third six in a row is void."

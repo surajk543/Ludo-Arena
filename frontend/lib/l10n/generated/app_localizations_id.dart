@@ -2323,11 +2323,6 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String playTurnBot(String name) {
-    return '$name sedang bermain…';
-  }
-
-  @override
   String get playVoidedThreeSixes =>
       'Tiga kali enam berturut-turut! Giliran berpindah.';
 

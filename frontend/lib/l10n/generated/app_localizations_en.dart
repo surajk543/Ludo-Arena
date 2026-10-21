@@ -2331,11 +2331,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String playTurnBot(String name) {
-    return '$name is playing…';
-  }
-
-  @override
   String get playVoidedThreeSixes => 'Three sixes in a row! The turn passes.';
 
   @override
