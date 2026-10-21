@@ -1,0 +1,42 @@
+// Ludo Royale — iOS identity-provider configuration.
+//
+// THE single place for iOS sign-in identifiers. Everything here is a PUBLIC
+// identifier (no secrets). Included by Debug.xcconfig and Release.xcconfig
+// (Profile uses Release) and referenced from Runner/Info.plist.
+//
+// NOTE: xcconfig treats "//" as a comment start, so never paste a URL here
+// without escaping it as "https:/$()/example.com".
+
+// --- Google Sign-In (Google Cloud project ludo-royale-63887) ---------------
+// iOS OAuth client id (Info.plist GIDClientID). Must match the Dart-side
+// GOOGLE_IOS_CLIENT_ID (lib/core/config/app_config.dart default).
+GOOGLE_IOS_CLIENT_ID = 124893613050-etb8okpenf0il17tmb33pr3cet8s9jba.apps.googleusercontent.com
+// Reversed iOS client id, registered as a URL scheme (CFBundleURLTypes) so
+// the Google sign-in flow can return to the app.
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.124893613050-etb8okpenf0il17tmb33pr3cet8s9jba
+// Web ("server") client id = the ID-token audience the Go backend validates
+// (Info.plist GIDServerClientID).
+GOOGLE_SERVER_CLIENT_ID = 124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.googleusercontent.com
+
+// --- Facebook Login (NOT configured yet) -------------------------------------
+// Fill these in once a Facebook app exists, then set
+//   FACEBOOK_URL_SCHEME = fb$(FACEBOOK_APP_ID)
+// and build with --dart-define=FACEBOOK_ENABLED=true. While empty, the
+// Facebook button is hidden and the placeholder scheme below is inert.
+FACEBOOK_APP_ID =
+FACEBOOK_CLIENT_TOKEN =
+FACEBOOK_DISPLAY_NAME = Ludo Royale
+FACEBOOK_URL_SCHEME = fbnotconfigured
+
+// --- Sign in with Apple ------------------------------------------------------
+// Native on iOS: needs only the "Sign in with Apple" capability, provided by
+// Runner/Runner.entitlements (com.apple.developer.applesignin) and enabled for
+// the App ID com.ludoroyale.app in the Apple Developer portal.
+
+// --- Simulator architectures -------------------------------------------------
+// Xcode 27's lipo rejects several architectures in `-verify_arch`, which
+// breaks Flutter 3.44's multi-arch ("Any iOS Simulator") builds. Apple-silicon
+// simulators only need arm64, so x86_64 simulator slices are excluded. Device
+// builds are arm64-only anyway.
+ARCHS[sdk=iphonesimulator*] = arm64
+EXCLUDED_ARCHS[sdk=iphonesimulator*] = x86_64

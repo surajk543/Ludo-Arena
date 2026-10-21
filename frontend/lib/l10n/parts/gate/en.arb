@@ -1,0 +1,137 @@
+{
+  "gateSplashTagline": "Roll. Race. Rule.",
+  "@gateSplashTagline": {
+    "description": "Splash screen tagline under the logo."
+  },
+  "gateStatusChecking": "Checking the game servers…",
+  "@gateStatusChecking": {
+    "description": "Splash status while fetching the app policy."
+  },
+  "gateStatusSigningIn": "Signing you in…",
+  "@gateStatusSigningIn": {
+    "description": "Splash status while restoring the session."
+  },
+  "gateStatusLoadingProfile": "Loading your profile…",
+  "@gateStatusLoadingProfile": {
+    "description": "Splash status while loading profile and wallet."
+  },
+  "gateUpdateNow": "Update now",
+  "@gateUpdateNow": {
+    "description": "Button that opens the app store to update."
+  },
+  "gateForceUpdateTitle": "Update required",
+  "@gateForceUpdateTitle": {
+    "description": "Force-update screen title."
+  },
+  "gateForceUpdateMessage": "This version of Ludo Royale is no longer supported. Update to keep playing online — your coins and progress are safe.",
+  "@gateForceUpdateMessage": {
+    "description": "Force-update screen explanation (used when the server sends no localized message)."
+  },
+  "gateInstalledVersion": "Installed version",
+  "@gateInstalledVersion": {
+    "description": "Label for the installed app version."
+  },
+  "gateRequiredVersion": "Required version",
+  "@gateRequiredVersion": {
+    "description": "Label for the minimum required app version."
+  },
+  "gateStoreNotReadyTitle": "Update not yet available in the store",
+  "@gateStoreNotReadyTitle": {
+    "description": "Shown when an update is required but the store has no link yet."
+  },
+  "gateStoreNotReadyMessage": "The new version is on its way to your app store. Please check again in a little while.",
+  "@gateStoreNotReadyMessage": {
+    "description": "Explanation when the store update is not yet published."
+  },
+  "gateCheckAgain": "Check again",
+  "@gateCheckAgain": {
+    "description": "Button to re-check the app policy."
+  },
+  "gateOptionalUpdateTitle": "A new version is available",
+  "@gateOptionalUpdateTitle": {
+    "description": "Optional update dialog title."
+  },
+  "gateOptionalUpdateMessage": "Version {version} brings fixes and improvements. Update now for the smoothest games.",
+  "@gateOptionalUpdateMessage": {
+    "description": "Optional update dialog message. {version} is the latest version number.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "gateMaintenanceTitle": "We're polishing the boards",
+  "@gateMaintenanceTitle": {
+    "description": "Maintenance screen title."
+  },
+  "gateMaintenanceMessage": "Ludo Royale is down for maintenance. Your coins, progress and running matches are safe — matches resume when we're back.",
+  "@gateMaintenanceMessage": {
+    "description": "Maintenance explanation (used when the server sends no localized message)."
+  },
+  "gateMaintenanceEstimatedEnd": "Estimated end: {time}",
+  "@gateMaintenanceEstimatedEnd": {
+    "description": "Estimated maintenance end in local time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gateMaintenanceEstimateNote": "This is only an estimate and may change.",
+  "@gateMaintenanceEstimateNote": {
+    "description": "Clarifies that the end time is only an estimate."
+  },
+  "gateMaintenanceAutoCheck": "We'll check again automatically every 30 seconds.",
+  "@gateMaintenanceAutoCheck": {
+    "description": "Tells the user the app re-checks automatically."
+  },
+  "gateLastChecked": "Last checked at {time}",
+  "@gateLastChecked": {
+    "description": "Time of the last policy check.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gateCheckingNow": "Checking…",
+  "@gateCheckingNow": {
+    "description": "Shown while a re-check runs."
+  },
+  "gateServiceReachable": "Game service reachable",
+  "@gateServiceReachable": {
+    "description": "Connection status: the game service answered."
+  },
+  "gateServiceUnreachableShort": "No connection to the game service",
+  "@gateServiceUnreachableShort": {
+    "description": "Connection status: the game service did not answer."
+  },
+  "gateUnreachableTitle": "Can't reach the game service",
+  "@gateUnreachableTitle": {
+    "description": "Title when the backend cannot be reached at startup."
+  },
+  "gateUnreachableMessage": "Ludo Royale needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.",
+  "@gateUnreachableMessage": {
+    "description": "Explains that online play needs a connection."
+  },
+  "gateUnreachableLastKnownMaintenance": "The last status we received said the servers were under maintenance.",
+  "@gateUnreachableLastKnownMaintenance": {
+    "description": "Context from the cached policy: maintenance."
+  },
+  "gateUnreachableLastKnownUpdate": "The last status we received said this version needs an update.",
+  "@gateUnreachableLastKnownUpdate": {
+    "description": "Context from the cached policy: an update is required."
+  },
+  "gateNotFoundTitle": "Not available yet",
+  "@gateNotFoundTitle": {
+    "description": "Title for a route that is not available in this build."
+  },
+  "gateNotFoundMessage": "This part of Ludo Royale isn't available in this version yet.",
+  "@gateNotFoundMessage": {
+    "description": "Message for a route that is not available in this build."
+  },
+  "gateGoHome": "Back to home",
+  "@gateGoHome": {
+    "description": "Button back to the home screen."
+  }
+}

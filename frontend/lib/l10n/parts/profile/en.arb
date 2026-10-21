@@ -1,0 +1,83 @@
+{
+  "profileTitle": "Profile",
+  "@profileTitle": {
+    "description": "Profile screen title."
+  },
+  "profileFriendCode": "Friend code",
+  "@profileFriendCode": {
+    "description": "Label of the public friend code (uid)."
+  },
+  "profileFriendCodeHint": "Share it so friends can add you.",
+  "@profileFriendCodeHint": {
+    "description": "Hint under the friend code."
+  },
+  "profileShareFriendCode": "Add me on Ludo Royale! My friend code is {code}",
+  "@profileShareFriendCode": {
+    "description": "Share-sheet text with the friend code.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLevelProgress": "{xp} XP to level {level}",
+  "@profileLevelProgress": {
+    "description": "XP still needed for the next level. {xp} is formatted.",
+    "placeholders": {
+      "xp": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "profileMaxLevel": "Max level reached",
+  "@profileMaxLevel": {
+    "description": "Shown at the maximum level."
+  },
+  "profileTitleLabel": "Title",
+  "@profileTitleLabel": {
+    "description": "Label of the equipped title."
+  },
+  "profileAccountSection": "Account",
+  "@profileAccountSection": {
+    "description": "Account section header."
+  },
+  "profileAccountType": "Account type",
+  "@profileAccountType": {
+    "description": "Account type label."
+  },
+  "profileAccountGuest": "Guest (not saved)",
+  "@profileAccountGuest": {
+    "description": "Account type value: unsaved guest."
+  },
+  "profileAccountLinked": "Saved account",
+  "@profileAccountLinked": {
+    "description": "Account type value: linked to a provider."
+  },
+  "profileLinkedAccounts": "Sign-in methods",
+  "@profileLinkedAccounts": {
+    "description": "Section listing sign-in providers."
+  },
+  "profileLinked": "Linked",
+  "@profileLinked": {
+    "description": "Provider status: linked."
+  },
+  "profileNotLinked": "Not linked",
+  "@profileNotLinked": {
+    "description": "Provider status: not linked."
+  },
+  "profileSaveProgressCta": "Save progress",
+  "@profileSaveProgressCta": {
+    "description": "Save Progress button on the profile."
+  },
+  "profileTotalXp": "Total XP",
+  "@profileTotalXp": {
+    "description": "Total XP label."
+  },
+  "profileStatsSection": "Progress",
+  "@profileStatsSection": {
+    "description": "Progress section header."
+  }
+}

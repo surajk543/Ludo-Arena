@@ -1,0 +1,6 @@
+{
+  "numberLakh": "{value} Lakh",
+  "@numberLakh": {"description": "Indian numbering unit 100,000 (lakh), used for large coin amounts in en/hi/ur. {value} is already formatted (e.g. 10 or 12.5).", "placeholders": {"value": {"type": "String"}}},
+  "numberCrore": "{value} Crore",
+  "@numberCrore": {"description": "Indian numbering unit 10,000,000 (crore). {value} is already formatted.", "placeholders": {"value": {"type": "String"}}}
+}

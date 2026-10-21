@@ -1,0 +1,211 @@
+{
+  "authWelcomeTitle": "Ready to rule the board?",
+  "@authWelcomeTitle": {
+    "description": "Login screen headline."
+  },
+  "authWelcomeSubtitle": "Play Ludo and Snakes & Ladders with friends and players everywhere.",
+  "@authWelcomeSubtitle": {
+    "description": "Login screen subtitle."
+  },
+  "authContinueWithGoogle": "Continue with Google",
+  "@authContinueWithGoogle": {
+    "description": "Google sign-in button."
+  },
+  "authContinueWithFacebook": "Continue with Facebook",
+  "@authContinueWithFacebook": {
+    "description": "Facebook sign-in button."
+  },
+  "authContinueWithApple": "Sign in with Apple",
+  "@authContinueWithApple": {
+    "description": "Apple sign-in button (Apple requires this wording)."
+  },
+  "authPlayAsGuest": "Play as guest",
+  "@authPlayAsGuest": {
+    "description": "Guest play button."
+  },
+  "authGuestHint": "Start instantly — you can save your progress any time.",
+  "@authGuestHint": {
+    "description": "Hint under the guest button."
+  },
+  "authOrDivider": "or",
+  "@authOrDivider": {
+    "description": "Divider between provider buttons and guest play."
+  },
+  "authFairPlayNote": "Coins and diamonds are virtual and can't be exchanged for real money.",
+  "@authFairPlayNote": {
+    "description": "Footer note about virtual currency."
+  },
+  "authSessionExpiredBanner": "You were signed out. Please sign in again.",
+  "@authSessionExpiredBanner": {
+    "description": "Banner after the server ended the session."
+  },
+  "authChangeLanguage": "Change language",
+  "@authChangeLanguage": {
+    "description": "Button/tooltip to change the language on the login screen."
+  },
+  "authProviderGoogle": "Google",
+  "@authProviderGoogle": {
+    "description": "Provider brand name."
+  },
+  "authProviderFacebook": "Facebook",
+  "@authProviderFacebook": {
+    "description": "Provider brand name."
+  },
+  "authProviderApple": "Apple",
+  "@authProviderApple": {
+    "description": "Provider brand name."
+  },
+  "authProviderGuest": "Guest",
+  "@authProviderGuest": {
+    "description": "Guest sign-in method name."
+  },
+  "authSaveProgressTitle": "Save your progress",
+  "@authSaveProgressTitle": {
+    "description": "Save Progress screen title."
+  },
+  "authSaveProgressSubtitle": "Link a sign-in method so your coins, level and collection are never lost — even on a new phone.",
+  "@authSaveProgressSubtitle": {
+    "description": "Save Progress explanation."
+  },
+  "authSaveBenefitKeep": "Keep all your coins, XP and cosmetics",
+  "@authSaveBenefitKeep": {
+    "description": "Save Progress benefit bullet."
+  },
+  "authSaveBenefitDevices": "Sign in on any device",
+  "@authSaveBenefitDevices": {
+    "description": "Save Progress benefit bullet."
+  },
+  "authSaveBenefitSame": "Same account — nothing is reset or moved",
+  "@authSaveBenefitSame": {
+    "description": "Save Progress benefit bullet: linking keeps the same account."
+  },
+  "authSaveWithGoogle": "Save with Google",
+  "@authSaveWithGoogle": {
+    "description": "Link Google button."
+  },
+  "authSaveWithFacebook": "Save with Facebook",
+  "@authSaveWithFacebook": {
+    "description": "Link Facebook button."
+  },
+  "authSaveWithApple": "Save with Apple",
+  "@authSaveWithApple": {
+    "description": "Link Apple button."
+  },
+  "authSaveNoProviders": "No sign-in methods are available in this build.",
+  "@authSaveNoProviders": {
+    "description": "No sign-in provider is configured in this build."
+  },
+  "authLinkSuccessTitle": "Progress saved!",
+  "@authLinkSuccessTitle": {
+    "description": "Shown after linking succeeded."
+  },
+  "authLinkSuccessMessage": "Your account is now linked to {provider}. Sign in with {provider} on any device to continue.",
+  "@authLinkSuccessMessage": {
+    "description": "Shown after linking succeeded. {provider} is a brand name like Google.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authAlreadySavedTitle": "Your progress is saved",
+  "@authAlreadySavedTitle": {
+    "description": "Save Progress screen when the account is already linked."
+  },
+  "authAlreadySavedMessage": "This account is linked to a sign-in method, so your progress is safe.",
+  "@authAlreadySavedMessage": {
+    "description": "Save Progress screen when the account is already linked."
+  },
+  "authConflictTitle": "This {provider} account is already in use",
+  "@authConflictTitle": {
+    "description": "409 identity_conflict dialog title.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authConflictMessage": "That {provider} account already has its own Ludo Royale account. Nothing will be merged or moved between the two accounts.",
+  "@authConflictMessage": {
+    "description": "409 identity_conflict explanation: nothing is merged.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authConflictSignIn": "Sign in to that account",
+  "@authConflictSignIn": {
+    "description": "Conflict option: sign in to the existing provider account."
+  },
+  "authConflictGuestNote": "Your guest account stays on this device — you can switch back to it from Settings.",
+  "@authConflictGuestNote": {
+    "description": "Conflict note: the guest account stays on the device."
+  },
+  "authAlreadyLinkedTitle": "Already linked",
+  "@authAlreadyLinkedTitle": {
+    "description": "409 provider_already_linked dialog title."
+  },
+  "authAlreadyLinkedMessage": "This account is already linked to a different {provider} account.",
+  "@authAlreadyLinkedMessage": {
+    "description": "409 provider_already_linked explanation.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "authLogoutTitle": "Sign out?",
+  "@authLogoutTitle": {
+    "description": "Sign-out confirmation title (saved account)."
+  },
+  "authLogoutMessage": "You can sign back in any time with the same method.",
+  "@authLogoutMessage": {
+    "description": "Sign-out confirmation message (saved account)."
+  },
+  "authLogoutConfirm": "Sign out",
+  "@authLogoutConfirm": {
+    "description": "Sign-out confirm button."
+  },
+  "authGuestLogoutTitle": "Sign out of your guest account?",
+  "@authGuestLogoutTitle": {
+    "description": "Sign-out confirmation title for an unsaved guest."
+  },
+  "authGuestLogoutMessage": "You're playing as a guest. If you sign out now, your coins, level and collection will be lost unless you save your progress first.",
+  "@authGuestLogoutMessage": {
+    "description": "Warning that guest progress is lost unless saved."
+  },
+  "authGuestLogoutConfirm": "Sign out and lose progress",
+  "@authGuestLogoutConfirm": {
+    "description": "Destructive guest sign-out button."
+  },
+  "authSaveProgressFirst": "Save progress first",
+  "@authSaveProgressFirst": {
+    "description": "Button leading to Save Progress from the guest sign-out dialog."
+  },
+  "authSwitchToGuestTitle": "Switch back to guest?",
+  "@authSwitchToGuestTitle": {
+    "description": "Confirm switching back to the stored guest account."
+  },
+  "authSwitchToGuestMessage": "You'll leave this account and continue with the guest account saved on this device.",
+  "@authSwitchToGuestMessage": {
+    "description": "Explains switching back to the guest account."
+  },
+  "authSwitchToGuestConfirm": "Switch to guest",
+  "@authSwitchToGuestConfirm": {
+    "description": "Confirm button to switch to the guest account."
+  },
+  "authGuestUnavailable": "That guest account is no longer available.",
+  "@authGuestUnavailable": {
+    "description": "The stored guest account no longer exists."
+  },
+  "authWelcomeBack": "Welcome, {name}!",
+  "@authWelcomeBack": {
+    "description": "Toast after signing in.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
+}

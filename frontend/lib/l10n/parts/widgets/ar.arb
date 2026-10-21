@@ -1,0 +1,14 @@
+{
+  "widgetsCoinsBalance": "العملات: {amount}",
+  "widgetsDiamondsBalance": "الماسات: {amount}",
+  "widgetsXpLabel": "الخبرة: {current} من {total}",
+  "widgetsAvatarLabel": "صورة اللاعب",
+  "widgetsTitleLabel": "اللقب: {title}",
+  "widgetsEmoteLabel": "تعبير: {name}",
+  "widgetsBadgeLabel": "الشارة: {name}",
+  "widgetsSecondsLeft": "{seconds, plural, =0{لم يتبقَّ وقت} =1{تبقّت ثانية واحدة} =2{تبقّت ثانيتان} few{تبقّت {seconds} ثوانٍ} many{تبقّت {seconds} ثانية} other{تبقّت {seconds} ثانية}}",
+  "widgetsConnectionLabel": "الاتصال: {status}",
+  "widgetsNewItems": "{count, plural, =1{عنصر جديد واحد} =2{عنصران جديدان} few{{count} عناصر جديدة} many{{count} عنصرًا جديدًا} other{{count} عنصر جديد}}",
+  "widgetsSelected": "محدَّد",
+  "widgetsLogoLabel": "شعار {appName}"
+}

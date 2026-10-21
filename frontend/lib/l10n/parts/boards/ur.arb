@@ -1,0 +1,21 @@
+{
+  "boardsColorRed": "سرخ",
+  "boardsColorGreen": "سبز",
+  "boardsColorYellow": "پیلی",
+  "boardsColorBlue": "نیلی",
+  "boardsLudoBoardLabel": "لوڈو بورڈ",
+  "boardsSnakesBoardLabel": "سانپ سیڑھی بورڈ",
+  "boardsTokenInBase": "{color} گوٹی {number}، ابتدائی گھر میں",
+  "boardsTokenStepsFromHome": "{color} گوٹی {number}، {steps, plural, =1{منزل سے 1 خانہ دور} other{منزل سے {steps} خانے دور}}",
+  "boardsTokenHome": "{color} گوٹی {number}، منزل پر پہنچ گئی",
+  "boardsTokenCanMove": "چل سکتی ہے",
+  "boardsTokenMoveHint": "یہ گوٹی چلائیں",
+  "boardsCurrentTurn": "ابھی اس کی باری ہے",
+  "boardsSnakesTokenOnSquare": "{color} گوٹی خانہ {square} پر",
+  "boardsSnakesTokenAtStart": "{color} گوٹی آغاز پر",
+  "boardsDiceShowing": "پانسے پر {value} ہے",
+  "boardsDiceRolling": "پانسہ گھوم رہا ہے",
+  "boardsDiceRollHint": "پانسہ پھینکیں",
+  "boardsVictoryCelebration": "فتح کا جشن",
+  "boardsLevelUp": "لیول بڑھ گیا"
+}

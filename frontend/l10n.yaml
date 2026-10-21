@@ -1,0 +1,10 @@
+# Localizations are generated from lib/l10n/app_<locale>.arb.
+# Those files are assembled from per-area fragments in lib/l10n/parts/<area>/<locale>.arb
+# by `dart run tool/merge_arb.dart`. Edit the fragments, never the merged files.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n/generated
+nullable-getter: false
+required-resource-attributes: true

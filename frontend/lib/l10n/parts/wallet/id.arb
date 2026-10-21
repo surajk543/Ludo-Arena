@@ -1,0 +1,13 @@
+{
+  "walletTitle": "Dompetmu",
+  "walletCoinsCaption": "Untuk biaya masuk pertandingan — pemenang ambil semua.",
+  "walletDiamondsCaption": "Untuk kosmetik premium di Ruang Koleksi.",
+  "walletExactBalance": "Saldo pasti: {amount}",
+  "walletVirtualTitle": "Mata uang virtual",
+  "walletVirtualNotice": "Koin dan berlian adalah item virtual untuk bersenang-senang. Tidak memiliki nilai nyata dan tidak bisa dijual, dipindahkan, ditarik, atau ditukar dengan uang.",
+  "walletEarnTitle": "Cara dapat lebih banyak",
+  "walletEarnWins": "Menangkan pertandingan untuk ambil semua",
+  "walletEarnMissions": "Selesaikan misi harian dan mingguan",
+  "walletEarnLevels": "Naik level untuk hadiah pencapaian",
+  "walletRefresh": "Muat ulang saldo"
+}

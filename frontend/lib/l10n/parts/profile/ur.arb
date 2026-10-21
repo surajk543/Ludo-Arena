@@ -1,0 +1,19 @@
+{
+  "profileTitle": "پروفائل",
+  "profileFriendCode": "فرینڈ کوڈ",
+  "profileFriendCodeHint": "اسے شیئر کریں تاکہ دوست آپ کو شامل کر سکیں۔",
+  "profileShareFriendCode": "لوڈو رائل پر مجھے شامل کریں! میرا فرینڈ کوڈ ہے {code}",
+  "profileLevelProgress": "لیول {level} کے لیے {xp} XP باقی",
+  "profileMaxLevel": "سب سے اونچا لیول حاصل",
+  "profileTitleLabel": "ٹائٹل",
+  "profileAccountSection": "اکاؤنٹ",
+  "profileAccountType": "اکاؤنٹ کی قسم",
+  "profileAccountGuest": "مہمان (محفوظ نہیں)",
+  "profileAccountLinked": "محفوظ اکاؤنٹ",
+  "profileLinkedAccounts": "سائن اِن کے طریقے",
+  "profileLinked": "منسلک",
+  "profileNotLinked": "منسلک نہیں",
+  "profileSaveProgressCta": "پیش رفت محفوظ کریں",
+  "profileTotalXp": "کل XP",
+  "profileStatsSection": "پیش رفت"
+}

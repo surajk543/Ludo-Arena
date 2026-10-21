@@ -1,0 +1,22 @@
+{
+  "onboardingLanguageTitle": "Choose your language",
+  "@onboardingLanguageTitle": {
+    "description": "First-run language picker title."
+  },
+  "onboardingLanguageSubtitle": "You can change it any time in Settings.",
+  "@onboardingLanguageSubtitle": {
+    "description": "First-run language picker subtitle."
+  },
+  "onboardingPreviewLabel": "Preview",
+  "@onboardingPreviewLabel": {
+    "description": "Label of the live language preview card."
+  },
+  "onboardingPreviewTitle": "Welcome to Ludo Royale!",
+  "@onboardingPreviewTitle": {
+    "description": "Preview card headline."
+  },
+  "onboardingPreviewBody": "Roll the dice, race your tokens home and claim the crown.",
+  "@onboardingPreviewBody": {
+    "description": "Preview card body text."
+  }
+}

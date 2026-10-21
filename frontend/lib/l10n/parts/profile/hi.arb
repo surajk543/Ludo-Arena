@@ -1,0 +1,19 @@
+{
+  "profileTitle": "प्रोफ़ाइल",
+  "profileFriendCode": "फ़्रेंड कोड",
+  "profileFriendCodeHint": "इसे शेयर करें ताकि दोस्त आपको जोड़ सकें।",
+  "profileShareFriendCode": "लूडो रॉयल पर मुझे जोड़ें! मेरा फ़्रेंड कोड है {code}",
+  "profileLevelProgress": "लेवल {level} के लिए {xp} XP बाकी",
+  "profileMaxLevel": "सबसे ऊँचा लेवल हासिल",
+  "profileTitleLabel": "टाइटल",
+  "profileAccountSection": "अकाउंट",
+  "profileAccountType": "अकाउंट का प्रकार",
+  "profileAccountGuest": "मेहमान (सेव नहीं)",
+  "profileAccountLinked": "सेव अकाउंट",
+  "profileLinkedAccounts": "साइन-इन तरीके",
+  "profileLinked": "जुड़ा है",
+  "profileNotLinked": "जुड़ा नहीं",
+  "profileSaveProgressCta": "प्रोग्रेस सेव करें",
+  "profileTotalXp": "कुल XP",
+  "profileStatsSection": "प्रोग्रेस"
+}

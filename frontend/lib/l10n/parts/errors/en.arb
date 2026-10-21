@@ -1,0 +1,199 @@
+{
+  "errorGeneric": "Something went wrong. Please try again.",
+  "@errorGeneric": {
+    "description": "Fallback for unknown error codes."
+  },
+  "errorBadRequest": "That request couldn't be processed.",
+  "@errorBadRequest": {
+    "description": "Error code bad_request (malformed request)."
+  },
+  "errorUnknownType": "This action isn't supported. Please update the app.",
+  "@errorUnknownType": {
+    "description": "Error code unknown_type (server does not know the message type)."
+  },
+  "errorRateLimited": "You're going a bit fast! Wait a moment and try again.",
+  "@errorRateLimited": {
+    "description": "Error code rate_limited."
+  },
+  "errorUnauthorized": "Your session has expired. Please sign in again.",
+  "@errorUnauthorized": {
+    "description": "Error code unauthorized."
+  },
+  "errorUpdateRequired": "A newer version of the app is required.",
+  "@errorUpdateRequired": {
+    "description": "Error code update_required."
+  },
+  "errorMaintenance": "The game servers are under maintenance. Please try again soon.",
+  "@errorMaintenance": {
+    "description": "Error code maintenance."
+  },
+  "errorNotInRoom": "You're not in this room anymore.",
+  "@errorNotInRoom": {
+    "description": "Error code not_in_room."
+  },
+  "errorRoomNotFound": "This room doesn't exist anymore.",
+  "@errorRoomNotFound": {
+    "description": "Error code room_not_found."
+  },
+  "errorRoomFull": "This room is already full.",
+  "@errorRoomFull": {
+    "description": "Error code room_full."
+  },
+  "errorRoomInProgress": "This game has already started.",
+  "@errorRoomInProgress": {
+    "description": "Error code room_in_progress."
+  },
+  "errorRoomClosed": "This room has been closed.",
+  "@errorRoomClosed": {
+    "description": "Error code room_closed."
+  },
+  "errorAlreadyInRoom": "You're already in a room. Leave it first to join another.",
+  "@errorAlreadyInRoom": {
+    "description": "Error code already_in_room."
+  },
+  "errorNotHost": "Only the host can do that.",
+  "@errorNotHost": {
+    "description": "Error code not_host."
+  },
+  "errorNotEnoughPlayers": "At least 2 players are needed to start.",
+  "@errorNotEnoughPlayers": {
+    "description": "Error code not_enough_players."
+  },
+  "errorPlayersNotReady": "Waiting for all players to be ready.",
+  "@errorPlayersNotReady": {
+    "description": "Error code players_not_ready."
+  },
+  "errorNotYourTurn": "It's not your turn yet.",
+  "@errorNotYourTurn": {
+    "description": "Error code not_your_turn."
+  },
+  "errorInvalidPhase": "You can't do that right now.",
+  "@errorInvalidPhase": {
+    "description": "Error code invalid_phase."
+  },
+  "errorIllegalMove": "That move isn't allowed.",
+  "@errorIllegalMove": {
+    "description": "Error code illegal_move."
+  },
+  "errorStaleState": "The board just changed. Try again.",
+  "@errorStaleState": {
+    "description": "Error code stale_state (the action used an outdated turn)."
+  },
+  "errorInsufficientFunds": "You don't have enough coins for this.",
+  "@errorInsufficientFunds": {
+    "description": "Error code insufficient_funds."
+  },
+  "errorInvalidCode": "That room code isn't valid. Check it and try again.",
+  "@errorInvalidCode": {
+    "description": "Error code invalid_code."
+  },
+  "errorRematchClosed": "The rematch window has closed.",
+  "@errorRematchClosed": {
+    "description": "Error code rematch_closed."
+  },
+  "errorNotFriends": "You can only invite friends.",
+  "@errorNotFriends": {
+    "description": "Error code not_friends."
+  },
+  "errorItemNotOwned": "You don't own this item yet.",
+  "@errorItemNotOwned": {
+    "description": "Error code item_not_owned."
+  },
+  "errorBotsUnavailable": "No computer players are available right now. Try again in a moment.",
+  "@errorBotsUnavailable": {
+    "description": "Error code bots_unavailable."
+  },
+  "errorBotsNotAllowed": "Computer players aren't allowed in this room.",
+  "@errorBotsNotAllowed": {
+    "description": "Error code bots_not_allowed."
+  },
+  "errorInternal": "Something went wrong on our side. Please try again.",
+  "@errorInternal": {
+    "description": "Error code internal (server error)."
+  },
+  "errorClientVersionRequired": "The app couldn't identify its version. Please update or reinstall it.",
+  "@errorClientVersionRequired": {
+    "description": "Error code client_version_required."
+  },
+  "errorEnvironmentMismatch": "This app build is connected to the wrong server.",
+  "@errorEnvironmentMismatch": {
+    "description": "Error code environment_mismatch."
+  },
+  "errorInvalidCredential": "Sign-in failed. Please try again.",
+  "@errorInvalidCredential": {
+    "description": "Error code invalid_credential (provider token rejected)."
+  },
+  "errorRefreshReused": "For your security, you've been signed out. Please sign in again.",
+  "@errorRefreshReused": {
+    "description": "Error code refresh_reused (session revoked)."
+  },
+  "errorForbidden": "You don't have permission to do that.",
+  "@errorForbidden": {
+    "description": "Error code forbidden."
+  },
+  "errorNotFound": "We couldn't find what you were looking for.",
+  "@errorNotFound": {
+    "description": "Error code not_found."
+  },
+  "errorIdentityConflict": "This sign-in account already belongs to a different player profile.",
+  "@errorIdentityConflict": {
+    "description": "Error code identity_conflict (provider identity already has its own account)."
+  },
+  "errorProviderAlreadyLinked": "Your profile already has a different account of this type linked.",
+  "@errorProviderAlreadyLinked": {
+    "description": "Error code provider_already_linked."
+  },
+  "errorAlreadyOwned": "You already own this item.",
+  "@errorAlreadyOwned": {
+    "description": "Error code already_owned."
+  },
+  "errorAlreadyClaimed": "You've already claimed this reward.",
+  "@errorAlreadyClaimed": {
+    "description": "Error code already_claimed."
+  },
+  "errorAlreadyFriends": "You're already friends.",
+  "@errorAlreadyFriends": {
+    "description": "Error code already_friends."
+  },
+  "errorNotCompleted": "Finish this mission first to claim the reward.",
+  "@errorNotCompleted": {
+    "description": "Error code not_completed."
+  },
+  "errorItemLocked": "This item is still locked.",
+  "@errorItemLocked": {
+    "description": "Error code item_locked."
+  },
+  "errorProviderUnavailable": "The sign-in service is unavailable right now. Please try again later.",
+  "@errorProviderUnavailable": {
+    "description": "Error code provider_unavailable."
+  },
+  "errorNetwork": "Can't reach the game service. Check your internet connection.",
+  "@errorNetwork": {
+    "description": "Client code network_error (no connectivity)."
+  },
+  "errorTimeout": "The connection timed out. Please try again.",
+  "@errorTimeout": {
+    "description": "Client code timeout."
+  },
+  "errorBadResponse": "We got an unexpected response. Please try again.",
+  "@errorBadResponse": {
+    "description": "Client code bad_response."
+  },
+  "errorCancelled": "Cancelled.",
+  "@errorCancelled": {
+    "description": "Client code cancelled."
+  },
+  "errorNotConnected": "You're not connected right now. Reconnecting…",
+  "@errorNotConnected": {
+    "description": "Client code not_connected (realtime connection not open)."
+  },
+  "errorRateLimitedRetry": "{seconds, plural, =1{Too many tries. Try again in 1 second.} other{Too many tries. Try again in {seconds} seconds.}}",
+  "@errorRateLimitedRetry": {
+    "description": "Rate limited with a known wait (Retry-After).",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  }
+}

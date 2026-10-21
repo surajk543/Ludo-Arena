@@ -1,0 +1,14 @@
+{
+  "widgetsCoinsBalance": "سکے: {amount}",
+  "widgetsDiamondsBalance": "ہیرے: {amount}",
+  "widgetsXpLabel": "تجربہ: {total} میں سے {current}",
+  "widgetsAvatarLabel": "کھلاڑی کا اوتار",
+  "widgetsTitleLabel": "خطاب: {title}",
+  "widgetsEmoteLabel": "ایموٹ: {name}",
+  "widgetsBadgeLabel": "بیج: {name}",
+  "widgetsSecondsLeft": "{seconds, plural, =1{1 سیکنڈ باقی} other{{seconds} سیکنڈ باقی}}",
+  "widgetsConnectionLabel": "کنکشن: {status}",
+  "widgetsNewItems": "{count, plural, =1{1 نیا} other{{count} نئے}}",
+  "widgetsSelected": "منتخب",
+  "widgetsLogoLabel": "{appName} کا شاہی نشان"
+}

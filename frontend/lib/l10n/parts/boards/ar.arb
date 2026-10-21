@@ -1,0 +1,21 @@
+{
+  "boardsColorRed": "الأحمر",
+  "boardsColorGreen": "الأخضر",
+  "boardsColorYellow": "الأصفر",
+  "boardsColorBlue": "الأزرق",
+  "boardsLudoBoardLabel": "لوحة لودو",
+  "boardsSnakesBoardLabel": "لوحة السلم والثعبان",
+  "boardsTokenInBase": "الحجر {color} رقم {number}، في القاعدة",
+  "boardsTokenStepsFromHome": "الحجر {color} رقم {number}، {steps, plural, =1{على بعد مربع واحد من المنزل} =2{على بعد مربعين من المنزل} few{على بعد {steps} مربعات من المنزل} many{على بعد {steps} مربعًا من المنزل} other{على بعد {steps} مربع من المنزل}}",
+  "boardsTokenHome": "الحجر {color} رقم {number}، وصل إلى المنزل",
+  "boardsTokenCanMove": "يمكن تحريكه",
+  "boardsTokenMoveHint": "تحريك هذا الحجر",
+  "boardsCurrentTurn": "دوره الآن",
+  "boardsSnakesTokenOnSquare": "الحجر {color} على المربع {square}",
+  "boardsSnakesTokenAtStart": "الحجر {color} عند نقطة البداية",
+  "boardsDiceShowing": "النرد يُظهر {value}",
+  "boardsDiceRolling": "النرد يتدحرج",
+  "boardsDiceRollHint": "رمي النرد",
+  "boardsVictoryCelebration": "احتفال بالفوز",
+  "boardsLevelUp": "ارتقاء في المستوى"
+}
