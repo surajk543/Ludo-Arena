@@ -81,8 +81,12 @@ type Core struct {
 
 // NewCore builds the shared base services.
 func NewCore(cfg *config.Config, log *slog.Logger, pg *pgxpool.Pool, rdb *redis.Client) *Core {
+	// Player-chosen display names live in PostgreSQL (authoritative) and the
+	// Redis profile cache; see package profile.
+	profiles := profile.New(rdb, cfg.Auth.PublicIDKey).
+		WithPostgres(pg, profile.Options{NameChangesPerDay: cfg.NameChangesPerDay})
 	return &Core{Cfg: cfg, Log: log, PG: pg, RDB: rdb,
-		Profiles: profile.New(rdb, cfg.Auth.PublicIDKey), Notifier: notify.New(rdb, log),
+		Profiles: profiles, Notifier: notify.New(rdb, log),
 		Wallets: wallet.NewStore(pg), Async: async.New(async.Options{Log: log})}
 }
 

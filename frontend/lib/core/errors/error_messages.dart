@@ -45,7 +45,12 @@ abstract final class KnownErrorCodes {
     'already_claimed',
     'already_friends',
     'not_completed',
+    'already_reported',
+    'report_limit',
+    'cannot_report_self',
+    'cannot_report_bot',
     'item_locked',
+    'invalid_name',
     'provider_unavailable',
     'network_error',
     'timeout',
@@ -72,7 +77,8 @@ abstract final class KnownErrorCodes {
 
 /// Localized, user-facing text for an error [code]. Unknown codes map to a
 /// generic message. Pass [retryAfter] (e.g. `ApiException.retryAfter`) to get
-/// a precise rate-limit message.
+/// a precise rate-limit message, and [details] (`ApiException.details`) to
+/// get the specific `invalid_name` reason.
 ///
 /// ```dart
 /// final text = localizedErrorMessage(AppLocalizations.of(context), e.code);
@@ -81,11 +87,16 @@ String localizedErrorMessage(
   AppLocalizations l10n,
   String code, {
   Duration? retryAfter,
+  Map<String, dynamic> details = const {},
 }) {
   if (code == 'rate_limited' &&
       retryAfter != null &&
       retryAfter.inSeconds > 0) {
     return l10n.errorRateLimitedRetry(retryAfter.inSeconds);
+  }
+  if (code == 'invalid_name') {
+    final reason = details['reason'];
+    return localizedInvalidNameMessage(l10n, reason is String ? reason : null);
   }
   return switch (code) {
     'bad_request' => l10n.errorBadRequest,
@@ -128,6 +139,10 @@ String localizedErrorMessage(
     'already_claimed' => l10n.errorAlreadyClaimed,
     'already_friends' => l10n.errorAlreadyFriends,
     'not_completed' => l10n.errorNotCompleted,
+    'already_reported' => l10n.socialAlreadyReported,
+    'report_limit' => l10n.socialReportLimitLater(2),
+    'cannot_report_self' => l10n.socialErrorCannotReportSelf,
+    'cannot_report_bot' => l10n.socialErrorCannotReportBot,
     'item_locked' => l10n.errorItemLocked,
     'provider_unavailable' => l10n.errorProviderUnavailable,
     'network_error' => l10n.errorNetwork,
@@ -139,6 +154,20 @@ String localizedErrorMessage(
     _ => l10n.errorGeneric,
   };
 }
+
+/// Localized text for an `invalid_name` [reason] (`details.reason` of
+/// `PATCH /me`: `too_short`, `too_long`, `invalid_characters`, `reserved`,
+/// `inappropriate`). Unknown or missing reasons get the generic
+/// `invalid_name` message.
+String localizedInvalidNameMessage(AppLocalizations l10n, String? reason) =>
+    switch (reason) {
+      'too_short' => l10n.errorInvalidNameTooShort,
+      'too_long' => l10n.errorInvalidNameTooLong,
+      'invalid_characters' => l10n.errorInvalidNameCharacters,
+      'reserved' => l10n.errorInvalidNameReserved,
+      'inappropriate' => l10n.errorInvalidNameInappropriate,
+      _ => l10n.errorInvalidName,
+    };
 
 /// Whether [code] is worth an automatic or "Retry" affordance.
 bool isRetryableCode(String code) => KnownErrorCodes.retryable.contains(code);

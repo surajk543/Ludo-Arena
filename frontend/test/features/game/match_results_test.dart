@@ -97,8 +97,12 @@ void main() {
         ),
       );
       expect(r.payout?.coins, 5000);
-      r = r.apply(const ProgressionUpdatedEvent(xp: 100, level: 2, xpGained: 35));
-      r = r.apply(const ProgressionUpdatedEvent(xp: 999, level: 9, xpGained: 1));
+      r = r.apply(
+        const ProgressionUpdatedEvent(xp: 100, level: 2, xpGained: 35),
+      );
+      r = r.apply(
+        const ProgressionUpdatedEvent(xp: 999, level: 9, xpGained: 1),
+      );
       expect(r.progression?.xpGained, 35);
     });
   });
@@ -198,6 +202,35 @@ void main() {
         find.text('No coins this time — the winner takes the pot.'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('bot opponents are never labelled in the results', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPanel(
+        tester,
+        room: _finished(
+          winner: 1,
+          payout: 0,
+          players: [
+            player(0),
+            player(1, name: 'Bot Bolt', bot: true),
+          ],
+          placements: const [1, 0],
+        ),
+      );
+      expect(find.text('Bolt wins!'), findsOneWidget);
+      expect(find.text("This match doesn't pay coins."), findsOneWidget);
+      expect(
+        find.textContaining(RegExp(r'\bbot\b', caseSensitive: false)),
+        findsNothing,
+      );
+      expect(
+        find.bySemanticsLabel(RegExp('bot|computer', caseSensitive: false)),
+        findsNothing,
+      );
+      semantics.dispose();
     });
 
     testWidgets('incoming rematch request offers explicit accept / decline', (

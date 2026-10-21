@@ -58,6 +58,15 @@ type Config struct {
 	Bots             BotConfig
 	Wallet           WalletConfig
 	Telemetry        TelemetryConfig
+	Social           SocialConfig
+
+	// AdminKeySHA256 is the sha256 of the operator key sent as X-Admin-Key
+	// to /api/v1/admin/*; empty disables the admin API (routes answer 404).
+	AdminKeySHA256 []byte
+
+	// NameChangesPerDay is how many successful display-name changes an
+	// account may make per rolling 24 h (NAME_CHANGES_PER_DAY, >= 1).
+	NameChangesPerDay int
 }
 
 // AuthConfig configures application sessions and identity providers.
@@ -126,6 +135,9 @@ const (
 	DefaultEntryFeeSnakes int64 = 50_000
 )
 
+// DefaultNameChangesPerDay is the default NAME_CHANGES_PER_DAY.
+const DefaultNameChangesPerDay = 3
+
 // BotConfig configures the bot service boundary.
 type BotConfig struct {
 	ServiceKeySHA256  []byte // sha256 of the shared bot service key; empty disables bot APIs
@@ -149,6 +161,23 @@ type WalletConfig struct {
 const (
 	DefaultWelcomeCoins    int64 = 1_000_000
 	DefaultWelcomeDiamonds int64 = 50
+)
+
+// SocialConfig configures friends and player reports.
+type SocialConfig struct {
+	// FriendsMax is the maximum number of accepted friends per account
+	// (FRIENDS_MAX, default 20). Accounts already above it keep their
+	// friends but cannot add more.
+	FriendsMax int
+	// ReportsPerDay is how many player reports an account may file in any
+	// rolling 24 h window (REPORTS_PER_DAY, default 2).
+	ReportsPerDay int
+}
+
+// Defaults for SocialConfig.
+const (
+	DefaultFriendsMax    = 20
+	DefaultReportsPerDay = 2
 )
 
 // TelemetryConfig configures pseudonymous aggregate analytics.
@@ -281,6 +310,10 @@ func Load() (*Config, error) {
 	if c.MinMatchDuration < 0 || (c.Env == EnvProduction && c.MinMatchDuration < 10*time.Second) {
 		errs = append(errs, errors.New("PROGRESSION_MIN_MATCH_DURATION must be >= 10s in production and never negative"))
 	}
+	c.NameChangesPerDay = getInt("NAME_CHANGES_PER_DAY", DefaultNameChangesPerDay)
+	if c.NameChangesPerDay < 1 {
+		errs = append(errs, errors.New("NAME_CHANGES_PER_DAY must be >= 1"))
+	}
 	c.Policy = PolicyConfig{
 		File:         get("APP_POLICY_FILE", "config/app-policy.development.json"),
 		FlagFile:     get("APP_MAINTENANCE_FLAG_FILE", ""),
@@ -368,6 +401,25 @@ func Load() (*Config, error) {
 		errs = append(errs, fmt.Errorf("WELCOME_DIAMONDS must be between 0 and %d", apppolicy.MaxWelcomeDiamonds))
 	}
 	c.Telemetry = TelemetryConfig{ActiveUserKey: []byte(get("ACTIVE_USER_KEY", publicIDKey))}
+
+	c.Social = SocialConfig{
+		FriendsMax:    getInt("FRIENDS_MAX", DefaultFriendsMax),
+		ReportsPerDay: getInt("REPORTS_PER_DAY", DefaultReportsPerDay),
+	}
+	if c.Social.FriendsMax < 1 {
+		errs = append(errs, errors.New("FRIENDS_MAX must be >= 1"))
+	}
+	if c.Social.ReportsPerDay < 1 {
+		errs = append(errs, errors.New("REPORTS_PER_DAY must be >= 1"))
+	}
+	if raw := get("ADMIN_API_KEY_SHA256", ""); raw != "" {
+		b, err := hex.DecodeString(raw)
+		if err != nil || len(b) != 32 {
+			errs = append(errs, errors.New("ADMIN_API_KEY_SHA256 must be 64 hex characters"))
+		} else {
+			c.AdminKeySHA256 = b
+		}
+	}
 
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)

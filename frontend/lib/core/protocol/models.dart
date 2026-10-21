@@ -92,7 +92,8 @@ class RoomPlayer with JsonValueEquality {
   final String color;
   final bool connected;
 
-  /// Server-determined. The UI must show a BOT badge.
+  /// Server-determined. Bots are never labelled in the UI (no badge or
+  /// "bot" wording); they only get no Add friend / Report actions.
   final bool bot;
   final bool forfeited;
 

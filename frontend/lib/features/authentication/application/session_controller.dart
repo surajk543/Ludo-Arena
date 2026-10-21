@@ -11,6 +11,7 @@ import '../../../core/protocol/protocol.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/storage/secure_session_store.dart';
 import '../../../shared/widgets/cosmetic_names.dart' show cosmeticRarity;
+import '../../profile/domain/display_name.dart';
 import '../../profile/progression.dart';
 import '../../wallet/wallet_controller.dart';
 import '../data/auth_api.dart';
@@ -130,6 +131,33 @@ final class LinkAlreadyLinked extends LinkOutcome {
 final class LinkFailed extends LinkOutcome {
   const LinkFailed(this.code);
   final String code;
+}
+
+/// Result of a display-name change (`PATCH /me`).
+@immutable
+sealed class DisplayNameOutcome {
+  const DisplayNameOutcome();
+}
+
+/// The server accepted the name; [user] carries it as normalized by the
+/// server and is already the session's user.
+final class DisplayNameChanged extends DisplayNameOutcome {
+  const DisplayNameChanged(this.user);
+  final User user;
+}
+
+/// [code] is a REST/client error code (`invalid_name`, `rate_limited`,
+/// `network_error`, …). [reason] is `details.reason` for `invalid_name`;
+/// [retryAfter] the parsed `Retry-After` for `rate_limited`.
+final class DisplayNameFailed extends DisplayNameOutcome {
+  const DisplayNameFailed(this.code, {this.reason, this.retryAfter});
+  final String code;
+  final String? reason;
+  final Duration? retryAfter;
+
+  /// The rule the server says the name breaks (`invalid_name` only).
+  DisplayNameProblem? get problem =>
+      code == 'invalid_name' ? DisplayNameProblem.parse(reason) : null;
 }
 
 /// Owns the authenticated session. The Go backend owns identity: this
@@ -387,6 +415,30 @@ class SessionController extends Notifier<SessionState> {
 
   /// `GET /me` → user + wallet. Throws [ApiException].
   Future<void> refreshMe() async => _adoptProfile(await _api.me());
+
+  /// Changes the display name (`PATCH /me`). The server validates and
+  /// normalizes it; on success the returned user replaces the session's
+  /// user, so every screen showing the name updates at once. Never throws.
+  Future<DisplayNameOutcome> updateDisplayName(String displayName) async {
+    if (!state.isSignedIn) return const DisplayNameFailed('unauthorized');
+    try {
+      final me = await _api.updateDisplayName(displayName);
+      // Not for an account that was left while the request was in flight.
+      if (state.user?.uid == me.user.uid) {
+        ref.read(walletControllerProvider.notifier).setFromServer(me.wallet);
+        updateUser(me.user);
+        _analytics.displayNameChanged();
+      }
+      return DisplayNameChanged(me.user);
+    } on ApiException catch (e) {
+      final reason = e.details['reason'];
+      return DisplayNameFailed(
+        e.code,
+        reason: reason is String ? reason : null,
+        retryAfter: e.retryAfter,
+      );
+    }
+  }
 
   /// Lets feature screens (e.g. the Collection Room after equipping) push
   /// an updated server user.

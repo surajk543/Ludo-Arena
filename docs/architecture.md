@@ -30,9 +30,10 @@ sessions and cross-instance pub/sub live in **Redis**; durable data lives in
 **PostgreSQL** schemas `wallet` (balances only), `identity` (provider →
 account mappings, plus the internal `device` binding that restores an account
 after an app update or reinstall) and `progression`. There are no match-history, ledger or
-profile tables. Identity providers only prove identity: **Firebase
+profile tables (a player-chosen display name is one nullable
+`progression.player_progress` column; other display data is a Redis cache). Identity providers only prove identity: **Firebase
 Authentication is not used**, and Firebase is in the app for consent-gated
-Analytics only. A separate Go service, **bot-play**, plays as server-labelled
+Analytics only. A separate Go service, **bot-play**, plays as server-marked
 bots through the same protocol with room-scoped bot tokens.
 
 ## Sections of the HTML page
@@ -154,9 +155,21 @@ concurrency and with a remote database.
   WebSocket connects 30/min/account · room codes 10/min/account · matchmaking
   20/min/account · wallet operations 30/min/account · social 30/min/account ·
   device bind/unbind 10/min/account (linking budget) · device resume 30/min/IP
-  (sign-in budget) ·
+  (sign-in budget) · `PATCH /me` 20/min/account ·
   bot service 600/min/IP. Per socket: 10 commands/s (burst 20); quick chat
-  1 per 3 s and 10/min; invites 10/min; friend requests 60/h.
+  1 per 3 s and 10/min; invites 10/min; friend requests 60/h; player reports
+  20/min per account (and `REPORTS_PER_DAY`, default 2, stored per rolling
+  24 h); admin API 60/min per IP. Display-name
+  changes: `NAME_CHANGES_PER_DAY` (default 3) successful changes per rolling
+  24 h per account (`namechg:{userId}`, not disabled by
+  `RATE_LIMIT_DISABLED`).
+- **Display names**: player-chosen names (`PATCH /api/v1/me`) are
+  normalized (NFC, collapsed whitespace) and validated server-side — 3–16
+  characters; letters, combining marks, digits, space `_ . -`; no
+  emoji/symbols/zero-width characters; reserved words (`bot…`, admin,
+  support, official, …) and an extendable blocklist
+  (`backend/internal/profile/blocklist.txt`) folded for look-alikes. See
+  [rest-api.md](rest-api.md#changing-the-display-name).
 - **Tokens**: provider credentials are verified server-side (OIDC JWKS,
   Apple nonce, Facebook `debug_token`); emails never match or merge accounts.
   App access tokens are 15-minute HS256 JWTs checked against the live session;
@@ -172,6 +185,10 @@ concurrency and with a remote database.
 - **Validation**: strict JSON (unknown fields rejected); WebSocket text frames
   only, ≤ 4096 bytes after decompression, known message types, seat / phase /
   `turnSeq` checks, de-duplicated message ids.
+- **Operator API**: `/api/v1/admin/*` (player-report review) is disabled
+  (404) unless `ADMIN_API_KEY_SHA256` is set; requests need `X-Admin-Key`
+  (constant-time sha256 comparison, 401 otherwise). Expose it only on the
+  private network — block `/api/v1/admin/` at the public load balancer.
 - **Network and secrets**: TLS at the load balancer; PostgreSQL and Redis on a
   private network only; secrets only via environment or a secret manager;
   production startup refuses `RATE_LIMIT_DISABLED`, `BOT_LOADTEST_ENABLED`,

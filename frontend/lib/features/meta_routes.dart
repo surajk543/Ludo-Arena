@@ -21,7 +21,7 @@ abstract final class MetaRoutes {
   static const String qKind = 'kind';
   static const String qItem = 'item';
 
-  /// `/friends?tab=friends|requests|recent`.
+  /// `/friends?tab=friends|requests|recent|reported`.
   static String friendsTab(String tab) =>
       Uri(path: AppRoutes.friends, queryParameters: {qTab: tab}).toString();
 

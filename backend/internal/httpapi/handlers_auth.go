@@ -85,6 +85,8 @@ func (a *Account) Register(rt *Router) {
 	// gate: it only removes data.
 	rt.Handle("DELETE /api/v1/account/device", Route{Auth: AuthHuman, UserRule: &link}, a.unbindDevice)
 	rt.Handle("GET /api/v1/me", gated(Route{Auth: AuthHuman}), a.me)
+	profileRule := ratelimit.ProfilePerUser
+	rt.Handle("PATCH /api/v1/me", gated(Route{Auth: AuthHuman, UserRule: &profileRule}), a.updateMe)
 	rt.Handle("GET /api/v1/wallet", gated(Route{Auth: AuthHuman}), a.wallet)
 }
 

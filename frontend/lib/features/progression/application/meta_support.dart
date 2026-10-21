@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/errors/error_messages.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/protocol/json_read.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 /// Meta screens show an explicit error state with Retry instead of
@@ -30,19 +31,30 @@ bool isTransientFailure(ApiException e) =>
 /// ambiguous codes like `not_found`.
 enum MetaErrorContext { general, mission, friendCode, item }
 
+/// Accepted-friends cap when neither the error nor the friends list says
+/// otherwise.
+const int kDefaultMaxFriends = 20;
+
 /// Localized message for a meta-feature failure. Server English text is
-/// never shown.
+/// never shown. [maxFriends] (from `GET /friends`) words `friend_limit`;
+/// the error's own `details.maxFriends` / `details.max` wins.
 String metaErrorMessage(
   AppLocalizations l10n,
   Object error, {
   MetaErrorContext context = MetaErrorContext.general,
+  int? maxFriends,
 }) {
   if (error is! ApiException) return l10n.errorGeneric;
   switch (error.code) {
     case 'cannot_friend_self':
       return l10n.metaErrorCannotFriendSelf;
     case 'friend_limit':
-      return l10n.metaErrorFriendLimit;
+      final fromError = readIntOrNull(
+        error.details['maxFriends'] ?? error.details['max'],
+      );
+      return l10n.metaErrorFriendLimit(
+        fromError ?? maxFriends ?? kDefaultMaxFriends,
+      );
     case 'request_in_progress':
       return l10n.metaErrorRequestInProgress;
     case 'idempotency_key_reused':

@@ -115,6 +115,14 @@ class ApiClient {
     bool auth = true,
   }) => _send('PUT', path, body: body, auth: auth);
 
+  /// Partial update; never retried automatically (not idempotent in
+  /// general, e.g. rate-limited profile changes).
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Object? body,
+    bool auth = true,
+  }) => _send('PATCH', path, body: body ?? const {}, auth: auth);
+
   Future<Map<String, dynamic>> delete(String path, {bool auth = true}) =>
       _send('DELETE', path, auth: auth);
 

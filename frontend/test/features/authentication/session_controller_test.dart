@@ -6,6 +6,7 @@ import 'package:ludo_royale/core/protocol/protocol.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/authentication/data/provider_credential.dart';
 import 'package:ludo_royale/features/authentication/identity/identity_provider_client.dart';
+import 'package:ludo_royale/features/profile/domain/display_name.dart';
 import 'package:ludo_royale/features/profile/progression.dart';
 import 'package:ludo_royale/features/wallet/wallet_controller.dart';
 
@@ -591,6 +592,91 @@ void main() {
       expect(req.header('Authorization'), isNull);
       expect(req.json['refreshToken'], 'rt-1');
       expect(env.backend.calls('POST', '/auth/refresh'), isEmpty);
+    });
+  });
+
+  group('display name (PATCH /me)', () {
+    Future<void> signedInGuest() async {
+      await setUpEnv();
+      env.backend.json(
+        'POST',
+        '/auth/guest',
+        authJson(guestSecret: 'gs_1'),
+        status: 201,
+      );
+      await session().continueAsGuest();
+      env.analytics.events.clear();
+    }
+
+    test('success replaces the session user and wallet, logs a '
+        'parameterless event', () async {
+      await signedInGuest();
+      env.backend.on(
+        'PATCH',
+        '/me',
+        (req) => FakeResponse(
+          200,
+          meJson(name: req.json['displayName'] as String, coins: 4242),
+        ),
+      );
+      final outcome = await session().updateDisplayName('Rahul K');
+      expect(outcome, isA<DisplayNameChanged>());
+      expect((outcome as DisplayNameChanged).user.displayName, 'Rahul K');
+      final req = env.backend.calls('PATCH', '/me').single;
+      expect(req.json, {'displayName': 'Rahul K'});
+      expect(req.header('Authorization'), 'Bearer at-1');
+      expect(state().user!.displayName, 'Rahul K');
+      expect(container.read(walletControllerProvider).coins, 4242);
+      expect(env.analytics.events, ['display_name_changed']);
+    });
+
+    test('400 invalid_name carries the typed reason, user unchanged', () async {
+      await signedInGuest();
+      env.backend.on(
+        'PATCH',
+        '/me',
+        (_) => FakeResponse.error(
+          400,
+          'invalid_name',
+          details: {'reason': 'inappropriate'},
+        ),
+      );
+      final outcome = await session().updateDisplayName('Nice Name');
+      expect(outcome, isA<DisplayNameFailed>());
+      final failed = outcome as DisplayNameFailed;
+      expect(failed.code, 'invalid_name');
+      expect(failed.reason, 'inappropriate');
+      expect(failed.problem, DisplayNameProblem.inappropriate);
+      expect(state().user!.displayName, 'Asha');
+      expect(env.analytics.events, isEmpty);
+    });
+
+    test('429 rate_limited carries Retry-After and is not retried', () async {
+      await signedInGuest();
+      env.backend.on(
+        'PATCH',
+        '/me',
+        (_) => FakeResponse.error(
+          429,
+          'rate_limited',
+          headers: {
+            'retry-after': ['2'],
+          },
+        ),
+      );
+      final outcome = await session().updateDisplayName('Rahul K');
+      final failed = outcome as DisplayNameFailed;
+      expect(failed.code, 'rate_limited');
+      expect(failed.retryAfter, const Duration(seconds: 2));
+      expect(failed.problem, isNull);
+      expect(env.backend.calls('PATCH', '/me'), hasLength(1));
+    });
+
+    test('signed out → unauthorized without a request', () async {
+      await setUpEnv();
+      final outcome = await session().updateDisplayName('Rahul K');
+      expect((outcome as DisplayNameFailed).code, 'unauthorized');
+      expect(env.backend.calls('PATCH', '/me'), isEmpty);
     });
   });
 }

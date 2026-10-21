@@ -226,6 +226,7 @@ type resp struct {
 	Status int
 	Body   map[string]any
 	Raw    []byte
+	Header http.Header
 }
 
 func (e *env) do(method, path, token string, body any, headers ...string) resp {
@@ -252,7 +253,7 @@ func (e *env) do(method, path, token string, body any, headers ...string) resp {
 	}
 	defer res.Body.Close()
 	raw, _ := io.ReadAll(res.Body)
-	out := resp{Status: res.StatusCode, Raw: raw}
+	out := resp{Status: res.StatusCode, Raw: raw, Header: res.Header}
 	_ = json.Unmarshal(raw, &out.Body)
 	return out
 }

@@ -3,7 +3,7 @@
 Multiplayer **Ludo** (classic and Quick) and **Snakes & Ladders** for Android
 and iOS. A Flutter app talks to an **authoritative Go backend** (REST +
 WebSocket) backed by PostgreSQL and Redis; a separate Go service,
-**bot-play**, provides clearly labelled bot players. The server owns dice,
+**bot-play**, provides bot players (marked as bots in the protocol; the app shows no bot labels). The server owns dice,
 rules, room state, timers, wallets and progression — clients only send intents
 and render server-confirmed results.
 
