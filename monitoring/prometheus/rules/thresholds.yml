@@ -1,0 +1,36 @@
+# Alert thresholds: the single place to tune them. Each threshold is a
+# constant series that alerts.yml reads with scalar(...). Change a number,
+# then reload Prometheus:
+#   curl -X POST http://127.0.0.1:9095/-/reload
+# (promtool check rules monitoring/prometheus/rules/*.yml validates the files.)
+# How long a condition must hold ("for:") is set per alert in alerts.yml.
+groups:
+  - name: ludo-royale-thresholds
+    rules:
+      # Host CPU utilisation, % (5-minute average), for 5 minutes.
+      - record: threshold:host_cpu_percent
+        expr: vector(85)
+      # Host memory in use, %, for 5 minutes.
+      - record: threshold:host_ram_percent
+        expr: vector(90)
+      # Fullest data filesystem, %.
+      - record: threshold:host_disk_percent
+        expr: vector(90)
+      # Resident memory of one backend or bot-play process (2 GiB).
+      - record: threshold:process_rss_bytes
+        expr: vector(2147483648)
+      # HTTP 5xx share of all backend requests, %, ...
+      - record: threshold:http_5xx_percent
+        expr: vector(2)
+      # ... and only when there are at least this many 5xx per second.
+      - record: threshold:http_5xx_min_per_second
+        expr: vector(0.05)
+      # WebSocket slow-consumer events (overflow, write timeout, disconnect) per minute.
+      - record: threshold:ws_slow_events_per_minute
+        expr: vector(30)
+      # 95th percentile matchmaking wait, seconds.
+      - record: threshold:matchmaking_wait_p95_seconds
+        expr: vector(45)
+      # Age of the cluster game-stats refresh, seconds.
+      - record: threshold:game_stats_stale_seconds
+        expr: vector(120)

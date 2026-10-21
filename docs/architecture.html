@@ -1206,7 +1206,7 @@ td code { font-size: 0.8rem; }
   subgraph Ops["Operations"]
     SM["Secret manager or environment"]
     PF["Policy files and&lt;br/&gt;maintenance flag file"]
-    MON["Prometheus and alerting"]
+    MON["Prometheus, Alertmanager,&lt;br/&gt;Telegram ops bot"]
   end
   A --&gt; LB
   BP --&gt;|"https and wss in production"| LB
@@ -1222,7 +1222,7 @@ td code { font-size: 0.8rem; }
 </pre>
 </figure>
     <ul>
-      <li>Three independent projects with their own dependencies: <code>frontend/</code> (Flutter), <code>backend/</code> (Go module <code>ludoroyale</code>), <code>bot-play/</code> (Go module <code>ludoroyale/botplay</code>).</li>
+      <li>Four independent projects with their own dependencies: <code>frontend/</code> (Flutter), <code>backend/</code> (Go module <code>ludoroyale</code>), <code>bot-play/</code> (Go module <code>ludoroyale/botplay</code>), <code>monitoring/</code> (Prometheus, Alertmanager, node_exporter and the Telegram ops bot, Go module <code>ludoroyale/opsbot</code>; see <a href="#monitoring">Monitoring and alerting</a>).</li>
       <li>TLS terminates at the load balancer; set <code>TRUSTED_PROXY_HOPS</code> to the number of proxies and <code>PUBLIC_URL</code> to the https URL. Expose <code>METRICS_ADDR</code> only to the monitoring network. Run ≥ 2 backend instances; rolling deploys close sockets with <code>1001</code> and clients resync. Graceful shutdown: SIGTERM → stop accepting, close sockets, drain HTTP (20 s).</li>
       <li>Docker images: <code>backend/Dockerfile</code> (golang:1.27-alpine build → <code>gcr.io/distroless/static-debian12:nonroot</code>, exposes 8080/9090, ships <code>config/</code>) and <code>bot-play/Dockerfile</code> (static binary, distroless <code>nonroot</code>, configs under <code>/app/configs</code>). <code>backend/docker-compose.yml</code> is for local dependencies only (PostgreSQL 16, Redis 7.4 on 127.0.0.1).</li>
     </ul>
@@ -1240,6 +1240,15 @@ td code { font-size: 0.8rem; }
   run --&gt; tests["Tests: go test -race ./... in backend and bot-play,&lt;br/&gt;flutter analyze and flutter test"]
 </pre>
 </figure>
+
+    <h3 id="monitoring">Monitoring and alerting<a class="heading-anchor" href="#monitoring" aria-label="Link to this heading">#</a></h3>
+    <p class="section-meta">Code: <code>monitoring/docker-compose.yml</code>, <code>monitoring/prometheus/</code> (<code>targets/</code>, <code>rules/thresholds.yml</code>, <code>rules/alerts.yml</code>, <code>tests/</code>), <code>monitoring/alertmanager/alertmanager.yml</code>, <code>monitoring/ops-bot/</code> · Docs: <a href="../monitoring/README.md">monitoring/README.md</a> · Status: <span class="badge b-impl">Implemented</span>; production provisioning, Telegram bot, Play and GA4 access <span class="badge b-pending">Pending</span></p>
+    <ul>
+      <li><strong>Prometheus</strong> scrapes every backend instance (<code>METRICS_ADDR</code>), bot-play and node_exporter on each host (targets via file service discovery) and evaluates the alert rules; <strong>Alertmanager</strong> groups alerts (repeat every hour while firing) and posts them to the ops bot's webhook. All of it stays on the private network.</li>
+      <li>The <strong>Telegram ops bot</strong> reads the Prometheus API and sends an hourly PDF status (real players vs bots in game and online, rooms, lobby, matches started/finished, new accounts, DAU, CPU / RAM / disk per host, process memory and CPU, firing alerts, 24-hour charts), a daily KPI PDF at 09:00 IST for yesterday (accounts by provider, DAU/WAU, matches by game and mode, human-only vs bot-filled, abandons, peaks, matchmaking wait, 5xx, settlement failures, Google Play installs/uninstalls from the bulk reports in Cloud Storage, GA4 <code>first_open</code>/<code>app_remove</code>, 30-day trends) and every alert as a short message with the current CPU, RAM and player counts. <code>/status</code> and <code>/digest</code> answer on demand in the configured chats.</li>
+      <li>Alerts: backend instance down (1 min), bot-play down, host CPU &gt; 85 % and RAM &gt; 90 % for 5 min, disk &gt; 90 %, process memory &gt; 2 GiB, 5xx &gt; 2 %, any wallet settlement failure, WebSocket slow-consumer spikes, matchmaking p95 &gt; 45 s, stale game stats (&gt; 120 s). Thresholds live in one file; intervals and formats (PDF or text) are environment variables.</li>
+      <li>Cluster-wide gauges (<code>players_in_game</code>, <code>rooms_in_game</code>, <code>players_in_lobby</code>, <code>active_users_estimate</code>) are combined with <code>max</code>; per-instance <code>ws_connections_active</code> is summed. The bot token and Google keys come only from the environment; the token is redacted from every error.</li>
+    </ul>
 
     <h3 id="env-vars">Configuration by name<a class="heading-anchor" href="#env-vars" aria-label="Link to this heading">#</a></h3>
     <p>Names only — values live in the environment or a secret manager (backend), YAML files (bot-play) and dart-defines (Flutter). <strong>Secrets</strong> are marked.</p>

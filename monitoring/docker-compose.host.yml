@@ -1,0 +1,10 @@
+# Linux servers only: let node_exporter read the real host (CPU, memory and
+# every mounted filesystem) instead of its own container.
+#   docker compose -f docker-compose.yml -f docker-compose.host.yml up -d
+services:
+  node-exporter:
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave

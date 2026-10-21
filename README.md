@@ -5,7 +5,9 @@ and iOS. A Flutter app talks to an **authoritative Go backend** (REST +
 WebSocket) backed by PostgreSQL and Redis; a separate Go service,
 **bot-play**, provides bot players (marked as bots in the protocol; the app shows no bot labels). The server owns dice,
 rules, room state, timers, wallets and progression — clients only send intents
-and render server-confirmed results.
+and render server-confirmed results. A fourth project, **monitoring**, runs
+Prometheus and Alertmanager plus a Telegram ops bot that sends PDF status
+reports, daily KPIs and enriched alerts.
 
 ## [System Architecture and Flow Diagrams](docs/architecture.html)
 
@@ -48,7 +50,10 @@ A short Markdown companion is in [docs/architecture.md](docs/architecture.md).
 - **Operations**: backend-controlled force/optional update and maintenance
   mode (hot-reloaded policy files), negotiated WebSocket compression with
   bounded queues, Prometheus metrics, privacy-conscious analytics (human,
-  consented players only).
+  consented players only), and a Telegram ops bot: hourly PDF status (real
+  players vs bots, CPU / RAM per host, charts), a daily KPI report (Google
+  Play installs / uninstalls, Firebase Analytics, 30-day trends) and alerts
+  enriched with CPU, RAM and player counts.
 - **App**: light/dark themes, five languages (English, Hindi, Urdu, Arabic,
   Indonesian) with RTL support.
 
@@ -62,6 +67,9 @@ backend/    Go backend (module "ludoroyale"): cmd/server, internal/{server,httpa
             analytics,...}, migrations/, config/ (app policy, catalog, missions), docs/, tests/
 bot-play/   Go bot service (separate module "ludoroyale/botplay"): cmd/bot-play, internal/*,
             configs/, tests/
+monitoring/ Prometheus (targets, rules/thresholds.yml, alert rule tests), Alertmanager,
+            docker-compose.yml, and ops-bot/ (separate Go module "ludoroyale/opsbot"):
+            Telegram status / daily KPI PDFs and enriched alerts
 docs/       Architecture page and contracts (REST, WebSocket, auth, app policy, progression,
             bot-play, deployment, performance, cosmetics)
 ```
@@ -117,6 +125,21 @@ hosts and the `--i-understand-this-is-a-load-test` flag; refused by a
 production backend). Validate a config with `--validate`. See
 [docs/bot-play.md](docs/bot-play.md).
 
+### Monitoring and Telegram ops bot (`monitoring/`, optional)
+
+```bash
+cd monitoring
+cp .env.example .env          # TELEGRAM_BOT_TOKEN (from @BotFather) + TELEGRAM_CHAT_IDS; never commit .env
+docker compose up -d --build  # Prometheus 127.0.0.1:9095, Alertmanager :9093, ops bot :9097
+```
+
+Every hour (`STATUS_INTERVAL`) the bot sends a PDF status report, every day at
+`DAILY_REPORT_AT` (default 09:00 `Asia/Kolkata`) yesterday's KPI report, and
+every Alertmanager alert as a short message with the current CPU, RAM and
+players playing. Thresholds are in `monitoring/prometheus/rules/thresholds.yml`.
+Setup of the Telegram bot, Google Play reports and GA4 access, and production
+notes: [monitoring/README.md](monitoring/README.md).
+
 ## Testing
 
 ```bash
@@ -133,6 +156,10 @@ BACKEND_URL=http://localhost:8080 flutter test test/integration/
 
 # bot-play (uses an in-process fake backend)
 cd bot-play && go test -race ./...
+
+# Monitoring: ops bot (fake Prometheus / Telegram / Google APIs) and alert rules
+cd monitoring/ops-bot && go test -race ./...
+cd monitoring && promtool test rules prometheus/tests/alerts_test.yml
 ```
 
 ## Configuration overview (names only)
@@ -142,9 +169,11 @@ cd bot-play && go test -race ./...
 | backend | Environment variables (template: `backend/.env.example`): `APP_ENV`, `HTTP_ADDR`, `METRICS_ADDR`, `PUBLIC_URL`, `TRUSTED_PROXY_HOPS`, `DATABASE_URL`, `REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_TLS`, `JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `ACTIVE_USER_KEY`, `GOOGLE_CLIENT_IDS`, `APPLE_AUDIENCES`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `APP_POLICY_FILE`, `APP_MAINTENANCE_FLAG_FILE`, gameplay timers and fallback fees (`TURN_SECONDS`, `ENTRY_FEE_LUDO`, …), WebSocket (`WS_COMPRESSION`, `WS_COMPRESSION_THRESHOLD`, `WS_OUTBOUND_QUEUE`, …), bots (`BOT_SERVICE_KEY_SHA256`, `BOT_PUBLIC_FILL_ENABLED`, `BOT_LOADTEST_ENABLED`, …). Policy and content files in `backend/config/`; the live entry fees (default Ludo 100,000 / Snakes & Ladders 50,000 coins) and welcome grant (default 1,000,000 coins, 50 diamonds) are `entryFees` / `welcome` in `backend/config/app-policy.<env>.json`, hot-reloaded without a restart (`ENTRY_FEE_*` / `WELCOME_*` are fallbacks). |
 | frontend | `--dart-define`s: `API_BASE_URL`, `APP_ENV`, `GOOGLE_SERVER_CLIENT_ID`, `GOOGLE_IOS_CLIENT_ID`, `APPLE_SERVICE_ID`, `APPLE_REDIRECT_URI`, `FACEBOOK_ENABLED`; optional `--dart-define-from-file=config/firebase.json` (gitignored). |
 | bot-play | YAML in `bot-play/configs/` (`config.example.yaml`, `environments/*.yaml`, `loadtest.example.yaml`, `profiles.yaml`) + the `BOT_SERVICE_KEY` environment variable. |
+| monitoring | Environment variables (template: `monitoring/.env.example`): `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS`, `ENV_NAME`, `TZ_NAME`, `STATUS_INTERVAL`, `DAILY_REPORT_AT`, `REPORT_FORMAT`, `ALERT_FORMAT`, `ALERT_DEDUPE_WINDOW`, `PROM_URL`, `WEBHOOK_BEARER_TOKEN`, `PLAY_REPORTS_BUCKET`, `GA4_PROPERTY_ID`, `GOOGLE_APPLICATION_CREDENTIALS`, …; scrape targets in `monitoring/prometheus/targets/`, thresholds in `monitoring/prometheus/rules/thresholds.yml`, alert timing in `monitoring/alertmanager/alertmanager.yml`. |
 
 Secrets (`JWT_SIGNING_KEY`, `PUBLIC_ID_KEY`, `ACTIVE_USER_KEY`,
-`FACEBOOK_APP_SECRET`, database/Redis passwords, `BOT_SERVICE_KEY`) come only
+`FACEBOOK_APP_SECRET`, database/Redis passwords, `BOT_SERVICE_KEY`,
+`TELEGRAM_BOT_TOKEN`, Google service-account keys) come only
 from the environment or a secret manager — never from Git or the app. The full
 list with groups is in [the architecture page](docs/architecture.html#env-vars).
 

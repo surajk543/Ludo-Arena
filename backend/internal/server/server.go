@@ -131,6 +131,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 		Recorder: ext.Recorder, Inviter: ext.Inviter, Inventory: ext.Inventory, Policy: policy,
 		BotAuth: botAuth, Limiter: limiter, Notifier: core.Notifier, Log: log, Game: cfg.Game,
 		Bots: cfg.Bots, Env: cfg.Env, FullSnaps: cfg.WS.FullSnapshots, Dice: dice,
+		StatsInterval: cfg.GameStatsInterval,
 	})
 	gw := websocket.New(cfg.WS, log, authSvc, policy, limiter, roomSvc, core.RDB, cfg.TrustedProxyHops)
 	gw.OnHumanConnect = ext.OnActivity
@@ -202,6 +203,7 @@ func (a *App) Start(ctx context.Context) {
 	go a.Policy.Run(ctx, a.Cfg.Policy.PollInterval)
 	go a.Gateway.Run(ctx)
 	go a.Rooms.RunScheduler(ctx, 16)
+	go a.Rooms.RunGameStats(ctx)
 	go a.Async.Run(ctx)
 	for _, bg := range a.ext.Background {
 		go bg(ctx)

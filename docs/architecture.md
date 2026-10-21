@@ -17,7 +17,8 @@ section index, and per-diagram *Actual size* / *Source* buttons; append
 
 This file is a short overview. It also holds the sections that code and
 other docs link to by name: [Wallet settlement guarantees](#wallet-settlement-guarantees),
-[PostgreSQL on the hot path](#postgresql-on-the-hot-path) and [Security](#security).
+[PostgreSQL on the hot path](#postgresql-on-the-hot-path), [Security](#security) and
+[Observability](#observability-live-player-counts).
 
 ## System in one paragraph
 
@@ -36,6 +37,24 @@ Authentication is not used**, and Firebase is in the app for consent-gated
 Analytics only. A separate Go service, **bot-play**, plays as server-marked
 bots through the same protocol with room-scoped bot tokens.
 
+## Monitoring and alerting
+
+The fourth project, [`monitoring/`](../monitoring/README.md), runs Prometheus
+(scraping every backend instance's `METRICS_ADDR`, bot-play and node_exporter
+on each host), Alertmanager and a Telegram **ops bot** (separate Go module
+`ludoroyale/opsbot`). The bot reads only the Prometheus API (plus, optionally,
+the Play Console bulk reports in Cloud Storage and the GA4 Data API) and sends:
+an hourly PDF status (real players vs bots in game and online, rooms, lobby,
+matches, new accounts, DAU, CPU / RAM / disk per host, process memory, firing
+alerts, 24-hour charts), a daily KPI PDF for yesterday (accounts, DAU/WAU,
+matches by game and mode, human-only vs bot-filled, peaks, matchmaking wait,
+5xx, settlement failures, Play installs/uninstalls, GA4 first_open/app_remove,
+30-day trends), and every alert enriched with the current CPU, RAM and player
+counts. Alert thresholds live in one file
+(`monitoring/prometheus/rules/thresholds.yml`); the bot token and Google keys
+come only from the environment. Cluster-wide gauges are combined with `max`
+(every instance reports the same value); per-instance gauges are summed.
+
 ## Sections of the HTML page
 
 | # | Section | What it covers |
@@ -49,7 +68,7 @@ bots through the same protocol with room-scoped bot tokens.
 | 7 | [Private rooms](architecture.html#private-rooms) | 6-character codes from a 32-symbol alphabet, preview, join, host start, bots, lifecycle and expiry |
 | 8 | [Reconnection](architecture.html#reconnection) | Backoff with jitter, `connection.ready.activeRoomId`, `game.state`, version/hash reconciliation, close codes incl. `4409` |
 | 9 | [Light / dark theme](architecture.html#theme) | Selection → SharedPreferences → restore before first frame → ThemeExtensions |
-| 10 | [Deployment and configuration](architecture.html#deployment) | Target topology (pending), local dev, [environment variables by name](architecture.html#env-vars), identifiers |
+| 10 | [Deployment and configuration](architecture.html#deployment) | Target topology (pending), local dev, [monitoring and alerting](architecture.html#monitoring) (Prometheus, Alertmanager, Telegram ops bot), [environment variables by name](architecture.html#env-vars), identifiers |
 | 11 | [App version management](architecture.html#app-version) | Startup policy check, force/optional update, maintenance lifecycle, enforcement (426/503, 4426/4503), reload |
 | 12 | [WebSocket performance](architecture.html#websocket-performance) | permessage-deflate boundaries, deltas vs snapshots, slow-consumer handling, metrics, [measured results](architecture.html#measured-load-test-results) |
 | 13 | [Progression and engagement](architecture.html#progression) | Rematch, match records → missions/XP, levels, cosmetics, exactly-once claims, engagement principles |
@@ -197,6 +216,52 @@ concurrency and with a remote database.
 
 Details and diagrams: [architecture.html#security-testing](architecture.html#security-testing).
 
+## Observability: live player counts
+
+The backend serves Prometheus metrics on `METRICS_ADDR` (`GET /metrics`,
+internal network only; transport metrics are listed in
+[architecture.html#ws-metrics](architecture.html#ws-metrics)). How many people
+and bots are playing right now is answered by four **cluster-wide** gauges.
+Every instance exports the same values, so aggregate them with `max`, never
+`sum`:
+
+| Metric | Labels | Meaning |
+|---|---|---|
+| `players_in_game` | `actor` = `human` \| `bot` | Seats in rooms with status `playing` whose player has not forfeited (left or timed out). Load-test bots count as `bot`. |
+| `rooms_in_game` | `game` = `ludo` \| `snakes_ladders`, `mode` = `public` \| `private` \| `practice` | Rooms with status `playing` (load-test rooms are `public`). Every combination is exported, 0 included. |
+| `players_in_lobby` | `actor` | Seats in rooms with status `lobby`: public matchmaking, private rooms before the host starts, practice rooms waiting for bots. Requested bots that have not taken their seat are not counted. |
+| `game_stats_refreshed_timestamp_seconds` | — | Unix time of the last successful recount. |
+
+`ws_connections_active{actor}` stays **per instance** (open WebSockets on that
+process): `sum` it across instances. Rooms in the rematch window (`finished`)
+appear in neither the game nor the lobby gauges.
+
+How the counts stay correct with several instances
+(`backend/internal/rooms/stats.go`, keys in
+[redis-keys.md](../backend/docs/redis-keys.md#live-game-counts)): every room
+commit atomically updates the room's entry in the Redis index
+`idx:rooms:live` (status, game, mode, human and bot seats, tagged with the
+room revision), so the index cannot drift from room state. Every
+`GAME_STATS_INTERVAL` (default 15 s, jittered) one instance — the holder of the
+`stats:game:lease` lease — recounts the index in bounded batches, prunes
+entries of expired rooms, verifies each entry's revision against the room
+(reading the room itself when they differ, e.g. during a rolling deploy),
+publishes the gauges and caches the result in `stats:game`; the other
+instances publish that cached result. Values are at most about two
+intervals old; if the lease holder crashes, another instance takes over
+within about three intervals (at once on a graceful shutdown). Rooms last
+written by an instance without the index (only during the rolling deploy
+that introduces it) are counted from their next commit. A recount of 20,000
+live rooms takes ≈ 48 ms (≈ 2 µs of Redis time per room).
+
+```promql
+max by (actor) (players_in_game)                    # playing now, humans vs bots
+max by (game, mode) (rooms_in_game)
+max by (actor) (players_in_lobby)
+sum by (actor) (ws_connections_active)              # connected now
+time() - max(game_stats_refreshed_timestamp_seconds) > 120   # alert: recount stuck
+```
+
 ## Pending (not yet implemented or configured)
 
 Facebook app and credentials; Apple Developer configuration; release signing
@@ -219,5 +284,6 @@ devices is still pending. See
 [bot-play.md](bot-play.md) ·
 [deployment.md](deployment.md) ·
 [performance.md](performance.md) ·
+[../monitoring/README.md](../monitoring/README.md) ·
 [../backend/docs/game-rules.md](../backend/docs/game-rules.md) ·
 [../backend/docs/redis-keys.md](../backend/docs/redis-keys.md)

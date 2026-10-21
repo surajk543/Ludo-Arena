@@ -14,6 +14,9 @@ network only, AUTH/TLS.
 | `roomcode:{CODE}` | string | room TTL | rooms | Private room code → room id |
 | `mm:open:{pool}:{game}:{variant}:{capacity}` | zset (score = created ms) | — (members removed on start/close) | rooms | Open public lobbies; `pool` = `live` or `loadtest` |
 | `sched` | zset (score = due ms) | — | rooms | Distributed timers: `turn`, `fill`, `lobbykick`, `rematch`, `practice`, `botexp`, `payout`, `record` |
+| `idx:rooms:live` | hash: room id → `{rev}\|{status}\|{game}\|{mode}\|{humans}\|{bots}` | — (entries removed on finish/close; expired rooms pruned by the recount) | rooms (atomic with every room commit) | Live-room index behind the cluster-wide game gauges: one entry per room in `lobby` or `playing`; `humans`/`bots` count non-forfeited seats. `rev` equals the room's `rev` after that commit, so an entry is valid only while it matches `room:{id}` rev |
+| `stats:game` | string (JSON recount) | 4 × `GAME_STATS_INTERVAL` | rooms (lease holder) | Last cluster-wide recount (`players_in_game`, `rooms_in_game`, `players_in_lobby`); instances without the lease publish this value |
+| `stats:game:lease` | string (instance id) | 2 × `GAME_STATS_INTERVAL` (renewed by the holder each interval; released on shutdown) | rooms | Elects the one instance that recounts each interval |
 | `settle:fee:{room}:{round}` / `settle:pay:{room}:{round}` | string | 24 h / 7 d | rooms | Settlement guards (entry fees / payout at most once) |
 | `settle:retry:*`, `record:retry:*` | counter | 1 h | rooms | Bounded retry counters |
 | `bot:assignments` | list | — | rooms | Pending bot assignment ids (long-poll queue) |
@@ -40,8 +43,26 @@ network only, AUTH/TLS.
 Every room mutation runs `commitScript` (Lua): check revision → check guards
 (e.g. "user pointer is unset or already this room") → write state + TTL →
 apply side operations (pointers, codes, open-lobby set, timers, bot queue) →
-`PUBLISH` the ordered event batch. Because Redis runs scripts serially, events
-are published in commit order even with many backend instances.
+write or remove the room's `idx:rooms:live` entry → `PUBLISH` the ordered
+event batch. Because Redis runs scripts serially, events are published in
+commit order even with many backend instances.
+
+## Live game counts
+
+`idx:rooms:live` is written in the same script as the room state, so it can
+never disagree with a committed room. Every `GAME_STATS_INTERVAL` (default
+15 s, ±10 % jitter) the instance holding `stats:game:lease` recounts it
+(`backend/internal/rooms/stats.go`): `HSCAN` pages of 256 entries, each
+checked by one Lua call that reads the entry and `room:{id}` `rev` together.
+An entry whose room key is gone (TTL expiry) is deleted; one whose `rev`
+differs from the room's (written by an instance without the index, e.g.
+during a rolling deploy) is counted from the room state itself and dropped if
+the room is no longer live. The result is cached in `stats:game`, which the
+other instances publish, so every instance exports the same values and Redis
+does the work once per interval. Measured on a local Redis 7.4: about 2 µs of
+Redis time per live room (≈ 0.5 ms per 256-room call); a full recount of
+20,000 live rooms takes ≈ 48 ms end to end. The index entry adds one small
+`HSET`/`HDEL` to each room commit.
 
 ## Redis restart / data loss
 
