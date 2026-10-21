@@ -34,8 +34,13 @@ class LudoBoardController extends ChangeNotifier {
     required List<SeatColor> seatColors,
     required int tokensPerPlayer,
     required List<List<int>> positions,
+    int quarterTurns = 0,
   }) : assert(tokensPerPlayer >= 1 && tokensPerPlayer <= 4),
        _seatColors = List<SeatColor>.unmodifiable(seatColors),
+       _quarterTurns = quarterTurns % 4,
+       _boardColors = List<SeatColor>.unmodifiable([
+         for (final c in seatColors) c.rotated(quarterTurns),
+       ]),
        _tokensPerPlayer = tokensPerPlayer.clamp(1, 4),
        _target = _normalize(
          positions,
@@ -61,6 +66,11 @@ class LudoBoardController extends ChangeNotifier {
   }
 
   final List<SeatColor> _seatColors;
+  final int _quarterTurns;
+
+  /// Per seat, the color whose board geometry (corner, start square, home
+  /// column) the seat is drawn with: [seatColors] turned by [quarterTurns].
+  final List<SeatColor> _boardColors;
   final int _tokensPerPlayer;
   final List<List<int>> _target;
   final List<List<int>> _display;
@@ -114,6 +124,10 @@ class LudoBoardController extends ChangeNotifier {
   // Public state.
 
   List<SeatColor> get seatColors => _seatColors;
+
+  /// Clockwise quarter turns of the board view (0..3). All grid positions
+  /// this controller reports are in the turned view.
+  int get quarterTurns => _quarterTurns;
   int get seatCount => _seatColors.length;
   int get tokensPerPlayer => _tokensPerPlayer;
 
@@ -438,7 +452,7 @@ class LudoBoardController extends ChangeNotifier {
   }
 
   LudoSpot _spotOf(int seat, int token) => LudoGeometry.cellFor(
-    _seatColors[seat],
+    _boardColors[seat],
     _display[seat][token],
     tokenIndex: token,
     tokensPerPlayer: _tokensPerPlayer,
@@ -540,7 +554,7 @@ class _LudoMoveJob extends MotionJob {
     final mi = _i(seat, token);
     final m = c._motion[mi];
     final wasResting = c._display[seat][token] == from && !m.active;
-    final color = c._seatColors[seat];
+    final color = c._boardColors[seat];
     final start = wasResting
         ? c.restingCenter(seat, token)
         : LudoGeometry.cellFor(
@@ -835,7 +849,7 @@ class _LudoMoveJob extends MotionJob {
       engine.addEffect(
         BoardEffect(
           kind: BoardEffectKind.homeSparkle,
-          center: LudoGeometry.homeCenter(color),
+          center: LudoGeometry.homeCenter(c._boardColors[seat]),
           color: c._fallbackColor(seat),
           seatColor: color,
           start: engine.now,

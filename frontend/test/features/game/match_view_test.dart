@@ -6,6 +6,8 @@ import 'package:ludo_royale/core/protocol/protocol.dart';
 import 'package:ludo_royale/core/realtime/active_room_controller.dart';
 import 'package:ludo_royale/core/state/in_match_provider.dart';
 import 'package:ludo_royale/features/game/presentation/game_route_screen.dart';
+import 'package:ludo_royale/features/game/presentation/widgets/player_panel.dart';
+import 'package:ludo_royale/features/ludo/presentation/board/board.dart';
 import 'package:ludo_royale/features/ludo/presentation/screens/ludo_game_screen.dart';
 import 'package:ludo_royale/features/snakes_ladders/presentation/screens/snakes_game_screen.dart';
 import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
@@ -179,7 +181,10 @@ void main() {
       tester,
       ludoRoom(
         turnSeat: 1,
-        players: [player(0), player(1, name: 'Bolt', bot: true)],
+        players: [
+          player(0),
+          player(1, name: 'Bolt', bot: true),
+        ],
       ),
     );
     expect(find.text('Bolt (bot) is playing…'), findsOneWidget);
@@ -284,9 +289,7 @@ void main() {
     expect(find.text('You won!'), findsOneWidget);
     expect(find.text('+4,000 coins'), findsOneWidget);
     expect(find.text('Calculating XP…'), findsOneWidget);
-    expect(h.analytics.events, [
-      'game_result_viewed:ludo:public:human_only',
-    ]);
+    expect(h.analytics.events, ['game_result_viewed:ludo:public:human_only']);
 
     h.progression.add(
       const ProgressionUpdatedEvent(xp: 140, level: 2, xpGained: 35),
@@ -395,5 +398,79 @@ void main() {
     );
     await flush(tester, 6);
     expect(find.text('LOBBY r_1'), findsOneWidget);
+  });
+
+  group('the local player sits bottom-left', () {
+    Rect panelOf(WidgetTester tester, int seat) => tester.getRect(
+      find.byWidgetPredicate((w) => w is PlayerPanel && w.player.seat == seat),
+    );
+
+    /// Which screen quadrant [r] is in, relative to the board's center.
+    String quadrant(WidgetTester tester, Rect r) {
+      final c = tester.getCenter(
+        find.byType(LudoBoard).evaluate().isEmpty
+            ? find.byType(SnakesGameScreen)
+            : find.byType(LudoBoard),
+      );
+      final v = r.center.dy < c.dy ? 'top' : 'bottom';
+      final h = r.center.dx < c.dx ? 'Left' : 'Right';
+      return '$v$h';
+    }
+
+    for (final self in [0, 1, 2, 3]) {
+      testWidgets('4 players, self ${SeatColor.values[self].name}', (
+        tester,
+      ) async {
+        await _pumpGame(tester, ludoRoom(), selfUid: 'u_$self');
+        expect(quadrant(tester, panelOf(tester, self)), 'bottomLeft');
+        // Opponents keep the clockwise order around the board.
+        expect(quadrant(tester, panelOf(tester, (self + 1) % 4)), 'topLeft');
+        expect(quadrant(tester, panelOf(tester, (self + 2) % 4)), 'topRight');
+        expect(
+          quadrant(tester, panelOf(tester, (self + 3) % 4)),
+          'bottomRight',
+        );
+        // The board turns with the pods: the local base is bottom-left.
+        final board = tester.widget<LudoBoard>(find.byType(LudoBoard));
+        final base = board.controller.restingCenter(self, 0);
+        expect(base.dx, lessThan(6));
+        expect(base.dy, greaterThan(9));
+        expect(
+          board.controller.quarterTurns,
+          SeatColor.values[self].turnsToBottomLeft,
+        );
+      });
+    }
+
+    testWidgets('2 players: the opponent faces from the top-right', (
+      tester,
+    ) async {
+      await _pumpGame(
+        tester,
+        ludoRoom(
+          players: [
+            player(0, color: 'red'),
+            player(1, color: 'yellow'),
+          ],
+        ),
+        selfUid: 'u_1',
+      );
+      expect(quadrant(tester, panelOf(tester, 1)), 'bottomLeft');
+      expect(quadrant(tester, panelOf(tester, 0)), 'topRight');
+    });
+
+    testWidgets('Snakes & Ladders pods rotate the same way', (tester) async {
+      await _pumpGame(tester, snakesRoom(), selfUid: 'u_2');
+      expect(quadrant(tester, panelOf(tester, 2)), 'bottomLeft');
+      expect(quadrant(tester, panelOf(tester, 0)), 'topRight');
+    });
+
+    testWidgets('spectators see the board unturned', (tester) async {
+      await _pumpGame(tester, ludoRoom(), selfUid: 'u_spectator');
+      expect(quadrant(tester, panelOf(tester, 0)), 'topLeft');
+      expect(quadrant(tester, panelOf(tester, 3)), 'bottomLeft');
+      final board = tester.widget<LudoBoard>(find.byType(LudoBoard));
+      expect(board.controller.quarterTurns, 0);
+    });
   });
 }

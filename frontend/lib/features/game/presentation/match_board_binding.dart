@@ -69,6 +69,15 @@ List<SeatColor> seatColorsOf(RoomSnapshot room, int seats) {
   ];
 }
 
+/// Clockwise quarter turns of the board view that put [selfSeat]'s color at
+/// the bottom-left corner (0 for spectators).
+int boardTurnsFor(RoomSnapshot room, int? selfSeat) {
+  if (selfSeat == null || selfSeat < 0) return 0;
+  final seats = seatCountOf(room);
+  if (selfSeat >= seats) return 0;
+  return seatColorsOf(room, seats)[selfSeat].turnsToBottomLeft;
+}
+
 /// Number of seats the board arrays cover.
 int seatCountOf(RoomSnapshot room) {
   var n = room.players.length;

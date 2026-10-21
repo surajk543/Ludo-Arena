@@ -42,6 +42,7 @@ BoardCell _cell(SeatColor color, int progress) => LudoGeometry.cellFor(
 ).cell!;
 
 void main() {
+  quarterTurnSymmetryTests();
   group('main track', () {
     test('has 52 unique squares matching the doc table in order', () {
       final doc = _parse(_docTrack);
@@ -354,4 +355,70 @@ bool _inTriangle(Offset p, List<Offset> t) {
   final neg = d1 < 0 || d2 < 0 || d3 < 0;
   final pos = d1 > 0 || d2 > 0 || d3 > 0;
   return !(neg && pos);
+}
+
+/// One clockwise quarter turn of a grid point around the board center.
+Offset _turn(Offset p) => Offset(LudoGeometry.gridSize - p.dy, p.dx);
+
+void _expectNear(Offset actual, Offset expected, String reason) {
+  expect(actual.dx, closeTo(expected.dx, 1e-9), reason: reason);
+  expect(actual.dy, closeTo(expected.dy, 1e-9), reason: reason);
+}
+
+void quarterTurnSymmetryTests() {
+  group('quarter-turn symmetry (board view rotation)', () {
+    // The view puts the local player bottom-left by drawing each color with
+    // the geometry of `color.rotated(k)`; that is a true rotation only if
+    // the board is symmetric under quarter turns.
+    for (final color in SeatColor.values) {
+      final next = color.rotated(1);
+      test('${color.name} turned once lands on ${next.name}', () {
+        for (var p = 0; p <= LudoGeometry.homeProgress; p++) {
+          _expectNear(
+            LudoGeometry.cellFor(
+              next,
+              p,
+              tokenIndex: 0,
+              tokensPerPlayer: 4,
+            ).center,
+            _turn(
+              LudoGeometry.cellFor(
+                color,
+                p,
+                tokenIndex: 0,
+                tokensPerPlayer: 4,
+              ).center,
+            ),
+            'progress $p',
+          );
+        }
+        final base = LudoGeometry.baseRect(color);
+        final turned = Rect.fromPoints(
+          _turn(base.topLeft),
+          _turn(base.bottomRight),
+        );
+        expect(LudoGeometry.baseRect(next), turned);
+        for (final tpp in [2, 4]) {
+          Set<Offset> slots(SeatColor c) => {
+            for (var t = 0; t < tpp; t++)
+              LudoGeometry.cellFor(
+                c,
+                LudoGeometry.baseProgress,
+                tokenIndex: t,
+                tokensPerPlayer: tpp,
+              ).center,
+          };
+          expect(
+            slots(next),
+            slots(color).map(_turn).toSet(),
+            reason: '$tpp tokens',
+          );
+        }
+        expect(
+          LudoGeometry.homeTriangle(next).toSet(),
+          LudoGeometry.homeTriangle(color).map(_turn).toSet(),
+        );
+      });
+    }
+  });
 }

@@ -60,11 +60,15 @@ class MatchView extends ConsumerStatefulWidget {
 
 /// One room round's board binding + sequencer.
 class _Stage {
-  _Stage(this.key, this.binding, this.sequencer);
+  _Stage(this.key, this.binding, this.sequencer, this.turns);
 
   final String key;
   final MatchBoardBinding binding;
   final MatchEventSequencer sequencer;
+
+  /// Clockwise quarter turns of the view that put the local player in the
+  /// bottom-left corner (same value the Ludo board binding uses).
+  final int turns;
 
   void dispose() {
     sequencer.dispose();
@@ -77,7 +81,8 @@ String _stageKey(RoomSnapshot r) => '${r.id}#${r.round}#${seatCountOf(r)}';
 /// Physical board corners (the board is never mirrored).
 enum _Corner { topLeft, topRight, bottomLeft, bottomRight }
 
-_Corner _cornerOf(SeatColor color) => switch (color) {
+/// Corner of [color] in the view turned by [turns] clockwise quarter turns.
+_Corner _cornerOf(SeatColor color, int turns) => switch (color.rotated(turns)) {
   SeatColor.red => _Corner.topLeft,
   SeatColor.green => _Corner.topRight,
   SeatColor.yellow => _Corner.bottomRight,
@@ -165,7 +170,12 @@ class _MatchViewState extends ConsumerState<MatchView> {
     );
     sequencer.presented.addListener(_onPresented);
     sequencer.busy.addListener(_onBusy);
-    return _Stage(_stageKey(room), binding, sequencer);
+    return _Stage(
+      _stageKey(room),
+      binding,
+      sequencer,
+      boardTurnsFor(room, selfSeat),
+    );
   }
 
   void _replaceStage(RoomSnapshot room) {
@@ -679,6 +689,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
                     child: _MatchLayout(
                       room: presented,
                       selfSeat: selfSeat,
+                      turns: stage.turns,
                       board: board,
                       links: _links,
                       turnTotal: _turnTotal,
@@ -722,7 +733,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
                       links: _links,
                       topSeats: {
                         for (final p in presented.players)
-                          if (_isTopSeat(p)) p.seat,
+                          if (_isTopSeat(p, stage.turns)) p.seat,
                       },
                       seatColors: {
                         for (final p in presented.players)
@@ -778,8 +789,9 @@ class _MatchViewState extends ConsumerState<MatchView> {
   }
 }
 
-bool _isTopSeat(RoomPlayer p) {
-  final corner = _cornerOf(SeatColor.tryFromName(p.color) ?? SeatColor.red);
+bool _isTopSeat(RoomPlayer p, int turns) {
+  final color = SeatColor.tryFromName(p.color) ?? SeatColor.red;
+  final corner = _cornerOf(color, turns);
   return corner == _Corner.topLeft || corner == _Corner.topRight;
 }
 
@@ -844,6 +856,7 @@ class _MatchLayout extends StatelessWidget {
   const _MatchLayout({
     required this.room,
     required this.selfSeat,
+    required this.turns,
     required this.board,
     required this.links,
     required this.turnTotal,
@@ -854,6 +867,7 @@ class _MatchLayout extends StatelessWidget {
 
   final RoomSnapshot room;
   final int? selfSeat;
+  final int turns;
   final Widget board;
   final Map<int, LayerLink> links;
   final int Function(RoomSnapshot) turnTotal;
@@ -864,7 +878,7 @@ class _MatchLayout extends StatelessWidget {
   RoomPlayer? _at(_Corner corner) {
     for (final p in room.players) {
       final color = SeatColor.tryFromName(p.color);
-      if (color != null && _cornerOf(color) == corner) return p;
+      if (color != null && _cornerOf(color, turns) == corner) return p;
     }
     return null;
   }

@@ -22,6 +22,7 @@ class LudoBoardPainter extends CustomPainter {
     this.tokensPerPlayer = 4,
     this.activeColors,
     this.detailed = true,
+    this.quarterTurns = 0,
   });
 
   final LudoBoardStyle style;
@@ -34,6 +35,14 @@ class LudoBoardPainter extends CustomPainter {
 
   /// False for mini illustrations: skips textures and fine ornaments.
   final bool detailed;
+
+  /// Clockwise quarter turns of the view: each color is drawn at the corner
+  /// of `color.rotated(quarterTurns)`. The board is symmetric under quarter
+  /// turns, so this rotates it while lighting and shadows keep pointing the
+  /// same way.
+  final int quarterTurns;
+
+  SeatColor _at(SeatColor color) => color.rotated(quarterTurns);
 
   static const double _f = LudoBoardLayout.frameInset;
 
@@ -193,7 +202,9 @@ class LudoBoardPainter extends CustomPainter {
     // Main track.
     for (var i = 0; i < LudoGeometry.trackLength; i++) {
       final c = LudoGeometry.track[i];
-      final startColor = LudoGeometry.startColorAt(i);
+      // The color drawn at this corner's start square.
+      final corner = LudoGeometry.startColorAt(i);
+      final startColor = corner?.rotated(4 - quarterTurns % 4);
       if (startColor != null) {
         colored(c, style.seat(startColor));
         _arrow(
@@ -226,11 +237,12 @@ class LudoBoardPainter extends CustomPainter {
     // color, the last track square before the column).
     for (final color in SeatColor.values) {
       final shades = style.seat(color);
-      for (final c in LudoGeometry.homeColumn(color)) {
+      final at = _at(color);
+      for (final c in LudoGeometry.homeColumn(at)) {
         colored(c, shades);
       }
-      final entry = LudoGeometry.track[LudoGeometry.absoluteIndex(color, 50)];
-      final into = LudoGeometry.homeColumn(color).first.center - entry.center;
+      final entry = LudoGeometry.track[LudoGeometry.absoluteIndex(at, 50)];
+      final into = LudoGeometry.homeColumn(at).first.center - entry.center;
       _arrow(canvas, paint, entry.center, into, shades.base, 0.85);
     }
   }
@@ -261,7 +273,8 @@ class LudoBoardPainter extends CustomPainter {
         onColor: s.onColor,
       );
     }
-    final rect = LudoGeometry.baseRect(color).deflate(0.06);
+    final at = _at(color);
+    final rect = LudoGeometry.baseRect(at).deflate(0.06);
     final outer = RRect.fromRectAndRadius(rect, const Radius.circular(0.42));
 
     paint.color = style.shadow;
@@ -289,12 +302,12 @@ class LudoBoardPainter extends CustomPainter {
     if (style.texture == LudoBoardTexture.marble && detailed) {
       canvas.save();
       canvas.clipRRect(outer);
-      _marbleVeins(canvas, paint, alphaScale: 1.3, seed: color.index);
+      _marbleVeins(canvas, paint, alphaScale: 1.3, seed: at.index);
       canvas.restore();
     }
 
     // Inner panel.
-    final o = LudoGeometry.baseOrigins[color.index];
+    final o = LudoGeometry.baseOrigins[at.index];
     final panelRect = Rect.fromLTWH(o.col + 0.85, o.row + 0.85, 4.3, 4.3);
     final panel = RRect.fromRectAndRadius(
       panelRect,
@@ -326,8 +339,8 @@ class LudoBoardPainter extends CustomPainter {
     // Wells.
     final rim = style.wellRim ?? s.base;
     for (var t = 0; t < tokensPerPlayer.clamp(1, 4); t++) {
-      final slot = LudoGeometry.baseSlotFor(color, t, tokensPerPlayer);
-      final c = LudoGeometry.baseSlotCenter(color, slot);
+      final slot = LudoGeometry.baseSlotFor(at, t, tokensPerPlayer);
+      final c = LudoGeometry.baseSlotCenter(at, slot);
       const r = 0.68;
       paint
         ..color = const Color(0xFFFFFFFF)
@@ -373,7 +386,7 @@ class LudoBoardPainter extends CustomPainter {
     const center = LudoGeometry.boardCenter;
     for (final color in SeatColor.values) {
       final s = style.seat(color);
-      final tri = LudoGeometry.homeTriangle(color);
+      final tri = LudoGeometry.homeTriangle(_at(color));
       final path = Path()..addPolygon(tri, true);
       final edgeMid = (tri[0] + tri[1]) / 2;
       paint
@@ -666,5 +679,6 @@ class LudoBoardPainter extends CustomPainter {
       oldDelegate.style != style ||
       oldDelegate.tokensPerPlayer != tokensPerPlayer ||
       oldDelegate.detailed != detailed ||
+      oldDelegate.quarterTurns != quarterTurns ||
       !setEquals(oldDelegate.activeColors, activeColors);
 }

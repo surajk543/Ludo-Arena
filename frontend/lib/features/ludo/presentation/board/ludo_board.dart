@@ -154,6 +154,7 @@ class _LudoBoardState extends State<LudoBoard> with TickerProviderStateMixin {
                           style: style,
                           tokensPerPlayer: controller.tokensPerPlayer,
                           activeColors: controller.seatColors.toSet(),
+                          quarterTurns: controller.quarterTurns,
                         ),
                         isComplex: true,
                         willChange: false,
@@ -436,8 +437,11 @@ class LudoTokenPainter extends CustomPainter {
         !controller.isSeatVisible(seat)) {
       return;
     }
-    final shades = palette.shades(controller.seatColors[seat]);
-    final g = LudoGeometry.baseRect(controller.seatColors[seat]).deflate(0.06);
+    final color = controller.seatColors[seat];
+    final g = LudoGeometry.baseRect(
+      color.rotated(controller.quarterTurns),
+    ).deflate(0.06);
+    final shades = palette.shades(color);
     final rect = Rect.fromLTRB(
       layout.gridOrigin.dx + g.left * layout.cell,
       layout.gridOrigin.dy + g.top * layout.cell,

@@ -54,6 +54,11 @@ Coordinates are `(col, row)` with `(0, 0)` at the **top-left**.
 - Home (finish) = center 3 × 3 (cols 6–8, rows 6–8), drawn as four triangles:
   red's triangle points in from the left, green's from the top, yellow's from
   the right, blue's from the bottom.
+- These are the rule (protocol) coordinates. The app *displays* the board
+  turned by whole quarter turns so the local player's base is always
+  bottom-left (`SeatColor.turnsToBottomLeft` in the Flutter app); spectators
+  see it unturned. The board is symmetric under quarter turns, so this is a
+  pure view change.
 
 #### Main track — 52 squares, absolute index 0..51, clockwise
 
