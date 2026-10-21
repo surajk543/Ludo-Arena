@@ -186,6 +186,97 @@ revoked (`invalid_credential` / `unauthorized`), never `session_replaced`.
 Long-lived WebSockets re-check their session every 60 s and close with `4401`
 once revoked.
 
+## Deleting an account
+
+Required by Google Play and the App Store for apps with accounts. In the app:
+**Settings → Delete account** (guests and linked accounts alike). The app
+explains what is deleted, requires an explicit "I understand" confirmation,
+then calls:
+
+```
+DELETE /api/v1/account
+Authorization: Bearer <human access token>
+{"confirm":"DELETE"}            → 204 No Content
+```
+
+`confirm` is the literal `DELETE` (never localized; anything else → 400
+`confirmation_required`). Bots and bot controllers → 403. Not version-gated
+(like logout: deleting must work on any app version and during a force
+update). Rate limited **5 per hour per account**, wrong confirmations included
+(429 `rate_limited`). A second call with the same, now dead, token → 401
+`unauthorized`; so does the loser of two concurrent calls. Any 5xx means
+nothing was deleted. Implementation: `backend/internal/account`.
+
+**Order of operations**
+
+1. **Active room.** The account leaves its room exactly like `room.leave`: a
+   lobby seat is released, a game in progress is **forfeited** and continues
+   for the other players (entry fees are not refunded — the rules of leaving
+   a game are unchanged), a finished room's rematch is declined.
+2. **PostgreSQL, one transaction.** It locks the account's
+   `progression.player_progress` row and then its `wallet.wallets` row (the
+   lock order of every progression write, so it cannot deadlock with a claim,
+   purchase, equip or match record) and deletes, table by table:
+   `progression.player_reports` filed **by** the account and filed
+   **against** it, `progression.friendships` on **both** sides (accepted and
+   pending, sent and received), `mission_progress`, `mission_claims`,
+   `match_receipts`, `inventory`, `loadout`, `player_progress` (XP, level,
+   chosen display name, public id), every `identity.auth_identities` row
+   (guest secret hash, **device binding**, Google/Facebook/Apple subjects)
+   and finally `wallet.wallets` (coins, diamonds). Concurrent deletions of
+   one account serialize on those locks: exactly one commits, the others find
+   no account (401). A failure rolls everything back.
+3. **Redis** (after the commit; best effort, idempotent — a failure is logged
+   and a retry with a still-live session repeats it): every human session is
+   revoked (`sess:{sid}` with its current `rt:{hash}`, `usess:{userId}`; no
+   `sessrep:` tombstone, so refresh answers 401 `invalid_credential` and REST
+   / WebSocket upgrades 401 `unauthorized`); the live WebSocket is closed at
+   once with **`4401` and reason `account deleted`** on whichever instance
+   holds it (control message `{"ctl":"deleted"}` on `ev:user:{userId}`); a
+   room joined in the meantime is left again; then `profile:{userId}`,
+   `pubid:{publicId}`, `namechg:{userId}`, `seat:{userId}` (+ lease),
+   `emotes:{userId}`, `presence:{userId}`, `recent:{userId}` **and** the
+   account's entry in every recent opponent's `recent:{otherId}`, its member
+   in the last five weekly leaderboards `lb:xp:{week}`, and its per-account
+   rate-limit counters (`rl:{rule}:{userId}:{window}`, incl. the report
+   limiters) are deleted. Match records that finish later never re-add a
+   deleted account to anyone's recent players, and a payout owed to a
+   deleted winner is skipped.
+
+Metric: `account_deletions_total{result}` with `deleted`, `already_deleted`
+(lost a concurrent race), `bad_confirm` and `error` (nothing deleted).
+
+**What remains** (no personal data, nothing that identifies the account):
+
+| Data | Why / until |
+|---|---|
+| HyperLogLog active-user sketches `au:d:*`, `au:w:*` | Pseudonymous HMAC members that cannot be enumerated or removed; expire after 40 days |
+| Prometheus counters (e.g. `account_deletions_total{result}`) | Aggregates without ids |
+| `idem:{userId}:{key}` (cached claim/purchase responses), `dedup:{userId}:{msgId}`, `invite:{from}:{to}:{roomId}` | Short-lived keys that only the (revoked) account could read; expire within 24 h / 2 min / ≤ 30 min. They cannot be listed without a keyspace scan |
+| Rotated refresh-token tombstones `rt:{hash}` → dead session id, older `sessrep:{sid}` tombstones | No account id; expire with the refresh TTL |
+| Live rooms the account played in | Seat name/avatar copied at join time, until the room expires (≤ 3 h playing, ~10 min finished) |
+| Server logs | The deletion is logged with row counts only (no account, public or provider id) |
+| Backups / WAL archives | Until they rotate out (operator retention) |
+
+**Player reports.** Reports **against** the deleted account are deleted too:
+`player_reports.reported_id` is `NOT NULL REFERENCES wallet.wallets ON DELETE
+CASCADE` (approved schema), and keeping them would need a schema change. The
+account no longer exists, so there is nothing left to act on.
+
+**After a deletion** the app forgets everything it held (tokens, guest
+secret, device-binding marker, provider SDK session) and lands on the sign-in
+screen with "Your account was deleted." — nothing is restored automatically,
+not even on the next launch. Because the device binding and every provider
+identity are gone, `POST /auth/device/resume` on that device answers 404, and
+**Play as guest** on the same device or a Google/Facebook/Apple sign-in with
+the same provider account creates a **new** account with a **new** welcome
+grant. This is intended: everything of the old account, including its coins,
+was deleted.
+
+Verified by `backend/tests/account_delete_test.go`
+(`TestDeleteAccountErasesEverything`, `TestDeleteAccountRequestRules`,
+`TestConcurrentAccountDeletion`).
+
 ## Exactly-once welcome grant
 
 ```
@@ -236,7 +327,7 @@ sign-ins and linking never overwrite it ([rest-api.md](rest-api.md#changing-the-
 Sign-in (incl. device resume) 30/min/IP · guest creation (incl. `/auth/guest`
 with a `deviceId`) 10/h/IP · refresh and logout 60/min/IP · linking and device
 bind/unbind 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account
-· matchmaking 20/min/account · app config 120/min/IP.
+· matchmaking 20/min/account · account deletion 5/h/account · app config 120/min/IP.
 
 ## Provider configuration
 
