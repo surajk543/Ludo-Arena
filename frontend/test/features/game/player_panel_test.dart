@@ -573,7 +573,7 @@ void main() {
       for (final turn in [false, true]) {
         for (final p in [
           player(1),
-          player(1, bot: true, name: 'Bot Riya', frame: 'frame_royal'),
+          player(1, name: 'Riya', frame: 'frame_royal'),
           player(1, connected: false, strikes: 2),
           player(1, forfeited: true),
         ]) {
@@ -908,7 +908,7 @@ void main() {
                   stacked: false,
                   height: h,
                   room: room,
-                  p: player(1, connected: connected, strikes: 3, bot: true),
+                  p: player(1, connected: connected, strikes: 3),
                   isTurn: true,
                   muted: true,
                   textScale: 1.35,
