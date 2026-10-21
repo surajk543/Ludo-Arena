@@ -99,7 +99,7 @@ Client → server:
 | Field | Type | Notes |
 |---|---|---|
 | `t` | string | Message type (required) |
-| `id` | string | Client message id, 1–64 chars, unique per connection. Required for every type except `ping`. Used for replies and de-duplication. |
+| `id` | string | Client message id, 1–64 chars, **unique per user for at least 2 minutes across connections** (e.g. a random per-connection prefix plus a counter). Required for every type except `ping`. Used for replies and de-duplication. |
 | `p` | object | Payload (may be omitted when empty) |
 
 Server → client:

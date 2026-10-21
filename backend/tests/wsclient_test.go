@@ -185,8 +185,10 @@ func (c *client) readLoop() {
 			return
 		}
 		var m msg
-		if err := json.Unmarshal(data, &m); err != nil {
-			c.t.Errorf("%s: bad json %s", c.name, data)
+		if err := json.Unmarshal(data, &m); err != nil || m.T == "" {
+			// Every server frame must be a protocol envelope with a type
+			// (regression: an internal control message once leaked here).
+			c.t.Errorf("%s: invalid server frame %s", c.name, data)
 			continue
 		}
 		c.mu.Lock()

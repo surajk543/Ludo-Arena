@@ -263,10 +263,19 @@ func (g *Gateway) register(c *conn) {
 		old.close(CloseReplaced, "session replaced by a newer connection")
 	}
 	ctx := context.Background()
-	// Kick connections of this user on other instances.
-	ctl, _ := json.Marshal(map[string]string{"ctl": "kick", "conn": c.id})
+	// Kick connections of this user on other instances. A struct (not a map)
+	// keeps "ctl" as the first key, which route() relies on to tell control
+	// messages apart from client envelopes.
+	ctl, _ := json.Marshal(controlMsg{Ctl: "kick", Conn: c.id})
 	g.rdb.Publish(ctx, notify.UserChannel(c.userID), ctl)
 	g.rdb.Set(ctx, "presence:"+c.userID, c.id, presenceTTL)
+}
+
+// controlMsg is an instance-to-instance message on a user channel; it is
+// never forwarded to clients.
+type controlMsg struct {
+	Ctl  string `json:"ctl"`
+	Conn string `json:"conn"`
 }
 
 func (g *Gateway) unregister(c *conn) {
@@ -333,11 +342,9 @@ func (g *Gateway) route(msg *redis.Message) {
 			return
 		}
 		payload := []byte(msg.Payload)
-		if bytes.HasPrefix(payload, []byte(`{"ctl"`)) {
-			var ctl struct {
-				Ctl  string `json:"ctl"`
-				Conn string `json:"conn"`
-			}
+		if !bytes.HasPrefix(payload, []byte(`{"t":`)) {
+			// Not a client envelope: an instance control message.
+			var ctl controlMsg
 			if json.Unmarshal(payload, &ctl) == nil && ctl.Ctl == "kick" && ctl.Conn != c.id {
 				c.close(CloseReplaced, "session replaced by a newer connection")
 			}
