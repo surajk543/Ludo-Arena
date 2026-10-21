@@ -24,7 +24,7 @@ network only, AUTH/TLS.
 | `botsess:{uid}` | string | bot session TTL | rooms | Bot public id → session/room (revocation) |
 | `sess:{sid}` | hash `{uid, cur, actor}` | refresh TTL (sliding) | auth | Session family; deleting it revokes access + refresh |
 | `rt:{sha256}` | string | refresh TTL | auth | Refresh-token hash → session (old hashes remain as reuse tombstones) |
-| `usess:{userId}` | string (sid) | refresh TTL (slides with refresh) | auth | The account's one live **human** session. Set atomically by every sign-in (Lua), which deletes the previous `sess:{old}`; cleared on logout only if it still names that sid. Never written for bot sessions |
+| `usess:{userId}` | string (sid) | refresh TTL (slides with refresh) | auth | The account's one live **human** session. Set atomically by every sign-in (Lua), which deletes the previous `sess:{old}`; cleared on logout only if it still names that sid. Deleted (with the session and its current `rt:{hash}`) by account deletion. Never written for bot sessions |
 | `sessrep:{sid}` | string (newer sid) | refresh TTL | auth | Tombstone: `sid` was ended by a newer sign-in of the account → refresh / REST / WS upgrade answer `session_replaced`. Not written by logout or reuse revocation |
 | `profile:{userId}` | hash `{name, avatar}` | none | profile | Display cache. A player-chosen name is authoritative in PostgreSQL (`progression.player_progress.display_name`) and written here in the same request; if this key is lost, reads (`Get`/`GetMany`, `HSETNX`) and the next sign-in rebuild it. Provider/generated names are cache-only (refreshed on sign-in) |
 | `namechg:{userId}` | zset (member = change id, score = unix ms) | 24 h after the last change | profile | Rolling 24 h window of successful display-name changes (`NAME_CHANGES_PER_DAY`); checked and recorded atomically by a Lua script. Not affected by `RATE_LIMIT_DISABLED`. Losing it only resets the limit |
@@ -35,8 +35,24 @@ network only, AUTH/TLS.
 | `presence:{userId}` | string | 60 s (refreshed) | gateway | Online indicator (friends list) |
 | `dedup:{userId}:{msgId}` | string | 2 min | gateway | WebSocket command de-duplication |
 | `rl:{rule}:{key}:{window}` | counter | window | ratelimit | Fixed-window rate limits (e.g. `rl:profile_user:…`, 20 `PATCH /me` per minute per account) |
-| `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify / gateway | Cross-instance event fan-out. `ev:user:*` also carries gateway control messages (`{"ctl":"kick","conn":…}`, `{"ctl":"revoke","sid":…}`) that are never forwarded to clients |
+| `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify / gateway | Cross-instance event fan-out. `ev:user:*` also carries gateway control messages (`{"ctl":"kick","conn":…}`, `{"ctl":"revoke","sid":…}`, `{"ctl":"deleted"}` — account deleted: close the human socket with `4401` `account deleted`) that are never forwarded to clients |
 | progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents, weekly leaderboard, idempotency replays, active-user sketches. Player reports and the friend cap keep no Redis state of their own (only `rl:report_user:*`, `rl:report_read_user:*`, `rl:admin_ip:*` rate-limit counters); reports are stored in PostgreSQL |
+
+## Account deletion
+
+`DELETE /api/v1/account` (`backend/internal/account`) removes, after the
+PostgreSQL transaction: `sess:{sid}` + its current `rt:{hash}` and
+`usess:{userId}`, `profile:{userId}`, `pubid:{publicId}`, `namechg:{userId}`,
+`seat:{userId}` (+ `:lease`), `emotes:{userId}`, `presence:{userId}`,
+`recent:{userId}` and the account's member in each opponent's
+`recent:{otherId}`, its member in the last five `lb:xp:{week}` keys, and the
+current and previous window of every per-account `rl:{rule}:{userId}:{window}`
+counter; `user:{userId}:room` is cleared by leaving the room first. Left to
+expire (cannot be listed without a keyspace scan, readable only by the
+revoked account): `idem:{userId}:*` (24 h), `dedup:{userId}:*` (2 min),
+`invite:{from}:{to}:{roomId}` (≤ 30 min); rotated `rt:` and old `sessrep:`
+tombstones hold no account id. See `docs/authentication.md` → "Deleting an
+account".
 
 ## Atomic commits
 

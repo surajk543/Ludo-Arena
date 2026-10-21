@@ -63,7 +63,7 @@ const (
 	CloseGoingAway      = 1001
 	ClosePolicy         = 1008
 	CloseProtocol       = 4400
-	CloseRevoked        = 4401
+	CloseRevoked        = 4401 // any reason ("session revoked"; humans also "session replaced", "account deleted"): fatal for bots
 	CloseReplaced       = 4409
 	CloseVersion        = 4426
 	CloseRateLimited    = 4429

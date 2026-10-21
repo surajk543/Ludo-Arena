@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"net/http"
@@ -123,8 +124,10 @@ type client struct {
 	hashMiss  int
 	syncs     int
 	closeCode websocket.StatusCode
-	closed    chan struct{}
-	notify    chan struct{}
+	// closeReason is the server's close reason (e.g. "account deleted").
+	closeReason string
+	closed      chan struct{}
+	notify      chan struct{}
 }
 
 func (e *env) dial(name string, acct account, headers map[string]string) (*client, *http.Response, error) {
@@ -184,6 +187,10 @@ func (c *client) readLoop() {
 		if err != nil {
 			c.mu.Lock()
 			c.closeCode = websocket.CloseStatus(err)
+			var ce websocket.CloseError
+			if errors.As(err, &ce) {
+				c.closeReason = ce.Reason
+			}
 			c.mu.Unlock()
 			return
 		}

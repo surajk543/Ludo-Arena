@@ -2,6 +2,7 @@ package rooms
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"ludoroyale/internal/gameevents"
 	"ludoroyale/internal/metrics"
 	"ludoroyale/internal/protocol"
+	"ludoroyale/internal/wallet"
 )
 
 // RunScheduler processes due timers (turn deadlines, fill deadlines, lobby
@@ -115,6 +117,13 @@ func (s *Service) handlePayout(ctx context.Context, roomID string, round int) er
 		return nil
 	}
 	w, err := s.Wallets.Credit(ctx, userUUID(winner.UserID), r.Result.Payout, 0)
+	if errors.Is(err, wallet.ErrNotFound) {
+		// The winner deleted their account before the payout: there is
+		// nobody to pay, and retrying cannot help.
+		s.RDB.Set(ctx, key, "account_gone", 7*24*time.Hour)
+		s.Log.Warn("payout skipped: winner account no longer exists", "room", roomID)
+		return nil
+	}
 	if err != nil {
 		// The credit did not happen: release the claim and retry later.
 		s.RDB.Del(ctx, key)

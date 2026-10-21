@@ -91,6 +91,10 @@ var (
 	// too_short | too_long | invalid_characters | reserved | inappropriate |
 	// rate_limited | error.
 	ProfileNameChanges = counter("profile_name_changes_total", "Display-name change requests by result.", "result")
+	// AccountDeletions counts DELETE /account requests by result: deleted |
+	// already_deleted (a concurrent request deleted it first) | bad_confirm |
+	// error (nothing was deleted).
+	AccountDeletions = counter("account_deletions_total", "Account deletion requests by result.", "result")
 )
 
 // Gameplay and product metrics (humans; bot-only games are labelled mix=bot_only).

@@ -194,6 +194,43 @@ func (s *Sessions) EndByRefresh(ctx context.Context, refresh string) error {
 	return endByRefresh.Run(ctx, s.rdb, []string{"rt:" + h}, h).Err()
 }
 
+// endAccount: KEYS[1]=usess:{uid} ARGV[1]=uid ARGV[2..]=extra sids
+// Ends every human session family of the account that can be found: the one
+// usess:{uid} names plus the given sids (the caller's own session). A family
+// is deleted only if it belongs to uid; its current refresh-token hash goes
+// with it. No tombstone is written. Returns the number of families ended.
+var endAccount = redis.NewScript(`
+local sids = {}
+local cur = redis.call('GET', KEYS[1])
+if cur then sids[#sids + 1] = cur end
+for i = 2, #ARGV do sids[#sids + 1] = ARGV[i] end
+local n = 0
+for _, sid in ipairs(sids) do
+  local skey = 'sess:' .. sid
+  if redis.call('HGET', skey, 'uid') == ARGV[1] then
+    local h = redis.call('HGET', skey, 'cur')
+    if h then redis.call('DEL', 'rt:' .. h) end
+    n = n + redis.call('DEL', skey)
+  end
+end
+redis.call('DEL', KEYS[1])
+return n`)
+
+// EndAccount ends every human session of the account (account deletion):
+// the account's live session (usess:{userId}) and sids, with their current
+// refresh tokens, and clears the pointer. Sessions then read as plainly
+// revoked (401 unauthorized / invalid_credential). Rotated refresh-token
+// tombstones (rt:{hash} → sid of a dead family) expire on their own.
+func (s *Sessions) EndAccount(ctx context.Context, userID uuid.UUID, sids ...string) (int, error) {
+	args := []any{userID.String()}
+	for _, sid := range sids {
+		if sid != "" {
+			args = append(args, sid)
+		}
+	}
+	return endAccount.Run(ctx, s.rdb, []string{"usess:" + userID.String()}, args...).Int()
+}
+
 // Revoke ends a session family (bot and controller sessions).
 func (s *Sessions) Revoke(ctx context.Context, sid string) error {
 	return s.rdb.Del(ctx, "sess:"+sid).Err()

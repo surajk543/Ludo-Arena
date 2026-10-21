@@ -186,6 +186,10 @@ func (s *Service) lockProgress(ctx context.Context, tx pgx.Tx, userID uuid.UUID)
 	var stored string
 	err = tx.QueryRow(ctx, `SELECT xp, level, public_id FROM progression.player_progress WHERE user_id = $1 FOR UPDATE`,
 		userID).Scan(&xp, &level, &stored)
+	if errors.Is(err, pgx.ErrNoRows) {
+		// The account was deleted while this transaction waited for the lock.
+		return 0, 0, ErrUnknownUser
+	}
 	if err != nil {
 		return 0, 0, err
 	}
@@ -209,8 +213,25 @@ func (s *Service) LockAccountsTx(ctx context.Context, tx pgx.Tx, ids ...uuid.UUI
 	if err != nil {
 		return err
 	}
+	locked := map[uuid.UUID]bool{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		locked[id] = true
+	}
 	rows.Close()
-	return rows.Err()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for _, id := range ids {
+		if !locked[id] { // deleted while this transaction waited for the lock
+			return ErrUnknownUser
+		}
+	}
+	return nil
 }
 
 func mapFK(err error) error {
