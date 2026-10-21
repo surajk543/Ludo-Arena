@@ -89,6 +89,10 @@ WebP at 540×960 (thumbnails) and 720×1280 (lightbox), 20–70 KB each. The ban
 
 ## Deploy (by hand)
 
+Last deployed 2026-10-21 (backup on the server: `~/sungamestudio-backup-20261021.tgz`,
+without the `.mp4` videos; each edited page also has a `.bak-20261021` copy
+next to it).
+
 Run these steps yourself; nothing here does them for you. `HOST` is the web
 server, `ROOT=/var/www/gameplay/sungamestudio.com`.
 
@@ -107,7 +111,7 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
 
    ```bash
    mkdir -p work/brain-train/privacy
-   scp HOST:$ROOT/{index.html,sitemap.xml,brain-train.html,king-teen-patti.html,terms.html,404.html} work/
+   scp HOST:$ROOT/{index.html,sitemap.xml,brain-train.html,king-teen-patti.html,terms.html,404.html,refund.html} work/
    scp HOST:$ROOT/brain-train/privacy/index.html work/brain-train/privacy/
    ```
 
@@ -117,7 +121,7 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
    ```bash
    python3 website/apply_snippets.py work/index.html work/sitemap.xml \
      --footer-page work/brain-train.html --footer-page work/king-teen-patti.html \
-     --footer-page work/terms.html --footer-page work/404.html \
+     --footer-page work/terms.html --footer-page work/404.html --footer-page work/refund.html \
      --footer-page work/brain-train/privacy/index.html --dry-run
    # then the same command without --dry-run; check: git diff --no-index <original> work/index.html
    ```
@@ -130,9 +134,9 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
    links after `<li><a href="/brain-train">Brain Train</a></li>` and after
    `<li><a href="/brain-train/privacy/">Brain Train Privacy Policy</a></li>`.
    In `sitemap.xml`: the four URLs before `</urlset>`. A page whose footer
-   lacks those anchors is refused (`privacy.html`, `refund.html` and
-   `delete-account.html` were not available to check); add the footer `<li>`s
-   there by hand if they have the same lists.
+   lacks those anchors is refused. `/privacy` and `/delete-account` are served
+   by the King Teen Patti server, not from this web root, so they are not
+   changed.
 
 5. **Upload** the new files and the edited copies, keeping the owner and modes
    of the existing files (the web root's files belong to the `write` user):
@@ -146,8 +150,9 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
 6. **nginx needs no change**: `try_files $uri $uri.html $uri/ =404` serves
    `/ludo-royale` from `ludo-royale.html` and `/ludo-royale/privacy/` and
    `/ludo-royale/legal/` from their `index.html`, exactly like Brain Train.
-7. **Purge Cloudflare's cache** for `/`, `/sitemap.xml` and the footer pages
-   (or wait for their cache lifetime).
+7. **Cloudflare:** HTML and `sitemap.xml` are not cached (`cf-cache-status:
+   DYNAMIC`), so no purge is needed for them; purge an image only when
+   replacing one under the same name.
 8. **Verify:**
 
    ```bash
