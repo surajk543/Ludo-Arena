@@ -28,13 +28,50 @@ class LudoBoardBinding extends MatchBoardBinding {
     required this._feedback,
   }) {
     board
-      ..onStep = ((_, _, _) => _feedback.step())
-      ..onCapture = ((_, _, _) => _feedback.capture())
-      ..onHome = ((_, _) => _feedback.home());
-    dice
-      ..onTumbleStart = _feedback.diceTumble
-      ..onSettle = ((_) => _feedback.diceSettled());
+      ..onStep = _onStep
+      ..onCapture = ((seat, _, captured) => _feedback.capture(
+        mine: seat == selfSeat,
+        victim: captured.any((c) => c.seat == selfSeat),
+      ))
+      ..onHome = ((seat, _) => _feedback.home(mine: seat == selfSeat));
+    // The local roll sound plays on the tap (MatchView); every settle gets a
+    // soft landing cue.
+    dice.onSettle = ((_) => _feedback.diceSettled(mine: _rollSeat == selfSeat));
   }
+
+  /// The move being animated (moves play one at a time).
+  ({int to, bool captures, bool home})? _move;
+
+  /// Seat of the die being animated.
+  int? _rollSeat;
+
+  /// One sound per square; special squares replace the step: leaving base
+  /// (progress 0 is only reachable from base), entering the home column, a
+  /// safe landing. The landing square of a capture / home move stays silent
+  /// (the capture / home cue plays there).
+  void _onStep(int seat, int token, int progress) {
+    final mine = seat == selfSeat;
+    final move = _move;
+    final last = move != null && progress == move.to;
+    if (last && (move.captures || move.home)) return;
+    if (progress == 0) {
+      _feedback.leftBase(mine: mine);
+    } else if (progress == LudoGeometry.firstHomeColumnProgress &&
+        !(move?.home ?? false)) {
+      _feedback.enteredHomePath(mine: mine);
+    } else if (last && _isSafeProgress(progress)) {
+      _feedback.safeLanding(mine: mine);
+    } else {
+      _feedback.step(mine: mine);
+    }
+  }
+
+  /// Safe track squares (starts and stars) in progress terms: the safe set
+  /// repeats every quarter of the track, so it is the same for every color.
+  static bool _isSafeProgress(int progress) =>
+      progress >= 0 &&
+      progress <= LudoGeometry.lastTrackProgress &&
+      LudoGeometry.isSafeTrackIndex(progress);
 
   static MatchBoardBinding create(
     RoomSnapshot room, {
@@ -108,6 +145,7 @@ class LudoBoardBinding extends MatchBoardBinding {
     RoomSnapshot previous,
   ) async {
     board.setInteraction();
+    _rollSeat = event.seat;
     await dice.roll(event.value.clamp(1, 6));
     showLegalMoves(room);
   }
@@ -119,6 +157,11 @@ class LudoBoardBinding extends MatchBoardBinding {
     RoomSnapshot previous,
   ) {
     board.setInteraction();
+    _move = (
+      to: event.to,
+      captures: event.captures.isNotEmpty,
+      home: event.home || event.to == LudoGeometry.homeProgress,
+    );
     return board.animateMove(
       seat: event.seat,
       token: event.token,
@@ -189,9 +232,7 @@ class LudoBoardBinding extends MatchBoardBinding {
       ..onStep = null
       ..onCapture = null
       ..onHome = null;
-    dice
-      ..onTumbleStart = null
-      ..onSettle = null;
+    dice.onSettle = null;
     board.dispose();
     dice.dispose();
   }

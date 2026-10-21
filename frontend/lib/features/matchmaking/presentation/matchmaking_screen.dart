@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/localization/number_format.dart';
 import '../../../core/protocol/protocol.dart';
@@ -142,7 +143,8 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
       case RoomSnapshotApplied(:final room):
         if (room.id == _staleRoomId) return;
         if (room.isPlaying) {
-          _goToRoom(room);
+          // `game.started`: the server found the match.
+          _goToRoom(room, started: true);
         } else if (room.isLobby && _phase != _Phase.searching) {
           setState(() => _phase = _Phase.searching);
         }
@@ -158,9 +160,14 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
     }
   }
 
-  void _goToRoom(RoomSnapshot room) {
+  /// [started]: the game started while this screen was searching (a
+  /// server-confirmed "match found"), not a resumed room.
+  void _goToRoom(RoomSnapshot room, {bool started = false}) {
     if (_navigated) return;
     _navigated = true;
+    if (started && room.isPlaying) {
+      ref.read(audioServiceProvider).play(Sfx.matchStart);
+    }
     if (room.mode == RoomModes.public || room.isPlaying) {
       PlayNav.toGame(context, room.id);
     } else {
@@ -223,7 +230,7 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
         !_navigated &&
         (_phase == _Phase.searching || _phase == _Phase.joining)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _goToRoom(room);
+        if (mounted) _goToRoom(room, started: true);
       });
     }
 
@@ -285,6 +292,7 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
                       IconCircleButton(
                         icon: Icons.close_rounded,
                         tooltip: l10n.playMatchmakingCancel,
+                        sound: Sfx.uiClose,
                         onPressed: _cancel,
                         size: 40,
                       ),
@@ -352,6 +360,7 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
                           label: l10n.playMatchmakingCancel,
                           icon: Icons.close_rounded,
                           variant: PremiumButtonVariant.secondary,
+                          sound: Sfx.uiClose,
                           onPressed: _cancel,
                         ),
                       ],

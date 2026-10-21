@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/widgets.dart';
 
@@ -99,6 +100,13 @@ class SettingsSwitchTile extends StatelessWidget {
   final ValueChanged<bool>? onChanged;
   final Color? color;
 
+  void _toggle(BuildContext context, bool v) {
+    onChanged!(v);
+    // After the change: switching Sound on is confirmed audibly, switching
+    // it off is silent.
+    playUiSound(context, Sfx.uiToggle);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MergeSemantics(
@@ -106,9 +114,97 @@ class SettingsSwitchTile extends StatelessWidget {
         leading: _TileIcon(icon: icon, color: color),
         title: Text(title),
         subtitle: subtitle == null ? null : Text(subtitle!),
-        trailing: Switch.adaptive(value: value, onChanged: onChanged),
-        onTap: onChanged == null ? null : () => onChanged!(!value),
+        trailing: Switch.adaptive(
+          value: value,
+          onChanged: onChanged == null ? null : (v) => _toggle(context, v),
+        ),
+        onTap: onChanged == null ? null : () => _toggle(context, !value),
         minVerticalPadding: AppSpacing.sm,
+      ),
+    );
+  }
+}
+
+/// Slider row (0..1) with the value shown at the end, e.g. a volume.
+class SettingsSliderTile extends StatelessWidget {
+  const SettingsSliderTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.format,
+    required this.onChanged,
+    this.onChangeEnd,
+    this.divisions = 20,
+    this.color,
+  });
+
+  final IconData icon;
+  final String title;
+  final double value;
+
+  /// Display / screen-reader text for a value (e.g. a localized percentage).
+  final String Function(double value) format;
+
+  /// Null disables the slider.
+  final ValueChanged<double>? onChanged;
+  final ValueChanged<double>? onChangeEnd;
+  final int divisions;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final enabled = onChanged != null;
+    final valueLabel = format(value);
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        0,
+      ),
+      child: Row(
+        children: [
+          _TileIcon(icon: icon, color: color),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: context.textTheme.titleMedium?.copyWith(
+                          color: enabled ? null : c.textMuted,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    ExcludeSemantics(
+                      child: Text(
+                        valueLabel,
+                        style: context.textTheme.labelLarge?.copyWith(
+                          color: enabled ? c.textSecondary : c.textMuted,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Slider(
+                  value: value.clamp(0.0, 1.0),
+                  divisions: divisions,
+                  onChanged: onChanged,
+                  onChangeEnd: onChangeEnd,
+                  semanticFormatterCallback: format,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -156,7 +252,12 @@ class SettingsNavTile extends StatelessWidget {
                   color: c.textMuted,
                   // Directional: mirrored in RTL by Icon (matchTextDirection).
                 )),
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              playUiSound(context, Sfx.uiTap);
+              onTap!();
+            },
       minVerticalPadding: AppSpacing.sm,
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/localization/number_format.dart';
 import '../../../core/protocol/protocol.dart';
@@ -173,6 +174,7 @@ class _CreateRoomScreenState extends ConsumerState<CreateRoomScreen> {
                               PremiumButton(
                                 label: l10n.playCreateRoomAction,
                                 icon: Icons.meeting_room_rounded,
+                                sound: Sfx.lobbyPlay,
                                 onPressed: _create,
                               ),
                             ],

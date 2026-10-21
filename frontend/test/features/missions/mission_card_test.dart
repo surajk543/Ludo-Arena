@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/localization/number_format.dart';
 import 'package:ludo_royale/features/missions/presentation/missions_screen.dart';
 import 'package:ludo_royale/features/missions/presentation/widgets/reset_label.dart';
@@ -30,8 +31,7 @@ void main() {
     });
     tearDown(() => fakes.close());
 
-    Finder claimButton() =>
-        byKeyString('claim-d2026-10-21-daily_ludo_match');
+    Finder claimButton() => byKeyString('claim-d2026-10-21-daily_ludo_match');
 
     testWidgets('shows in-progress, claimable and claimed states', (
       tester,
@@ -78,11 +78,15 @@ void main() {
       await tester.pump();
       await tester.tap(claimButton(), warnIfMissed: false);
       await tester.pump();
+      // Pending: no reward sound before the server agrees (the claim button
+      // itself is silent: the reward is the sound).
+      expect(env.audio.played, isEmpty);
       await tester.runAsync(() async {
         gate.complete();
         await settle();
       });
       await flush(tester);
+      expect(env.audio.played, [Sfx.rewardClaim]);
 
       expect(env.backend.calls('POST', _claimPath), hasLength(1));
       expect(
@@ -106,10 +110,9 @@ void main() {
       await tester.tap(claimButton());
       await flush(tester);
       final l10n = AppLocalizationsEn();
-      expect(
-        find.text(l10n.metaRetryHint(l10n.errorInternal)),
-        findsOneWidget,
-      );
+      expect(find.text(l10n.metaRetryHint(l10n.errorInternal)), findsOneWidget);
+      // Failure: the subtle error cue, never the reward sound.
+      expect(env.audio.played, [Sfx.uiError]);
       // Still claimable; the next tap reuses the same key.
       expect(claimButton(), findsOneWidget);
       await tester.tap(claimButton());

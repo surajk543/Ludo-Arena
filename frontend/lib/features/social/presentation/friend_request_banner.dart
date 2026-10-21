@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/audio_haptics/haptics_service.dart';
 import '../../../core/audio_haptics/reduced_motion.dart';
 import '../../../core/protocol/protocol.dart';
@@ -56,6 +57,7 @@ class _FriendRequestBannerHostState
     if (overlay == null) return;
     _remove();
     ref.read(hapticsServiceProvider).light();
+    ref.read(audioServiceProvider).play(Sfx.notification);
     _entry = OverlayEntry(
       builder: (ctx) => _Banner(
         name: e.fromName,

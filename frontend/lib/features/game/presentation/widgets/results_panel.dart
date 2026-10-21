@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/audio_haptics/reduced_motion.dart';
 import '../../../../core/localization/number_format.dart';
 import '../../../../core/protocol/protocol.dart';
@@ -167,6 +168,7 @@ class _ResultsPanelState extends ConsumerState<ResultsPanel> {
                       icon: Icons.replay_rounded,
                       variant: PremiumButtonVariant.gold,
                       size: PremiumButtonSize.medium,
+                      sound: Sfx.lobbyPlay,
                       onPressed: widget.onPlayAgain,
                     ),
                     const SizedBox(height: AppSpacing.sm),

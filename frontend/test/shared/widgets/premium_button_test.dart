@@ -31,7 +31,7 @@ void main() {
     await tester.pump();
     expect(calls, 1);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(audio.played, [Sfx.click]);
+    expect(audio.played, [Sfx.uiTap]);
 
     await tester.tap(find.byType(PremiumButton));
     await tester.tap(find.byType(PremiumButton));

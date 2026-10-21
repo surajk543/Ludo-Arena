@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/audio_haptics/audio_service.dart';
 import '../../core/audio_haptics/haptics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -16,6 +17,7 @@ class IconCircleButton extends ConsumerWidget {
     this.badgeCount,
     this.size = 44,
     this.mirrorInRtl = false,
+    this.sound = Sfx.uiTap,
   });
 
   final IconData icon;
@@ -33,6 +35,9 @@ class IconCircleButton extends ConsumerWidget {
 
   /// Flip the icon horizontally in RTL (only for directional glyphs).
   final bool mirrorInRtl;
+
+  /// Tap sound; null for silent.
+  final Sfx? sound;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,6 +111,10 @@ class IconCircleButton extends ConsumerWidget {
                     onTap: enabled
                         ? () {
                             ref.read(hapticsServiceProvider).selection();
+                            final sfx = sound;
+                            if (sfx != null) {
+                              ref.read(audioServiceProvider).play(sfx);
+                            }
                             onPressed!();
                           }
                         : null,

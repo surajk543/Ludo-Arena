@@ -238,6 +238,8 @@ class CollectionItemSheet extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     switch (outcome) {
       case CollectionSucceeded():
+        // Server-confirmed (e.g. equipped).
+        playUiSound(context, Sfx.uiConfirm);
         AppToast.show(context, success, kind: ToastKind.success);
       case CollectionIgnored():
         break;
@@ -263,7 +265,7 @@ class CollectionItemSheet extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     switch (outcome) {
       case CollectionSucceeded():
-        ref.read(audioServiceProvider).play(Sfx.coin);
+        ref.read(audioServiceProvider).play(Sfx.purchase);
         ref.read(hapticsServiceProvider).success();
         AppToast.show(
           context,

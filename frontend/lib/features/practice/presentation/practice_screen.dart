@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/protocol/protocol.dart';
 import '../../../core/realtime/realtime_providers.dart';
@@ -80,7 +81,7 @@ class _PracticeScreenState extends ConsumerState<PracticeScreen> {
       if (room != null) {
         _roomId = room.id;
         if (room.isPlaying) {
-          _go(room);
+          _go(room, started: true);
           return;
         }
       }
@@ -101,9 +102,14 @@ class _PracticeScreenState extends ConsumerState<PracticeScreen> {
     }
   }
 
-  void _go(RoomSnapshot room) {
+  /// [started]: the server just started this practice game (not a resumed
+  /// room).
+  void _go(RoomSnapshot room, {bool started = false}) {
     if (_navigated) return;
     _navigated = true;
+    if (started && room.isPlaying) {
+      ref.read(audioServiceProvider).play(Sfx.matchStart);
+    }
     PlayNav.toRoom(context, room);
   }
 
@@ -113,7 +119,7 @@ class _PracticeScreenState extends ConsumerState<PracticeScreen> {
       case RoomSnapshotApplied(:final room):
         if (room.id == _staleRoomId || !room.isPractice) return;
         _roomId ??= room.id;
-        if (room.isPlaying && room.id == _roomId) _go(room);
+        if (room.isPlaying && room.id == _roomId) _go(room, started: true);
       case RoomErrorReceived(:final error):
         if (_phase == _Phase.starting || _phase == _Phase.botsJoining) {
           setState(() {
@@ -263,6 +269,7 @@ class _Config extends StatelessWidget {
             PremiumButton(
               label: l10n.playPracticeStart,
               icon: Icons.smart_toy_rounded,
+              sound: Sfx.lobbyPlay,
               onPressed: onStart,
             ),
           ],

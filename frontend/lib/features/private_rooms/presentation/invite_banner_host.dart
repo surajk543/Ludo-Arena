@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/audio_haptics/reduced_motion.dart';
 import '../../../core/protocol/protocol.dart';
 import '../../../core/realtime/realtime_providers.dart';
@@ -55,6 +56,9 @@ class _PlayInviteHostState extends ConsumerState<PlayInviteHost> {
     if (left == Duration.zero) return;
     if (left > const Duration(seconds: 45)) left = const Duration(seconds: 45);
     _expiry?.cancel();
+    if (_invite?.inviteId != e.inviteId) {
+      ref.read(audioServiceProvider).play(Sfx.notification);
+    }
     setState(() => _invite = e);
     _expiry = Timer(left, _dismiss);
   }

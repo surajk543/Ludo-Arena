@@ -8,6 +8,10 @@ abstract final class PrefKeys {
   static const locale = 'ui.locale';
   static const languageChosen = 'ui.language_chosen';
   static const soundEnabled = 'settings.sound';
+
+  /// Whole percentages 0..100.
+  static const sfxVolume = 'settings.sfx_volume';
+  static const musicVolume = 'settings.music_volume';
   static const hapticsEnabled = 'settings.haptics';
   static const reducedMotion = 'settings.reduced_motion';
   static const quickChatMuted = 'settings.quick_chat_muted';

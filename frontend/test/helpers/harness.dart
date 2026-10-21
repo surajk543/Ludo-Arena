@@ -37,6 +37,9 @@ class TestEnv {
   final FakeClock clock = FakeClock();
   final FakeStoreLauncher store = FakeStoreLauncher();
 
+  /// Records every effect / music call of the screens under test.
+  final SilentAudioService audio = SilentAudioService();
+
   /// No device id by default (behaves like before device binding); set
   /// `device.id` to simulate an Android 8+ / iOS device.
   final FakeDeviceIdentity device = FakeDeviceIdentity();
@@ -133,7 +136,7 @@ class TestEnv {
     deviceIdentityProvider.overrideWithValue(device),
     analyticsServiceProvider.overrideWithValue(analytics),
     analyticsBackendProvider.overrideWithValue(analyticsBackend),
-    audioServiceProvider.overrideWithValue(SilentAudioService()),
+    audioServiceProvider.overrideWithValue(audio),
     clockProvider.overrideWithValue(clock.call),
     storeLauncherProvider.overrideWithValue(store),
     deviceLocalesProvider.overrideWithValue(const [Locale('en')]),

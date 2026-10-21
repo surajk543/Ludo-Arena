@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/audio_haptics/audio_service.dart';
 import '../../core/audio_haptics/reduced_motion.dart';
 import '../../core/localization/number_format.dart';
 import '../../core/theme/app_theme.dart';
@@ -97,7 +98,12 @@ class _BalanceChipState extends State<BalanceChip>
           return Material(
             type: MaterialType.transparency,
             child: InkWell(
-              onTap: widget.onTap,
+              onTap: widget.onTap == null
+                  ? null
+                  : () {
+                      playUiSound(context, Sfx.uiTap);
+                      widget.onTap!();
+                    },
               borderRadius: AppRadii.pillAll,
               child: Container(
                 constraints: const BoxConstraints(minHeight: 36),

@@ -2764,7 +2764,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsSoundAndHaptics => 'الصوت والاهتزاز';
 
   @override
-  String get settingsSound => 'المؤثرات الصوتية';
+  String get settingsSound => 'الصوت';
+
+  @override
+  String get settingsSoundSubtitle => 'الموسيقى والمؤثرات الصوتية';
+
+  @override
+  String get settingsSfxVolume => 'مستوى صوت المؤثرات';
+
+  @override
+  String get settingsMusicVolume => 'مستوى صوت الموسيقى';
 
   @override
   String get settingsHaptics => 'الاهتزاز';

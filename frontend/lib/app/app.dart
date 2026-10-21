@@ -10,6 +10,7 @@ import '../core/theme/app_theme.dart';
 import '../core/theme/theme_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'gate/app_gate_controller.dart';
+import 'lobby_music.dart';
 import 'match_resume.dart';
 import 'realtime_binder.dart';
 import 'router.dart';
@@ -52,6 +53,9 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
     // Resume first: it builds the room controller before the socket starts.
     ref.watch(matchResumeProvider);
     ref.watch(realtimeBinderProvider);
+    // Sound settings + lifecycle → audio, then the lobby music.
+    ref.watch(audioSettingsBinderProvider);
+    ref.watch(lobbyMusicProvider);
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
     final locale = ref.watch(languageControllerProvider);

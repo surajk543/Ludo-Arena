@@ -29,6 +29,10 @@ abstract final class AppNumberFormat {
           'en',
   };
 
+  /// A whole percentage in the locale's format (`80%`, `80 %`, `٨٠٪`).
+  static String percent(int value, Locale locale) =>
+      NumberFormat.percentPattern(_tag(locale)).format(value / 100);
+
   /// Full precision with locale grouping: `12,34,567` (en/hi/ur),
   /// `1.234.567` (id), `1,234,567` (ar).
   static String full(int value, Locale locale) {

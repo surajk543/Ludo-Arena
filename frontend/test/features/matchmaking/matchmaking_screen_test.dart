@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/protocol/protocol.dart';
 import 'package:ludo_royale/core/realtime/active_room_controller.dart';
 import 'package:ludo_royale/features/game/application/play_config.dart';
@@ -72,6 +73,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Bo'), findsOneWidget);
     expect(find.text('BOT'), findsNothing);
+    // Seats filling is not "match found".
+    expect(h.audio.played, isEmpty);
 
     h.controller.pushSnapshot(
       _lobby([
@@ -83,6 +86,8 @@ void main() {
     );
     await flush(tester);
     expect(find.text('GAME r_mm'), findsOneWidget);
+    // Server-confirmed match found: one match-start cue.
+    expect(h.audio.played, [Sfx.matchStart]);
   });
 
   testWidgets('cancel sends matchmaking.cancel and leaves', (tester) async {
@@ -93,6 +98,7 @@ void main() {
     await flush(tester);
     expect(h.controller.calls.last, 'matchmaking.cancel');
     expect(find.text('HOME'), findsOneWidget);
+    expect(h.audio.played, [Sfx.uiClose]);
   });
 
   testWidgets('timeout offers try again / home', (tester) async {

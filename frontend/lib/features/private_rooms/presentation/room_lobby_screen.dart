@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/localization/number_format.dart';
 import '../../../core/protocol/protocol.dart';
@@ -88,6 +89,8 @@ class _RoomLobbyScreenState extends ConsumerState<RoomLobbyScreen> {
         if (room.id != widget.roomId) return;
         if (room.isPlaying) {
           _navigated = true;
+          // The host started the game (server-confirmed).
+          ref.read(audioServiceProvider).play(Sfx.matchStart);
           PlayNav.toGame(context, room.id);
           return;
         }
@@ -439,6 +442,7 @@ class _LobbyBody extends StatelessWidget {
                 label: l10n.playLobbyStart,
                 icon: Icons.play_arrow_rounded,
                 variant: PremiumButtonVariant.gold,
+                sound: Sfx.lobbyPlay,
                 onPressed: p.canStart ? onStart : null,
               ),
               if (startHint != null) ...[

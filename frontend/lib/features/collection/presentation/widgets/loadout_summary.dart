@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/localization/number_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -146,7 +147,10 @@ class _SlotTile extends StatelessWidget {
         borderRadius: AppRadii.mdAll,
         child: InkWell(
           borderRadius: AppRadii.mdAll,
-          onTap: onTap,
+          onTap: () {
+            playUiSound(context, Sfx.uiTap);
+            onTap();
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(
               vertical: AppSpacing.sm,

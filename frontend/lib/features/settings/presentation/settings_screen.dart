@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/config/app_info.dart';
 import '../../../core/links/external_link_launcher.dart';
 import '../../../core/localization/language_controller.dart';
+import '../../../core/localization/number_format.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_controller.dart';
@@ -33,8 +35,9 @@ class SettingsScreen extends ConsumerWidget {
     SettingKey.quickChatMute => 'quick_chat_mute',
   };
 
-  /// Open-source notices live on a web page (backend `GET /legal/open-source`
-  /// by default, `LEGAL_NOTICES_URL` to override) opened in the browser.
+  /// Open-source notices live on a web page (sungamestudio.com/ludo-royale/
+  /// legal/ by default, `LEGAL_NOTICES_URL` to override) opened in the
+  /// browser.
   static Future<void> _openLegalNotices(
     BuildContext context,
     WidgetRef ref,
@@ -64,6 +67,13 @@ class SettingsScreen extends ConsumerWidget {
     final user = session.user;
     final info = ref.watch(appInfoProvider);
     final systemReduced = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+    final uiLocale = Localizations.localeOf(context);
+    String percent(double v) =>
+        AppNumberFormat.percent((v * 100).round(), uiLocale);
+    void volume(VolumeKey key, double v, {bool persist = false}) => ref
+        .read(settingsControllerProvider.notifier)
+        .setVolume(key, v, persist: persist);
 
     void toggle(SettingKey key, bool value) {
       ref.read(settingsControllerProvider.notifier).set(key, value);
@@ -153,8 +163,39 @@ class SettingsScreen extends ConsumerWidget {
                       SettingsSwitchTile(
                         icon: Icons.volume_up_rounded,
                         title: l10n.settingsSound,
+                        subtitle: l10n.settingsSoundSubtitle,
                         value: settings.soundEnabled,
                         onChanged: (v) => toggle(SettingKey.sound, v),
+                      ),
+                      SettingsSliderTile(
+                        icon: Icons.graphic_eq_rounded,
+                        title: l10n.settingsSfxVolume,
+                        value: settings.sfxVolume,
+                        format: percent,
+                        onChanged: settings.soundEnabled
+                            ? (v) {
+                                volume(VolumeKey.sfx, v);
+                                // Preview at the new level (throttled by the
+                                // audio service's gesture window).
+                                ref.read(audioServiceProvider).play(Sfx.uiTick);
+                              }
+                            : null,
+                        onChangeEnd: settings.soundEnabled
+                            ? (v) => volume(VolumeKey.sfx, v, persist: true)
+                            : null,
+                      ),
+                      SettingsSliderTile(
+                        icon: Icons.music_note_rounded,
+                        title: l10n.settingsMusicVolume,
+                        value: settings.musicVolume,
+                        format: percent,
+                        // The lobby music itself is the preview (live).
+                        onChanged: settings.soundEnabled
+                            ? (v) => volume(VolumeKey.music, v)
+                            : null,
+                        onChangeEnd: settings.soundEnabled
+                            ? (v) => volume(VolumeKey.music, v, persist: true)
+                            : null,
                       ),
                       SettingsSwitchTile(
                         icon: Icons.vibration_rounded,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/audio_haptics/haptics_service.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/localization/supported_locales.dart';
@@ -46,6 +47,7 @@ class LanguagePickerList extends ConsumerWidget {
               colors: c,
               onTap: () async {
                 ref.read(hapticsServiceProvider).selection();
+                ref.read(audioServiceProvider).play(Sfx.uiTab);
                 await applyLanguage(ref, locale);
                 onSelected?.call(locale);
               },
