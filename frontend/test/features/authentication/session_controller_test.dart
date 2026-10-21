@@ -495,6 +495,16 @@ void main() {
       expect(state().status, SessionStatus.signedOut);
       expect(state().signOutReason, SignOutReason.replaced);
       expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
+
+      // The next launch does not sign back in on its own either.
+      final relaunched = env.container();
+      addTearDown(relaunched.dispose);
+      expect(
+        await relaunched.read(sessionControllerProvider.notifier).restore(),
+        RestoreOutcome.signedOut,
+      );
+      expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
+      expect(env.secure.values['session.guest_secret'], 'gs_1');
     });
 
     test('an expired session still resumes a guest silently', () async {

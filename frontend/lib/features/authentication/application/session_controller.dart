@@ -188,6 +188,7 @@ class SessionController extends Notifier<SessionState> {
       // user, and do not resume the guest (that would sign the other
       // device out in turn).
       if (tokens.lastEnd == SessionEnd.replaced) {
+        await _store.writeLastSessionWasGuest(false);
         _set(
           state.copyWith(
             status: SessionStatus.signedOut,
@@ -446,7 +447,10 @@ class SessionController extends Notifier<SessionState> {
     if (!state.isSignedIn) return;
     final secret = await _store.readGuestSecret();
     if (end == SessionEnd.replaced) {
-      // Signed in on another device: never sign back in automatically.
+      // Signed in on another device: never sign back in automatically, not
+      // even on the next launch (the guest secret stays for an explicit
+      // "Play as guest").
+      await _store.writeLastSessionWasGuest(false);
       _signedOut(SignOutReason.replaced, hasStoredGuest: secret != null);
       return;
     }
