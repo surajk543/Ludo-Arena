@@ -220,7 +220,8 @@ nothing was deleted. Implementation: `backend/internal/account`.
    `progression.player_reports` filed **by** the account and filed
    **against** it, `progression.friendships` on **both** sides (accepted and
    pending, sent and received), `mission_progress`, `mission_claims`,
-   `match_receipts`, `inventory`, `loadout`, `player_progress` (XP, level,
+   `match_receipts`, `inventory`, `loadout`, `purchases` (coin pack records),
+   `player_progress` (XP, level,
    chosen display name, public id), every `identity.auth_identities` row
    (guest secret hash, **device binding**, Google/Facebook/Apple subjects)
    and finally `wallet.wallets` (coins, diamonds). Concurrent deletions of
