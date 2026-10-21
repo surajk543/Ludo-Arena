@@ -21,6 +21,7 @@ import (
 	"ludoroyale/internal/config"
 	"ludoroyale/internal/gameevents"
 	"ludoroyale/internal/httpapi"
+	"ludoroyale/internal/iap"
 	"ludoroyale/internal/identity"
 	"ludoroyale/internal/legal"
 	"ludoroyale/internal/metrics"
@@ -239,6 +240,7 @@ func accountRateRules() []ratelimit.Rule {
 		social.InvitePerUser, social.FriendRequestPerHour, social.ReadPerUser,
 		progression.ReadPerUser, progression.LoadoutPerUser,
 		reports.WritePerUser, reports.ReadPerUser,
+		iap.ReadPerUser, iap.PurchasePerUser,
 	}
 	return append(rules, rooms.ChatRules()...)
 }

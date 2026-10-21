@@ -355,3 +355,71 @@ func TestBotPictureShare(t *testing.T) {
 		})
 	}
 }
+
+func TestIAPConfig(t *testing.T) {
+	iapVars := []string{"COIN_PACKS_FILE", "GOOGLE_PLAY_SERVICE_ACCOUNT_FILE", "GOOGLE_PLAY_PACKAGE_NAME",
+		"GOOGLE_PLAY_API_URL", "GOOGLE_PLAY_VOIDED_POLL_INTERVAL", "GOOGLE_PLAY_VOIDED_LOOKBACK", "APPLE_IAP_ENABLED",
+		"APPLE_BUNDLE_ID", "APPLE_IAP_ALLOW_SANDBOX", "APPLE_IAP_KEY_ID", "APPLE_IAP_ISSUER_ID", "APPLE_IAP_KEY_FILE",
+		"APPLE_ROOT_CA_FILE", "APPLE_IAP_API_URL"}
+	cases := []struct {
+		name    string
+		env     map[string]string
+		check   func(t *testing.T, c IAPConfig)
+		wantErr string
+	}{
+		{"defaults: both stores off", nil, func(t *testing.T, c IAPConfig) {
+			if c.GoogleEnabled() || c.AppleOn() || c.CoinPacksFile != "config/coin_packs.json" ||
+				c.GooglePlayPackage != "com.ludoroyale.app" || c.AppleBundleID != "com.ludoroyale.app" ||
+				!c.AppleAllowSandbox || c.GoogleVoidedInterval != time.Hour || c.GoogleVoidedLookback != 7*24*time.Hour {
+				t.Fatalf("%+v", c)
+			}
+		}, ""},
+		{"google on", map[string]string{"GOOGLE_PLAY_SERVICE_ACCOUNT_FILE": "/secrets/sa.json",
+			"GOOGLE_PLAY_PACKAGE_NAME": "com.ludoroyale.app", "GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "0"},
+			func(t *testing.T, c IAPConfig) {
+				if !c.GoogleEnabled() || c.GoogleVoidedInterval != 0 {
+					t.Fatalf("%+v", c)
+				}
+			}, ""},
+		{"apple flag", map[string]string{"APPLE_IAP_ENABLED": "true"}, func(t *testing.T, c IAPConfig) {
+			if !c.AppleOn() {
+				t.Fatal("apple off")
+			}
+		}, ""},
+		{"apple api key implies apple", map[string]string{"APPLE_IAP_KEY_ID": "K", "APPLE_IAP_ISSUER_ID": "I",
+			"APPLE_IAP_KEY_FILE": "/secrets/k.p8"}, func(t *testing.T, c IAPConfig) {
+			if !c.AppleOn() {
+				t.Fatal("apple off")
+			}
+		}, ""},
+		{"partial apple api key", map[string]string{"APPLE_IAP_KEY_ID": "K"}, nil, "set all three or none"},
+		{"poll too fast", map[string]string{"GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "100ms"}, nil, "GOOGLE_PLAY_VOIDED_POLL_INTERVAL"},
+		{"lookback too long", map[string]string{"GOOGLE_PLAY_VOIDED_LOOKBACK": "1000h"}, nil, "GOOGLE_PLAY_VOIDED_LOOKBACK"},
+		{"production poll under a minute", map[string]string{"APP_ENV": EnvProduction,
+			"GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "30s"}, nil, "GOOGLE_PLAY_VOIDED_POLL_INTERVAL"},
+		{"test hooks refused in production", map[string]string{"APP_ENV": EnvProduction,
+			"APPLE_ROOT_CA_FILE": "/tmp/root.pem"}, nil, "test hooks"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			for _, k := range iapVars {
+				t.Setenv(k, "")
+			}
+			for k, v := range c.env {
+				t.Setenv(k, v)
+			}
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			c.check(t, cfg.IAP)
+		})
+	}
+}

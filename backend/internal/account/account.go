@@ -8,7 +8,8 @@
 //     still exists.
 //  2. One PostgreSQL transaction deletes every row of the account: reports
 //     it filed and reports filed against it, friendships on both sides,
-//     mission progress and claims, match receipts, inventory, loadout, the
+//     mission progress and claims, match receipts, inventory, loadout, coin
+//     pack purchase records (store transaction references), the
 //     progression row (XP, level, chosen display name, public id), every
 //     identity (guest secret hash, device binding, Google/Facebook/Apple
 //     subjects) and the wallet. It locks the progression row first and then
@@ -92,7 +93,7 @@ func New(d Deps) *Service {
 // Erased counts the PostgreSQL rows a deletion removed (logged; never ids).
 type Erased struct {
 	ReportsFiled, ReportsAgainst, Friendships, MissionProgress, MissionClaims,
-	MatchReceipts, Inventory, Loadout, Progress, Identities, Wallets int64
+	MatchReceipts, Inventory, Loadout, Purchases, Progress, Identities, Wallets int64
 }
 
 // Delete deletes the account userID; sessionID is the caller's session (also
@@ -165,6 +166,7 @@ func (s *Service) eraseOnce(ctx context.Context, userID uuid.UUID) (Erased, erro
 		{&e.MatchReceipts, `DELETE FROM progression.match_receipts WHERE user_id = $1`},
 		{&e.Inventory, `DELETE FROM progression.inventory WHERE user_id = $1`},
 		{&e.Loadout, `DELETE FROM progression.loadout WHERE user_id = $1`},
+		{&e.Purchases, `DELETE FROM progression.purchases WHERE user_id = $1`},
 		{&e.Progress, `DELETE FROM progression.player_progress WHERE user_id = $1`},
 		{&e.Identities, `DELETE FROM identity.auth_identities WHERE user_id = $1`},
 		{&e.Wallets, `DELETE FROM wallet.wallets WHERE user_id = $1`},
