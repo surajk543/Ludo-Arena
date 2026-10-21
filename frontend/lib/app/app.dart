@@ -10,6 +10,7 @@ import '../core/theme/app_theme.dart';
 import '../core/theme/theme_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'gate/app_gate_controller.dart';
+import 'match_resume.dart';
 import 'realtime_binder.dart';
 import 'router.dart';
 import 'shell/app_shell_host.dart';
@@ -48,6 +49,8 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Resume first: it builds the room controller before the socket starts.
+    ref.watch(matchResumeProvider);
     ref.watch(realtimeBinderProvider);
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeControllerProvider);

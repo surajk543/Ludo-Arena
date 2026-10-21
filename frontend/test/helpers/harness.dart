@@ -10,6 +10,7 @@ import 'package:ludo_royale/core/lifecycle/app_lifecycle.dart';
 import 'package:ludo_royale/core/localization/language_controller.dart';
 import 'package:ludo_royale/core/network/api_client.dart';
 import 'package:ludo_royale/core/realtime/realtime_providers.dart';
+import 'package:ludo_royale/core/realtime/realtime_socket.dart';
 import 'package:ludo_royale/core/storage/preferences_store.dart';
 import 'package:ludo_royale/core/storage/secure_session_store.dart';
 import 'package:ludo_royale/core/time/server_clock.dart';
@@ -34,6 +35,10 @@ class TestEnv {
   final RecordingAnalytics analytics = RecordingAnalytics();
   final FakeClock clock = FakeClock();
   final FakeStoreLauncher store = FakeStoreLauncher();
+
+  /// WebSocket connector for the realtime connection; by default sockets
+  /// never connect.
+  WebSocketConnector? wsConnector;
   final PreferencesStore prefs;
   final InMemorySecureKeyValue secure;
   final String platform;
@@ -130,7 +135,7 @@ class TestEnv {
         appHeaders: const {},
         accessToken: () async => 'at',
         refreshSession: () async => true,
-        connector: (uri, headers) => never(),
+        connector: wsConnector ?? (uri, headers) => never(),
         lifecycle: ref.watch(appLifecycleProvider),
         onStatus: (s) {
           try {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ludo_royale/core/network/api_client.dart';
+import 'package:ludo_royale/core/network/token_manager.dart';
 import 'package:ludo_royale/core/protocol/protocol.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/authentication/data/provider_credential.dart';
@@ -446,5 +447,140 @@ void main() {
     expect(catalogKindOf('frame_gold'), 'frame');
     expect(catalogRarityOf('frame_royal'), 'legendary');
     expect(catalogRarityOf('dice_classic'), 'common');
+  });
+
+  group('one device at a time (session_replaced)', () {
+    test('restore after a sign-in elsewhere: signed out with the replaced '
+        'reason and the guest is NOT resumed', () async {
+      await setUpEnv(seed: true);
+      env.backend
+        ..on(
+          'POST',
+          '/auth/refresh',
+          (_) => FakeResponse.error(401, 'session_replaced'),
+        )
+        ..json('POST', '/auth/guest/resume', authJson());
+      expect(await session().restore(), RestoreOutcome.signedOut);
+      expect(state().status, SessionStatus.signedOut);
+      expect(state().signOutReason, SignOutReason.replaced);
+      expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
+      expect(env.secure.values.containsKey('session.refresh_token'), isFalse);
+      // The guest secret is kept for an explicit "Play as guest".
+      expect(state().hasStoredGuest, isTrue);
+    });
+
+    test('kicked while playing: signed out with the replaced reason, no '
+        'silent guest resume', () async {
+      await setUpEnv();
+      env.backend
+        ..json(
+          'POST',
+          '/auth/guest',
+          authJson(guestSecret: 'gs_1'),
+          status: 201,
+        )
+        ..on(
+          'POST',
+          '/auth/refresh',
+          (_) => FakeResponse.error(401, 'session_replaced'),
+        )
+        ..json('POST', '/auth/guest/resume', authJson());
+      await session().continueAsGuest();
+      final tokens = container.read(tokenManagerProvider);
+      final ended = expectLater(tokens.onExpired, emits(SessionEnd.replaced));
+      expect(await tokens.refreshNow(), isNull);
+      await ended;
+      await settle();
+      expect(tokens.lastEnd, SessionEnd.replaced);
+      expect(state().status, SessionStatus.signedOut);
+      expect(state().signOutReason, SignOutReason.replaced);
+      expect(env.backend.calls('POST', '/auth/guest/resume'), isEmpty);
+    });
+
+    test('an expired session still resumes a guest silently', () async {
+      await setUpEnv();
+      env.backend
+        ..json(
+          'POST',
+          '/auth/guest',
+          authJson(guestSecret: 'gs_1'),
+          status: 201,
+        )
+        ..on(
+          'POST',
+          '/auth/refresh',
+          (_) => FakeResponse.error(401, 'invalid_credential'),
+        )
+        ..json('POST', '/auth/guest/resume', authJson(access: 'at-r'));
+      await session().continueAsGuest();
+      final tokens = container.read(tokenManagerProvider);
+      expect(await tokens.refreshNow(), isNull);
+      await settle();
+      expect(tokens.lastEnd, isNull, reason: 'cleared by the new session');
+      expect(env.backend.calls('POST', '/auth/guest/resume'), hasLength(1));
+      expect(state().isSignedIn, isTrue);
+    });
+
+    test(
+      'Save Progress stops guest auto-resume for the linked account',
+      () async {
+        await setUpEnv();
+        env.backend
+          ..json(
+            'POST',
+            '/auth/guest',
+            authJson(guestSecret: 'gs_1'),
+            status: 201,
+          )
+          ..json(
+            'POST',
+            '/account/link/google',
+            meJson(isGuest: false, providers: ['guest', 'google']),
+          );
+        await session().continueAsGuest();
+        expect(env.secure.values['session.last_was_guest'], '1');
+        await session().link(LinkedProvider.google);
+        expect(env.secure.values['session.last_was_guest'], '0');
+      },
+    );
+
+    test('logout revokes on the server with the bearer token and the '
+        'refresh token', () async {
+      await setUpEnv();
+      env.backend
+        ..json(
+          'POST',
+          '/auth/guest',
+          authJson(guestSecret: 'gs_1'),
+          status: 201,
+        )
+        ..json('POST', '/auth/logout', const {}, status: 204);
+      await session().continueAsGuest();
+      await session().logout(forgetGuest: false);
+      await settle();
+      final req = env.backend.calls('POST', '/auth/logout').single;
+      expect(req.header('Authorization'), 'Bearer at-1');
+      expect(req.json['refreshToken'], 'rt-1');
+    });
+
+    test('logout with an expired access token sends only the refresh '
+        'token', () async {
+      await setUpEnv();
+      env.backend
+        ..json(
+          'POST',
+          '/auth/guest',
+          authJson(guestSecret: 'gs_1', accessExpiresAt: 1),
+          status: 201,
+        )
+        ..json('POST', '/auth/logout', const {}, status: 204);
+      await session().continueAsGuest();
+      await session().logout(forgetGuest: false);
+      await settle();
+      final req = env.backend.calls('POST', '/auth/logout').single;
+      expect(req.header('Authorization'), isNull);
+      expect(req.json['refreshToken'], 'rt-1');
+      expect(env.backend.calls('POST', '/auth/refresh'), isEmpty);
+    });
   });
 }

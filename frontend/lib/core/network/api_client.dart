@@ -91,17 +91,21 @@ class ApiClient {
     bool auth = true,
   }) => _send('GET', path, query: query, auth: auth, safeToRetry: true);
 
+  /// [bearer] sends that access token as is (with `auth: false`: no
+  /// refresh, no 401 retry), e.g. to revoke a session that is being left.
   Future<Map<String, dynamic>> post(
     String path, {
     Object? body,
     bool auth = true,
     String? idempotencyKey,
+    String? bearer,
   }) => _send(
     'POST',
     path,
     body: body ?? const <String, dynamic>{},
     auth: auth,
     idempotencyKey: idempotencyKey,
+    bearer: bearer,
     safeToRetry: idempotencyKey != null,
   );
 
@@ -135,6 +139,7 @@ class ApiClient {
     Object? body,
     bool auth = true,
     String? idempotencyKey,
+    String? bearer,
     bool safeToRetry = false,
     Dio? client,
   }) async {
@@ -149,7 +154,10 @@ class ApiClient {
           queryParameters: query,
           options: Options(
             method: method,
-            headers: {'Idempotency-Key': ?idempotencyKey},
+            headers: {
+              'Idempotency-Key': ?idempotencyKey,
+              'Authorization': ?(bearer == null ? null : 'Bearer $bearer'),
+            },
             extra: {'auth': auth},
           ),
         );

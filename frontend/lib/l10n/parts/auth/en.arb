@@ -39,6 +39,18 @@
   "@authSessionExpiredBanner": {
     "description": "Banner after the server ended the session."
   },
+  "authSignedInElsewhereTitle": "Signed in on another device",
+  "@authSignedInElsewhereTitle": {
+    "description": "Popup title when the account signed in on another device and this device was signed out."
+  },
+  "authSignedInElsewhereMessage": "Someone signed in to your account on another device, so you've been signed out here. Only one device can be signed in at a time. Sign in again to play here — the other device will be signed out.",
+  "@authSignedInElsewhereMessage": {
+    "description": "Popup body: this device was signed out because the account signed in elsewhere (one device at a time)."
+  },
+  "authSignedInElsewhereBanner": "Your account was signed in on another device.",
+  "@authSignedInElsewhereBanner": {
+    "description": "Login-screen banner after being signed out by a sign-in on another device."
+  },
   "authChangeLanguage": "Change language",
   "@authChangeLanguage": {
     "description": "Button/tooltip to change the language on the login screen."

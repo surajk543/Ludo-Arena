@@ -43,6 +43,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'You were signed out. Please sign in again.';
 
   @override
+  String get authSignedInElsewhereTitle => 'Signed in on another device';
+
+  @override
+  String get authSignedInElsewhereMessage =>
+      'Someone signed in to your account on another device, so you\'ve been signed out here. Only one device can be signed in at a time. Sign in again to play here — the other device will be signed out.';
+
+  @override
+  String get authSignedInElsewhereBanner =>
+      'Your account was signed in on another device.';
+
+  @override
   String get authChangeLanguage => 'Change language';
 
   @override
@@ -651,6 +662,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorRefreshReused =>
       'For your security, you\'ve been signed out. Please sign in again.';
+
+  @override
+  String get errorSessionReplaced =>
+      'Your account was signed in on another device. Please sign in again.';
 
   @override
   String get errorForbidden => 'You don\'t have permission to do that.';

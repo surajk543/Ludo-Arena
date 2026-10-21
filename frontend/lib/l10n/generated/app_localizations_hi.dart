@@ -43,6 +43,18 @@ class AppLocalizationsHi extends AppLocalizations {
       'आप साइन आउट हो गए थे। कृपया फिर से साइन इन करें।';
 
   @override
+  String get authSignedInElsewhereTitle =>
+      'किसी दूसरे डिवाइस पर साइन इन किया गया';
+
+  @override
+  String get authSignedInElsewhereMessage =>
+      'किसी ने आपके अकाउंट से दूसरे डिवाइस पर साइन इन किया है, इसलिए आपको यहाँ से साइन आउट कर दिया गया है। एक समय में केवल एक डिवाइस पर साइन इन किया जा सकता है। यहाँ खेलने के लिए फिर से साइन इन करें — दूसरा डिवाइस साइन आउट हो जाएगा।';
+
+  @override
+  String get authSignedInElsewhereBanner =>
+      'आपके अकाउंट से किसी दूसरे डिवाइस पर साइन इन किया गया।';
+
+  @override
   String get authChangeLanguage => 'भाषा बदलें';
 
   @override
@@ -653,6 +665,10 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get errorRefreshReused =>
       'आपकी सुरक्षा के लिए आपको साइन आउट कर दिया गया है। कृपया फिर से साइन इन करें।';
+
+  @override
+  String get errorSessionReplaced =>
+      'आपके अकाउंट से किसी दूसरे डिवाइस पर साइन इन किया गया। कृपया फिर से साइन इन करें।';
 
   @override
   String get errorForbidden => 'आपको यह करने की अनुमति नहीं है।';

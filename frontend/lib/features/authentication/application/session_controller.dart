@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/token_manager.dart' show SessionEnd;
 import '../../../core/protocol/protocol.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/storage/secure_session_store.dart';
@@ -18,7 +19,15 @@ import '../identity/identity_providers.dart';
 enum SessionStatus { unknown, signedOut, signedIn }
 
 /// Why the user was signed out (for an explanatory banner on login).
-enum SignOutReason { none, userAction, expired }
+enum SignOutReason {
+  none,
+  userAction,
+  expired,
+
+  /// The account signed in on another device (only one device at a time).
+  /// The app never signs back in on its own after this.
+  replaced,
+}
 
 @immutable
 class SessionState {
@@ -136,7 +145,7 @@ class SessionController extends Notifier<SessionState> {
     final tokens = ref.read(tokenManagerProvider);
     final subs = <StreamSubscription<dynamic>>[
       tokens.onRefreshed.listen(_onTokensRefreshed),
-      tokens.onExpired.listen((_) => unawaited(_onSessionExpired())),
+      tokens.onExpired.listen((end) => unawaited(_onSessionExpired(end))),
     ];
     ref.onDispose(() {
       for (final s in subs) {
@@ -174,6 +183,19 @@ class SessionController extends Notifier<SessionState> {
       } on ApiException catch (e) {
         if (e.isPolicyBlock) return RestoreOutcome.policyBlocked;
         return RestoreOutcome.networkError;
+      }
+      // Signed in on another device while this app was closed: tell the
+      // user, and do not resume the guest (that would sign the other
+      // device out in turn).
+      if (tokens.lastEnd == SessionEnd.replaced) {
+        _set(
+          state.copyWith(
+            status: SessionStatus.signedOut,
+            clearUser: true,
+            signOutReason: SignOutReason.replaced,
+          ),
+        );
+        return RestoreOutcome.signedOut;
       }
     }
 
@@ -233,13 +255,11 @@ class SessionController extends Notifier<SessionState> {
     LoginMethod method, {
     bool revokePrevious = false,
   }) async {
-    final previousRefresh = ref.read(tokenManagerProvider).refreshToken;
+    final previous = _currentTokens();
     try {
       final r = await _api.signIn(credential);
       await _adopt(r);
-      if (revokePrevious && previousRefresh != null) {
-        unawaited(_revoke(previousRefresh));
-      }
+      if (revokePrevious && previous != null) unawaited(_revoke(previous));
       _analytics.loginSucceeded(method);
       return AuthSucceeded(r.user, isNewUser: r.isNewUser);
     } on ApiException catch (e) {
@@ -279,11 +299,11 @@ class SessionController extends Notifier<SessionState> {
   Future<AuthOutcome> switchBackToGuest() async {
     final secret = await _store.readGuestSecret();
     if (secret == null) return const AuthFailed('not_found');
-    final previousRefresh = ref.read(tokenManagerProvider).refreshToken;
+    final previous = _currentTokens();
     try {
       final r = await _api.resumeGuest(secret);
       await _adopt(r);
-      if (previousRefresh != null) unawaited(_revoke(previousRefresh));
+      if (previous != null) unawaited(_revoke(previous));
       return AuthSucceeded(r.user);
     } on ApiException catch (e) {
       if (_isCredentialRejected(e)) {
@@ -308,6 +328,9 @@ class SessionController extends Notifier<SessionState> {
     if (credential == null) return const LinkCancelled();
     try {
       final me = await _api.link(credential);
+      // A linked account is no longer resumed with the guest secret on
+      // launch (that would sign out the account's other device).
+      await _store.writeLastSessionWasGuest(me.user.isGuest);
       _adoptProfile(me);
       _analytics.accountLinkSucceeded(_method(provider));
       return LinkSucceeded(me.user, provider);
@@ -365,8 +388,8 @@ class SessionController extends Notifier<SessionState> {
   /// user confirmed losing an unsaved guest account).
   Future<void> logout({required bool forgetGuest}) async {
     final tokens = ref.read(tokenManagerProvider);
-    final refresh = tokens.refreshToken;
-    if (refresh != null) unawaited(_revoke(refresh));
+    final previous = _currentTokens();
+    if (previous != null) unawaited(_revoke(previous));
     await tokens.clear();
     for (final c in ref.read(identityProviderClientsProvider).values) {
       unawaited(c.signOut());
@@ -419,10 +442,15 @@ class SessionController extends Notifier<SessionState> {
     _set(state.copyWith(user: r.user));
   }
 
-  Future<void> _onSessionExpired() async {
+  Future<void> _onSessionExpired(SessionEnd end) async {
     if (!state.isSignedIn) return;
-    // A guest whose refresh token died can be resumed silently.
     final secret = await _store.readGuestSecret();
+    if (end == SessionEnd.replaced) {
+      // Signed in on another device: never sign back in automatically.
+      _signedOut(SignOutReason.replaced, hasStoredGuest: secret != null);
+      return;
+    }
+    // A guest whose refresh token died can be resumed silently.
     if (state.isGuest && secret != null) {
       try {
         await _adopt(await _api.resumeGuest(secret));
@@ -447,9 +475,21 @@ class SessionController extends Notifier<SessionState> {
     );
   }
 
-  Future<void> _revoke(String refreshToken) async {
+  /// The session being left, for a best-effort revoke. The access token is
+  /// only sent while still valid; the server falls back to the refresh token.
+  ({String refresh, String? access})? _currentTokens() {
+    final tokens = ref.read(tokenManagerProvider);
+    final refresh = tokens.refreshToken;
+    if (refresh == null) return null;
+    final access = tokens.accessValidFor(const Duration(seconds: 5))
+        ? tokens.accessToken
+        : null;
+    return (refresh: refresh, access: access);
+  }
+
+  Future<void> _revoke(({String refresh, String? access}) session) async {
     try {
-      await _api.logout(refreshToken);
+      await _api.logout(session.refresh, accessToken: session.access);
     } catch (_) {
       // Best effort: the session expires server-side anyway.
     }
