@@ -510,6 +510,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonFree => 'Free';
 
   @override
+  String get connectionLostTitle => 'Connection lost';
+
+  @override
+  String get connectionLostMessage =>
+      'Reconnecting… You can continue as soon as you\'re back online.';
+
+  @override
+  String get connectionLostMatchHint =>
+      'Your match keeps running. Missed turns are played for you automatically.';
+
+  @override
+  String get connectionLostRetryNow => 'Try now';
+
+  @override
+  String get connectionBackOnline => 'Back online';
+
+  @override
   String get appTitle => 'Ludo Royale';
 
   @override

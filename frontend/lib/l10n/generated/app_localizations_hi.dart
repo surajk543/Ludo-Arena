@@ -510,6 +510,23 @@ class AppLocalizationsHi extends AppLocalizations {
   String get commonFree => 'मुफ़्त';
 
   @override
+  String get connectionLostTitle => 'कनेक्शन टूट गया';
+
+  @override
+  String get connectionLostMessage =>
+      'फिर से कनेक्ट हो रहा है… इंटरनेट वापस आते ही आप जारी रख सकते हैं।';
+
+  @override
+  String get connectionLostMatchHint =>
+      'आपका मैच चलता रहेगा। चूकी हुई बारियाँ अपने-आप खेली जाएँगी।';
+
+  @override
+  String get connectionLostRetryNow => 'अभी कोशिश करें';
+
+  @override
+  String get connectionBackOnline => 'फिर से ऑनलाइन';
+
+  @override
   String get appTitle => 'लूडो रॉयल';
 
   @override

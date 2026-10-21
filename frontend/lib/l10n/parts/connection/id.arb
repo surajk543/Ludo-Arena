@@ -1,0 +1,7 @@
+{
+  "connectionLostTitle": "Koneksi terputus",
+  "connectionLostMessage": "Menyambung ulang… Kamu bisa lanjut begitu kembali online.",
+  "connectionLostMatchHint": "Pertandinganmu tetap berjalan. Giliran yang terlewat dimainkan otomatis.",
+  "connectionLostRetryNow": "Coba sekarang",
+  "connectionBackOnline": "Kembali online"
+}

@@ -1158,6 +1158,7 @@ td code { font-size: 0.8rem; }
       <li>Backoff resets after a connection has stayed up for 30 s. Heartbeat: client <code>{"t":"ping"}</code> every 15 s (dead after 10 s without <code>pong</code>); server WebSocket pings every 20 s (closes after a 10 s pong timeout).</li>
       <li>Commands are idempotent across reconnects: message ids are unique per connection and the server de-duplicates <code>(userId, id)</code> for 2 minutes, answering repeats with <code>ack {dup: true}</code>.</li>
       <li>Turn deadlines and auto-moves are server-side, so a player who never comes back cannot stall the game (<code>TestTurnTimeoutsForfeitAbsentPlayer</code>, <code>TestReconnectRestoresGame</code>).</li>
+      <li>App: once signed in, a socket lost for more than 1 s (<code>reconnecting</code> / <code>offline</code>) puts a full-screen “Connection lost” overlay over every screen, match included (<code>frontend/lib/app/offline/</code>). It blocks taps, keyboard focus and system back, so nothing is sent until the socket is <code>connected</code> again; the room controller then re-syncs from the <code>game.state</code> snapshot. Not shown on the gate screens, for <code>4409</code> (its own Reconnect dialog) or the first connection attempt.</li>
     </ul>
   </section>
 

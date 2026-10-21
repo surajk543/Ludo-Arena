@@ -937,6 +937,36 @@ abstract class AppLocalizations {
   /// **'Free'**
   String get commonFree;
 
+  /// Title of the full-screen overlay that blocks the app while the internet / game-server connection is down (after sign-in, on any screen, including a match).
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get connectionLostTitle;
+
+  /// Body of the connection-lost overlay: the app reconnects by itself and unblocks when the connection is back.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting… You can continue as soon as you\'re back online.'**
+  String get connectionLostMessage;
+
+  /// Extra line on the connection-lost overlay during a match: the server keeps the match going and plays timed-out turns for the player.
+  ///
+  /// In en, this message translates to:
+  /// **'Your match keeps running. Missed turns are played for you automatically.'**
+  String get connectionLostMatchHint;
+
+  /// Button on the connection-lost overlay: retry the connection immediately instead of waiting for the next automatic attempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Try now'**
+  String get connectionLostRetryNow;
+
+  /// Screen-reader announcement when the connection is restored and the connection-lost overlay disappears.
+  ///
+  /// In en, this message translates to:
+  /// **'Back online'**
+  String get connectionBackOnline;
+
   /// Application name shown in the OS task switcher and splash.
   ///
   /// In en, this message translates to:
