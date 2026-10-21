@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"ludoroyale/botplay/internal/chatter"
 	"ludoroyale/botplay/internal/client"
 	"ludoroyale/botplay/internal/config"
 	"ludoroyale/botplay/internal/connection"
@@ -84,7 +85,12 @@ type gameState struct {
 	stallSyncV   int64  // state version a stall sync was already sent for
 	countedGame  string // roomID/round already counted as started
 	finishedGame string // roomID/round already handled as finished
-	labelChecked string // roomID/round whose bot label was checked
+
+	// Quick-chat / emote reactions (chat.go).
+	chat           chatter.State
+	chatPending    *pendingChat
+	chatIDs        map[string]string // message id -> kind of sent chat messages
+	leaveAfterChat bool              // leave the finished room once the pending reaction is sent
 }
 
 type serveResult struct {
@@ -166,6 +172,9 @@ func (b *Bot) resetWake(t *time.Timer) {
 	if at, ok := b.stallAt(); ok {
 		consider(at)
 	}
+	if g.chatPending != nil {
+		consider(g.chatPending.at)
+	}
 	d := time.Hour
 	if !next.IsZero() {
 		d = max(time.Until(next), 0)
@@ -187,9 +196,13 @@ func (b *Bot) confirmTimeout() time.Duration {
 	return b.svc.store.Config().Connection.ActionConfirmTimeout()
 }
 
+// nextID returns a message id unique for this bot's account for longer than
+// the server's 2-minute de-duplication window: a random per-bot prefix
+// (later sessions of the same persona reuse the account) and a counter that
+// keeps growing across reconnects.
 func (b *Bot) nextID() string {
 	b.g.msgSeq++
-	return "m" + strconv.FormatUint(b.g.msgSeq, 10)
+	return "m" + b.idPrefix + "." + strconv.FormatUint(b.g.msgSeq, 10)
 }
 
 func (b *Bot) send(conn *connection.Conn, t string, p any, metricType string) string {
@@ -209,6 +222,9 @@ func (b *Bot) handle(conn *connection.Conn, msg connection.Inbound) {
 	case connection.TReady:
 		b.onReady(conn, msg)
 	case connection.TAck:
+		if b.chatReply(msg.R, false) {
+			return
+		}
 		if msg.R != "" && msg.R == b.g.leaveID {
 			b.afterLeave()
 		}
@@ -289,6 +305,12 @@ func (b *Bot) onError(conn *connection.Conn, msg connection.Inbound) {
 	g := &b.g
 	var p connection.ErrorPayload
 	_ = json.Unmarshal(msg.P, &p)
+	if b.chatReply(msg.R, true) {
+		// A refused chat message (rate limit, emote) is never retried and
+		// never slows down game actions.
+		b.log.Debug("chat message refused", "code", p.Code)
+		return
+	}
 	b.svc.m.RecordError(p.Code)
 	b.log.Debug("server error", "code", p.Code, "msg", p.Msg, "retry", p.Retry, "reply_to", msg.R)
 	r := msg.R
@@ -496,6 +518,7 @@ func (b *Bot) onApplied(conn *connection.Conn, msg connection.Inbound) {
 			g.pending = nil
 			g.throttleLevel = 0
 		}
+		b.reactToDice(p)
 	case connection.TMoveApplied:
 		var p connection.MoveApplied
 		_ = json.Unmarshal(msg.P, &p)
@@ -509,6 +532,7 @@ func (b *Bot) onApplied(conn *connection.Conn, msg connection.Inbound) {
 				b.log.Debug("server destination differs from documented board (server wins)", "from", p.From, "dice", r.Turn.Dice, "to", p.To)
 			}
 		}
+		b.reactToMove(p)
 	case connection.TTurnChanged:
 		g.pending = nil // the server moved on (e.g. voided roll / no legal move)
 	}
@@ -537,13 +561,6 @@ func (b *Bot) afterStateChange(conn *connection.Conn) {
 	}
 	me := r.Player(g.mySeat)
 	gameID := r.ID + "/" + strconv.Itoa(r.Round)
-	if g.labelChecked != gameID {
-		g.labelChecked = gameID
-		if me != nil && !me.Bot {
-			b.svc.m.BotLabelMissing.Inc()
-			b.log.Warn("server snapshot does not mark this bot seat as bot:true (backend contract)", "seat", g.mySeat)
-		}
-	}
 	switch r.Status {
 	case connection.StatusLobby:
 		g.rematchDeadline = time.Time{}
@@ -562,6 +579,9 @@ func (b *Bot) afterStateChange(conn *connection.Conn) {
 			b.inGame.Store(true)
 			b.svc.m.RecordGameStarted(gameKeyOf(r))
 			b.log.Info("game started", append(b.roomAttr(r), "seat", g.mySeat, "players", len(r.Players), "round", r.Round)...)
+			if r.Turn.TurnSeq <= 1 {
+				b.react(chatter.GameStart) // not when joining a game already under way
+			}
 		}
 		if me != nil && me.Forfeited {
 			b.log.Warn("this bot was forfeited; leaving", b.roomAttr(r)...)
@@ -586,7 +606,8 @@ func (b *Bot) onFinished(conn *connection.Conn, r *connection.Room) {
 	g.finishedGame = gameID
 	g.lobbyDeadline = time.Time{}
 	g.thinkAt = time.Time{}
-	if g.countedGame == gameID {
+	played := g.countedGame == gameID
+	if played {
 		b.svc.m.RecordGameFinished(gameKeyOf(r))
 	}
 	b.inGame.Store(false)
@@ -595,6 +616,12 @@ func (b *Bot) onFinished(conn *connection.Conn, r *connection.Room) {
 		winner = r.Result.WinnerSeat
 	}
 	b.log.Info("game finished", append(b.roomAttr(r), "seat", g.mySeat, "winner_seat", winner)...)
+	switch {
+	case winner >= 0 && winner == g.mySeat:
+		b.react(chatter.Win)
+	case winner >= 0 && played:
+		b.react(chatter.Loss)
+	}
 	cfg := b.svc.store.Config()
 	if cfg.Bots.AcceptRematch && (b.kind == client.KindPractice || b.kind == client.KindPrivate) &&
 		r.Rematch != nil && r.Rematch.Open && b.RetireMode() == RetireNone && cfg.Bots.Enabled && !b.svc.stopping.Load() {
@@ -603,7 +630,11 @@ func (b *Bot) onFinished(conn *connection.Conn, r *connection.Room) {
 		return
 	}
 	// Default: decline by leaving (room.leave in a finished room counts as
-	// a declined rematch).
+	// a declined rematch) — after the pending "gg", like a person.
+	if g.chatPending != nil && g.chatPending.match == gameID {
+		g.leaveAfterChat = true
+		return
+	}
 	b.leave(conn)
 }
 
@@ -666,6 +697,8 @@ func (b *Bot) resetRoom() {
 	g.leaveID = ""
 	g.leaveDeadline = time.Time{}
 	g.cancelID = ""
+	g.chatPending = nil
+	g.leaveAfterChat = false
 	b.inGame.Store(false)
 	b.svc.setGame(b, gameNone)
 }
@@ -753,6 +786,9 @@ func (b *Bot) onTick(conn *connection.Conn) {
 	}
 	if !g.thinkAt.IsZero() && !now.Before(g.thinkAt) {
 		b.fireAction(conn)
+	}
+	if g.chatPending != nil && !now.Before(g.chatPending.at) {
+		b.fireChat(conn)
 	}
 	if g.pending != nil && now.Sub(g.pending.sentAt) >= b.confirmTimeout() {
 		b.log.Debug("action not confirmed in time; resyncing", "action", g.pending.typ)

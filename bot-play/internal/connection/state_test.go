@@ -33,9 +33,9 @@ func TestSnapshotWithSeatPictures(t *testing.T) {
 		"players":[
 		 {"seat":0,"uid":"u_a","name":"A","avatar":1,"level":3,"title":"title_rookie","cosmetics":{},
 		  "picture":{"id":"pp_wolf","format":"image","path":"profile_pictures/image/wolf.png"},
-		  "color":"red","connected":true,"bot":false,"forfeited":false,"strikes":0},
+		  "color":"red","connected":true,"forfeited":false,"strikes":0},
 		 {"seat":1,"uid":"b_1","name":"B","avatar":2,"level":1,"title":"title_rookie","cosmetics":{},
-		  "picture":null,"color":"yellow","connected":true,"bot":true,"forfeited":false,"strikes":0}],
+		  "picture":null,"color":"yellow","connected":true,"forfeited":false,"strikes":0}],
 		"turn":{"seat":1,"phase":"awaiting_roll","turnSeq":7,"deadline":1,"dice":0,"legal":[],"sixStreak":0},
 		"board":{"tokens":[[-1,-1,5,56],[0,-1,-1,-1]]},"h":2902942580}`
 	var r Room
@@ -57,7 +57,7 @@ func h32(r *Room) *uint32 { h, _ := StateHash(r); return &h }
 
 func baseRoom() *Room {
 	r := &Room{ID: "r1", V: 10, Game: "ludo", Status: StatusPlaying, Capacity: 2,
-		Players: []Player{{Seat: 0, UID: "a", Color: "red", Bot: true}, {Seat: 1, UID: "b", Color: "yellow"}},
+		Players: []Player{{Seat: 0, UID: "a", Color: "red"}, {Seat: 1, UID: "b", Color: "yellow"}},
 		Turn:    Turn{Seat: 0, Phase: PhaseAwaitingRoll, TurnSeq: 3, Legal: []int{}},
 		Board:   Board{Tokens: [][]int{{-1, -1, -1, -1}, {-1, -1, -1, -1}}}}
 	r.H = h32(r)

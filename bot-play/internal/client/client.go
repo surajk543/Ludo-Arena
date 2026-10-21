@@ -61,12 +61,16 @@ type SessionRequest struct {
 }
 
 // Session is a bot session (access token scoped to one assignment or to the
-// load-test pool, <= 2 h).
+// load-test pool, <= 2 h). UID is the bot's public id, in the same format as
+// a person's ("u_" + 12 characters).
 type Session struct {
 	AccessToken config.Secret `json:"-"`
 	ExpiresAt   int64         `json:"expiresAt"`
 	UID         string        `json:"uid"`
 	RoomID      string        `json:"roomId"`
+	// Emotes are the emote ids this bot may send with chat.emote (empty when
+	// the backend sent none: the bot then sends no emotes).
+	Emotes []string `json:"emotes"`
 }
 
 // APIError is a non-2xx backend response.
@@ -306,10 +310,11 @@ func (c *Client) Fill(ctx context.Context, roomID string, count int) (FillResult
 // CreateSession creates a bot session (assignment or load-test).
 func (c *Client) CreateSession(ctx context.Context, req SessionRequest) (*Session, error) {
 	var out struct {
-		AccessToken string `json:"accessToken"`
-		ExpiresAt   int64  `json:"expiresAt"`
-		UID         string `json:"uid"`
-		RoomID      string `json:"roomId"`
+		AccessToken string   `json:"accessToken"`
+		ExpiresAt   int64    `json:"expiresAt"`
+		UID         string   `json:"uid"`
+		RoomID      string   `json:"roomId"`
+		Emotes      []string `json:"emotes"`
 	}
 	if err := c.withController(ctx, http.MethodPost, "/bot/sessions", req, &out); err != nil {
 		return nil, err
@@ -317,7 +322,8 @@ func (c *Client) CreateSession(ctx context.Context, req SessionRequest) (*Sessio
 	if out.AccessToken == "" || out.UID == "" {
 		return nil, errors.New("client: session response missing accessToken or uid")
 	}
-	return &Session{AccessToken: config.NewSecret(out.AccessToken), ExpiresAt: out.ExpiresAt, UID: out.UID, RoomID: out.RoomID}, nil
+	return &Session{AccessToken: config.NewSecret(out.AccessToken), ExpiresAt: out.ExpiresAt, UID: out.UID,
+		RoomID: out.RoomID, Emotes: out.Emotes}, nil
 }
 
 // RevokeSession revokes a bot session (the bot leaves its room). 404 is

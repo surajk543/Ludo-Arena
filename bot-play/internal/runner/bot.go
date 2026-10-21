@@ -50,6 +50,7 @@ type Bot struct {
 	actLim     *rate.Limiter
 	reconnLim  *rate.Limiter
 	slowReader bool
+	idPrefix   string // random message-id prefix (see nextID)
 
 	retire    atomic.Int32
 	retireCh  chan struct{}
@@ -77,6 +78,7 @@ func (s *Service) newBotLocked(kind, game string, a *client.Assignment) *Bot {
 		reconnLim: rate.NewLimiter(rate.Limit(float64(cfg.Limits.MaxReconnectAttemptsPerMinute)/60), cfg.Limits.MaxReconnectAttemptsPerMinute),
 		retireCh:  make(chan struct{}, 1),
 		churnCh:   make(chan struct{}, 1),
+		idPrefix:  newIDPrefix(),
 	}
 	b.name = b.pickName(cfg)
 	attrs := []any{"bot_id", id, "kind", kind}

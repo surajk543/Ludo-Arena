@@ -22,6 +22,8 @@ const (
 	TMakeMove          = "game.make_move"
 	TRequestSync       = "game.request_sync"
 	TRematch           = "game.rematch"
+	TChatQuick         = "chat.quick"
+	TChatEmote         = "chat.emote"
 )
 
 // Server -> client message types.
@@ -118,7 +120,9 @@ type Room struct {
 	H            *uint32  `json:"h,omitempty"`
 }
 
-// Player is one seat in a room snapshot. Bot is server-determined.
+// Player is one seat in a room snapshot. Snapshots say nothing about which
+// seats are bots (bots look like people); a bot finds its own seat by its
+// session uid.
 type Player struct {
 	Seat   int    `json:"seat"`
 	UID    string `json:"uid"`
@@ -131,7 +135,6 @@ type Player struct {
 	Picture   *PlayerPicture `json:"picture,omitempty"`
 	Color     string         `json:"color"`
 	Connected bool           `json:"connected"`
-	Bot       bool           `json:"bot"`
 	Forfeited bool           `json:"forfeited"`
 	// ForfeitWhy is "left" or "timeouts" on forfeited seats (absent otherwise).
 	ForfeitWhy string `json:"forfeitWhy,omitempty"`
@@ -352,4 +355,16 @@ type MatchmakingJoin struct {
 type RematchAnswer struct {
 	RoomID string `json:"roomId"`
 	Accept bool   `json:"accept"`
+}
+
+// ChatQuick is chat.quick (a predefined quick-chat id).
+type ChatQuick struct {
+	RoomID string `json:"roomId"`
+	Msg    string `json:"msg"`
+}
+
+// ChatEmote is chat.emote (an emote id the bot session may use).
+type ChatEmote struct {
+	RoomID string `json:"roomId"`
+	Emote  string `json:"emote"`
 }

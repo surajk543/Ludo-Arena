@@ -148,6 +148,7 @@ type BotsConfig struct {
 	ThinkTime                      ThinkTimeConfig         `yaml:"think_time"`
 	Behavior                       BehaviorConfig          `yaml:"behavior"`
 	Identity                       IdentityConfig          `yaml:"identity"`
+	Chat                           ChatConfig              `yaml:"chat"`
 	Shutdown                       ShutdownConfig          `yaml:"shutdown"`
 }
 
@@ -182,6 +183,47 @@ type IdentityConfig struct {
 	DisplayNamePrefix string   `yaml:"display_name_prefix"`
 	NamesPool         []string `yaml:"names_pool"`
 }
+
+// ChatConfig: quick-chat and emote reactions. Bots react sparingly to what
+// happens in their game (a six, a capture, the result) like people do; every
+// message goes through the per-match cap, the minimum interval and the bot's
+// action limiter, and the server's own chat limits (1 per 3 s, 10 per
+// minute per account) still apply.
+type ChatConfig struct {
+	Enabled bool `yaml:"enabled"`
+	// InLoadtest lets load-test bots chat too (default false).
+	InLoadtest bool `yaml:"in_loadtest"`
+	// MaxPerMatch caps messages per bot per game round (0 = silent).
+	MaxPerMatch int `yaml:"max_per_match"`
+	// MinIntervalMS is the minimum gap between two messages of one bot
+	// (>= 3000: the server allows one message per 3 s).
+	MinIntervalMS int `yaml:"min_interval_ms"`
+	// ReactionDelayMS is how long after the event the bot "types".
+	ReactionDelayMS RangeMS `yaml:"reaction_delay_ms"`
+	// EmoteShare is the share of reactions sent as an emote when both an
+	// emote and a quick-chat phrase fit (emotes only from the session's
+	// emotes list).
+	EmoteShare  float64           `yaml:"emote_share"`
+	Probability ChatProbabilities `yaml:"probability"`
+}
+
+// ChatProbabilities is the chance (0..1, before the profile's chattiness
+// multiplier) that a bot reacts to each event.
+type ChatProbabilities struct {
+	GameStart    float64 `yaml:"game_start"`    // the game starts (good luck / wave)
+	Six          float64 `yaml:"six"`           // the bot rolled a six
+	Capture      float64 `yaml:"capture"`       // the bot captured an opponent token
+	Captured     float64 `yaml:"captured"`      // one of the bot's tokens was captured
+	OtherCapture float64 `yaml:"other_capture"` // an opponent captured a third player's token
+	Win          float64 `yaml:"win"`           // the bot won
+	Loss         float64 `yaml:"loss"`          // someone else won
+}
+
+// MinChatIntervalMS is the server's quick-chat burst limit (1 per 3 s).
+const MinChatIntervalMS = 3000
+
+// MinInterval returns bots.chat.min_interval_ms as a duration.
+func (c ChatConfig) MinInterval() time.Duration { return ms(c.MinIntervalMS) }
 
 // ShutdownConfig: graceful stop behaviour.
 type ShutdownConfig struct {
@@ -281,7 +323,13 @@ func Default() *Config {
 			ThinkTime: ThinkTimeConfig{MinMS: 300, MaxMS: 6000, Randomize: true},
 			Behavior:  BehaviorConfig{DefaultProfile: "balanced"},
 			Identity:  IdentityConfig{DisplayNamePrefix: "Bot"},
-			Shutdown:  ShutdownConfig{GracefulTimeoutSeconds: 60, Policy: PolicyFinishGames},
+			Chat: ChatConfig{
+				Enabled: true, MaxPerMatch: 3, MinIntervalMS: 8000,
+				ReactionDelayMS: RangeMS{Min: 600, Max: 2500}, EmoteShare: 0.5,
+				Probability: ChatProbabilities{GameStart: 0.06, Six: 0.02, Capture: 0.15, Captured: 0.12,
+					OtherCapture: 0.03, Win: 0.35, Loss: 0.2},
+			},
+			Shutdown: ShutdownConfig{GracefulTimeoutSeconds: 60, Policy: PolicyFinishGames},
 		},
 		Limits: LimitsConfig{
 			MaxActionsPerSecondPerBot:     4,
@@ -550,6 +598,25 @@ func (c *Config) Validate() error {
 		if n == "" || len(n) > 16 || !printable(n) {
 			v.addf("bots.identity.names_pool[%d]: must be 1..16 printable characters", i)
 		}
+	}
+	ch := b.Chat
+	v.rng("bots.chat.max_per_match", ch.MaxPerMatch, 0, 10)
+	v.rng("bots.chat.min_interval_ms", ch.MinIntervalMS, MinChatIntervalMS, 600000)
+	v.rng("bots.chat.reaction_delay_ms.min", ch.ReactionDelayMS.Min, 0, profiles.MaxThinkTimeMS)
+	v.rng("bots.chat.reaction_delay_ms.max", ch.ReactionDelayMS.Max, 0, profiles.MaxThinkTimeMS)
+	if ch.ReactionDelayMS.Min > ch.ReactionDelayMS.Max {
+		v.addf("bots.chat.reaction_delay_ms: min must be <= max")
+	}
+	v.frng("bots.chat.emote_share", ch.EmoteShare, 0, 1, false)
+	pr := ch.Probability
+	for _, f := range []struct {
+		name string
+		val  float64
+	}{
+		{"game_start", pr.GameStart}, {"six", pr.Six}, {"capture", pr.Capture}, {"captured", pr.Captured},
+		{"other_capture", pr.OtherCapture}, {"win", pr.Win}, {"loss", pr.Loss},
+	} {
+		v.frng("bots.chat.probability."+f.name, f.val, 0, 1, false)
 	}
 	v.rng("bots.shutdown.graceful_timeout_seconds", b.Shutdown.GracefulTimeoutSeconds, 1, 3600)
 	if b.Shutdown.Policy != PolicyFinishGames && b.Shutdown.Policy != PolicyLeaveNow {

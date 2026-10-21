@@ -58,7 +58,7 @@ type Metrics struct {
 	GamesStarted            *prometheus.CounterVec
 	GamesFinished           *prometheus.CounterVec
 	ControllerTokens        *prometheus.CounterVec
-	BotLabelMissing         prometheus.Counter
+	ChatMessages            *prometheus.CounterVec
 	MalformedSent           *prometheus.CounterVec
 	ControllerReady         prometheus.Gauge
 	ResyncVerifications     *prometheus.CounterVec
@@ -101,7 +101,7 @@ func New() *Metrics {
 	m.GamesStarted = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "games_started_total", Help: "Games started with a bot seated, by game."}, []string{"game"})
 	m.GamesFinished = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "games_finished_total", Help: "Games finished with a bot seated, by game."}, []string{"game"})
 	m.ControllerTokens = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "controller_token_refreshes_total", Help: "Controller token fetches by result."}, []string{"result"})
-	m.BotLabelMissing = prometheus.NewCounter(prometheus.CounterOpts{Name: "bot_label_missing_total", Help: "Snapshots where the server did not mark this bot's own seat bot:true."})
+	m.ChatMessages = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "chat_messages_total", Help: "Quick-chat / emote reactions by kind (quick|emote) and result (sent|rejected|dropped)."}, []string{"kind", "result"})
 	m.MalformedSent = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "loadtest_malformed_sent_total", Help: "Deliberately malformed messages sent (load test)."}, []string{"kind"})
 	m.ResyncVerifications = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "reconnect_resync_verifications_total", Help: "Post-reconnect snapshot verification (v not regressed, hash matches) by result."}, []string{"result"})
 	m.ControllerReady = prometheus.NewGauge(prometheus.GaugeOpts{Name: "controller_ready", Help: "1 when the controller token is valid and the backend was reached recently."})
@@ -112,7 +112,7 @@ func New() *Metrics {
 		m.ConfigReloadFailures, m.CompressionNegotiated, m.WSBytesReceived, m.StateResyncs,
 		m.HashMismatches, m.EventsIgnored, m.AssignmentsReceived, m.AssignmentsRejected,
 		m.FillRequests, m.BotSessions, m.GamesStarted, m.GamesFinished, m.ControllerTokens,
-		m.BotLabelMissing, m.MalformedSent, m.ControllerReady, m.ResyncVerifications,
+		m.ChatMessages, m.MalformedSent, m.ControllerReady, m.ResyncVerifications,
 		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	} {
@@ -137,6 +137,13 @@ func (m *Metrics) RecordConfigReload(ok bool) {
 	}
 	m.ConfigReloads.WithLabelValues("failure").Inc()
 	m.ConfigReloadFailures.Inc()
+}
+
+// RecordChat counts a chat reaction: kind quick|emote, result
+// sent|rejected (server error reply)|dropped (not sent: stale, leaving,
+// limiter). Chat never feeds the load-test action statistics.
+func (m *Metrics) RecordChat(kind, result string) {
+	m.ChatMessages.WithLabelValues(kind, result).Inc()
 }
 
 // RecordAction counts a command sent.

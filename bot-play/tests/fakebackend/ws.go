@@ -187,9 +187,11 @@ func (s *Server) onClientMessage(c *wsConn, sess *session, data []byte) {
 		return
 	}
 	s.seenIDs[key] = true
-	// Backend allowlist: assignment bots may roll, move, sync and leave;
-	// load-test bots may also use matchmaking and rematch.
-	allowed := map[string]bool{"game.roll_dice": true, "game.make_move": true, "game.request_sync": true, "room.leave": true}
+	// Backend allowlist: assignment bots may roll, move, sync, leave and
+	// chat (quick chat + emotes); load-test bots may also use matchmaking
+	// and rematch.
+	allowed := map[string]bool{"game.roll_dice": true, "game.make_move": true, "game.request_sync": true, "room.leave": true,
+		"chat.quick": true, "chat.emote": true}
 	if sess.loadtest {
 		allowed["matchmaking.join"], allowed["matchmaking.cancel"], allowed["game.rematch"] = true, true, true
 	}
@@ -287,6 +289,8 @@ func (s *Server) onClientMessage(c *wsConn, sess *session, data []byte) {
 		c.send(errEnv(id, "not_in_room", "not in a room", false))
 	case "game.rematch":
 		c.send(Envelope{T: "ack", R: id, P: map[string]any{}})
+	case "chat.quick", "chat.emote":
+		s.chatLocked(c, sess, rm, env.T, env.P, id)
 	case "matchmaking.join":
 		var p struct {
 			Game     string `json:"game"`
@@ -319,6 +323,92 @@ func (s *Server) onClientMessage(c *wsConn, sess *session, data []byte) {
 		c.send(Envelope{T: "matchmaking.status", R: id, P: map[string]any{"status": "cancelled", "game": rm.game,
 			"variant": rm.variant, "capacity": rm.capacity, "roomId": rm.id}})
 	}
+}
+
+// chatLimits mirror the backend's per-account quick-chat limits.
+const (
+	chatBurstWindow  = 3 * time.Second
+	chatMinuteWindow = time.Minute
+	chatPerMinute    = 10
+)
+
+// chatLocked implements chat.quick / chat.emote like the backend: known
+// quick-chat ids, emotes the session may use, 1 per 3 s and 10 per minute
+// per account; accepted messages are broadcast to the room.
+func (s *Server) chatLocked(c *wsConn, sess *session, rm *room, t string, raw json.RawMessage, id string) {
+	reject := func(code string, retry bool) {
+		s.chatRejects[code]++
+		c.send(errEnv(id, code, "chat refused", retry))
+	}
+	var p struct {
+		RoomID string `json:"roomId"`
+		Msg    string `json:"msg"`
+		Emote  string `json:"emote"`
+	}
+	if !strictDecode(raw, &p) || len(p.RoomID) < 3 || len(p.RoomID) > 32 {
+		reject("bad_request", false)
+		return
+	}
+	value := p.Msg
+	if t == "chat.emote" {
+		value = p.Emote
+		if p.Msg != "" || p.Emote == "" {
+			reject("bad_request", false)
+			return
+		}
+	} else if p.Emote != "" || !quickChatIDs[p.Msg] {
+		reject("bad_request", false)
+		return
+	}
+	if s.opts.RefuseChat != "" {
+		reject(s.opts.RefuseChat, s.opts.RefuseChat == "rate_limited")
+		return
+	}
+	now := time.Now()
+	var recent []time.Time
+	for _, at := range s.chatTimes[sess.uid] {
+		if now.Sub(at) < chatMinuteWindow {
+			recent = append(recent, at)
+		}
+	}
+	s.chatTimes[sess.uid] = recent
+	if len(recent) >= chatPerMinute || (len(recent) > 0 && now.Sub(recent[len(recent)-1]) < chatBurstWindow) {
+		reject("rate_limited", true)
+		return
+	}
+	if rm == nil || rm.id != p.RoomID || rm.member(sess.uid) == nil {
+		reject("not_in_room", false)
+		return
+	}
+	if t == "chat.emote" && !containsStr(sess.emotes, p.Emote) {
+		reject("item_not_owned", false)
+		return
+	}
+	s.chatTimes[sess.uid] = append(recent, now)
+	s.chats = append(s.chats, ChatRecord{UID: sess.uid, RoomID: rm.id, Type: t, Value: value, At: now})
+	c.send(Envelope{T: "ack", R: id, P: map[string]any{}})
+	seat := rm.member(sess.uid).seat
+	for _, pl := range rm.players {
+		if pl.left || pl.gone || pl.human {
+			continue
+		}
+		payload := map[string]any{"roomId": rm.id, "seat": seat}
+		if t == "chat.emote" {
+			payload["emote"] = value
+		} else {
+			payload["msg"] = value
+		}
+		s.deliverLocked(pl.uid, Envelope{T: t, P: payload})
+	}
+}
+
+func containsStr(xs []string, v string) bool {
+	for _, x := range xs {
+		if x == v {
+			return true
+		}
+	}
+	return false
 }
 
 // strictDecode mirrors the backend's DisallowUnknownFields decoding.

@@ -25,7 +25,8 @@ clients), [`rest-api.md`](rest-api.md) (Bot service),
 | Obtain controller tokens with the service key and serve backend assignments | Generate dice, decide legality, compute turns or winners |
 | Create bot sessions, connect, keep a local copy of room state | Mutate Redis/PostgreSQL or call wallet/progression/social/account APIs |
 | Roll when it is its turn; choose among the **server-listed** legal Ludo tokens | Claim outcomes, send results, or send a "bot" flag |
-| Resync on gaps/hash mismatches, reconnect with backoff | Chat, create/join rooms by code, or act outside its assigned room |
+| Resync on gaps/hash mismatches, reconnect with backoff | Create/join rooms by code, or act outside its assigned room |
+| React sparingly with quick chat / emotes (§3.5), like a person | Spam chat, offer rematches, or use emotes the backend did not list for its session |
 | Leave, revoke its session, shut down gracefully | Run load tests against production |
 
 The backend is authoritative. If bot-play's local view is wrong, it asks for a
@@ -60,7 +61,8 @@ guard, reload), `internal/profiles`, `internal/client` (REST),
 `internal/connection` (WS transport, protocol types, reducer, FNV-1a hash),
 `internal/ludo` (geometry + evaluator), `internal/snakes_ladders` (geometry
 only), `internal/strategy` (think time, move choice), `internal/matchmaking`
-(fill planner, load-test mix), `internal/runner` (controller + bot game loop),
+(fill planner, load-test mix), `internal/chatter` (when to react with quick
+chat / emotes), `internal/runner` (controller + bot game loop),
 `internal/health`, `internal/metrics` (Prometheus + load-test report).
 
 Each bot runs on its own goroutine; all of its game state is owned by that
@@ -83,7 +85,7 @@ the bot endpoints are not version-gated):
 | 2 | `GET /bot/assignments?wait=<1..25>` | `Bearer <controller JWT>` | – | Long-poll; only while practice/public_fill is configured **and** there is headroom. `{"maintenance":true}` in the body is treated like 503 |
 | 3 | `GET /bot/lobbies` | controller | – | Public fill planning (every `poll_interval_ms`); also the readiness probe when idle. `publicFillEnabled:false` pauses fill |
 | 4 | `POST /bot/lobbies/{roomId}/fill` | controller | `{"count":n}` | Public fill. Accepts `{"assignments":[…]}` (documented) or `{"requested":n}` (assignments then arrive via #2). 409 → cooldown; 403 → pause 60 s |
-| 5 | `POST /bot/sessions` | controller | `{"assignmentId","name","profile"}` or `{"mode":"loadtest","name"}` | Bot access token (≤ 2 h), `uid`, `roomId`. No `bot` field is ever sent |
+| 5 | `POST /bot/sessions` | controller | `{"assignmentId","name","profile"}` or `{"mode":"loadtest","name"}` | Bot access token (≤ 2 h), `uid` (same `u_` + 12 characters format as a person's), `roomId`, `emotes` (emote ids the bot may send; absent from older backends → no emotes). No `bot` field is ever sent |
 | 6 | `DELETE /bot/sessions/{uid}` | controller | – | Always on bot exit (also during shutdown, with a fresh 5 s context); 404 = already revoked |
 
 WebSocket (`connection.backend_ws_url`, e.g. `ws://localhost:8080/api/v1/ws`):
@@ -110,9 +112,18 @@ strictly):
 | `matchmaking.join` | `{"game","variant","capacity"}` | load-test bots only |
 | `matchmaking.cancel` | `{}` | load-test bots leaving a lobby that has not started |
 | `game.rematch` | `{"roomId","accept":true}` | only with `bots.accept_rematch: true` (practice/private); if refused, the bot leaves |
+| `chat.quick` | `{"roomId","msg"}` | a reaction (§3.5): `gg`, `nice_move`, `well_played`, `good_luck`, `oops` or `thanks` — never `rematch` / `again` |
+| `chat.emote` | `{"roomId","emote"}` | a reaction (§3.5), only an emote from the session's `emotes` list |
 
-Message ids are `m1, m2, …` per bot and stay unique across reconnects (the
-server de-duplicates `(userId, id)` for 2 minutes).
+Message ids are `m<prefix>.<n>`: a random per-bot prefix plus a counter that
+keeps growing across reconnects. The backend reuses a bot persona's account
+(and public uid) for later sessions of the same name, and de-duplicates
+`(userId, id)` for 2 minutes across connections, so ids must never restart at
+the same value in a new session.
+
+bot-play never looks at any seat's bot flag (snapshots no longer carry
+`players[].bot`: bots look like people); it finds its own seat by its session
+`uid`.
 
 ### 3.2 Assignment flow (practice, private, public fill)
 
@@ -158,7 +169,52 @@ that state version (covers a lost last event).
 * A command not confirmed by its authoritative event (`game.dice_result` /
   `game.move_applied`) within `action_confirm_timeout_ms` triggers a resync.
 
-### 3.5 Connection failures
+### 3.5 Quick chat and emotes
+
+Bots react to their game like people do — rarely, a moment later, never in
+bursts. The decision logic is `internal/chatter` (pure, table-tested); the bot
+goroutine observes the events and sends the message after the reaction delay.
+
+| Event (`bots.chat.probability.*`) | Quick chat | Emotes (if in the session's `emotes`) |
+|---|---|---|
+| `game_start` — the game starts | `good_luck` | wave, thumbs |
+| `six` — the bot rolled a six | – | thumbs, wow |
+| `capture` — the bot captured a token | `oops` | laugh, thumbs, wow |
+| `captured` — one of its tokens was captured | `nice_move`, `oops` | wow |
+| `other_capture` — opponents capturing each other | `nice_move` | wow, laugh |
+| `win` — the bot won | `gg`, `thanks`, `well_played` | wave, thumbs, crown |
+| `loss` — someone else won | `gg`, `well_played` | thumbs, wave |
+
+* Each event fires with its probability × the profile's `chattiness`; an
+  emote is used with `emote_share` when one fits, otherwise a phrase.
+* At most `max_per_match` messages per bot per game round, at least
+  `min_interval_ms` apart (never under the server's 3 s), at most one pending
+  reaction, sent `reaction_delay_ms` after the event. A reaction older than
+  5 s (e.g. across a reconnect) or for another round is dropped.
+* Every message also takes a token from the bot's action limiter
+  (`limits.max_actions_per_second_per_bot`) without blocking: with no token
+  it is retried shortly, so the per-connection command limit (10/s, burst 20)
+  is never approached and game actions keep priority.
+* The server answers `ack`, or `error` (`rate_limited` — 1 per 3 s and 10 per
+  minute per account —, `item_not_owned`, `bad_request`): chat errors are
+  counted (`chat_messages_total{result="rejected"}`), never retried, and never
+  slow down game actions.
+* After a finished game the bot sends its pending "gg" first, then leaves.
+  Bots never send `rematch` / `again` (they do not vote for rematches).
+* Load-test bots stay silent unless `bots.chat.in_loadtest: true`.
+* Players' mute settings are applied by the app, as for people.
+
+Defaults (code, development, preprod): enabled, `max_per_match` 3,
+`min_interval_ms` 8000, `reaction_delay_ms` 600–2500, `emote_share` 0.5,
+probabilities game_start 0.06, six 0.02, capture 0.15, captured 0.12,
+other_capture 0.03, win 0.35, loss 0.2 — about one message per bot per game
+on average. **Production** (`configs/environments/production.yaml`):
+enabled, `max_per_match` 2, `min_interval_ms` 10000, `reaction_delay_ms`
+800–3000, probabilities game_start 0.05, six 0.02, capture 0.12, captured
+0.1, other_capture 0.02, win 0.3, loss 0.15. Set `bots.chat.enabled: false`
+(reloadable) to silence every bot.
+
+### 3.6 Connection failures
 
 | Signal | Behaviour |
 |---|---|
@@ -263,7 +319,14 @@ changes it is rejected and the previous config stays active).
 | `behavior.disconnect_simulation_enabled` | false | | |
 | `behavior.disconnect_probability` | 0 | 0–0.2 | per own action |
 | `identity.display_name_prefix` | `Bot` | ≤ 12 chars | requested name `"<prefix> <name>"`; the backend strips a leading `Bot` word from the seat name (so `Bot Asha` is shown as `Asha`) and limits it to 20 runes |
-| `identity.names_pool` | built-in 16 names | 1–16 chars each | |
+| `identity.names_pool` | built-in 16 names | 1–16 chars each | the backend keeps a persistent look (uid, level, cosmetics, picture) per name and reuses it in later sessions |
+| `chat.enabled` | true | | quick chat / emote reactions (§3.5); false = silent |
+| `chat.in_loadtest` | false | | load-test bots chat too |
+| `chat.max_per_match` | 3 (prod file: 2) | 0–10 | per bot per game round; 0 = silent |
+| `chat.min_interval_ms` | 8000 (prod file: 10000) | 3000–600000 | gap between two messages of one bot |
+| `chat.reaction_delay_ms` | `{min: 600, max: 2500}` | 0–15000, min ≤ max | delay after the event |
+| `chat.emote_share` | 0.5 | 0–1 | emote vs phrase when both fit |
+| `chat.probability.{game_start,six,capture,captured,other_capture,win,loss}` | 0.06, 0.02, 0.15, 0.12, 0.03, 0.35, 0.2 | 0–1 each | × the profile's `chattiness` |
 | `shutdown.graceful_timeout_seconds` | 60 | 1–3600 | |
 | `shutdown.policy` | `finish_games` | finish_games, leave_now | leave_now forfeits running games |
 
@@ -318,6 +381,10 @@ Each has `think_time_ms {min,max}` and Ludo `weights`:
 | `avoid_danger` | penalty (0.5–1) for landing 1–6 squares ahead of an opponent on a non-safe square |
 | `random_jitter` | seeded uniform noise in `[-w, +w]` |
 
+A profile may also set `chattiness` (0–5, default 1): it multiplies every
+`bots.chat.probability` (shipped: beginner 1.3, balanced 1.0, advanced 0.7;
+0 = never chats).
+
 Ties: higher destination progress, then lower token index. The evaluator
 (`internal/ludo`) uses the documented geometry (absolute index
 `(13·colour + progress) mod 52`, safe squares 0/8/13/21/26/34/39/47, home
@@ -331,8 +398,8 @@ has no choices — bots only roll; profiles affect only think time there.
 1. Backend: set `BOT_SERVICE_KEY_SHA256` = hex SHA-256 of your key; restart.
 2. `export BOT_SERVICE_KEY=…` (32–256 chars, e.g. `openssl rand -hex 32`).
 3. `go run ./cmd/bot-play --config configs/environments/development.yaml --profiles configs/profiles.yaml`
-4. In the app start a practice game; bots take seats like other players (no bot label in the app)
-   (server-side `players[].bot`).
+4. In the app start a practice game; bots take seats like other players (no bot label in the app;
+   snapshots do not say which seats are bots — only the server knows).
 
 ### Enabling / disabling public fill per game (no restart)
 Edit the config file:
@@ -443,7 +510,7 @@ Metrics (labels are small fixed sets — never ids):
 | `public_fill_requests_total{result}` | ok, conflict, forbidden, error |
 | `bot_sessions_total{result}`, `games_started_total{game}`, `games_finished_total{game}` | |
 | `controller_token_refreshes_total{result}`, `controller_ready` | |
-| `bot_label_missing_total` | server did not mark the bot seat `bot:true` (contract issue) |
+| `chat_messages_total` | kind = quick, emote; result = sent, rejected (server error), dropped (stale / leaving) |
 | `reconnect_resync_verifications_total{result}` | verified, failed, room_gone |
 | `loadtest_malformed_sent_total{kind}` | |
 | Go runtime + process collectors | |
@@ -491,14 +558,14 @@ any attribute named `*token`, `*key`, `*authorization`, `*secret`, …).
   expect a brief gap of controller-token failures during rotation.
 * **Scope.** Controller tokens only reach `/bot/*`. Bot session tokens are
   scoped to one room (or the load-test pool), expire within 2 hours, and can
-  only roll, move, sync and leave (load-test bots: also matchmaking and
-  rematch). Bots cannot touch wallets, progression, collection, social or
-  account APIs, chat, or join by code.
-* **Labelling.** Bots never send a bot flag; the backend derives
-  `players[].bot` and `actorType: "bot"` from the session, and the protocol
-  always marks bot seats `bot: true`. bot-play counts
-  `bot_label_missing_total` if a snapshot ever shows its own seat as non-bot.
-  Display names carry **no** bot label: the backend strips a leading `Bot`
+  only roll, move, sync, leave and send quick chat / emotes in their room
+  (load-test bots: also matchmaking and rematch). Bots cannot touch wallets,
+  progression, collection, social or account APIs, or join by code.
+* **Indistinguishable.** Bots never send a bot flag, and nothing sent to
+  players says which seats are bots: snapshots carry no `players[].bot`, bot
+  uids have the people's `u_` format, bots chat and emote. Only the server
+  knows (`actorType: "bot"` from the session token). bot-play never relies on
+  any seat's bot flag. Display names carry **no** bot label: the backend strips a leading `Bot`
   word (any case, followed by a space, `-`, `_`, `:` or `.`) from the
   requested name and falls back to a neutral first name (never "Bot") when
   nothing is left. The app shows no bot tag or badge and offers the same
@@ -541,12 +608,18 @@ observed in the backend implementation:
 cd bot-play && go test -race ./...
 ```
 
-Unit tests cover parsing/validation, secrets redaction, the load-test guard,
+Unit tests cover parsing/validation (including `bots.chat` and profile
+`chattiness`), the chat decision logic (probabilities, caps, intervals,
+allowed emotes, no rematch offers), message-id uniqueness, secrets
+redaction, the load-test guard,
 reload rollback, the reducer and hash vectors, the Ludo evaluator, think-time
 caps, fill planning and the REST client. Integration tests (`bot-play/tests`)
 run the real service against an in-process fake backend (`tests/fakebackend`:
 bot REST endpoints + the WebSocket protocol with an independent Ludo/Snakes
-engine and hash) covering full games, multiple bots per match, Snakes,
+engine and hash; snapshots without any bot flag, chat with the server's
+limits, optional persona uids reused across sessions) covering full games,
+multiple bots per match, Snakes, quick chat / emote caps and refusals,
+message ids unique across sessions of the same persona,
 duplicate/out-of-order/gap/hash-mismatch handling, reconnects, 4409,
 maintenance, error codes, capacity and per-game limits, enable/disable,
 reload rollback, public fill (both fill response shapes), graceful shutdown
