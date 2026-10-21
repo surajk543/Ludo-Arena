@@ -176,7 +176,8 @@ void main() {
     expect(h.controller.calls.where((c) => c.startsWith('move')), isEmpty);
   });
 
-  testWidgets('bots are labelled and announced', (tester) async {
+  testWidgets('bots are never labelled or announced as bots', (tester) async {
+    final semantics = tester.ensureSemantics();
     await _pumpGame(
       tester,
       ludoRoom(
@@ -187,8 +188,16 @@ void main() {
         ],
       ),
     );
-    expect(find.text('Bolt (bot) is playing…'), findsOneWidget);
-    expect(find.text('BOT'), findsWidgets);
+    expect(find.text('Bolt is playing…'), findsOneWidget);
+    expect(
+      find.textContaining(RegExp(r'\bbot\b', caseSensitive: false)),
+      findsNothing,
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('bot|computer', caseSensitive: false)),
+      findsNothing,
+    );
+    semantics.dispose();
   });
 
   testWidgets('quick chat: predefined message, throttle, bubbles and local '

@@ -158,4 +158,13 @@ abstract interface class AnalyticsService {
 
   /// [mode]: `optional_update` | `force_update`.
   void appUpdatePromptShown(String mode);
+
+  // Social (after server confirmation only; never ids or names)
+
+  /// [reason]: `cheating` | `offensive_name` | `abusive_behavior` |
+  /// `leaving_or_stalling` | `other`.
+  void playerReported(String reason);
+
+  /// [source]: `match` | `recent` | `code`.
+  void friendRequestSent(String source);
 }

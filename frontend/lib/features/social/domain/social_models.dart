@@ -72,21 +72,68 @@ class FriendsLists {
     this.friends = const [],
     this.incoming = const [],
     this.outgoing = const [],
+    this.maxFriends = defaultMaxFriends,
+    this._serverOnlineCount,
+    this._serverFriendCount,
   });
 
-  factory FriendsLists.fromJson(Map<String, dynamic> j) => FriendsLists(
-    friends: Friend.listFrom(j['friends']),
-    incoming: Friend.listFrom(j['incoming']),
-    outgoing: Friend.listFrom(j['outgoing']),
-  );
+  factory FriendsLists.fromJson(Map<String, dynamic> j) {
+    final max = readInt(j['maxFriends'], defaultMaxFriends);
+    return FriendsLists(
+      friends: Friend.listFrom(j['friends']),
+      incoming: Friend.listFrom(j['incoming']),
+      outgoing: Friend.listFrom(j['outgoing']),
+      maxFriends: max > 0 ? max : defaultMaxFriends,
+      serverOnlineCount: readIntOrNull(j['onlineCount']),
+      serverFriendCount: readIntOrNull(j['friendCount']),
+    );
+  }
+
+  /// Accepted-friends cap when the server does not send `maxFriends`.
+  static const int defaultMaxFriends = 20;
 
   final List<Friend> friends;
   final List<Friend> incoming;
   final List<Friend> outgoing;
 
-  int get onlineCount => friends.where((f) => f.online).length;
+  /// Most accepted friends one player can have (server `maxFriends`).
+  final int maxFriends;
 
-  FriendsLists _without(String uid) => FriendsLists(
+  /// Server counts from the last `GET /friends`; local changes fall back
+  /// to counting the lists.
+  final int? _serverOnlineCount;
+  final int? _serverFriendCount;
+
+  /// Friends online right now (server `onlineCount`).
+  int get onlineCount =>
+      _serverOnlineCount ?? friends.where((f) => f.online).length;
+
+  /// Accepted friends (server `friendCount`).
+  int get friendCount => _serverFriendCount ?? friends.length;
+
+  /// No more friends can be added (or requests accepted).
+  bool get atFriendLimit => friendCount >= maxFriends;
+
+  /// My relationship with [uid] according to these lists.
+  FriendStatus statusOf(String uid) {
+    if (friends.any((f) => f.uid == uid)) return FriendStatus.friend;
+    if (incoming.any((f) => f.uid == uid)) return FriendStatus.incoming;
+    if (outgoing.any((f) => f.uid == uid)) return FriendStatus.outgoing;
+    return FriendStatus.none;
+  }
+
+  FriendsLists _with({
+    required List<Friend> friends,
+    required List<Friend> incoming,
+    required List<Friend> outgoing,
+  }) => FriendsLists(
+    friends: friends,
+    incoming: incoming,
+    outgoing: outgoing,
+    maxFriends: maxFriends,
+  );
+
+  FriendsLists _without(String uid) => _with(
     friends: List.unmodifiable(friends.where((f) => f.uid != uid)),
     incoming: List.unmodifiable(incoming.where((f) => f.uid != uid)),
     outgoing: List.unmodifiable(outgoing.where((f) => f.uid != uid)),
@@ -105,19 +152,19 @@ class FriendsLists {
             if (a.online != b.online) return a.online ? -1 : 1;
             return a.name.toLowerCase().compareTo(b.name.toLowerCase());
           });
-        return FriendsLists(
+        return _with(
           friends: List.unmodifiable(list),
           incoming: base.incoming,
           outgoing: base.outgoing,
         );
       case FriendStatus.incoming:
-        return FriendsLists(
+        return _with(
           friends: base.friends,
           incoming: List.unmodifiable([f, ...base.incoming]),
           outgoing: base.outgoing,
         );
       case FriendStatus.outgoing:
-        return FriendsLists(
+        return _with(
           friends: base.friends,
           incoming: base.incoming,
           outgoing: List.unmodifiable([f, ...base.outgoing]),

@@ -19,6 +19,7 @@ import '../../../core/time/server_clock.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/game_visuals/game_visuals.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../social/presentation/player_actions_sheet.dart';
 import '../application/match_event_sequencer.dart';
 import '../application/match_result_view.dart';
 import '../application/quick_chat.dart';
@@ -101,6 +102,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
   final Set<String> _resultsLogged = {};
 
   bool _localMute = false;
+  bool _playerSheetOpen = false;
   bool _commandInFlight = false;
   bool _leaving = false;
   bool _navigating = false;
@@ -407,6 +409,37 @@ class _MatchViewState extends ConsumerState<MatchView> {
     }
   }
 
+  // ------------------------------------------------------- player sheet
+
+  /// Opponent options (add friend / report). Never for my own seat; only
+  /// the profile for spectators and bots.
+  Future<void> _openPlayer(RoomPlayer p) async {
+    final live = ref.read(activeRoomControllerProvider);
+    if (_playerSheetOpen || p.uid == live.selfUid) return;
+    final l10n = AppLocalizations.of(context);
+    final room = _stage?.sequencer.presented.value;
+    final seated = room?.playerByUid(live.selfUid) != null;
+    _playerSheetOpen = true;
+    try {
+      await PlayerActionsSheet.show(
+        context,
+        player: PlayerSheetTarget(
+          uid: p.uid,
+          name: PlayText.playerName(l10n, p),
+          avatar: p.avatar,
+          level: p.level,
+          frameId: p.cosmetics.frame,
+          seatColor: SeatColor.tryFromName(p.color),
+          bot: p.bot,
+        ),
+        roomId: room?.id ?? widget.roomId,
+        canAct: seated,
+      );
+    } finally {
+      _playerSheetOpen = false;
+    }
+  }
+
   // ------------------------------------------------------------ actions
 
   bool _inFlight(ActiveRoomState live) =>
@@ -693,6 +726,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
                       board: board,
                       links: _links,
                       turnTotal: _turnTotal,
+                      onPlayerTap: _openPlayer,
                       topBar: _TopBar(
                         room: presented,
                         onLeave: _onBack,
@@ -767,6 +801,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
                           onRematch: _rematch,
                           onPlayAgain: _playAgain,
                           onHome: () => _leaveTo(AppRoutes.home),
+                          onPlayerTap: _openPlayer,
                         ),
                       ),
                     ),
@@ -860,6 +895,7 @@ class _MatchLayout extends StatelessWidget {
     required this.board,
     required this.links,
     required this.turnTotal,
+    required this.onPlayerTap,
     required this.topBar,
     required this.dice,
     required this.status,
@@ -871,6 +907,7 @@ class _MatchLayout extends StatelessWidget {
   final Widget board;
   final Map<int, LayerLink> links;
   final int Function(RoomSnapshot) turnTotal;
+  final ValueChanged<RoomPlayer> onPlayerTap;
   final Widget topBar;
   final Widget dice;
   final Widget status;
@@ -899,6 +936,7 @@ class _MatchLayout extends StatelessWidget {
           isTurn: isTurn,
           turnTotalMs: isTurn ? turnTotal(room) : 20000,
           stacked: stacked,
+          onTap: p.seat == selfSeat ? null : () => onPlayerTap(p),
         ),
       ),
     );

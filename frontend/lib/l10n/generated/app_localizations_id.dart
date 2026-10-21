@@ -305,12 +305,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonNothingHereYet => 'Belum ada apa-apa';
 
   @override
-  String get commonBotBadge => 'BOT';
-
-  @override
-  String get commonBotPlayerLabel => 'Pemain komputer';
-
-  @override
   String get commonYou => 'Kamu';
 
   @override
@@ -1883,8 +1877,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get metaErrorCannotFriendSelf => 'Itu kode temanmu sendiri.';
 
   @override
-  String get metaErrorFriendLimit =>
-      'Batas teman atau permintaan sudah tercapai. Hapus teman atau permintaan lalu coba lagi.';
+  String metaErrorFriendLimit(int max) {
+    return 'Kamu bisa punya maksimal $max teman. Hapus satu teman untuk menambah yang baru.';
+  }
 
   @override
   String get metaErrorUnknownFriendCode =>
@@ -2294,7 +2289,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get playPracticeNote =>
-      'Latihan gratis dan tidak memberi koin. Bot adalah pemain komputer dan selalu diberi lencana bot.';
+      'Latihan gratis dan tidak memberi koin. Kamu bermain melawan pemain komputer.';
 
   @override
   String get playPracticeSettingUp => 'Menyiapkan meja latihanmu…';
@@ -2329,7 +2324,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String playTurnBot(String name) {
-    return '$name (bot) sedang bermain…';
+    return '$name sedang bermain…';
   }
 
   @override
@@ -2512,8 +2507,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get playRewardNoCoinsBots =>
-      'Pertandingan dengan bot tidak memberi koin.';
+  String get playRewardNoCoinsMatch => 'Pertandingan ini tidak memberi koin.';
 
   @override
   String get playRewardNoCoins =>
@@ -2771,6 +2765,167 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsConsentDeny => 'Tidak, terima kasih';
+
+  @override
+  String get socialPodOptionsHint => 'Lihat opsi pemain';
+
+  @override
+  String get socialRequestSent => 'Permintaan terkirim';
+
+  @override
+  String get socialAcceptRequest => 'Terima permintaan';
+
+  @override
+  String get socialReportPlayer => 'Laporkan pemain';
+
+  @override
+  String get socialReported => 'Dilaporkan';
+
+  @override
+  String get socialAlreadyReported =>
+      'Kamu sudah melaporkan pemain ini dalam 24 jam terakhir.';
+
+  @override
+  String socialReportsLeft(int remaining, int total) {
+    return 'Sisa laporan hari ini: $remaining dari $total';
+  }
+
+  @override
+  String socialReportLimitAt(int total, String time) {
+    return 'Kamu sudah memakai $total laporan hari ini. Kamu bisa melapor lagi pukul $time.';
+  }
+
+  @override
+  String socialReportLimitLater(int total) {
+    return 'Kamu sudah memakai $total laporan hari ini. Coba lagi nanti.';
+  }
+
+  @override
+  String socialReportTitle(String name) {
+    return 'Laporkan $name';
+  }
+
+  @override
+  String get socialReportWhy => 'Apa yang terjadi?';
+
+  @override
+  String get socialReasonCheating => 'Curang';
+
+  @override
+  String get socialReasonOffensiveName => 'Nama yang menyinggung';
+
+  @override
+  String get socialReasonAbusiveBehavior => 'Perilaku kasar';
+
+  @override
+  String get socialReasonLeavingOrStalling =>
+      'Keluar atau sengaja mengulur waktu';
+
+  @override
+  String get socialReasonOther => 'Lainnya';
+
+  @override
+  String get socialReportReviewNote =>
+      'Tim kami meninjau setiap laporan. Pantau statusnya di tab Dilaporkan pada layar Teman.';
+
+  @override
+  String get socialSendReport => 'Kirim laporan';
+
+  @override
+  String socialReportSent(int remaining, int total) {
+    return 'Laporan terkirim. Sisa $remaining dari $total laporan hari ini.';
+  }
+
+  @override
+  String socialFriendLimitNote(int max) {
+    return 'Kamu bisa punya maksimal $max teman — hapus satu untuk menambah yang baru.';
+  }
+
+  @override
+  String get socialErrorCannotReportSelf =>
+      'Kamu tidak bisa melaporkan diri sendiri.';
+
+  @override
+  String get socialErrorCannotReportBot => 'Pemain ini tidak bisa dilaporkan.';
+
+  @override
+  String get socialErrorNotInRoom =>
+      'Kamu hanya bisa melaporkan pemain dari pertandingan yang kamu ikuti.';
+
+  @override
+  String get socialErrorRoomNotFound =>
+      'Pertandingan ini sudah tidak ditemukan, jadi laporan tidak terkirim.';
+
+  @override
+  String get socialErrorPlayerNotFound => 'Pemain ini tidak ditemukan.';
+
+  @override
+  String get socialTabReported => 'Dilaporkan';
+
+  @override
+  String socialOnlineNow(int count) {
+    return 'Online sekarang ($count)';
+  }
+
+  @override
+  String socialOfflineCount(int count) {
+    return 'Offline ($count)';
+  }
+
+  @override
+  String socialFriendsCount(int count, int max) {
+    return 'Teman $count/$max';
+  }
+
+  @override
+  String socialReportsResetAt(String time) {
+    return 'Kamu bisa melapor lagi pukul $time.';
+  }
+
+  @override
+  String socialReportsInfo(int total) {
+    return 'Kamu bisa melaporkan maksimal $total pemain per hari. Tim kami meninjau setiap laporan.';
+  }
+
+  @override
+  String get socialNoReportsTitle => 'Belum ada laporan';
+
+  @override
+  String get socialNoReportsMessage =>
+      'Pemain yang kamu laporkan dari pertandingan akan muncul di sini beserta status setiap laporan.';
+
+  @override
+  String get socialStatusSubmitted => 'Terkirim';
+
+  @override
+  String get socialStatusReviewing => 'Sedang ditinjau';
+
+  @override
+  String get socialStatusActionTaken => 'Sudah ditindak';
+
+  @override
+  String get socialStatusDismissed => 'Ditolak';
+
+  @override
+  String get socialJustNow => 'Baru saja';
+
+  @override
+  String socialMinutesAgo(int minutes) {
+    return '$minutes mnt lalu';
+  }
+
+  @override
+  String socialHoursAgo(int hours) {
+    return '$hours jam lalu';
+  }
+
+  @override
+  String get socialYesterday => 'Kemarin';
+
+  @override
+  String socialReportStatusA11y(String status) {
+    return 'Status: $status';
+  }
 
   @override
   String get walletTitle => 'Dompetmu';

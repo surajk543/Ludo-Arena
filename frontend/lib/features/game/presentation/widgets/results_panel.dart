@@ -28,6 +28,7 @@ class ResultsPanel extends ConsumerStatefulWidget {
     required this.onRematch,
     required this.onPlayAgain,
     required this.onHome,
+    this.onPlayerTap,
   });
 
   /// The finished room (server snapshot).
@@ -39,6 +40,9 @@ class ResultsPanel extends ConsumerStatefulWidget {
   final Future<void> Function(bool accept) onRematch;
   final FutureOr<void> Function() onPlayAgain;
   final FutureOr<void> Function() onHome;
+
+  /// Opens an opponent's options from the finishing order.
+  final ValueChanged<RoomPlayer>? onPlayerTap;
 
   @override
   ConsumerState<ResultsPanel> createState() => _ResultsPanelState();
@@ -147,7 +151,7 @@ class _ResultsPanelState extends ConsumerState<ResultsPanel> {
                   children: [
                     _Header(view: view, title: title, subtitle: subtitle),
                     const SizedBox(height: AppSpacing.lg),
-                    _Placements(view: view),
+                    _Placements(view: view, onPlayerTap: widget.onPlayerTap),
                     const SizedBox(height: AppSpacing.md),
                     _Rewards(view: view, rewards: widget.rewards, room: room),
                     const SizedBox(height: AppSpacing.md),
@@ -194,6 +198,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final l10n = AppLocalizations.of(context);
     final winner = view.winner;
     final palette = GamePalette.of(context);
     final seat = SeatColor.tryFromName(winner?.color);
@@ -209,10 +214,9 @@ class _Header extends StatelessWidget {
                 child: PlayerAvatar(
                   avatarIndex: winner.avatar,
                   frameId: winner.cosmetics.frame,
-                  isBot: winner.bot,
                   size: 76,
                   seatColor: seat,
-                  semanticLabel: winner.name,
+                  semanticLabel: PlayText.playerName(l10n, winner),
                 ),
               ),
               Icon(
@@ -253,9 +257,26 @@ class _Header extends StatelessWidget {
 }
 
 class _Placements extends StatelessWidget {
-  const _Placements({required this.view});
+  const _Placements({required this.view, this.onPlayerTap});
 
   final MatchResultView view;
+  final ValueChanged<RoomPlayer>? onPlayerTap;
+
+  /// Opponent rows open the player's options (my own row never does).
+  Widget _tappable(BuildContext context, PlacementRow row, Widget child) {
+    final tap = onPlayerTap;
+    if (tap == null || row.isSelf) return child;
+    return Semantics(
+      button: true,
+      onTapHint: AppLocalizations.of(context).socialPodOptionsHint,
+      child: InkWell(
+        key: ValueKey('placement-${row.player.seat}'),
+        borderRadius: AppRadii.smAll,
+        onTap: () => tap(row.player),
+        child: child,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -266,50 +287,49 @@ class _Placements extends StatelessWidget {
       child: Column(
         children: [
           for (final row in view.rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                children: [
-                  _Medal(place: row.place, forfeited: row.player.forfeited),
-                  const SizedBox(width: AppSpacing.sm),
-                  PlayerAvatar(
-                    avatarIndex: row.player.avatar,
-                    frameId: row.player.cosmetics.frame,
-                    isBot: row.player.bot,
-                    size: 34,
-                    seatColor: SeatColor.tryFromName(row.player.color),
-                    dimmed: row.player.forfeited,
-                    semanticLabel: row.player.name,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      row.isSelf
-                          ? l10n.playNameYou(
-                              PlayText.playerName(l10n, row.player),
-                            )
-                          : PlayText.playerName(l10n, row.player),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelLarge?.copyWith(
-                        color: row.isSelf ? c.brand : c.textPrimary,
+            _tappable(
+              context,
+              row,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    _Medal(place: row.place, forfeited: row.player.forfeited),
+                    const SizedBox(width: AppSpacing.sm),
+                    PlayerAvatar(
+                      avatarIndex: row.player.avatar,
+                      frameId: row.player.cosmetics.frame,
+                      size: 34,
+                      seatColor: SeatColor.tryFromName(row.player.color),
+                      dimmed: row.player.forfeited,
+                      semanticLabel: PlayText.playerName(l10n, row.player),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        row.isSelf
+                            ? l10n.playNameYou(
+                                PlayText.playerName(l10n, row.player),
+                              )
+                            : PlayText.playerName(l10n, row.player),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.labelLarge?.copyWith(
+                          color: row.isSelf ? c.brand : c.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                  if (row.player.bot) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    const BotBadge(height: 18),
-                  ],
-                  if (row.player.forfeited) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      l10n.playPlayerForfeited,
-                      style: context.textTheme.labelSmall?.copyWith(
-                        color: c.textMuted,
+                    if (row.player.forfeited) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        l10n.playPlayerForfeited,
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: c.textMuted,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
         ],
@@ -392,13 +412,9 @@ class _Rewards extends StatelessWidget {
             confirmed: payoutConfirmed != null,
           )
         : _RewardRow(
-            leading: Icon(
-              view.botMatch ? Icons.smart_toy_rounded : Icons.toll_rounded,
-              color: c.textMuted,
-              size: 22,
-            ),
+            leading: Icon(Icons.toll_rounded, color: c.textMuted, size: 22),
             text: view.botMatch
-                ? l10n.playRewardNoCoinsBots
+                ? l10n.playRewardNoCoinsMatch
                 : l10n.playRewardNoCoins,
             muted: true,
           );
@@ -705,11 +721,7 @@ class _ConsentChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PlayerAvatar(
-              avatarIndex: seat.player.avatar,
-              size: 24,
-              isBot: seat.player.bot,
-            ),
+            PlayerAvatar(avatarIndex: seat.player.avatar, size: 24),
             const SizedBox(width: 4),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 96),

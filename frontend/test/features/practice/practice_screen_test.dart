@@ -35,7 +35,7 @@ Future<PlayHarness> _pump(
 }
 
 void main() {
-  testWidgets('starts practice, shows bots joining with BOT badges, then '
+  testWidgets('starts practice, shows bots joining (never labelled), then '
       'enters the game', (tester) async {
     final h = await _pump(tester);
     await flush(tester);
@@ -48,7 +48,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Bots joining… 1/2'), findsOneWidget);
-    expect(find.text('BOT'), findsOneWidget);
+    expect(find.text('BOT'), findsNothing);
 
     h.controller.pushSnapshot(
       _practice([

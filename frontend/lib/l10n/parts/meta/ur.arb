@@ -226,7 +226,7 @@
   "metaFriendRequestBanner": "{name} آپ کا دوست بننا چاہتے ہیں",
   "metaView": "دیکھیں",
   "metaErrorCannotFriendSelf": "یہ آپ کا اپنا فرینڈ کوڈ ہے۔",
-  "metaErrorFriendLimit": "دوستوں یا درخواستوں کی حد پوری ہو گئی ہے۔ کسی دوست یا درخواست کو ہٹا کر دوبارہ کوشش کریں۔",
+  "metaErrorFriendLimit": "آپ کے زیادہ سے زیادہ {max} دوست ہو سکتے ہیں۔ کسی نئے کو شامل کرنے کے لیے ایک دوست ہٹائیں۔",
   "metaErrorUnknownFriendCode": "اس فرینڈ کوڈ والا کوئی کھلاڑی نہیں ہے۔ جانچ کر دوبارہ کوشش کریں۔",
   "metaErrorRequestInProgress": "ابھی کارروائی جاری ہے — براہِ کرم تھوڑی دیر میں دوبارہ کوشش کریں۔",
   "metaErrorMissionEnded": "یہ مشن ختم ہو چکا ہے۔ موجودہ مشنز دیکھنے کے لیے نیچے کھینچیں۔",

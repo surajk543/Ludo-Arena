@@ -101,4 +101,10 @@ class NoopAnalyticsService implements AnalyticsService {
 
   @override
   void appUpdatePromptShown(String mode) {}
+
+  @override
+  void playerReported(String reason) {}
+
+  @override
+  void friendRequestSent(String source) {}
 }

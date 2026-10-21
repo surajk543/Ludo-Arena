@@ -306,12 +306,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonNothingHereYet => 'لا يوجد شيء هنا بعد';
 
   @override
-  String get commonBotBadge => 'بوت';
-
-  @override
-  String get commonBotPlayerLabel => 'لاعب آلي';
-
-  @override
   String get commonYou => 'أنت';
 
   @override
@@ -1910,8 +1904,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get metaErrorCannotFriendSelf => 'هذا رمز صداقتك أنت.';
 
   @override
-  String get metaErrorFriendLimit =>
-      'تم بلوغ حد الأصدقاء أو الطلبات. أزل صديقًا أو طلبًا ثم حاول مجددًا.';
+  String metaErrorFriendLimit(int max) {
+    return 'يمكنك امتلاك $max صديقًا كحد أقصى. أزل صديقًا لإضافة شخص جديد.';
+  }
 
   @override
   String get metaErrorUnknownFriendCode =>
@@ -2327,7 +2322,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get playPracticeNote =>
-      'التدريب مجاني ولا يمنح عملات. البوتات لاعبون آليون وتحمل دائمًا شارة البوت.';
+      'التدريب مجاني ولا يمنح عملات. ستلعب ضد لاعبين آليين.';
 
   @override
   String get playPracticeSettingUp => 'جارٍ تجهيز طاولة التدريب…';
@@ -2362,7 +2357,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String playTurnBot(String name) {
-    return '$name (بوت) يلعب…';
+    return '$name يلعب…';
   }
 
   @override
@@ -2545,7 +2540,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get playRewardNoCoinsBots => 'المباريات مع البوتات لا تمنح عملات.';
+  String get playRewardNoCoinsMatch => 'هذه المباراة لا تمنح عملات.';
 
   @override
   String get playRewardNoCoins =>
@@ -2800,6 +2795,165 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsConsentDeny => 'لا، شكرًا';
+
+  @override
+  String get socialPodOptionsHint => 'عرض خيارات اللاعب';
+
+  @override
+  String get socialRequestSent => 'تم إرسال الطلب';
+
+  @override
+  String get socialAcceptRequest => 'قبول الطلب';
+
+  @override
+  String get socialReportPlayer => 'الإبلاغ عن اللاعب';
+
+  @override
+  String get socialReported => 'تم الإبلاغ';
+
+  @override
+  String get socialAlreadyReported =>
+      'لقد أبلغت عن هذا اللاعب خلال آخر 24 ساعة.';
+
+  @override
+  String socialReportsLeft(int remaining, int total) {
+    return 'البلاغات المتبقية اليوم: $remaining من $total';
+  }
+
+  @override
+  String socialReportLimitAt(int total, String time) {
+    return 'استخدمت بلاغات اليوم ($total). يمكنك الإبلاغ مجددًا الساعة $time.';
+  }
+
+  @override
+  String socialReportLimitLater(int total) {
+    return 'استخدمت بلاغات اليوم ($total). حاول مرة أخرى لاحقًا.';
+  }
+
+  @override
+  String socialReportTitle(String name) {
+    return 'الإبلاغ عن $name';
+  }
+
+  @override
+  String get socialReportWhy => 'ماذا حدث؟';
+
+  @override
+  String get socialReasonCheating => 'غش';
+
+  @override
+  String get socialReasonOffensiveName => 'اسم مسيء';
+
+  @override
+  String get socialReasonAbusiveBehavior => 'سلوك مسيء';
+
+  @override
+  String get socialReasonLeavingOrStalling => 'مغادرة اللعبة أو المماطلة';
+
+  @override
+  String get socialReasonOther => 'شيء آخر';
+
+  @override
+  String get socialReportReviewNote =>
+      'يراجع فريقنا كل بلاغ. تابع حالته في تبويب المُبلَّغ عنهم في شاشة الأصدقاء.';
+
+  @override
+  String get socialSendReport => 'إرسال البلاغ';
+
+  @override
+  String socialReportSent(int remaining, int total) {
+    return 'تم إرسال البلاغ. تبقّى لك $remaining من $total بلاغات اليوم.';
+  }
+
+  @override
+  String socialFriendLimitNote(int max) {
+    return 'يمكنك امتلاك $max صديقًا كحد أقصى — أزل أحدهم لإضافة غيره.';
+  }
+
+  @override
+  String get socialErrorCannotReportSelf => 'لا يمكنك الإبلاغ عن نفسك.';
+
+  @override
+  String get socialErrorCannotReportBot => 'لا يمكن الإبلاغ عن هذا اللاعب.';
+
+  @override
+  String get socialErrorNotInRoom =>
+      'يمكنك الإبلاغ فقط عن لاعبين من مباراة أنت فيها.';
+
+  @override
+  String get socialErrorRoomNotFound =>
+      'لم تعد هذه المباراة موجودة، لذا تعذّر إرسال البلاغ.';
+
+  @override
+  String get socialErrorPlayerNotFound => 'تعذّر العثور على هذا اللاعب.';
+
+  @override
+  String get socialTabReported => 'المُبلَّغ عنهم';
+
+  @override
+  String socialOnlineNow(int count) {
+    return 'متصلون الآن ($count)';
+  }
+
+  @override
+  String socialOfflineCount(int count) {
+    return 'غير متصلين ($count)';
+  }
+
+  @override
+  String socialFriendsCount(int count, int max) {
+    return 'الأصدقاء $count/$max';
+  }
+
+  @override
+  String socialReportsResetAt(String time) {
+    return 'يمكنك الإبلاغ مجددًا الساعة $time.';
+  }
+
+  @override
+  String socialReportsInfo(int total) {
+    return 'يمكنك الإبلاغ عن $total لاعبين كحد أقصى يوميًا. يراجع فريقنا كل بلاغ.';
+  }
+
+  @override
+  String get socialNoReportsTitle => 'لا توجد بلاغات';
+
+  @override
+  String get socialNoReportsMessage =>
+      'اللاعبون الذين تبلغ عنهم من مباراة يظهرون هنا مع حالة كل بلاغ.';
+
+  @override
+  String get socialStatusSubmitted => 'مُرسَل';
+
+  @override
+  String get socialStatusReviewing => 'قيد المراجعة';
+
+  @override
+  String get socialStatusActionTaken => 'تم اتخاذ إجراء';
+
+  @override
+  String get socialStatusDismissed => 'مرفوض';
+
+  @override
+  String get socialJustNow => 'الآن';
+
+  @override
+  String socialMinutesAgo(int minutes) {
+    return 'منذ $minutes د';
+  }
+
+  @override
+  String socialHoursAgo(int hours) {
+    return 'منذ $hours س';
+  }
+
+  @override
+  String get socialYesterday => 'أمس';
+
+  @override
+  String socialReportStatusA11y(String status) {
+    return 'الحالة: $status';
+  }
 
   @override
   String get walletTitle => 'محفظتك';

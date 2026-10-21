@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/analytics/analytics_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../authentication/application/session_controller.dart';
 import '../../../progression/application/meta_support.dart';
+import '../../../progression/presentation/widgets/meta_scaffold.dart';
 import '../../application/friends_controller.dart';
 import '../../domain/friend_code.dart';
 import '../../domain/social_models.dart';
@@ -81,6 +83,7 @@ class _AddFriendFormState extends ConsumerState<AddFriendForm> {
     setState(() => _busy = false);
     switch (outcome) {
       case FriendActionSucceeded(:final friend):
+        ref.read(analyticsServiceProvider).friendRequestSent('code');
         Navigator.of(context).pop(friend);
       case FriendActionIgnored():
         break;
@@ -92,6 +95,7 @@ class _AddFriendFormState extends ConsumerState<AddFriendForm> {
                   l10n,
                   error,
                   context: MetaErrorContext.friendCode,
+                  maxFriends: ref.read(friendsProvider).value?.maxFriends,
                 ),
         );
     }
@@ -101,11 +105,21 @@ class _AddFriendFormState extends ConsumerState<AddFriendForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final c = context.colors;
+    final lists = ref.watch(friendsProvider).value;
+    final full = lists?.atFriendLimit ?? false;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(l10n.metaAddFriendHelp, style: context.textTheme.bodyMedium),
+        if (full) ...[
+          const SizedBox(height: AppSpacing.md),
+          MetaNote(
+            key: const ValueKey('friend-limit-note'),
+            text: l10n.socialFriendLimitNote(lists!.maxFriends),
+            icon: Icons.group_rounded,
+          ),
+        ],
         const SizedBox(height: AppSpacing.lg),
         Directionality(
           textDirection: TextDirection.ltr,
@@ -126,7 +140,9 @@ class _AddFriendFormState extends ConsumerState<AddFriendForm> {
             onChanged: (_) {
               if (_error != null) setState(() => _error = null);
             },
-            onSubmitted: (_) => _submit(),
+            onSubmitted: (_) {
+              if (!full) _submit();
+            },
             style: context.textTheme.titleLarge?.copyWith(letterSpacing: 1),
             decoration: InputDecoration(
               labelText: l10n.metaFriendCodeLabel,
@@ -149,7 +165,7 @@ class _AddFriendFormState extends ConsumerState<AddFriendForm> {
           icon: Icons.send_rounded,
           loading: _busy,
           size: PremiumButtonSize.medium,
-          onPressed: _submit,
+          onPressed: full ? null : _submit,
         ),
       ],
     );
