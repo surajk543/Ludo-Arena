@@ -78,6 +78,7 @@ abstract final class AnalyticsValues {
     'haptics',
     'reduced_motion',
     'quick_chat_mute',
+    'international_numbers',
   };
   static const periods = {'daily', 'weekly', 'event'};
   static const itemKinds = {
@@ -91,6 +92,8 @@ abstract final class AnalyticsValues {
     'emote',
     'victory',
     'trail',
+    // Store profile pictures (bought with diamonds; no rarity).
+    'profile_picture',
   };
   static const rarities = {'common', 'rare', 'epic', 'legendary'};
   static const updateModes = {'optional_update', 'force_update'};

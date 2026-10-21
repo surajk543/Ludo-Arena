@@ -27,6 +27,38 @@
   "@settingsLanguage": {
     "description": "Language setting label."
   },
+  "settingsNumberSystem": "Number format",
+  "@settingsNumberSystem": {
+    "description": "Setting label and sheet title: how large amounts are grouped and abbreviated (Indian lakh/crore vs international million/billion)."
+  },
+  "settingsNumberSystemHint": "Choose how coin amounts are shown.",
+  "@settingsNumberSystemHint": {
+    "description": "Short explanation at the top of the number format picker."
+  },
+  "settingsNumberSystemIndian": "Indian",
+  "@settingsNumberSystemIndian": {
+    "description": "Number format option: Indian grouping and lakh/crore (1,00,000 · 10 Lakh)."
+  },
+  "settingsNumberSystemInternational": "International",
+  "@settingsNumberSystemInternational": {
+    "description": "Number format option: international grouping and million/billion (100,000 · 1M)."
+  },
+  "settingsNumberSystemExample": "{full} · {compact}",
+  "@settingsNumberSystemExample": {
+    "description": "Live example of a number format: one lakh in full and ten lakh compact, e.g. '1,00,000 · 10 Lakh' or '100,000 · 1M'. Both values are already formatted.",
+    "placeholders": {
+      "full": {"type": "String"},
+      "compact": {"type": "String"}
+    }
+  },
+  "settingsNumberSystemSummary": "{system} ({example})",
+  "@settingsNumberSystemSummary": {
+    "description": "Subtitle of the Number format row: the chosen format's name and its example, e.g. 'Indian (1,00,000 · 10 Lakh)'.",
+    "placeholders": {
+      "system": {"type": "String"},
+      "example": {"type": "String"}
+    }
+  },
   "settingsSoundAndHaptics": "Sound & haptics",
   "@settingsSoundAndHaptics": {
     "description": "Section header."

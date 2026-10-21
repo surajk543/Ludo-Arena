@@ -1,4 +1,7 @@
 {
   "numberLakh": "{value} لك",
-  "numberCrore": "{value} كرور"
+  "numberCrore": "{value} كرور",
+  "numberThousand": "{value} ألف",
+  "numberMillion": "{value} مليون",
+  "numberBillion": "{value} مليار"
 }

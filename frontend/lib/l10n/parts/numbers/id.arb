@@ -1,4 +1,7 @@
 {
   "numberLakh": "{value} lakh",
-  "numberCrore": "{value} crore"
+  "numberCrore": "{value} crore",
+  "numberThousand": "{value} rb",
+  "numberMillion": "{value} jt",
+  "numberBillion": "{value} M"
 }

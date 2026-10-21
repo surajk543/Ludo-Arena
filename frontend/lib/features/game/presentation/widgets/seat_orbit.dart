@@ -192,6 +192,7 @@ class _SeatOrbitState extends State<SeatOrbit>
       );
       final avatar = PlayerAvatar(
         avatarIndex: player.avatar,
+        picture: player.picture,
         frameId: player.cosmetics.frame,
         size: seatSize,
         seatColor: SeatColor.tryFromName(player.color),

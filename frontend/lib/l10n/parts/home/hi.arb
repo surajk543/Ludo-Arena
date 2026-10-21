@@ -19,6 +19,8 @@
   "homeFriendsSubtitle": "अपनी टोली के साथ खेलें",
   "homeEvents": "इवेंट्स",
   "homeEventsSubtitle": "सीमित समय के कप",
+  "homeStore": "स्टोर",
+  "homeStoreSubtitle": "प्रोफ़ाइल तस्वीरें",
   "homeExploreHeader": "और भी एक्सप्लोर करें",
   "homeGamesHeader": "गेम चुनें",
   "homeSaveProgressTooltip": "प्रोग्रेस सेव करें",
@@ -61,5 +63,6 @@
   "homeNavGames": "गेम्स",
   "homeNavMissions": "मिशन",
   "homeNavFriends": "दोस्त",
-  "homeNavProfile": "प्रोफ़ाइल"
+  "homeNavProfile": "प्रोफ़ाइल",
+  "homeNoAdsRibbon": "विज्ञापन नहीं"
 }

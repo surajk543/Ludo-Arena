@@ -485,6 +485,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
           uid: p.uid,
           name: PlayText.playerName(l10n, p),
           avatar: p.avatar,
+          picture: p.picture,
           level: p.level,
           frameId: p.cosmetics.frame,
           seatColor: SeatColor.tryFromName(p.color),

@@ -17,6 +17,7 @@ import '../../authentication/identity/identity_providers.dart';
 import '../../authentication/presentation/widgets/provider_button.dart';
 import '../progression.dart';
 import 'display_name_sheet.dart';
+import 'profile_picture_sheet.dart';
 
 /// Profile: avatar + frame, title, level/XP, public friend code (copy /
 /// share), account type, linked sign-in methods and Save Progress.
@@ -75,11 +76,7 @@ class ProfileScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(AppSpacing.xl),
                     child: Column(
                       children: [
-                        PlayerAvatar(
-                          avatarIndex: user.avatar,
-                          frameId: user.loadout.frame,
-                          size: 104,
-                        ),
+                        _AvatarButton(user: user),
                         const SizedBox(height: AppSpacing.md),
                         _NameRow(name: user.displayName),
                         const SizedBox(height: AppSpacing.sm),
@@ -231,6 +228,74 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The player's avatar (Store picture or built-in) with an edit badge; a
+/// tap opens [ProfilePictureSheet] (owned pictures or the classic avatar).
+class _AvatarButton extends StatelessWidget {
+  const _AvatarButton({required this.user});
+
+  final User user;
+
+  static const double _size = 104;
+
+  Future<void> _edit(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    playUiSound(context, Sfx.uiTap);
+    final updated = await ProfilePictureSheet.show(context);
+    if (updated == null || !context.mounted) return;
+    // Server-confirmed.
+    playUiSound(context, Sfx.uiConfirm);
+    AppToast.show(
+      context,
+      updated.picture == null ? l10n.storeRemovedToast : l10n.storeAppliedToast,
+      kind: ToastKind.success,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      button: true,
+      label: l10n.profileChangePicture,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: l10n.profileChangePicture,
+        child: InkWell(
+          key: const ValueKey('profile-change-picture'),
+          customBorder: const CircleBorder(),
+          onTap: () => _edit(context),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              PlayerAvatar(
+                avatarIndex: user.avatar,
+                picture: user.picture,
+                frameId: user.loadout.frame,
+                size: _size,
+              ),
+              PositionedDirectional(
+                end: 2,
+                bottom: 2,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: c.brand,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: c.surface, width: 2),
+                  ),
+                  child: Icon(Icons.edit_rounded, size: 16, color: c.onBrand),
+                ),
+              ),
+            ],
           ),
         ),
       ),

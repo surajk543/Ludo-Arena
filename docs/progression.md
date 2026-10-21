@@ -39,8 +39,9 @@ player-chosen display name (one nullable column, below).
 | `mission_progress(user_id, period_key, mission_id, value, updated_at)` | `(user_id, period_key, mission_id)` | Counters for the running periods. Capped at the mission target. |
 | `mission_claims(user_id, period_key, mission_id, claimed_at)` | `(user_id, period_key, mission_id)` | The PK makes each reward claim exactly-once. |
 | `match_receipts(user_id, match_id, processed_at)` | `(user_id, match_id)` | Idempotency receipts only (no results). Makes a finished match count exactly once per player. |
-| `inventory(user_id, item_id, acquired_at)` | `(user_id, item_id)` | Owned cosmetics. Starter items are implicit (no rows). The PK makes grants and purchases exactly-once. |
-| `loadout(user_id, slot, item_id)` | `(user_id, slot)` | Equipped items. A missing slot means the starter item; a row whose item no longer fits the catalog also falls back to starter. |
+| `inventory(user_id, item_id, acquired_at)` | `(user_id, item_id)` | Owned cosmetics and owned profile pictures (`item_id` = `pp_…`, forever). Starter items are implicit (no rows). The PK makes grants and purchases exactly-once. |
+| `loadout(user_id, slot, item_id)` | `(user_id, slot)` | Equipped items. A missing slot means the starter item; a row whose item no longer fits the catalog also falls back to starter. Slot `avatar` (migration 007) holds the equipped profile picture; it is reported as `picture`, never in `loadout`. |
+| `profile_pictures(id, name, format, path, price_diamonds, sort_order, active, created_at)` | `id` (`pp_…`), `path` UNIQUE | Owner-approved (2026-10-21). The Store catalogue only (no player data): object path in the private R2 bucket, `image\|lottie`, diamond price, shelf order, `active = false` retires a picture. Seeded by migration 008 from `backend/config/profile_pictures.tsv`; see [cosmetics-catalog.md](cosmetics-catalog.md#profile-pictures). |
 | `friendships(user_lo, user_hi, status, requested_by, created_at)` | `(user_lo, user_hi)`, `CHECK user_lo < user_hi` | One row per unordered pair: `pending` (request by `requested_by`) or `accepted`. Indexed on `user_hi` for "my relationships" lookups. Written only by `social`; read by `progression` inside the match transaction (friend XP bonus, friend missions). |
 | `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats, names) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
 
@@ -250,7 +251,7 @@ currency for `purchase` items). Level milestones are derived from the
 | `invite:{from}:{to}:{roomId}` | string | until the invite expires (10 s – 30 min) | invite id (dedupe) |
 | `idem:{userId}:{key}` / `…:lock` | string | 24 h / 30 s | cached successful claim/purchase response |
 | `au:d:{yyyymmdd}`, `au:w:{yyyy-Www}` | HyperLogLog | 40 days | pseudonymous active-user sketches |
-| `seat:{userId}` (+ `…:lease`, 5 s) | string | 1 h | seat summary cache (level, non-starter loadout) for room joins; deleted after level-ups and equips ([architecture.md → PostgreSQL on the hot path](architecture.md#postgresql-on-the-hot-path)) |
+| `seat:{userId}` (+ `…:lease`, 5 s) | string | 1 h | seat summary cache (level, non-starter loadout, equipped profile-picture id) for room joins; deleted after level-ups, equips and profile-picture applies ([architecture.md → PostgreSQL on the hot path](architecture.md#postgresql-on-the-hot-path)) |
 | `emotes:{userId}` | set | 1 h | owned non-starter emotes for `chat.emote`; grants add to it, misses are confirmed in PostgreSQL |
 | `rl:invite_user:…`, `rl:friend_request_user:…`, `rl:report_user:…`, `rl:report_read_user:…`, `rl:admin_ip:…` | counter | window | rate limits |
 | read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}` | | | set by the gateway / profile service / room engine (reports verify seats) |
@@ -300,6 +301,7 @@ several instances):
 | `mission_claims` | 60 days after the claim, never for a running period |
 | `player_progress`, `inventory`, `loadout`, `friendships`, `player_reports` | for the life of the account (reports are removed with either account) |
 | everything above, for one account | until the player deletes the account (Settings → Delete account, `DELETE /api/v1/account`): one transaction deletes all of its rows in every table here — friendships on both sides, reports it filed **and** reports filed against it — together with its wallet and identities; its Redis keys (seat/emote caches, recent players on both sides, weekly leaderboard entries, rate-limit counters) are purged right after. See [authentication.md → Deleting an account](authentication.md#deleting-an-account) |
+| `profile_pictures` | catalogue rows; retired with `active = false`, never deleted |
 
 Deletes run in batches of 5,000 rows.
 

@@ -19,7 +19,13 @@ import (
 var (
 	ReadPerUser    = ratelimit.Rule{Name: "progression_read_user", Limit: 120, Window: time.Minute}
 	LoadoutPerUser = ratelimit.Rule{Name: "loadout_user", Limit: 60, Window: time.Minute}
+	// AssetSignPerUser bounds POST /assets/sign (a phone signs at most 50
+	// paths per request and caches every file forever).
+	AssetSignPerUser = ratelimit.Rule{Name: "asset_sign_user", Limit: 120, Window: time.Minute}
 )
+
+// MaxSignPaths is the most paths one POST /assets/sign may name.
+const MaxSignPaths = 50
 
 // Register adds the progression, missions and Collection Room routes. All
 // require a human access token and pass the app version gate.
@@ -34,6 +40,12 @@ func (s *Service) Register(rt *httpapi.Router) {
 	rt.Handle("GET /api/v1/collection", route(read), s.handleCollection)
 	rt.Handle("PUT /api/v1/collection/loadout", route(equip), s.handleLoadout)
 	rt.Handle("POST /api/v1/collection/items/{itemId}/purchase", route(write), s.handlePurchase)
+	// Profile-picture Store (pictures_http.go).
+	sign := AssetSignPerUser
+	rt.Handle("GET /api/v1/store/profile-pictures", route(read), s.handleStorePictures)
+	rt.Handle("POST /api/v1/store/profile-pictures/{pictureId}/purchase", route(write), s.handlePurchasePicture)
+	rt.Handle("PUT /api/v1/me/profile-picture", route(equip), s.handleApplyPicture)
+	rt.Handle("POST /api/v1/assets/sign", route(sign), s.handleSignAssets)
 }
 
 func caller(r *http.Request) (uuid.UUID, error) {
@@ -148,6 +160,10 @@ func mapErr(err error) error {
 		return httpapi.Errf(http.StatusConflict, "already_claimed", "This reward was already claimed.")
 	case errors.Is(err, ErrItemNotFound):
 		return httpapi.Errf(http.StatusNotFound, "not_found", "Item not found.")
+	case errors.Is(err, ErrPictureNotFound):
+		return httpapi.Errf(http.StatusNotFound, "not_found", "This profile picture is not available.")
+	case errors.Is(err, ErrBadStoreQuery):
+		return httpapi.Errf(http.StatusBadRequest, "bad_request", "Invalid filter, limit or cursor.")
 	case errors.Is(err, ErrItemLocked):
 		return httpapi.Errf(http.StatusUnprocessableEntity, "item_locked", "This item is locked.")
 	case errors.Is(err, ErrAlreadyOwned):
@@ -216,6 +232,7 @@ func (s *Service) idempotent(w http.ResponseWriter, r *http.Request, userID uuid
 	lockKey := rkey + ":lock"
 
 	deadline := time.Now().Add(5 * time.Second)
+	rechecked := false
 	for {
 		raw, err := s.rdb.Get(ctx, rkey).Bytes()
 		if err == nil {
@@ -242,6 +259,14 @@ func (s *Service) idempotent(w http.ResponseWriter, r *http.Request, userID uuid
 			break
 		}
 		if ok {
+			// Re-check under the lock: a request with the same key may have
+			// stored its response and released the lock between the GET
+			// above and this SETNX; replay it instead of running again.
+			if n, err := s.rdb.Exists(ctx, rkey).Result(); err == nil && n == 1 && !rechecked {
+				rechecked = true
+				s.rdb.Del(context.WithoutCancel(ctx), lockKey)
+				continue
+			}
 			defer s.rdb.Del(context.WithoutCancel(ctx), lockKey)
 			break
 		}

@@ -96,6 +96,7 @@ class _InviteFriendsSheetState extends ConsumerState<InviteFriendsSheet> {
                   children: [
                     PlayerAvatar(
                       avatarIndex: f.avatar,
+                      picture: f.picture,
                       size: 44,
                       dimmed: !f.online,
                       semanticLabel: f.name,

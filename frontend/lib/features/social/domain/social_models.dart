@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/protocol/json_read.dart';
+import '../../../core/protocol/models.dart' show PlayerPicture;
 
 /// Relationship of another player to me.
 enum FriendStatus {
@@ -17,13 +18,14 @@ enum FriendStatus {
   };
 }
 
-/// `Friend` — public profile only (uid, name, avatar, level, title).
+/// `Friend` — public profile only (uid, name, avatar, picture, level, title).
 @immutable
 class Friend {
   const Friend({
     required this.uid,
     required this.name,
     this.avatar = 0,
+    this.picture,
     this.level = 1,
     this.title = 'title_rookie',
     this.online = false,
@@ -34,6 +36,7 @@ class Friend {
     uid: readString(j['uid']),
     name: readString(j['name']),
     avatar: readInt(j['avatar']),
+    picture: PlayerPicture.tryParse(j['picture']),
     level: readInt(j['level'], 1),
     title: readString(j['title'], 'title_rookie'),
     online: readBool(j['online']),
@@ -47,6 +50,9 @@ class Friend {
   final String uid;
   final String name;
   final int avatar;
+
+  /// Store profile picture (null: the built-in [avatar]).
+  final PlayerPicture? picture;
   final int level;
   final String title;
 
@@ -58,6 +64,7 @@ class Friend {
     uid: uid,
     name: name,
     avatar: avatar,
+    picture: picture,
     level: level,
     title: title,
     online: online ?? this.online,

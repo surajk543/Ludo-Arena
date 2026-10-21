@@ -25,6 +25,73 @@ mixin JsonValueEquality {
 /// Sentinel for nullable `copyWith` parameters.
 const Object _unset = Object();
 
+/// A player's profile picture (`PlayerPicture`: `{"id","format","path"}`),
+/// bought in the Store. `null` everywhere means the built-in avatar.
+///
+/// [path] is an immutable object key such as
+/// `profile_pictures/lottie_animation/bear.json`; the app downloads it once
+/// through a short-lived signed URL (`POST /assets/sign`) and keeps it on
+/// disk (see `core/assets/profile_picture_cache.dart`).
+@immutable
+class PlayerPicture with JsonValueEquality {
+  const PlayerPicture({
+    required this.id,
+    required this.format,
+    required this.path,
+  });
+
+  /// `pp_…` catalogue id.
+  final String id;
+
+  /// [formatImage] | [formatLottie].
+  final String format;
+
+  /// Object key under `profile_pictures/`.
+  final String path;
+
+  static const String formatImage = 'image';
+  static const String formatLottie = 'lottie';
+
+  bool get isLottie => format == formatLottie;
+
+  /// Whether [path] is a safe, relative key the app may store on disk:
+  /// `profile_pictures/…`, only `[A-Za-z0-9._-]` segments, no `.`/`..`.
+  static bool isSafePath(String path) {
+    if (path.length > 255 || !path.startsWith('profile_pictures/')) {
+      return false;
+    }
+    final segments = path.split('/');
+    if (segments.length < 2) return false;
+    for (final s in segments) {
+      if (s.isEmpty || s == '.' || s == '..' || !_segment.hasMatch(s)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static final RegExp _segment = RegExp(r'^[A-Za-z0-9._-]+$');
+
+  /// Parses a wire `picture`: null (the built-in avatar) for `null`, a
+  /// missing field or anything malformed (unknown format, unsafe path).
+  static PlayerPicture? tryParse(Object? raw) {
+    final j = readMapOrNull(raw);
+    if (j == null) return null;
+    final id = readString(j['id']);
+    final format = readString(j['format']);
+    final path = readString(j['path']);
+    if (id.isEmpty ||
+        (format != formatImage && format != formatLottie) ||
+        !isSafePath(path)) {
+      return null;
+    }
+    return PlayerPicture(id: id, format: format, path: path);
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {'id': id, 'format': format, 'path': path};
+}
+
 /// Cosmetics a player has equipped for this room (`players[].cosmetics`).
 @immutable
 class PlayerCosmetics with JsonValueEquality {
@@ -71,6 +138,7 @@ class RoomPlayer with JsonValueEquality {
     this.level = 1,
     this.title = 'title_rookie',
     this.cosmetics = const PlayerCosmetics(),
+    this.picture,
     this.color = 'red',
     this.connected = true,
     this.bot = false,
@@ -88,6 +156,10 @@ class RoomPlayer with JsonValueEquality {
   final int level;
   final String title;
   final PlayerCosmetics cosmetics;
+
+  /// Profile picture worn in this room (null: the built-in [avatar]). Not
+  /// part of the state hash.
+  final PlayerPicture? picture;
 
   /// `red` | `green` | `yellow` | `blue`.
   final String color;
@@ -114,6 +186,7 @@ class RoomPlayer with JsonValueEquality {
     level: readInt(j['level'], 1),
     title: readString(j['title'], 'title_rookie'),
     cosmetics: PlayerCosmetics.fromJson(readMap(j['cosmetics'])),
+    picture: PlayerPicture.tryParse(j['picture']),
     color: readString(j['color'], 'red'),
     connected: readBool(j['connected'], true),
     bot: readBool(j['bot']),
@@ -131,6 +204,7 @@ class RoomPlayer with JsonValueEquality {
     'level': level,
     'title': title,
     'cosmetics': cosmetics.toJson(),
+    if (picture != null) 'picture': picture!.toJson(),
     'color': color,
     'connected': connected,
     'bot': bot,
@@ -152,6 +226,7 @@ class RoomPlayer with JsonValueEquality {
     level: level,
     title: title,
     cosmetics: cosmetics,
+    picture: picture,
     color: color,
     connected: connected ?? this.connected,
     bot: bot,
