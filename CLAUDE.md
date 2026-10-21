@@ -128,4 +128,4 @@ real data.
 - Analytics events only after server confirmation, through the typed
   catalogue; no ids, names, codes or tokens in parameters.
 - Commits: conventional commit messages; work on a branch and open a PR into
-  `main`.
+  `master` (the default branch).
