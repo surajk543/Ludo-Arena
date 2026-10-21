@@ -46,6 +46,8 @@ abstract final class AppBottomSheet {
   }) {
     return showModalBottomSheet<T>(
       context: context,
+      // Above the bottom-navigation bar (like dialogs), not inside a tab.
+      useRootNavigator: true,
       isScrollControlled: isScrollControlled,
       isDismissible: isDismissible,
       enableDrag: isDismissible,

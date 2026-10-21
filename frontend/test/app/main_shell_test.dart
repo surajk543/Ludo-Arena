@@ -17,6 +17,7 @@ import 'package:ludo_royale/features/missions/presentation/missions_screen.dart'
 import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
 import 'package:ludo_royale/features/settings/presentation/settings_screen.dart';
 import 'package:ludo_royale/features/social/presentation/friends_screen.dart';
+import 'package:ludo_royale/shared/widgets/widgets.dart';
 
 import '../features/progression/meta_test_support.dart' show routeMeta;
 import '../helpers/harness.dart';
@@ -187,6 +188,30 @@ void main() {
     _router(c).go(AppRoutes.missions);
     await _settle(tester);
     expect(find.byType(MissionsScreen), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a sheet opened on a tab covers the bottom bar', (tester) async {
+    final c = await _bootHome(tester);
+    await tester.tap(find.text('Join with Code'));
+    await _settle(tester);
+    final sheet = find.byType(AppBottomSheetFrame);
+    expect(sheet, findsOneWidget);
+    // On the root navigator (above the shell), not inside the Home tab.
+    expect(
+      Navigator.of(tester.element(sheet)),
+      same(_router(c).routerDelegate.navigatorKey.currentState),
+    );
+    // The bar sits under the sheet's barrier: tapping it switches nothing.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AppBottomNav),
+        matching: find.text('Games'),
+      ),
+      warnIfMissed: false,
+    );
+    await _settle(tester);
+    expect(find.byType(GamesScreen), findsNothing);
     await tester.pumpWidget(const SizedBox());
   });
 
