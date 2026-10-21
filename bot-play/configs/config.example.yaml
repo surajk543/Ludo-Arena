@@ -88,9 +88,29 @@ bots:
     disconnect_probability: 0.0  # 0..0.2 per own action when enabled
 
   identity:
-    display_name_prefix: Bot     # <= 12 chars; requested name = "<prefix> <name>" (cosmetic; the BOT
-                                 # badge comes from the server-side bot flag, never from the name)
-    names_pool: []               # 1..16 chars each; empty = built-in list
+    display_name_prefix: Bot     # <= 12 chars; requested name = "<prefix> <name>". The backend strips a
+                                 # leading "Bot" label: seats show only the name, and snapshots never say
+                                 # which seats are bots (bots look like people)
+    names_pool: []               # 1..16 chars each; empty = built-in list. The backend keeps a persistent
+                                 # look (level, cosmetics, picture, uid) per name, reused by later sessions
+
+  chat:                          # quick-chat / emote reactions, sparing and human-like
+    enabled: true                # false: bots never chat
+    in_loadtest: false           # true: load-test bots chat too
+    max_per_match: 3             # 0..10   messages per bot per game round (0 = silent)
+    min_interval_ms: 8000        # 3000..600000 gap between two messages of one bot (server: 1 per 3 s)
+    reaction_delay_ms: {min: 600, max: 2500}   # 0..15000 "typing" delay after the event
+    emote_share: 0.5             # 0..1    share sent as an emote when an emote and a phrase both fit
+                                 #         (emotes only from the session's "emotes" list)
+    probability:                 # 0..1 per event, multiplied by the profile's chattiness
+      game_start: 0.06           # "good_luck" / wave
+      six: 0.02                  # own six: thumbs / wow emote
+      capture: 0.15              # captured an opponent: laugh / thumbs / "oops"
+      captured: 0.12             # got captured: "nice_move" / "oops" / wow
+      other_capture: 0.03        # opponents capturing each other: "nice_move" / wow
+      win: 0.35                  # "gg" / "thanks" / "well_played" / wave (said before leaving)
+      loss: 0.2                  # "gg" / "well_played" / thumbs
+                                 # never "rematch" / "again": bots do not vote for rematches
 
   shutdown:
     graceful_timeout_seconds: 60 # 1..3600  SIGTERM drain budget before forcing bots to leave

@@ -20,11 +20,13 @@ import (
 // Friend requests to bots.
 //
 // Bots must be indistinguishable from people in the app, so "Add friend" on
-// a bot's player pod behaves like a request to a person who never answers:
-// the same checks and limits, the same 201 response, and the request is
-// listed under outgoing — until it quietly lapses after BotRequestTTL. Bots
-// are not accounts, so these requests live in Redis (BotRequestsKey), never
-// in progression.friendships, and are never accepted.
+// a bot (player pod, recent players, or its code typed in) behaves like a
+// request to a person who never answers: the same checks and limits, the
+// same 201 response, and the request is listed under outgoing — until it
+// quietly lapses after BotRequestTTL. Bots are not accounts, so these
+// requests live in Redis (BotRequestsKey), never in progression.friendships,
+// and are never accepted. A bot's code works while its seat is live or its
+// public card (playerinfo.BotCardKey) exists.
 
 // DefaultBotRequestTTL is how long a request to a bot stays pending.
 const DefaultBotRequestTTL = 72 * time.Hour
@@ -42,6 +44,59 @@ type BotProfile struct {
 // BotLookup returns the live bot with public id uid as seen by me (wired to
 // rooms.FindBotSeat), or ErrUnknownPlayer.
 type BotLookup func(ctx context.Context, me uuid.UUID, uid string) (BotProfile, error)
+
+// botCards reads the public cards of bots (playerinfo.BotCardKey, written by
+// the rooms engine when a bot persona is seated). Missing cards are absent
+// from the result.
+func (s *Service) botCards(ctx context.Context, uids []string) (map[string]playerinfo.BotCard, error) {
+	out := make(map[string]playerinfo.BotCard, len(uids))
+	if len(uids) == 0 {
+		return out, nil
+	}
+	keys := make([]string, len(uids))
+	for i, uid := range uids {
+		keys[i] = playerinfo.BotCardKey(uid)
+	}
+	vals, err := s.rdb.MGet(ctx, keys...).Result()
+	if err != nil {
+		return nil, err
+	}
+	for i, v := range vals {
+		raw, ok := v.(string)
+		if !ok {
+			continue
+		}
+		var c playerinfo.BotCard
+		if json.Unmarshal([]byte(raw), &c) == nil {
+			c.UID = uids[i]
+			out[uids[i]] = c
+		}
+	}
+	return out, nil
+}
+
+// lookupBot finds the bot uid like a person's friend code: the live seat me
+// can see (fresher), else the bot's public card, which outlives its room and
+// session for the recent-players retention. ErrUnknownPlayer otherwise, as
+// for a mistyped code.
+func (s *Service) lookupBot(ctx context.Context, me uuid.UUID, uid string) (BotProfile, error) {
+	uid = strings.ToLower(strings.TrimSpace(uid))
+	if s.opts.Bots != nil {
+		b, err := s.opts.Bots(ctx, me, uid)
+		if err == nil || !errors.Is(err, ErrUnknownPlayer) {
+			return b, err
+		}
+	}
+	cards, err := s.botCards(ctx, []string{uid})
+	if err != nil {
+		return BotProfile{}, err
+	}
+	c, ok := cards[uid]
+	if !ok {
+		return BotProfile{}, ErrUnknownPlayer
+	}
+	return BotProfile{UID: c.UID, Name: c.Name, Avatar: c.Avatar, Picture: c.Picture, Level: c.Level, Title: c.Title}, nil
+}
 
 // BotRequestsKey is the HASH of an account's pending requests to bots:
 // field = the bot's public id, value = JSON botRequest.
@@ -131,10 +186,7 @@ func mergeOutgoing(people []datedFriend, bots []pendingBot) []Friend {
 // over people and bots), under my account lock like every friend change.
 // Repeating a pending request returns it again.
 func (s *Service) requestBot(ctx context.Context, me uuid.UUID, uid string) (Friend, error) {
-	if s.opts.Bots == nil {
-		return Friend{}, ErrUnknownPlayer
-	}
-	bot, err := s.opts.Bots(ctx, me, uid)
+	bot, err := s.lookupBot(ctx, me, uid)
 	if err != nil {
 		return Friend{}, err
 	}
@@ -201,11 +253,8 @@ func (s *Service) cancelBotRequest(ctx context.Context, me uuid.UUID, uid string
 	return n > 0, nil
 }
 
-// isBot reports whether uid is a live bot that me can see.
+// isBot reports whether uid is a bot (live, or with a public card).
 func (s *Service) isBot(ctx context.Context, me uuid.UUID, uid string) bool {
-	if s.opts.Bots == nil {
-		return false
-	}
-	_, err := s.opts.Bots(ctx, me, strings.ToLower(strings.TrimSpace(uid)))
+	_, err := s.lookupBot(ctx, me, uid)
 	return err == nil
 }

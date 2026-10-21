@@ -206,6 +206,23 @@ func (c *Catalog) Get(id string) *Item { return c.byID[id] }
 // Items returns every item in catalog order.
 func (c *Catalog) Items() []*Item { return c.items }
 
+// BotItems lists the catalogue for bot personas (playerinfo.CatalogItem):
+// how each item is obtained, so a bot can show what a player of its level
+// could own. Event and mission items are neither starter, level nor
+// purchase items, so bots never show them.
+func (c *Catalog) BotItems() []playerinfo.CatalogItem {
+	out := make([]playerinfo.CatalogItem, 0, len(c.items))
+	for _, it := range c.items {
+		ci := playerinfo.CatalogItem{ID: it.ID, Kind: it.Kind, Starter: it.Starter(),
+			Purchase: it.Acquisition.Type == AcqPurchase}
+		if it.Acquisition.Type == AcqLevel {
+			ci.Level = it.Acquisition.Level
+		}
+		out = append(out, ci)
+	}
+	return out
+}
+
 // MilestoneLevels returns the levels that grant items, ascending.
 func (c *Catalog) MilestoneLevels() []int { return c.levels }
 

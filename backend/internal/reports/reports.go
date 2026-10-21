@@ -11,9 +11,9 @@
 // Bots: a bot seat is reported exactly like a person from the reporter's side
 // (same checks, limits, response and "my reports" entry), so the app never
 // reveals which opponents are bots. Bots are not accounts: the row stores the
-// bot's per-session id with reported_bot = true and a copy of its public
-// profile (reported_profile), which "my reports" shows. The operator queue
-// leaves bot reports out.
+// bot persona's id (stable across its sessions, like an account) with
+// reported_bot = true and a copy of its public profile (reported_profile),
+// which "my reports" shows. The operator queue leaves bot reports out.
 //
 // Limits (per reporter, rolling 24 h window): at most Options.PerDay reports
 // (REPORTS_PER_DAY, default 2) and at most one report per reported player.
@@ -107,7 +107,7 @@ func (e *LimitError) Error() string { return "daily report limit reached" }
 
 // Seat is a room seat as seen by the report checks.
 type Seat struct {
-	UserID string // internal id (a per-session UUID for bots)
+	UserID string // internal id (a bot persona's id for bots)
 	UID    string // public id
 	Bot    bool
 	// Public profile shown in the room; stored with a report against a bot.
@@ -340,7 +340,7 @@ func (s *Service) Create(ctx context.Context, me uuid.UUID, in CreateInput) (rep
 }
 
 // seats verifies that me and the player uid both hold a seat in roomID and
-// returns the reported id (an account, or a bot's per-session id), the room's
+// returns the reported id (an account, or a bot persona's id), the room's
 // game and, for a bot, the public profile to store with the report.
 func (s *Service) seats(ctx context.Context, me uuid.UUID, uid, roomID string) (uuid.UUID, string, *PlayerRef, error) {
 	room, err := s.rooms(ctx, roomID)

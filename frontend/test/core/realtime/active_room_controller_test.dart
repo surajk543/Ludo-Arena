@@ -339,27 +339,24 @@ void main() {
         'roomId': 'r_1',
       });
       s.serverSend('room.updated', {
-        'room': ludoRoomJson(status: 'lobby', bots: const [false, true]),
+        'room': ludoRoomJson(status: 'lobby'),
         'reason': 'joined',
       }, join['id'] as String);
       async.flushMicrotasks();
       expect(r.analytics.count('matchmakingStarted'), 1);
       expect(stateOf(r.c).isSearching, isTrue);
 
-      s.serverSend('game.started', {
-        'room': ludoRoomJson(v: 41, bots: const [false, true]),
-      });
+      s.serverSend('game.started', {'room': ludoRoomJson(v: 41)});
       // A resync snapshot of the same round must not count again.
-      s.serverSend('game.state', {
-        'room': ludoRoomJson(v: 41, bots: const [false, true]),
-      });
+      s.serverSend('game.state', {'room': ludoRoomJson(v: 41)});
       async.flushMicrotasks();
       expect(r.analytics.count('gameStarted'), 1);
       expect(r.analytics.count('matchmakingSucceeded'), 1);
       expect(stateOf(r.c).isSearching, isFalse);
       final ctx =
           r.analytics.args['gameStarted']!.first as AnalyticsGameContext;
-      expect(ctx.opponentMix, OpponentMix.botOnly);
+      // Public seats carry no bot flag: the app cannot tell.
+      expect(ctx.opponentMix, OpponentMix.unknown);
       expect(ctx.matchType, AnalyticsMatchType.public);
       expect(ctx.seatCount, 2);
       expect(ctx.dedupeKey, 'r_1#1');
@@ -378,7 +375,7 @@ void main() {
       });
       s.serverSend('game.state', {
         'room': {
-          ...ludoRoomJson(v: 42, status: 'finished', bots: const [false, true]),
+          ...ludoRoomJson(v: 42, status: 'finished'),
           'result': {'winnerSeat': 0},
         },
       });
@@ -389,6 +386,28 @@ void main() {
       expect(args[2], const Duration(minutes: 4));
       r.c.dispose();
     });
+  });
+
+  test('opponent mix comes from the room mode and computerSeats', () {
+    for (final (mode, seats, want) in [
+      ('private', const <int>[], OpponentMix.humanOnly),
+      ('private', const [1], OpponentMix.botOnly),
+      ('practice', const <int>[], OpponentMix.botOnly),
+      ('public', const <int>[], OpponentMix.unknown),
+    ]) {
+      fakeAsync((async) {
+        final r = rig(async);
+        final s = open(r.h, async);
+        s.serverSend('game.started', {
+          'room': ludoRoomJson(mode: mode, computerSeats: seats),
+        });
+        async.flushMicrotasks();
+        final ctx =
+            r.analytics.args['gameStarted']!.first as AnalyticsGameContext;
+        expect(ctx.opponentMix, want, reason: '$mode $seats');
+        r.c.dispose();
+      });
+    }
   });
 
   test('leaving a running game reports abandoned and clears the room', () {

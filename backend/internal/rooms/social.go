@@ -3,6 +3,7 @@ package rooms
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"ludoroyale/internal/gameevents"
@@ -34,10 +35,9 @@ func (s *Service) publishRoom(ctx context.Context, r *Room, msg []byte) error {
 }
 
 // QuickChat broadcasts a predefined quick-chat message or an owned emote.
+// Bots send them like people (same limits); a bot's emotes are its
+// persona's (Player.BotEmotes), never an inventory.
 func (s *Service) QuickChat(ctx context.Context, c Caller, roomID, msg, emote string) error {
-	if c.Bot {
-		return protocol.ErrBadRequest
-	}
 	if emote == "" && !protocol.QuickChat[msg] {
 		return protocol.ErrBadRequest
 	}
@@ -53,7 +53,7 @@ func (s *Service) QuickChat(ctx context.Context, c Caller, roomID, msg, emote st
 		err error
 	}
 	var owns chan ownership
-	if emote != "" && s.Inventory != nil {
+	if emote != "" && s.Inventory != nil && !c.Bot {
 		owns = make(chan ownership, 1)
 		go func() {
 			ok, err := s.Inventory.Owns(ctx, userUUID(c.UserID), emote)
@@ -67,6 +67,13 @@ func (s *Service) QuickChat(ctx context.Context, c Caller, roomID, msg, emote st
 	seat := r.SeatOf(c.UserID)
 	if seat < 0 || r.Status == StatusClosed {
 		return protocol.ErrNotInRoom
+	}
+	if emote != "" && c.Bot {
+		if !slices.Contains(r.Players[seat].BotEmotes, emote) {
+			return protocol.ErrItemNotOwned
+		}
+		metrics.QuickChats.WithLabelValues("emote").Inc()
+		return s.publishRoom(ctx, r, protocol.Encode(protocol.TChatEmote, "", map[string]any{"roomId": roomID, "seat": seat, "emote": emote}))
 	}
 	if emote != "" {
 		if owns == nil {

@@ -94,3 +94,45 @@ func TestControllerTokenCachingRefreshAndAuth(t *testing.T) {
 		t.Fatal("last success not tracked")
 	}
 }
+
+// POST /bot/sessions: "emotes" lists what the bot may send; an older backend
+// without the field gives an empty list (no emotes).
+func TestCreateSessionEmotes(t *testing.T) {
+	cases := []struct {
+		name string
+		body string
+		want []string
+	}{
+		{"with emotes", `{"accessToken":"bt","expiresAt":1,"uid":"u_abcdefghijkm","roomId":"r_1","emotes":["emote_wave","emote_thumbs"]}`, []string{"emote_wave", "emote_thumbs"}},
+		{"older backend", `{"accessToken":"bt","expiresAt":1,"uid":"u_abcdefghijkm","roomId":"r_1"}`, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch r.URL.Path {
+				case "/api/v1/bot/controller/token":
+					_ = json.NewEncoder(w).Encode(map[string]any{"token": "ct", "expiresAt": time.Now().Add(time.Hour).UnixMilli()})
+				case "/api/v1/bot/sessions":
+					_, _ = w.Write([]byte(tc.body))
+				}
+			}))
+			defer srv.Close()
+			c, err := New(Options{BaseURL: srv.URL + "/api/v1", ServiceKey: config.NewSecret("k3y"), RequestTimeout: time.Second})
+			if err != nil {
+				t.Fatal(err)
+			}
+			s, err := c.CreateSession(context.Background(), SessionRequest{Name: "Asha", AssignmentID: "as1"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if s.UID != "u_abcdefghijkm" || len(s.Emotes) != len(tc.want) {
+				t.Fatalf("session %+v", s)
+			}
+			for i := range tc.want {
+				if s.Emotes[i] != tc.want[i] {
+					t.Fatalf("emotes %v", s.Emotes)
+				}
+			}
+		})
+	}
+}

@@ -14,10 +14,14 @@ RoomSnapshot _finished({
   List<int> placements = const [0, 2, 1, 3],
   String mode = RoomModes.public,
   RematchState? rematch,
+  List<int> computerSeats = const [],
+  int? pot,
 }) => ludoRoom(
   status: RoomStatuses.finished,
   mode: mode,
   players: players,
+  computerSeats: computerSeats,
+  pot: pot,
   result: RoomResult(
     winnerSeat: winner,
     placements: placements,
@@ -47,20 +51,43 @@ void main() {
       expect(v.selfPayout, 0, reason: 'only the winner is paid');
     });
 
-    test('winner payout comes from the server result; bots pay nothing', () {
+    test('winner payout comes from the server result; no-coin matches', () {
       final won = MatchResultView.from(_finished(), 'u_0');
       expect(won.outcome, MatchOutcome.won);
       expect(won.selfPayout, 4000);
-      final bots = MatchResultView.from(
+      expect(won.noCoinMatch, isFalse);
+      // A match the server played without fees has an empty pot (e.g. a
+      // public match a computer player joined; seats carry no bot flag).
+      final free = MatchResultView.from(
         _finished(
           payout: 0,
-          players: [player(0), player(1, bot: true)],
+          pot: 0,
+          players: [player(0), player(1)],
           placements: const [0, 1],
         ),
         'u_0',
       );
-      expect(bots.botMatch, isTrue);
-      expect(bots.selfPayout, 0);
+      expect(free.noCoinMatch, isTrue);
+      expect(free.selfPayout, 0);
+      final two = [player(0), player(1)];
+      for (final (room, want) in [
+        (_finished(mode: RoomModes.practice, players: two), true),
+        (
+          _finished(
+            mode: RoomModes.private,
+            players: two,
+            computerSeats: const [1],
+          ),
+          true,
+        ),
+        (_finished(mode: RoomModes.private, players: two), false),
+      ]) {
+        expect(
+          MatchResultView.from(room, 'u_0').noCoinMatch,
+          want,
+          reason: '${room.mode} ${room.computerSeats}',
+        );
+      }
     });
 
     test('forfeited local player', () {
@@ -213,9 +240,10 @@ void main() {
         room: _finished(
           winner: 1,
           payout: 0,
+          pot: 0,
           players: [
             player(0),
-            player(1, name: 'Bot Bolt', bot: true),
+            player(1, name: 'Bolt'),
           ],
           placements: const [1, 0],
         ),

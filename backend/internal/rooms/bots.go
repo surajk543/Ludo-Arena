@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"hash/fnv"
-	mrand "math/rand/v2"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,7 +18,6 @@ import (
 	"ludoroyale/internal/config"
 	"ludoroyale/internal/httpapi"
 	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/profile"
 	"ludoroyale/internal/protocol"
 	"ludoroyale/internal/ratelimit"
@@ -221,6 +219,12 @@ func (s *Service) handleBotExpiry(ctx context.Context, roomID, asgID string) err
 			return errNoop
 		}
 		m.r.PendingBots--
+		if m.r.Mode == ModePublic {
+			// Public lobbies never learn about bot requests (pendingBots is
+			// hidden there): nothing visible changed.
+			m.write = true
+			return nil
+		}
 		m.emitSnapshot(protocol.TRoomUpdated, "bot_unavailable")
 		return nil
 	})
@@ -241,11 +245,16 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 		return auth.BotSession{}, nil, "", err
 	}
 	display := botName(name, asgID)
-	sess, err := s.BotAuth.IssueBot(ctx, a.RoomID, false, display, profileName, s.Bots.SessionTTL)
+	// The bot wears a persona of its name (persona.go): its stable id is
+	// the session's user id, so the public uid has the people's format and
+	// stays the same when this persona is met again.
+	lease := s.leasePersona(ctx, poolFor(a.Kind), display, asgID)
+	sess, err := s.BotAuth.IssueBot(ctx, lease.p.ID, a.RoomID, false, display, profileName, s.Bots.SessionTTL)
 	if err != nil {
+		s.releasePersona(ctx, lease.lease, lease.token)
 		return auth.BotSession{}, nil, "", err
 	}
-	uid := "b_" + strings.ReplaceAll(sess.BotID.String(), "-", "")[:10]
+	uid := s.Profiles.PublicID(sess.BotID)
 	var start bool
 	room, err := s.mutate(ctx, a.RoomID, func(m *mutation) error {
 		r := m.r
@@ -255,17 +264,9 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 		if r.PendingBots > 0 {
 			r.PendingBots--
 		}
-		// Seated like a brand-new player (starter title and cosmetics) so the
-		// seat looks the same as a human's in the app.
-		starter := playerinfo.Starter()
-		cos := map[string]string{}
-		for _, slot := range []string{"dice", "token", "frame", "trail", "victory"} {
-			cos[slot] = starter.Loadout[slot]
-		}
-		r.Players = append(r.Players, Player{UserID: sess.BotID.String(), UID: uid, Name: display,
-			Avatar: int(sess.BotID[15]) % 12, Level: starter.Level, Title: starter.Title, Cosmetics: cos,
-			Picture: s.botPicture(), Bot: true, BotProfile: profile.SanitizeName(profileName),
-			BotSID: sess.SessionID, JoinedAt: s.nowMs()})
+		seat := s.botSeat(lease.p, uid, display)
+		seat.BotProfile, seat.BotSID = profile.SanitizeName(profileName), sess.SessionID
+		r.Players = append(r.Players, seat)
 		m.setPointer(sess.BotID.String())
 		full := len(r.Players) == r.Capacity
 		start = full && (r.Mode == ModePractice || r.Mode == ModePublic)
@@ -274,9 +275,12 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 	})
 	if err != nil {
 		_ = s.BotAuth.Revoke(ctx, sess.SessionID)
+		s.releasePersona(ctx, lease.lease, lease.token)
 		return auth.BotSession{}, nil, "", err
 	}
-	_ = s.RDB.Set(ctx, "botsess:"+uid, sess.SessionID+"|"+sess.BotID.String()+"|"+a.RoomID, s.Bots.SessionTTL).Err()
+	s.keepPersona(ctx, lease, uid, display)
+	_ = s.RDB.Set(ctx, "botsess:"+uid, botSessionRecord(sess.SessionID, sess.BotID.String(), a.RoomID, lease.lease, lease.token),
+		s.Bots.SessionTTL).Err()
 	metrics.BotAssignments.WithLabelValues(a.Kind, "claimed").Inc()
 	metrics.BotSessions.WithLabelValues(a.Kind).Inc()
 	if start {
@@ -289,14 +293,15 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 	return sess, room, uid, nil
 }
 
-// botPicture returns the profile picture of a new bot seat: with probability
-// BOT_PICTURE_SHARE a random active catalogue picture (no wallet, no
-// ownership: bots only look like players who bought one), else nil.
-func (s *Service) botPicture() *playerinfo.Picture {
-	if s.Pictures == nil || s.Bots.PictureShare <= 0 || mrand.Float64() >= s.Bots.PictureShare {
-		return nil
+// botEmotes returns the emotes of the seated bot uid in roomID (bot-play
+// sends only these).
+func botEmotes(r *Room, uid string) []string {
+	for _, p := range r.Players {
+		if p.Bot && p.UID == uid {
+			return append([]string{}, p.BotEmotes...)
+		}
 	}
-	return s.Pictures.RandomPicture()
+	return []string{}
 }
 
 // neutralBotNames are fallback display names for bots whose requested name
@@ -310,8 +315,8 @@ var neutralBotNames = []string{
 // botName returns a bot's display name. Names carry no bot label: a leading
 // "Bot" word (any case, followed by a space, "-", "_", ":" or "." — e.g.
 // bot-play's display_name_prefix) is stripped, and an empty result falls
-// back to a neutral first name chosen from seed. Bots stay identifiable to
-// the server and clients through players[].bot and actorType, never the name.
+// back to a neutral first name chosen from seed. Only the server knows which
+// seats are bots (Player.Bot, the session's actorType); clients never do.
 func botName(name, seed string) string {
 	name = profile.SanitizeName(name)
 	for {
@@ -456,9 +461,10 @@ func (s *Service) RegisterBotRoutes(rt *httpapi.Router, env string) {
 			case body.Count > free || rm.Bots()+body.Count > s.Bots.MaxPerRoom:
 				return httpapi.Errf(http.StatusConflict, "capacity", "That many bots would exceed the room limit.")
 			}
+			// No room.updated: public lobbies never learn that bots were
+			// requested; the bots appear as players joining.
 			s.requestBots(m, "public_fill", body.Count)
 			created = body.Count
-			m.emitSnapshot(protocol.TRoomUpdated, "bot_requested")
 			return nil
 		})
 		if errors.Is(err, protocol.ErrRoomNotFound) {
@@ -488,15 +494,17 @@ func (s *Service) RegisterBotRoutes(rt *httpapi.Router, env string) {
 			if env == config.EnvProduction || !s.Bots.LoadTestEnabled {
 				return httpapi.Errf(http.StatusForbidden, "loadtest_disabled", "Load-test sessions are not allowed on this server.")
 			}
-			sess, err := s.BotAuth.IssueBot(r.Context(), "", true, botName(body.Name, uuid.NewString()), body.Profile, s.Bots.SessionTTL)
+			// Load-test bots (development / preprod only) get a fresh,
+			// unremembered look; their uid has the people's format too.
+			sess, err := s.BotAuth.IssueBot(r.Context(), uuid.Nil, "", true, botName(body.Name, uuid.NewString()), body.Profile, s.Bots.SessionTTL)
 			if err != nil {
 				return err
 			}
 			metrics.BotSessions.WithLabelValues("loadtest").Inc()
-			uid := "b_" + strings.ReplaceAll(sess.BotID.String(), "-", "")[:10]
-			_ = s.RDB.Set(r.Context(), "botsess:"+uid, sess.SessionID+"|"+sess.BotID.String()+"|", s.Bots.SessionTTL).Err()
+			uid := s.Profiles.PublicID(sess.BotID)
+			_ = s.RDB.Set(r.Context(), "botsess:"+uid, botSessionRecord(sess.SessionID, sess.BotID.String(), "", "", ""), s.Bots.SessionTTL).Err()
 			httpapi.WriteJSON(w, http.StatusOK, map[string]any{"accessToken": sess.Token,
-				"expiresAt": sess.ExpiresAt.UnixMilli(), "uid": uid, "roomId": ""})
+				"expiresAt": sess.ExpiresAt.UnixMilli(), "uid": uid, "roomId": "", "emotes": []string{}})
 			return nil
 		}
 		if body.AssignmentID == "" {
@@ -507,21 +515,23 @@ func (s *Service) RegisterBotRoutes(rt *httpapi.Router, env string) {
 			return err
 		}
 		httpapi.WriteJSON(w, http.StatusOK, map[string]any{"accessToken": sess.Token,
-			"expiresAt": sess.ExpiresAt.UnixMilli(), "uid": uid, "roomId": room.ID})
+			"expiresAt": sess.ExpiresAt.UnixMilli(), "uid": uid, "roomId": room.ID, "emotes": botEmotes(room, uid)})
 		return nil
 	})
 
 	rt.Handle("DELETE /api/v1/bot/sessions/{uid}", ctl, func(w http.ResponseWriter, r *http.Request) error {
-		raw, err := s.RDB.GetDel(r.Context(), "botsess:"+r.PathValue("uid")).Result()
+		ctx := r.Context()
+		raw, err := s.RDB.GetDel(ctx, "botsess:"+r.PathValue("uid")).Result()
 		if err == nil {
-			parts := strings.SplitN(raw, "|", 3)
-			if len(parts) == 3 {
-				if parts[2] != "" {
-					_ = s.Leave(r.Context(), Caller{UserID: parts[1], Bot: true}, parts[2])
-				} else if roomID := s.ActiveRoom(r.Context(), parts[1]); roomID != "" {
-					_ = s.Leave(r.Context(), Caller{UserID: parts[1], Bot: true}, roomID)
+			if b, ok := parseBotSession(raw); ok {
+				if b.RoomID != "" {
+					_ = s.Leave(ctx, Caller{UserID: b.BotID, Bot: true}, b.RoomID)
+				} else if roomID := s.ActiveRoom(ctx, b.BotID); roomID != "" {
+					_ = s.Leave(ctx, Caller{UserID: b.BotID, Bot: true}, roomID)
 				}
-				_ = s.BotAuth.Revoke(r.Context(), parts[0])
+				_ = s.BotAuth.Revoke(ctx, b.SessionID)
+				// Last: the persona may now be worn by the next session.
+				s.releasePersona(ctx, b.LeaseKey, b.LeaseToken)
 			}
 		}
 		w.WriteHeader(http.StatusNoContent)

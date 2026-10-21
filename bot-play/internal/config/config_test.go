@@ -90,6 +90,16 @@ func TestValidationRejectsBadConfigs(t *testing.T) {
 		"bad host pattern":          "loadtest: {allowed_hosts: ['http://x']}",
 		"names pool entry too long": "bots: {identity: {names_pool: ['abcdefghijklmnopq']}}",
 		"min humans 0":              "bots: {public_matchmaking: {minimum_humans: 0}}",
+		"chat cap 11":               "bots: {chat: {max_per_match: 11}}",
+		"chat cap negative":         "bots: {chat: {max_per_match: -1}}",
+		"chat interval < 3 s":       "bots: {chat: {min_interval_ms: 2999}}",
+		"chat delay min > max":      "bots: {chat: {reaction_delay_ms: {min: 3000, max: 1000}}}",
+		"chat delay too long":       "bots: {chat: {reaction_delay_ms: {min: 0, max: 15001}}}",
+		"chat probability > 1":      "bots: {chat: {probability: {win: 1.5}}}",
+		"chat probability < 0":      "bots: {chat: {probability: {six: -0.1}}}",
+		"chat emote share > 1":      "bots: {chat: {emote_share: 2}}",
+		"chat unknown trigger":      "bots: {chat: {probability: {sneeze: 0.5}}}",
+		"chat unknown key":          "bots: {chat: {spam: true}}",
 	}
 	for name, y := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -107,10 +117,51 @@ func TestValidationAcceptsGoodConfigs(t *testing.T) {
 		"app: {environment: preprod}\nbots: {modes: [loadtest], max_concurrent_bots: 5000, target_active_bots: 1}\nloadtest: {enabled: true, target_connections: 5000}",
 		"app: {environment: production}\nconnection: {backend_http_url: 'https://x/api/v1', backend_ws_url: 'wss://x/api/v1/ws'}\nbots: {max_concurrent_bots: 500, target_active_bots: 500}",
 		"bots: {enabled: false, modes: []}",
+		"bots: {chat: {enabled: false}}",
+		"bots: {chat: {max_per_match: 0, min_interval_ms: 3000, probability: {win: 1, loss: 0}, emote_share: 0}}",
 	}
 	for _, y := range good {
 		if _, err := Parse([]byte(y)); err != nil {
 			t.Errorf("%q: %v", y, err)
+		}
+	}
+}
+
+// bots.chat defaults: on, sparing, never faster than the server allows; a
+// partial override keeps the other defaults.
+func TestChatDefaultsAndPartialOverride(t *testing.T) {
+	c, err := Parse(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ch := c.Bots.Chat
+	if !ch.Enabled || ch.InLoadtest || ch.MaxPerMatch != 3 || ch.MinIntervalMS < MinChatIntervalMS ||
+		ch.ReactionDelayMS.Min > ch.ReactionDelayMS.Max || ch.Probability.Win <= 0 || ch.Probability.Win > 0.5 {
+		t.Fatalf("chat defaults: %+v", ch)
+	}
+	c, err = Parse([]byte("bots: {chat: {probability: {win: 0.9}}}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Bots.Chat.Probability.Win != 0.9 || c.Bots.Chat.Probability.Loss != Default().Bots.Chat.Probability.Loss ||
+		c.Bots.Chat.MaxPerMatch != 3 {
+		t.Fatalf("partial override lost defaults: %+v", c.Bots.Chat)
+	}
+}
+
+func TestProfileChattiness(t *testing.T) {
+	snap, err := LoadBytes(nil, []byte("profiles: {balanced: {think_time_ms: {min: 1, max: 2}, chattiness: 0}, advanced: {think_time_ms: {min: 1, max: 2}}}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := snap.Profiles.Get("balanced")
+	a, _ := snap.Profiles.Get("advanced")
+	if b.ChatMultiplier() != 0 || a.ChatMultiplier() != 1 {
+		t.Fatalf("chattiness: balanced %v advanced %v", b.ChatMultiplier(), a.ChatMultiplier())
+	}
+	for _, bad := range []string{"-1", "5.5"} {
+		if _, err := LoadBytes(nil, []byte("profiles: {balanced: {chattiness: "+bad+"}}")); err == nil {
+			t.Fatalf("chattiness %s accepted", bad)
 		}
 	}
 }

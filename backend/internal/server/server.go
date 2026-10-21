@@ -42,6 +42,7 @@ import (
 type Extensions struct {
 	Progression  playerinfo.Provider
 	Pictures     playerinfo.PictureSource
+	Catalog      playerinfo.CatalogSource
 	Recorder     gameevents.Recorder
 	Inviter      gameevents.Inviter
 	Inventory    gameevents.Inventory
@@ -135,7 +136,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 
 	roomSvc := rooms.New(rooms.Deps{
 		RDB: core.RDB, Wallets: core.Wallets, Profiles: core.Profiles, Progression: ext.Progression,
-		Pictures: ext.Pictures, Recorder: ext.Recorder, Inviter: ext.Inviter, Inventory: ext.Inventory, Policy: policy,
+		Pictures: ext.Pictures, Catalog: ext.Catalog, Recorder: ext.Recorder, Inviter: ext.Inviter, Inventory: ext.Inventory, Policy: policy,
 		BotAuth: botAuth, Limiter: limiter, Notifier: core.Notifier, Log: log, Game: cfg.Game,
 		Bots: cfg.Bots, Env: cfg.Env, FullSnaps: cfg.WS.FullSnapshots, Dice: dice,
 		StatsInterval: cfg.GameStatsInterval,

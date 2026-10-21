@@ -22,6 +22,8 @@ bots:
   think_time: {min_ms: 300, max_ms: 4000, randomize: true}
   behavior:
     default_profile: balanced
+  chat:
+    enabled: true                # quick chat + emotes (defaults: <= 3 per match, >= 8 s apart)
   shutdown:
     graceful_timeout_seconds: 30
     policy: finish_games

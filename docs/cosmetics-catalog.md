@@ -115,8 +115,14 @@ Collection rules (one transaction, exactly once, `Idempotency-Key`).
 Applying takes effect for rooms joined afterwards. The picture shows as
 `picture` (PlayerPicture `{"id","format","path"}` or `null`) on the player's
 own `User`, friends, friend requests, recent players, the friends leaderboard,
-report targets and room seats. Bots wear a random active picture with
-probability `BOT_PICTURE_SHARE` (default 0.3) so they look like players.
+report targets and room seats. Bots look like players: each bot persona
+keeps a picture (or none) for `BOT_PICTURE_KEEP_MIN`..`MAX` matches (default
+2–5), then changes to another active picture or, occasionally, back to none,
+so that about `BOT_PICTURE_SHARE` (default 0.3) of bot seats wear one. Bots
+also show a level weighted toward 1–25 with the title and cosmetics a player
+of that level could own (starter, level unlocks up to it, Store items; never
+event or mission items). Nothing is bought or granted: no wallet, inventory
+or XP changes.
 
 **Storage and privacy** — the art lives in the Cloudflare R2 bucket
 `ludo-royale`, which is **private** (no public bucket URL, no custom domain;

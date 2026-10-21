@@ -3,7 +3,6 @@ package rooms
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -13,12 +12,13 @@ var ErrNoBotSeat = errors.New("rooms: no such bot seat")
 
 // FindBotSeat returns the bot seat with public id uid (read-only), for
 // features that must treat a bot like any other player (friend requests from
-// the in-game player sheet). It looks in the active room of viewerID (the
+// the in-game player sheet). Bot uids have the people's format, so callers
+// try it only after the uid matched no account. It looks in the active room of viewerID (the
 // player asking, who sees the bot there) and then in the room of the bot's
 // live session record (botsess:{uid}, see claimAssignment), which disappears
 // when bot-play ends the session. ErrNoBotSeat when neither holds it.
 func FindBotSeat(ctx context.Context, rdb *redis.Client, viewerID, uid string) (Player, error) {
-	if !strings.HasPrefix(uid, "b_") {
+	if uid == "" {
 		return Player{}, ErrNoBotSeat
 	}
 	var roomIDs []string
@@ -28,11 +28,11 @@ func FindBotSeat(ctx context.Context, rdb *redis.Client, viewerID, uid string) (
 		return Player{}, err
 	}
 	if raw, err := rdb.Get(ctx, "botsess:"+uid).Result(); err == nil {
-		// "{sessionId}|{botId}|{roomId}"; load-test sessions have no room.
-		if parts := strings.SplitN(raw, "|", 3); len(parts) == 3 {
-			if parts[2] != "" {
-				roomIDs = append(roomIDs, parts[2])
-			} else if id, err := rdb.Get(ctx, userRoomKey(parts[1])).Result(); err == nil && id != "" {
+		// Load-test sessions have no room (see botSessionRecord).
+		if b, ok := parseBotSession(raw); ok {
+			if b.RoomID != "" {
+				roomIDs = append(roomIDs, b.RoomID)
+			} else if id, err := rdb.Get(ctx, userRoomKey(b.BotID)).Result(); err == nil && id != "" {
 				roomIDs = append(roomIDs, id)
 			}
 		}

@@ -13,7 +13,7 @@ Map<String, dynamic> ludoRoomJson({
   String status = 'playing',
   int round = 1,
   String mode = 'public',
-  List<bool> bots = const [false, false],
+  List<int> computerSeats = const [],
 }) => {
   'id': id,
   'v': v,
@@ -46,11 +46,11 @@ Map<String, dynamic> ludoRoomJson({
         },
         'color': i == 0 ? 'red' : 'yellow',
         'connected': true,
-        'bot': bots.length > i && bots[i],
         'forfeited': false,
         'strikes': 0,
       },
   ],
+  if (computerSeats.isNotEmpty) 'computerSeats': computerSeats,
   'turn': {
     'seat': turnSeat,
     'phase': 'awaiting_roll',
@@ -75,7 +75,7 @@ RoomSnapshot ludoRoom({
   String status = 'playing',
   int round = 1,
   String mode = 'public',
-  List<bool> bots = const [false, false],
+  List<int> computerSeats = const [],
 }) => RoomSnapshot.fromJson(
   ludoRoomJson(
     id: id,
@@ -86,7 +86,7 @@ RoomSnapshot ludoRoom({
     status: status,
     round: round,
     mode: mode,
-    bots: bots,
+    computerSeats: computerSeats,
   ),
 );
 

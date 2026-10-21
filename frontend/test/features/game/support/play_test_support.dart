@@ -33,7 +33,6 @@ RoomPlayer player(
   int seat, {
   String? uid,
   String? name,
-  bool bot = false,
   bool connected = true,
   bool forfeited = false,
   int strikes = 0,
@@ -49,7 +48,6 @@ RoomPlayer player(
   cosmetics: PlayerCosmetics(frame: frame),
   color: color ?? _colorFor(seat),
   connected: connected,
-  bot: bot,
   forfeited: forfeited,
   strikes: strikes,
 );
@@ -80,6 +78,8 @@ RoomSnapshot ludoRoom({
   int capacity = 4,
   int fillDeadline = 0,
   int? deadline,
+  List<int> computerSeats = const [],
+  int? pot,
 }) {
   final ps = players ?? [for (var s = 0; s < 4; s++) player(s)];
   final perPlayer = variant == GameVariants.quick ? 2 : 4;
@@ -95,10 +95,11 @@ RoomSnapshot ludoRoom({
     status: status,
     hostSeat: hostSeat,
     entryFee: 100000,
-    pot: 100000 * ps.length,
+    pot: pot ?? 100000 * ps.length,
     round: round,
     fillDeadline: fillDeadline,
     players: ps,
+    computerSeats: computerSeats,
     turn: TurnState(
       seat: turnSeat,
       phase: status == RoomStatuses.finished ? TurnPhases.finished : phase,
@@ -126,6 +127,7 @@ RoomSnapshot snakesRoom({
   List<int>? positions,
   String status = RoomStatuses.playing,
   String mode = RoomModes.public,
+  List<int> computerSeats = const [],
 }) {
   final ps = players ?? [for (var s = 0; s < 4; s++) player(s)];
   return RoomSnapshot(
@@ -133,6 +135,7 @@ RoomSnapshot snakesRoom({
     v: v,
     game: GameIds.snakesLadders,
     mode: mode,
+    computerSeats: computerSeats,
     capacity: ps.length,
     status: status,
     entryFee: 50000,

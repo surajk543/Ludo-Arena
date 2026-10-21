@@ -175,7 +175,7 @@ func (s *Service) handleRecord(ctx context.Context, roomID string, round int) er
 	}
 	for i, p := range r.Players {
 		rec.Players = append(rec.Players, gameevents.Participant{
-			UserID: userUUID(p.UserID), Seat: i, Bot: p.Bot, Won: i == r.Result.WinnerSeat,
+			UserID: userUUID(p.UserID), UID: p.UID, Seat: i, Bot: p.Bot, Won: i == r.Result.WinnerSeat,
 			Placement: placement[i], Forfeited: p.Forfeited, Actions: p.Actions,
 		})
 	}

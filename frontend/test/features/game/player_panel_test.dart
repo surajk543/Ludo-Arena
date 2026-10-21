@@ -167,7 +167,7 @@ void main() {
           '${c.turn ? ', turn' : ''}, text ×${c.ts}', (tester) async {
         for (final p in [
           player(1),
-          player(1, bot: true, name: 'Bot Riya', frame: 'frame_royal'),
+          player(1, name: 'Riya', frame: 'frame_royal'),
           player(1, connected: false, strikes: 2),
           player(1, forfeited: true),
         ]) {
@@ -488,12 +488,8 @@ void main() {
       tester,
     ) async {
       final semantics = tester.ensureSemantics();
-      await _pumpPanel(
-        tester,
-        width: 150.5,
-        p: player(1, bot: true, name: 'Bot Riya'),
-      );
-      // A legacy "Bot " name prefix is dropped; nothing says "bot".
+      await _pumpPanel(tester, width: 150.5, p: player(1, name: 'Riya'));
+      // Seats carry no bot flag: a computer opponent is just a player.
       expect(find.text('Riya'), findsOneWidget);
       expect(
         find.textContaining(RegExp('bot', caseSensitive: false)),
@@ -561,11 +557,10 @@ void main() {
           tester,
           width: w,
           stacked: false,
-          p: player(1, bot: true, name: 'Bot Riya'),
+          p: player(1, name: 'Riya'),
         );
         expect(_avatar(tester), avatar);
         expect(find.byKey(_column), findsNothing);
-        // The badge reads BOT: the name drops the prefix.
         expect(find.text('Riya'), findsOneWidget);
       }
     });
@@ -578,7 +573,7 @@ void main() {
       for (final turn in [false, true]) {
         for (final p in [
           player(1),
-          player(1, bot: true, name: 'Bot Riya', frame: 'frame_royal'),
+          player(1, name: 'Riya', frame: 'frame_royal'),
           player(1, connected: false, strikes: 2),
           player(1, forfeited: true),
         ]) {
@@ -830,7 +825,7 @@ void main() {
               turnSeat: 1,
               players: [
                 player(0),
-                player(1, bot: true, name: 'Bot Riya', frame: 'frame_royal'),
+                player(1, name: 'Riya', frame: 'frame_royal'),
                 player(2, connected: false, strikes: 2),
                 player(3, forfeited: true),
               ],
@@ -873,7 +868,7 @@ void main() {
                 tester,
                 width: w,
                 stacked: stacked,
-                p: player(1, connected: connected, strikes: 3, bot: true),
+                p: player(1, connected: connected, strikes: 3),
                 isTurn: true,
                 muted: true,
                 textScale: 1.35,
@@ -913,7 +908,7 @@ void main() {
                   stacked: false,
                   height: h,
                   room: room,
-                  p: player(1, connected: connected, strikes: 3, bot: true),
+                  p: player(1, connected: connected, strikes: 3),
                   isTurn: true,
                   muted: true,
                   textScale: 1.35,

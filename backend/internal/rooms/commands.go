@@ -10,9 +10,11 @@ import (
 	"ludoroyale/internal/protocol"
 )
 
-// botAllowed lists the commands bot sessions may send.
+// botAllowed lists the commands bot sessions may send. Bots chat and emote
+// like people (bot-play sends them sparingly; same rate limits).
 var botAllowed = map[string]bool{
 	protocol.TGameRoll: true, protocol.TGameMove: true, protocol.TGameSync: true, protocol.TRoomLeave: true,
+	protocol.TChatQuick: true, protocol.TChatEmote: true,
 }
 
 // loadTestAllowed adds matchmaking for isolated load-test bots.
@@ -299,6 +301,9 @@ func (s *Service) dispatch(ctx context.Context, c Caller, in protocol.Inbound) (
 			p.Emote = ""
 		} else if p.Emote == "" {
 			return nil, protocol.ErrBadRequest
+		}
+		if err := s.botScope(c, p.RoomID); err != nil {
+			return nil, err
 		}
 		if err := s.QuickChat(ctx, c, p.RoomID, p.Msg, p.Emote); err != nil {
 			return nil, err

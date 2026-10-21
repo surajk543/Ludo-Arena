@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 
 	"ludoroyale/internal/gameevents"
+	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/progression"
 	"ludoroyale/internal/progression/progtest"
 )
@@ -287,13 +288,25 @@ func TestInvites(t *testing.T) {
 	}
 }
 
-func TestRecentOpponentsHumansOnly(t *testing.T) {
+// botIn returns a bot participant with public id uid and stores its public
+// card as the rooms engine does when it seats the bot.
+func (f *fixture) botIn(t *testing.T, uid, name string, level int) gameevents.Participant {
+	t.Helper()
+	raw, _ := json.Marshal(playerinfo.BotCard{UID: uid, Name: name, Avatar: 4, Level: level, Title: "title_strategist",
+		Picture: &playerinfo.Picture{ID: "pp_fox", Format: "image", Path: "profile_pictures/image/fox.png"}})
+	if err := f.env.RDB.Set(context.Background(), playerinfo.BotCardKey(uid), raw, playerinfo.BotCardTTL).Err(); err != nil {
+		t.Fatal(err)
+	}
+	return gameevents.Participant{UserID: uuid.New(), UID: uid, Bot: true, Actions: 10}
+}
+
+func TestRecentOpponentsPeopleAndPublicBots(t *testing.T) {
 	f := newFixture(t, Options{})
 	ctx := context.Background()
 	a, b, c := f.env.NewAccount(t), f.env.NewAccount(t), f.env.NewAccount(t)
 	f.befriend(t, a, c)
-	bot := gameevents.Participant{UserID: uuid.New(), Bot: true, Actions: 10}
-	rec := match(testNow, human(a, true), human(b, false), bot)
+	kabir := f.botIn(t, "u_kabirkabirka", "Kabir", 7)
+	rec := match(testNow, human(a, true), human(b, false), kabir)
 	for i := 0; i < 2; i++ { // duplicate delivery is harmless
 		if err := f.prog.RecordMatch(ctx, rec); err != nil {
 			t.Fatal(err)
@@ -308,19 +321,60 @@ func TestRecentOpponentsHumansOnly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := fmt.Sprint(uids(recent)); got != fmt.Sprint([]string{f.code(c) + ":friend", f.code(b) + ":none"}) {
+	// Newest first; the bot is listed like a person (same-time entries in
+	// ZSET order).
+	if got := fmt.Sprint(uids(recent)); got != fmt.Sprint([]string{f.code(c) + ":friend", "u_kabirkabirka:none", f.code(b) + ":none"}) &&
+		got != fmt.Sprint([]string{f.code(c) + ":friend", f.code(b) + ":none", "u_kabirkabirka:none"}) {
 		t.Fatalf("recent = %v", got)
 	}
-	if rb, _ := f.soc.Recent(ctx, b); len(rb) != 1 || rb[0].UID != f.code(a) {
+	for _, r := range recent {
+		if r.UID == "u_kabirkabirka" && (r.Name != "Kabir" || r.Level != 7 || r.Avatar != 4 || r.Picture == nil ||
+			r.Picture.ID != "pp_fox" || r.Title != "title_strategist" || r.Online) {
+			t.Fatalf("bot entry %+v", r)
+		}
+	}
+	if rb, _ := f.soc.Recent(ctx, b); len(rb) != 2 {
 		t.Fatalf("b recent = %v", uids(rb))
 	}
-	// Bot-only and practice-vs-bot matches add nobody.
+
+	// One human against public-fill bots: the bots are recent players.
 	solo := f.env.NewAccount(t)
-	if err := f.prog.RecordMatch(ctx, match(testNow, human(solo, true), bot)); err != nil {
+	if err := f.prog.RecordMatch(ctx, match(testNow, human(solo, true), f.botIn(t, "u_tarataratara", "Tara", 3))); err != nil {
+		t.Fatal(err)
+	}
+	if rs, _ := f.soc.Recent(ctx, solo); fmt.Sprint(uids(rs)) != "[u_tarataratara:none]" {
+		t.Fatalf("public bots not recorded: %v", uids(rs))
+	}
+	// A pending request to the bot shows as outgoing, like to a person.
+	if _, err := f.soc.Request(ctx, solo, "u_tarataratara"); err != nil {
+		t.Fatal(err)
+	}
+	if rs, _ := f.soc.Recent(ctx, solo); fmt.Sprint(uids(rs)) != "[u_tarataratara:outgoing]" {
+		t.Fatalf("after the request: %v", uids(rs))
+	}
+
+	// Practice and private-room bots (chosen computer opponents) are not.
+	for _, mode := range []string{"practice", "private"} {
+		p := f.env.NewAccount(t)
+		m := match(testNow, human(p, true), f.botIn(t, "u_ishaishaisha", "Isha", 2))
+		m.Mode = mode
+		if err := f.prog.RecordMatch(ctx, m); err != nil {
+			t.Fatal(err)
+		}
+		if rs, _ := f.soc.Recent(ctx, p); len(rs) != 0 {
+			t.Fatalf("%s bots in recent players: %v", mode, uids(rs))
+		}
+	}
+
+	// A bot whose card expired is forgotten.
+	if err := f.env.RDB.Del(ctx, playerinfo.BotCardKey("u_tarataratara")).Err(); err != nil {
 		t.Fatal(err)
 	}
 	if rs, _ := f.soc.Recent(ctx, solo); len(rs) != 0 {
-		t.Fatalf("practice vs bots produced recent players: %v", rs)
+		t.Fatalf("expired bot listed: %v", uids(rs))
+	}
+	if n, _ := f.env.RDB.ZCard(ctx, RecentKey(solo)).Result(); n != 0 {
+		t.Fatalf("expired bot kept in the ZSET (%d)", n)
 	}
 	// Entries older than 14 days are not returned.
 	f.clock.Set(testNow.Add(15 * 24 * time.Hour))
