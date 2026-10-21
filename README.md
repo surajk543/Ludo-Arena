@@ -35,8 +35,9 @@ A short Markdown companion is in [docs/architecture.md](docs/architecture.md).
   delta events with a state hash, server-side turn timers and auto-moves, and
   reconnect-and-resync from snapshots.
 - **Accounts without Firebase Auth**: Google Sign-In (configured), guest play
-  with Save Progress (account linking, never merging), app-issued access and
-  refresh tokens. Apple and Facebook are implemented but pending configuration.
+  with Save Progress (account linking, never merging), guests restored after
+  an app update or reinstall through a device binding (only an HMAC of the
+  device id is stored), app-issued access and refresh tokens. Apple and Facebook are implemented but pending configuration.
 - **Virtual wallet**: 1,000,000 coins + 50 diamonds granted exactly once per
   account; all-or-nothing flat entry fees (Ludo 100,000, Snakes & Ladders
   50,000); at-most-once payouts. The welcome grant and entry fees are set live

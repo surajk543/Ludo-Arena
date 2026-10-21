@@ -32,6 +32,9 @@ type Account struct {
 	Policy      *apppolicy.Store
 	Env         string
 	Extra       func() map[string]any // extra /app/config fields (entry fees, versions)
+	// DeviceKey keys the device-binding subjects (identity.DeviceKey of
+	// PUBLIC_ID_KEY); see handlers_device.go.
+	DeviceKey []byte
 }
 
 // User is the account JSON returned to its owner.
@@ -68,6 +71,7 @@ func (a *Account) Register(rt *Router) {
 	rt.Handle("GET /api/v1/app/config", Route{IPRule: &policyIP}, a.appConfig)
 	rt.Handle("POST /api/v1/auth/guest", gated(Route{IPRule: &guestIP}), a.guest)
 	rt.Handle("POST /api/v1/auth/guest/resume", gated(Route{IPRule: &authIP}), a.guestResume)
+	rt.Handle("POST /api/v1/auth/device/resume", gated(Route{IPRule: &authIP}), a.deviceResume)
 	rt.Handle("POST /api/v1/auth/google", gated(Route{IPRule: &authIP}), a.provider(identity.Google))
 	rt.Handle("POST /api/v1/auth/facebook", gated(Route{IPRule: &authIP}), a.provider(identity.Facebook))
 	rt.Handle("POST /api/v1/auth/apple", gated(Route{IPRule: &authIP}), a.provider(identity.Apple))
@@ -76,6 +80,10 @@ func (a *Account) Register(rt *Router) {
 	// token is often expired by then), so it authenticates in the handler.
 	rt.Handle("POST /api/v1/auth/logout", Route{IPRule: &refreshIP}, a.logout)
 	rt.Handle("POST /api/v1/account/link/{provider}", gated(Route{Auth: AuthHuman, UserRule: &link}), a.link)
+	rt.Handle("PUT /api/v1/account/device", gated(Route{Auth: AuthHuman, UserRule: &link}), a.bindDevice)
+	// Like logout, forgetting the device is never blocked by the version
+	// gate: it only removes data.
+	rt.Handle("DELETE /api/v1/account/device", Route{Auth: AuthHuman, UserRule: &link}, a.unbindDevice)
 	rt.Handle("GET /api/v1/me", gated(Route{Auth: AuthHuman}), a.me)
 	rt.Handle("GET /api/v1/wallet", gated(Route{Auth: AuthHuman}), a.wallet)
 }
@@ -111,7 +119,18 @@ func (a *Account) appConfig(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// guest creates a guest account (201), or, with a deviceId, signs in to the
+// account bound to that device (200) / creates a guest bound to it (201).
 func (a *Account) guest(w http.ResponseWriter, r *http.Request) error {
+	var body struct {
+		DeviceID *string `json:"deviceId"`
+	}
+	if err := decodeOptionalJSON(r, &body); err != nil {
+		return err
+	}
+	if body.DeviceID != nil {
+		return a.deviceGuest(w, r, *body.DeviceID)
+	}
 	res, err := a.Auth.CreateGuest(r.Context())
 	if err != nil {
 		metrics.AuthLogins.WithLabelValues("guest", "error").Inc()
@@ -232,15 +251,8 @@ func (a *Account) logout(w http.ResponseWriter, r *http.Request) error {
 	var body struct {
 		RefreshToken string `json:"refreshToken"`
 	}
-	raw, err := io.ReadAll(r.Body)
-	if err != nil {
+	if err := decodeOptionalJSON(r, &body); err != nil {
 		return err
-	}
-	if len(bytes.TrimSpace(raw)) > 0 {
-		r.Body = io.NopCloser(bytes.NewReader(raw))
-		if err := DecodeJSON(r, &body); err != nil {
-			return err
-		}
 	}
 	ctx := r.Context()
 	if tok, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer "); ok && strings.TrimSpace(tok) != "" {
@@ -367,6 +379,19 @@ func (a *Account) user(ctx context.Context, uid uuid.UUID) (User, error) {
 		Level: sum.Level, XP: sum.XP, LevelXP: sum.LevelXP, NextLevelXP: sum.NextLevelXP,
 		Title: sum.Title, Loadout: sum.Loadout,
 	}, nil
+}
+
+// decodeOptionalJSON is DecodeJSON for endpoints whose body may be empty.
+func decodeOptionalJSON(r *http.Request, v any) error {
+	raw, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if len(bytes.TrimSpace(raw)) == 0 {
+		return nil
+	}
+	r.Body = io.NopCloser(bytes.NewReader(raw))
+	return DecodeJSON(r, v)
 }
 
 func mapAuthErr(err error) error {

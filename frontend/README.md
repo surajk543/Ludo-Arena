@@ -119,7 +119,8 @@ lib/
     shell/app_shell_host.dart  optional-update dialog, consent sheet, 4409 dialog, level-up toasts
   core/
     config/                 AppConfig (--dart-define), AppInfo (version/build/platform)
-    storage/                SecureSessionStore (tokens + guest secret ONLY), PreferencesStore
+    storage/                SecureSessionStore (tokens, guest secret, device id, session flags ONLY), PreferencesStore
+    device/                 DeviceIdentity (ANDROID_ID / iOS keychain UUID) for restore after reinstall
     network/                ApiClient (Dio), TokenManager (single-flight refresh), ApiException, DTOs
     app_policy/             AppPolicy model, repository, cache, PolicySignalBus
     protocol/               ludo-royale.v1 envelope, models, events, state hash, RoomStateReducer
@@ -149,6 +150,28 @@ branded splash covers every transient phase. The policy is re-fetched on
 resume (throttled to 30 s, always on blocking screens and after visiting the
 store), on REST 426/503, on WebSocket close 4426/4503, and every 30 s on the
 maintenance screen. The last policy is cached for display only.
+
+### Session restore and the device id
+
+`SessionController.restore()` tries, in order: the stored refresh token;
+nothing more if the user signed out or was signed out by a sign-in on
+another device (`session.signed_out` / `session.replaced`, cleared by the
+next explicit sign-in); the stored guest secret (installs from before device
+binding); then `POST /auth/device/resume` with the device id, so an update
+or reinstall lands back in the same account with its coins and progress
+(404 → login screen). "Play as guest" sends the device id to
+`POST /auth/guest` (the device's existing account, or a new guest bound to
+it), every other human sign-in binds the device once
+(`PUT /account/device`, a 409 is ignored), and signing out an unsaved guest
+unbinds it (`DELETE /account/device`).
+
+The device id (`lib/core/device/device_identity.dart`) is
+`Settings.Secure.ANDROID_ID` on Android 8+ (scoped to the signing key,
+survives reinstalls; read through the `ludo_royale/device_id` channel in
+`MainActivity.kt`) and a random UUID kept in the iOS keychain
+(`session.device_id`, this device only). Android 7 has no device id and
+keeps the guest-secret behaviour. The id is sent only in those request
+bodies: never logged, never in URLs, never sent to analytics.
 
 ### Key providers
 

@@ -45,6 +45,75 @@ does not depend on Redis-held sessions surviving. Guest creation is rate
 limited per IP (10/hour). A guest is never a Firebase anonymous user and never
 just a locally generated id.
 
+## Device binding (restore after update or reinstall)
+
+Secure storage (tokens, guest secret) does not reliably survive an uninstall.
+So that a guest's coins, diamonds, XP, collection and friends come back after
+an app **update or reinstall**, the account is bound to a platform device id.
+
+| Platform | Device id the app sends | Survives | Changes on |
+|---|---|---|---|
+| Android 8.0+ (API ≥ 26) | `Settings.Secure.ANDROID_ID` — scoped to the app-signing key, user and device | app updates, uninstall + reinstall | factory reset; a build signed with a different key (debug vs release / Play App Signing) sees a different id |
+| Android < 8 | nothing (ANDROID_ID is shared by every app there) | — | device binding not supported; such guests rely on the guest secret only |
+| iOS | a random UUID the app creates once and keeps in the keychain | app updates, uninstall + reinstall on the same device | erasing the device; a new device (unless the keychain item is migrated, depending on the accessibility class the app uses) |
+
+The app sends the id with its normal `X-App-Platform` header:
+
+1. **No stored session** (fresh install, reinstall, lost secure storage):
+   `POST /auth/device/resume {"deviceId"}` → 200 signs in to the bound account
+   (guest or linked) with nothing lost; 404 `not_found` → no account is bound.
+2. **Continue as Guest**: `POST /auth/guest {"deviceId"}` → 200 if the device
+   is already bound (that account, no new account, no second welcome grant,
+   no `guestSecret`), else 201: a new guest **and** its device binding are
+   created in **one transaction** (concurrent first calls for one device create
+   exactly one account — `backend/tests/device_test.go:
+   TestConcurrentDeviceGuestCreatesOneAccount`).
+3. **Existing accounts** (guests created before device binding, or after
+   moving to a new phone): `PUT /account/device {"deviceId"}` binds the current
+   device to the signed-in account. It is idempotent; a device bound to
+   **another** account answers 409 `identity_conflict` and is never moved; a
+   different device already bound to this account is **replaced** (one device
+   per account).
+4. **"Forget this guest"** on logout: `DELETE /account/device` (204,
+   idempotent, not version-gated) removes the binding; the next guest on this
+   device is a new account.
+
+Every sign-in through these endpoints is a normal human sign-in and replaces
+the account's previous session (see "One active device per account").
+
+**What is stored.** One `identity.auth_identities` row with the internal
+provider `device` and
+
+```
+subject = hex(HMAC-SHA256(k, platform + ":" + lowercase(deviceId)))
+k       = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-royale/device-id/v1")   # domain-separated
+```
+
+The raw device id is never stored or logged, and the same id on Android and
+iOS gives different subjects. `PRIMARY KEY (provider, subject)` gives one
+account per device; `UNIQUE (user_id, provider)` one device per account.
+`device` is internal: it is never listed in `linkedProviders`, never counts as
+linked (an account with only guest + device is still `isGuest: true` and is
+offered Save Progress) and cannot be linked through `/account/link/{provider}`.
+Rotating `PUBLIC_ID_KEY` orphans every device binding (accounts stay reachable
+through their guest secret or linked providers).
+
+**Validation.** `deviceId`: 16–64 characters `[A-Za-z0-9-]`, compared
+case-insensitively; the known-bad Android id `9774d56d682e549c` and values of
+one repeated character (all zeros, hyphens ignored) are rejected (400
+`bad_request`). The platform must be `android` or `ios` (400 otherwise).
+
+**Privacy and security.** The device identifier is used **only** to restore
+the account on the same device: the backend never logs it, never passes it to
+analytics and never shows it to other players; the app must not send it
+anywhere else either (analytics parameters never carry ids). It acts as a
+restore credential for that device: on Android 8+ only apps signed with the
+same key can read ANDROID_ID, the iOS UUID lives in the app's own keychain,
+the id spaces are ≥ 64 bits, and the sign-in endpoints are rate limited per
+IP. Save Progress (linking Google/Apple/
+Facebook) remains the way to keep an account across devices, factory resets
+and app-signing changes.
+
 ## Save Progress (linking)
 
 `POST /api/v1/account/link/{google|facebook|apple}` (authenticated) verifies
@@ -69,12 +138,14 @@ account id and wallet.
 | Access token | client only | HS256, 15 min, verified on every request **and** checked against the live session family (`sess:{sid}`), so logout/revocation (including replacement by a sign-in on another device) is immediate |
 | Refresh token | client (secure storage); server keeps `sha256` | Rotated on every use (`POST /auth/refresh`). Presenting an already-rotated token revokes the whole family (`refresh_reused`) |
 | Guest secret | client (secure storage); server keeps `sha256` in `identity.auth_identities` | Durable guest recovery |
+| Device binding | client sends the platform device id; server keeps only an HMAC (provider `device`) in `identity.auth_identities` | Restore after app update / reinstall on the same device (see "Device binding") |
 | Bot sessions | server-issued, room-scoped, ≤ 2 h | See `docs/bot-play.md`; bot status comes only from these tokens |
 
 ### One active device per account (last sign-in wins)
 
 An account has **at most one live human session**. Every sign-in that issues
-a session (`/auth/guest`, `/auth/guest/resume`, `/auth/{google,facebook,apple}`)
+a session (`/auth/guest`, `/auth/guest/resume`, `/auth/device/resume`,
+`/auth/{google,facebook,apple}`)
 runs one Redis Lua script that creates the new family, points
 `usess:{userId}` at it and **deletes the previous family** (if it was still
 live), leaving a tombstone `sessrep:{oldSid}` (TTL = refresh TTL). Refresh
@@ -151,6 +222,7 @@ one grant of the configured amount).
 schema wallet:    wallets(user_id PK, coins BIGINT >= 0, diamonds BIGINT >= 0)
 schema identity:  auth_identities(provider, subject, user_id → wallet.wallets, created_at,
                                   PK(provider, subject), UNIQUE(user_id, provider))
+                  provider ∈ guest | google | facebook | apple | device (internal, migration 004)
 ```
 
 No profile, email or provider-profile columns are stored. Display names and
@@ -159,8 +231,9 @@ regenerated if lost.
 
 ## Rate limits (Redis fixed windows, per IP or per account)
 
-Sign-in 30/min/IP · guest creation 10/h/IP · refresh and logout 60/min/IP · linking
-10/min/account · WebSocket connects 30/min/account · room codes 10/min/account
+Sign-in (incl. device resume) 30/min/IP · guest creation (incl. `/auth/guest`
+with a `deviceId`) 10/h/IP · refresh and logout 60/min/IP · linking and device
+bind/unbind 10/min/account · WebSocket connects 30/min/account · room codes 10/min/account
 · matchmaking 20/min/account · app config 120/min/IP.
 
 ## Provider configuration

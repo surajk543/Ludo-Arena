@@ -28,7 +28,8 @@ Go backend** over HTTPS REST (`/api/v1`) and one WebSocket
 state, turn timers, wallets, progression and sessions. Live state, timers,
 sessions and cross-instance pub/sub live in **Redis**; durable data lives in
 **PostgreSQL** schemas `wallet` (balances only), `identity` (provider →
-account mappings) and `progression`. There are no match-history, ledger or
+account mappings, plus the internal `device` binding that restores an account
+after an app update or reinstall) and `progression`. There are no match-history, ledger or
 profile tables. Identity providers only prove identity: **Firebase
 Authentication is not used**, and Firebase is in the app for consent-gated
 Analytics only. A separate Go service, **bot-play**, plays as server-labelled
@@ -40,7 +41,7 @@ bots through the same protocol with room-scoped bot tokens.
 |---|---|---|
 | 1 | [System architecture](architecture.html#architecture) | Context and backend layers, [who is authoritative for what](architecture.html#who-is-authoritative), [schema boundaries](architecture.html#schema-boundaries), Redis roles, [app-issued tokens](architecture.html#app-tokens) |
 | 2 | [Google Sign-In](architecture.html#google-sign-in) | Nine-step sequence, Google Cloud project `ludo-royale-63887` and its Web / iOS / Android (debug) OAuth clients |
-| 3 | [Guest login and Save Progress](architecture.html#guest-save-progress) | Guest creation and resume, linking, `identity_conflict` (no merge) and `provider_already_linked` |
+| 3 | [Guest login and Save Progress](architecture.html#guest-save-progress) | Guest creation and resume, linking, `identity_conflict` (no merge) and `provider_already_linked`, [device binding](architecture.html#device-binding) (restore after update / reinstall) |
 | 4 | [Wallet, fees and payouts](architecture.html#wallet) | Exactly-once welcome grant, all-or-nothing entry fees, at-most-once payout, [settlement guarantees](architecture.html#wallet-settlement-guarantees) |
 | 5 | [Online multiplayer Ludo](architecture.html#ludo-online) | Matchmaking → room → WebSocket → server dice → Redis CAS commit → ordered fan-out → client reducer |
 | 6 | [Snakes & Ladders](architecture.html#snakes-ladders) | Turn flow, snakes/ladders, exact-100 rule |
@@ -67,7 +68,7 @@ these are the exact guarantees and failure windows
 
 | Operation | Guarantee | Mechanism | Known failure window |
 |---|---|---|---|
-| Welcome grant (default 1,000,000 coins, 50 diamonds; live from `welcome` in the app-policy file) | Exactly once per account | Amounts read once per new account; wallet and identity row inserted in one transaction; the `(provider, subject)` primary key serializes concurrent first sign-ins. Refresh, reconnect, guest resume and linking never grant again; a config change never alters existing wallets. | None known |
+| Welcome grant (default 1,000,000 coins, 50 diamonds; live from `welcome` in the app-policy file) | Exactly once per account | Amounts read once per new account; wallet and identity row inserted in one transaction; the `(provider, subject)` primary key serializes concurrent first sign-ins. Refresh, reconnect, guest and device resume, device binding and linking never grant again; concurrent first `/auth/guest` calls with one `deviceId` create one account; a config change never alters existing wallets. | None known |
 | Entry fees | All players charged or none; at most once per room round | `wallet.DebitAll` (one transaction, `SELECT … FOR UPDATE`); guard key `settle:fee:{room}:{round}` (24 h) taken with `SETNX` first; if the lobby changed before the room switched to playing, every charged player is credited back (`entry_fee_refund`) | If the process dies after the debit commits but before the room commit, the in-process refund does not run and is not retried; the guard key prevents a second charge. A failed refund credit is logged and counted in `wallet_settlement_failures_total{op="refund"}` but not retried. Neither case is repaired automatically (by design there is no ledger to reconcile against). |
 | Payout (pot to the winner) | At most once — never twice | Scheduler job claims `settle:pay:{room}:{round}` with `SETNX` (7 d) **before** the PostgreSQL credit; on a credit error the claim is released and the job retried (attempt × 5 s, at most 10) | A crash between the claim and the PostgreSQL commit loses that payout (it is not retried). |
 | Mission claims, purchases | Exactly once | Claim or inventory row and the wallet change in the same transaction (primary key); `Idempotency-Key` replays the stored response | None known |
@@ -88,6 +89,8 @@ fee and pay no coins**. Coins and diamonds are virtual and non-redeemable.
   120/min/IP · telemetry 60/min/IP · account linking 10/min/account ·
   WebSocket connects 30/min/account · room codes 10/min/account · matchmaking
   20/min/account · wallet operations 30/min/account · social 30/min/account ·
+  device bind/unbind 10/min/account (linking budget) · device resume 30/min/IP
+  (sign-in budget) ·
   bot service 600/min/IP. Per socket: 10 commands/s (burst 20); quick chat
   1 per 3 s and 10/min; invites 10/min; friend requests 60/h.
 - **Tokens**: provider credentials are verified server-side (OIDC JWKS,
@@ -98,7 +101,10 @@ fee and pay no coins**. Coins and diamonds are virtual and non-redeemable.
   session (`usess:{userId}` pointer, `sessrep:{sid}` tombstone), whose device
   gets `401 session_replaced` and has its WebSocket closed at once with
   `4401`; bot sessions are exempt. Only SHA-256 hashes of refresh
-  tokens, guest secrets and the bot service key are stored.
+  tokens, guest secrets and the bot service key are stored. Device ids are
+  stored only as `HMAC-SHA256(k, platform:deviceId)` (k derived from
+  `PUBLIC_ID_KEY`) and used only to restore the account on that device
+  ([authentication.md](authentication.md#device-binding-restore-after-update-or-reinstall)).
 - **Validation**: strict JSON (unknown fields rejected); WebSocket text frames
   only, ≤ 4096 bytes after decompression, known message types, seat / phase /
   `turnSeq` checks, de-duplicated message ids.

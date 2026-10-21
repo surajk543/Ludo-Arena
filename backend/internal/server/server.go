@@ -134,6 +134,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	rt := httpapi.NewRouter(log, authSvc, policy, limiter, cfg.TrustedProxyHops)
 	acct := &httpapi.Account{Log: log, Auth: authSvc, IDs: ids, Profiles: core.Profiles,
 		Progression: ext.Progression, Policy: policy, Env: cfg.Env,
+		DeviceKey: identity.DeviceKey(cfg.Auth.PublicIDKey),
 		Extra: func() map[string]any {
 			// Entry fees and the welcome grant are live (app policy, per request).
 			w := welcome()

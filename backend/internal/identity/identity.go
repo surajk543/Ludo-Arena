@@ -9,6 +9,7 @@ package identity
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -24,9 +25,15 @@ const (
 	Google   = "google"
 	Facebook = "facebook"
 	Apple    = "apple"
+	// Device is the internal device binding used to restore an account after
+	// an app update or reinstall (see device.go). It is not a sign-in
+	// provider: it is never listed by Providers, never makes an account
+	// "linked" and cannot be linked through /account/link.
+	Device = "device"
 )
 
-// ValidProvider reports whether p is a known provider.
+// ValidProvider reports whether p is a known sign-in provider (the internal
+// Device binding is not one).
 func ValidProvider(p string) bool {
 	switch p {
 	case Guest, Google, Facebook, Apple:
@@ -90,7 +97,17 @@ func (s *Store) Lookup(ctx context.Context, provider, subject string) (uuid.UUID
 // FindOrCreate resolves a verified identity, creating a new account (wallet
 // with the welcome grant + identity row) only when none exists.
 func (s *Store) FindOrCreate(ctx context.Context, provider, subject string) (Account, error) {
-	if id, err := s.Lookup(ctx, provider, subject); err == nil {
+	return s.findOrCreate(ctx, ident{provider, subject})
+}
+
+// ident is a (provider, subject) pair.
+type ident struct{ provider, subject string }
+
+// findOrCreate resolves key, or creates a new account owning key and the
+// extra identities. Concurrent first calls for the same key serialize on its
+// primary key: exactly one creates the account, the others resolve to it.
+func (s *Store) findOrCreate(ctx context.Context, key ident, extra ...ident) (Account, error) {
+	if id, err := s.Lookup(ctx, key.provider, key.subject); err == nil {
 		w, err := wallet.GetTx(ctx, s.pool, id)
 		return Account{UserID: id, Wallet: w}, err
 	} else if !errors.Is(err, ErrNotFound) {
@@ -99,7 +116,7 @@ func (s *Store) FindOrCreate(ctx context.Context, provider, subject string) (Acc
 
 	newID := uuid.New()
 	grant := s.welcome()
-	created, err := s.createAccount(ctx, newID, provider, subject, grant)
+	created, err := s.createAccount(ctx, newID, append([]ident{key}, extra...), grant)
 	if err != nil {
 		return Account{}, err
 	}
@@ -108,7 +125,7 @@ func (s *Store) FindOrCreate(ctx context.Context, provider, subject string) (Acc
 			Wallet: wallet.Wallet{Coins: grant.Coins, Diamonds: grant.Diamonds}}, nil
 	}
 	// A concurrent request created the account first; use it.
-	id, err := s.Lookup(ctx, provider, subject)
+	id, err := s.Lookup(ctx, key.provider, key.subject)
 	if err != nil {
 		return Account{}, err
 	}
@@ -116,9 +133,11 @@ func (s *Store) FindOrCreate(ctx context.Context, provider, subject string) (Acc
 	return Account{UserID: id, Wallet: w}, err
 }
 
-// createAccount inserts wallet + identity atomically. It returns false (and
-// rolls back, discarding the wallet) when the identity already exists.
-func (s *Store) createAccount(ctx context.Context, id uuid.UUID, provider, subject string, grant Welcome) (bool, error) {
+// createAccount inserts the wallet (with the welcome grant) and every
+// identity atomically. It returns false (and rolls back, discarding the
+// wallet) when an identity already exists; the first identity is the one
+// concurrent creators race on.
+func (s *Store) createAccount(ctx context.Context, id uuid.UUID, idents []ident, grant Welcome) (bool, error) {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return false, err
@@ -127,16 +146,18 @@ func (s *Store) createAccount(ctx context.Context, id uuid.UUID, provider, subje
 	if err := wallet.ProvisionTx(ctx, tx, id, grant.Coins, grant.Diamonds); err != nil {
 		return false, err
 	}
-	var owner uuid.UUID
-	err = tx.QueryRow(ctx, `
-		INSERT INTO identity.auth_identities (provider, subject, user_id) VALUES ($1, $2, $3)
-		ON CONFLICT (provider, subject) DO NOTHING
-		RETURNING user_id`, provider, subject, id).Scan(&owner)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
+	for _, in := range idents {
+		var owner uuid.UUID
+		err = tx.QueryRow(ctx, `
+			INSERT INTO identity.auth_identities (provider, subject, user_id) VALUES ($1, $2, $3)
+			ON CONFLICT (provider, subject) DO NOTHING
+			RETURNING user_id`, in.provider, in.subject, id).Scan(&owner)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
 	}
 	return true, tx.Commit(ctx)
 }
@@ -144,6 +165,9 @@ func (s *Store) createAccount(ctx context.Context, id uuid.UUID, provider, subje
 // Link attaches (provider, subject) to an existing account. It never merges
 // accounts or moves currency. Linking the same identity twice is idempotent.
 func (s *Store) Link(ctx context.Context, userID uuid.UUID, provider, subject string) error {
+	if !ValidProvider(provider) {
+		return fmt.Errorf("identity: %q cannot be linked", provider) // e.g. Device: use BindDevice
+	}
 	var owner uuid.UUID
 	err := s.pool.QueryRow(ctx, `
 		INSERT INTO identity.auth_identities (provider, subject, user_id) VALUES ($1, $2, $3)
@@ -169,10 +193,12 @@ func (s *Store) Link(ctx context.Context, userID uuid.UUID, provider, subject st
 	return nil
 }
 
-// Providers lists the providers linked to an account, sorted.
+// Providers lists the sign-in providers linked to an account, sorted. The
+// internal Device binding is never included.
 func (s *Store) Providers(ctx context.Context, userID uuid.UUID) ([]string, error) {
-	rows, err := s.pool.Query(ctx,
-		`SELECT provider FROM identity.auth_identities WHERE user_id = $1 ORDER BY provider`, userID)
+	rows, err := s.pool.Query(ctx, `
+		SELECT provider FROM identity.auth_identities
+		WHERE user_id = $1 AND provider <> $2 ORDER BY provider`, userID, Device)
 	if err != nil {
 		return nil, err
 	}
