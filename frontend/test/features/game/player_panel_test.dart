@@ -7,6 +7,7 @@ import 'package:ludo_royale/core/realtime/active_room_controller.dart';
 import 'package:ludo_royale/core/theme/app_theme.dart';
 import 'package:ludo_royale/features/game/presentation/game_route_screen.dart';
 import 'package:ludo_royale/features/game/presentation/widgets/player_panel.dart';
+import 'package:ludo_royale/features/social/application/muted_players.dart';
 import 'package:ludo_royale/l10n/generated/app_localizations.dart';
 import 'package:ludo_royale/shared/widgets/widgets.dart';
 
@@ -22,6 +23,7 @@ Future<void> _pumpPanel(
   RoomSnapshot? room,
   RoomPlayer? p,
   bool isTurn = false,
+  bool muted = false,
   double textScale = 1,
   Locale locale = const Locale('en'),
   ThemeMode themeMode = ThemeMode.light,
@@ -62,6 +64,7 @@ Future<void> _pumpPanel(
                 isSelf: false,
                 isTurn: isTurn,
                 stacked: stacked,
+                muted: muted,
               ),
             ),
           ),
@@ -72,7 +75,7 @@ Future<void> _pumpPanel(
   await tester.pump();
 }
 
-Future<void> _pumpGame(
+Future<PlayHarness> _pumpGame(
   WidgetTester tester,
   RoomSnapshot room, {
   required Size size,
@@ -90,6 +93,7 @@ Future<void> _pumpGame(
     locale: locale,
   );
   await flush(tester);
+  return h;
 }
 
 Size _podSize(WidgetTester tester) => tester.getSize(find.byType(PlayerPanel));
@@ -429,6 +433,100 @@ void main() {
     });
   });
 
+  group('presence and mute', () {
+    Finder online(int seat) => find.byKey(ValueKey('pod-online-$seat'));
+    Finder offline(int seat) => find.byKey(ValueKey('pod-offline-$seat'));
+    // The pod's merged label (it starts with the player's name).
+    String label(WidgetTester tester) =>
+        tester.getSemantics(find.bySemanticsLabel(RegExp('^Player1, '))).label;
+
+    for (final stacked in [true, false]) {
+      testWidgets('${stacked ? 'card' : 'row'}: a green dot while connected, '
+          'a wifi-off badge while disconnected, none once left', (
+        tester,
+      ) async {
+        final semantics = tester.ensureSemantics();
+        await _pumpPanel(tester, width: 150, stacked: stacked);
+        expect(online(1), findsOneWidget);
+        expect(offline(1), findsNothing);
+        expect(label(tester), contains('Online'));
+
+        await _pumpPanel(
+          tester,
+          width: 150,
+          stacked: stacked,
+          p: player(1, connected: false),
+        );
+        expect(online(1), findsNothing);
+        expect(offline(1), findsOneWidget);
+        expect(
+          find.descendant(
+            of: offline(1),
+            matching: find.byIcon(Icons.wifi_off_rounded),
+          ),
+          findsOneWidget,
+        );
+        expect(label(tester), contains('Offline'));
+        expect(label(tester), isNot(contains('Online')));
+
+        await _pumpPanel(
+          tester,
+          width: 150,
+          stacked: stacked,
+          p: player(1, connected: false, forfeited: true),
+        );
+        expect(online(1), findsNothing);
+        expect(offline(1), findsNothing);
+        semantics.dispose();
+      });
+    }
+
+    for (final (locale, rtl) in [
+      (const Locale('en'), false),
+      (const Locale('ar'), true),
+    ]) {
+      testWidgets('the mark sits on the avatar edge, bottom '
+          '${rtl ? 'left (RTL)' : 'right'}', (tester) async {
+        for (final (stacked, width) in [(true, 150.0), (false, 220.0)]) {
+          for (final connected in [true, false]) {
+            await _pumpPanel(
+              tester,
+              width: width,
+              stacked: stacked,
+              locale: locale,
+              p: player(1, connected: connected),
+            );
+            final avatar = tester.getRect(find.byType(PlayerAvatar));
+            final mark = tester.getRect(connected ? online(1) : offline(1));
+            expect(mark.center.dy, greaterThan(avatar.center.dy));
+            expect(
+              rtl
+                  ? mark.center.dx < avatar.center.dx
+                  : mark.center.dx > avatar.center.dx,
+              isTrue,
+            );
+            // On the avatar's edge, not floating away from it.
+            final reach = (mark.center - avatar.center).distance;
+            expect(reach, lessThan(avatar.width / 2 + mark.width));
+            expect(reach, greaterThan(avatar.width / 2 - mark.width));
+          }
+        }
+      });
+    }
+
+    testWidgets('a muted player: an icon by the name, "Muted" for screen '
+        'readers', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _pumpPanel(tester, width: 124, stacked: false, muted: true);
+      expect(find.byKey(const ValueKey('pod-muted-1')), findsOneWidget);
+      expect(label(tester), contains('Muted'));
+      await _pumpPanel(tester, width: 124, stacked: false);
+      expect(find.byKey(const ValueKey('pod-muted-1')), findsNothing);
+      expect(label(tester), isNot(contains('Muted')));
+      semantics.dispose();
+    });
+  });
+
   group('no overflow', () {
     for (final c in [
       (size: const Size(320, 640), ts: 1.0, locale: const Locale('en')),
@@ -440,7 +538,7 @@ void main() {
       testWidgets('${c.size.width}×${c.size.height}, text ×${c.ts}, '
           '${c.locale.languageCode}', (tester) async {
         await expectNoOverflow(tester, () async {
-          await _pumpGame(
+          final h = await _pumpGame(
             tester,
             ludoRoom(
               turnSeat: 1,
@@ -455,6 +553,13 @@ void main() {
             textScale: c.ts,
             locale: c.locale,
           );
+          // Muted opponents (online, offline and left): the icon by the name.
+          final muted = h.container.read(mutedPlayersProvider.notifier);
+          for (final uid in ['u_1', 'u_2', 'u_3']) {
+            await muted.setMuted(uid, muted: true);
+          }
+          await tester.pump();
+          expect(find.byKey(const ValueKey('pod-muted-2')), findsOneWidget);
           await _pumpGame(
             tester,
             snakesRoom(positions: [0, 12, 100, 57]),
@@ -475,15 +580,18 @@ void main() {
           (false, [114.0, 124.0, 150.0, 219.0, 220.0, 340.0]),
         ]) {
           for (final w in widths) {
-            await _pumpPanel(
-              tester,
-              width: w,
-              stacked: stacked,
-              p: player(1, connected: false, strikes: 3, bot: true),
-              isTurn: true,
-              textScale: 1.35,
-              themeMode: ThemeMode.dark,
-            );
+            for (final connected in [false, true]) {
+              await _pumpPanel(
+                tester,
+                width: w,
+                stacked: stacked,
+                p: player(1, connected: connected, strikes: 3, bot: true),
+                isTurn: true,
+                muted: true,
+                textScale: 1.35,
+                themeMode: ThemeMode.dark,
+              );
+            }
           }
         }
       });

@@ -2476,8 +2476,26 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return '3 باریاں چھوٹنے پر $name کو ہٹا دیا گیا';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لگاتار $count باریاں چھوٹنے پر $name کو ہٹا دیا گیا',
+      one: 'باری چھوٹنے پر $name کو ہٹا دیا گیا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'آپ کو میچ سے ہٹا دیا گیا کیونکہ آپ کی لگاتار $count باریاں چھوٹ گئیں۔',
+      one: 'آپ کو میچ سے ہٹا دیا گیا کیونکہ آپ کی باری چھوٹ گئی۔',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2485,6 +2503,12 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get playPlayerForfeited => 'چلا گیا';
+
+  @override
+  String get playPlayerOnline => 'آن لائن';
+
+  @override
+  String get playPlayerMuted => 'میوٹ';
 
   @override
   String get playPanelTurnA11y => 'ابھی ان کی باری';
@@ -3017,6 +3041,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get socialReported => 'رپورٹ کی گئی';
 
   @override
+  String get socialMutePlayer => 'کھلاڑی کو میوٹ کریں';
+
+  @override
+  String get socialUnmutePlayer => 'کھلاڑی کو اَن میوٹ کریں';
+
+  @override
+  String get socialMutedNote =>
+      'آپ کو اس کھلاڑی کی چیٹ یا ایموٹس نظر نہیں آئیں گے۔';
+
+  @override
   String get socialAlreadyReported =>
       'آپ نے پچھلے 24 گھنٹوں میں اس کھلاڑی کی رپورٹ کی ہے۔';
 
@@ -3050,7 +3084,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get socialReasonOffensiveName => 'نامناسب نام';
 
   @override
-  String get socialReasonAbusiveBehavior => 'بدسلوکی';
+  String get socialReasonAbusiveBehavior => 'ہراسانی یا توہین آمیز چیٹ';
 
   @override
   String get socialReasonLeavingOrStalling =>

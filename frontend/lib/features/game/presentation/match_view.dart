@@ -19,7 +19,9 @@ import '../../../core/time/server_clock.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/game_visuals/game_visuals.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../social/application/muted_players.dart';
 import '../../social/presentation/player_actions_sheet.dart';
+import '../application/inactivity_removal.dart';
 import '../application/match_event_sequencer.dart';
 import '../application/match_result_view.dart';
 import '../application/quick_chat.dart';
@@ -42,7 +44,8 @@ import 'widgets/results_panel.dart';
 ///   [MatchEventSequencer] (dice → move → turn, snap on snapshots).
 /// - Player panels around the board (seat corners), dice dock, status line.
 /// - Roll / move with the live `turnSeq`, guarded against duplicate taps.
-/// - Quick chat + emotes with a client throttle and local mute.
+/// - Quick chat + emotes with a client throttle, local mute and per-player
+///   mute (from the player's pod).
 /// - Reconnect banner (non-blocking), leave/forfeit confirmation.
 /// - Victory effect → results with rewards and rematch.
 class MatchView extends ConsumerStatefulWidget {
@@ -110,6 +113,9 @@ class _MatchViewState extends ConsumerState<MatchView> {
   bool _commandInFlight = false;
   bool _leaving = false;
   bool _navigating = false;
+
+  /// The server removed the local player for missing turns in a row.
+  bool _removed = false;
   bool _waitingNextRound = false;
   String? _finishedKey;
   bool _showVictory = false;
@@ -137,6 +143,9 @@ class _MatchViewState extends ConsumerState<MatchView> {
         _armProgressionTimeout();
       }
       WidgetsBinding.instance.addPostFrameCallback((_) => _onPresented());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _leaveIfRemoved(room);
+      });
     }
     _sub = ref
         .read(activeRoomControllerProvider.notifier)
@@ -215,13 +224,14 @@ class _MatchViewState extends ConsumerState<MatchView> {
   // ------------------------------------------------------------- events
 
   void _onEvent(RoomEvent e) {
-    if (!mounted) return;
+    if (!mounted || _removed) return;
     switch (e) {
       case RoomSnapshotApplied(:final room):
         if (room.id != widget.roomId) {
           _followRoom(room);
           return;
         }
+        if (_leaveIfRemoved(room)) return;
         final stage = _stage;
         if (stage == null || _stageKey(room) != stage.key) {
           _onNewRound(room);
@@ -231,7 +241,8 @@ class _MatchViewState extends ConsumerState<MatchView> {
           setState(() => _waitingNextRound = false);
         }
         stage.sequencer.add(e);
-      case RoomDeltaApplied():
+      case RoomDeltaApplied(:final room):
+        if (_leaveIfRemoved(room)) return;
         _stage?.sequencer.add(e);
       case QuickChatReceived(:final chat, :final fromSelf):
         _showBubble(chat.seat, fromSelf, text: chat.msg);
@@ -252,6 +263,30 @@ class _MatchViewState extends ConsumerState<MatchView> {
       default:
         break;
     }
+  }
+
+  /// The server removed the local player for missing turns in a row (live
+  /// `player.forfeited` or a snapshot after a resync): tell them why, once
+  /// per room round, and leave the match — also when that forfeit ended a
+  /// two-player game (no results). Returns true when leaving.
+  bool _leaveIfRemoved(RoomSnapshot room) {
+    if (_removed) return true;
+    if (room.id != widget.roomId) return false;
+    final selfUid = ref.read(activeRoomControllerProvider).selfUid;
+    final missed = inactivityRemovalOf(room, selfUid);
+    if (missed == null) return false;
+    _removed = true;
+    _navigating = true;
+    if (!_leaving && ref.read(inactivityRemovalNoticesProvider).claim(room)) {
+      AppToast.show(
+        context,
+        AppLocalizations.of(context).playRemovedForInactivity(missed),
+        kind: ToastKind.warning,
+        duration: const Duration(seconds: 5),
+      );
+    }
+    unawaited(_leaveTo(AppRoutes.home));
+    return true;
   }
 
   /// A snapshot for another room (e.g. a public rematch created a new
@@ -367,8 +402,11 @@ class _MatchViewState extends ConsumerState<MatchView> {
     if (player == null) return;
     final name = PlayText.playerName(l10n, player);
     _showCaption(
-      e.reason == 'timeouts'
-          ? l10n.playForfeitTimeouts(name)
+      e.reason == ForfeitReasons.timeouts
+          ? l10n.playForfeitTimeouts(
+              name,
+              e.strikes > 0 ? e.strikes : ForfeitReasons.defaultMaxStrikes,
+            )
           : l10n.playForfeitLeft(name),
     );
   }
@@ -389,11 +427,21 @@ class _MatchViewState extends ConsumerState<MatchView> {
       localMuted: _localMute,
     );
     if (!policy.shouldShow(fromSelf: fromSelf)) return;
+    if (!fromSelf && _seatMuted(seat)) return;
     final l10n = AppLocalizations.of(context);
     final line = text == null ? null : PlayText.quickChat(l10n, text);
     if (text != null && line == null) return; // unknown id: never shown raw
     _bubbles.show(seat, text: line, emoteId: emoteId);
     _feedback.chat();
+  }
+
+  /// Whether the player in [seat] is muted from their pod.
+  bool _seatMuted(int seat) {
+    final room =
+        _stage?.sequencer.presented.value ??
+        ref.read(activeRoomControllerProvider).room;
+    final uid = room?.playerAtSeat(seat)?.uid;
+    return uid != null && ref.read(mutedPlayersProvider).contains(uid);
   }
 
   Future<void> _openChat() async {
@@ -433,8 +481,8 @@ class _MatchViewState extends ConsumerState<MatchView> {
 
   // ------------------------------------------------------- player sheet
 
-  /// Opponent options (add friend / report). Never for my own seat; only
-  /// the profile for spectators and bots.
+  /// Opponent options (add friend / mute / report), the same for every
+  /// opponent. Never for my own seat; only the profile for spectators.
   Future<void> _openPlayer(RoomPlayer p) async {
     final live = ref.read(activeRoomControllerProvider);
     if (_playerSheetOpen || p.uid == live.selfUid) return;
@@ -453,13 +501,16 @@ class _MatchViewState extends ConsumerState<MatchView> {
           level: p.level,
           frameId: p.cosmetics.frame,
           seatColor: SeatColor.tryFromName(p.color),
-          bot: p.bot,
         ),
         roomId: room?.id ?? widget.roomId,
         canAct: seated,
       );
     } finally {
       _playerSheetOpen = false;
+    }
+    // Muting from the sheet also hides the bubble already on screen.
+    if (mounted && ref.read(mutedPlayersProvider).contains(p.uid)) {
+      _bubbles.hide(p.seat);
     }
   }
 
@@ -750,6 +801,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
                       links: _links,
                       turnTotal: _turnTotal,
                       onPlayerTap: _openPlayer,
+                      mutedUids: ref.watch(mutedPlayersProvider),
                       topBar: _TopBar(
                         room: presented,
                         onLeave: _onBack,
@@ -922,6 +974,7 @@ class _MatchLayout extends StatelessWidget {
     required this.topBar,
     required this.dice,
     required this.status,
+    this.mutedUids = const {},
   });
 
   final RoomSnapshot room;
@@ -931,6 +984,9 @@ class _MatchLayout extends StatelessWidget {
   final Map<int, LayerLink> links;
   final int Function(RoomSnapshot) turnTotal;
   final ValueChanged<RoomPlayer> onPlayerTap;
+
+  /// Players muted from their pod (a muted icon on the pod).
+  final Set<String> mutedUids;
   final Widget topBar;
   final Widget dice;
   final Widget status;
@@ -959,6 +1015,7 @@ class _MatchLayout extends StatelessWidget {
           isTurn: isTurn,
           turnTotalMs: isTurn ? turnTotal(room) : 20000,
           stacked: stacked,
+          muted: p.seat != selfSeat && mutedUids.contains(p.uid),
           onTap: p.seat == selfSeat ? null : () => onPlayerTap(p),
         ),
       ),

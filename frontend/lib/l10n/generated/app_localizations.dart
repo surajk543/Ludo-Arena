@@ -4189,11 +4189,17 @@ abstract class AppLocalizations {
   /// **'{name} left the match'**
   String playForfeitLeft(String name);
 
-  /// A player was removed after three timeouts.
+  /// Caption: another player was removed for missing turns in a row (count = consecutive missed turns, 5 by default).
   ///
   /// In en, this message translates to:
-  /// **'{name} was removed after 3 missed turns'**
-  String playForfeitTimeouts(String name);
+  /// **'{count, plural, =1{{name} was removed after missing a turn} other{{name} was removed after {count} missed turns in a row}}'**
+  String playForfeitTimeouts(String name, int count);
+
+  /// Toast shown to the local player, who is then taken Home, after the server removed them for missing turns in a row (count = consecutive missed turns, 5 by default).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You were removed from the match because you missed your turn.} other{You were removed from the match because you missed {count} turns in a row.}}'**
+  String playRemovedForInactivity(int count);
 
   /// Player panel chip: disconnected.
   ///
@@ -4207,13 +4213,25 @@ abstract class AppLocalizations {
   /// **'Left'**
   String get playPlayerForfeited;
 
+  /// Accessibility: the player is connected (green dot on the pod).
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get playPlayerOnline;
+
+  /// Accessibility: the user muted this player (icon by the name on the pod).
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get playPlayerMuted;
+
   /// Accessibility: this player has the current turn.
   ///
   /// In en, this message translates to:
   /// **'current turn'**
   String get playPanelTurnA11y;
 
-  /// Accessibility: consecutive missed turns (3 means removal).
+  /// Accessibility: consecutive missed turns (5 by default means removal).
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 missed turn} other{{count} missed turns}}'**
@@ -5119,6 +5137,24 @@ abstract class AppLocalizations {
   /// **'Reported'**
   String get socialReported;
 
+  /// Player sheet: hide this player's quick chat and emotes on this device.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute player'**
+  String get socialMutePlayer;
+
+  /// Player sheet: show this muted player's quick chat and emotes again.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute player'**
+  String get socialUnmutePlayer;
+
+  /// Player sheet: shown under Unmute while the player is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t see this player\'s chat or emotes.'**
+  String get socialMutedNote;
+
   /// Player was reported in the last 24 hours (also 409 already_reported).
   ///
   /// In en, this message translates to:
@@ -5167,10 +5203,10 @@ abstract class AppLocalizations {
   /// **'Offensive name'**
   String get socialReasonOffensiveName;
 
-  /// Report reason.
+  /// Report reason (wire value abusive_behavior): harassment, insults or abusive quick chat.
   ///
   /// In en, this message translates to:
-  /// **'Abusive behavior'**
+  /// **'Harassment or abusive chat'**
   String get socialReasonAbusiveBehavior;
 
   /// Report reason.

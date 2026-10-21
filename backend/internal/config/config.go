@@ -124,7 +124,7 @@ type WSConfig struct {
 type GameConfig struct {
 	TurnTimeout             time.Duration
 	TurnTimeoutDisconnected time.Duration
-	MaxStrikes              int
+	MaxStrikes              int // consecutive turn timeouts that forfeit a player
 	FillTimeout             time.Duration
 	LobbyDisconnectGrace    time.Duration
 	RematchWindow           time.Duration
@@ -144,6 +144,10 @@ const (
 	DefaultEntryFeeLudo   int64 = 100_000
 	DefaultEntryFeeSnakes int64 = 50_000
 )
+
+// DefaultMaxStrikes is the default MAX_STRIKES: consecutive missed turns
+// (turn timeouts) after which a player is removed from the running game.
+const DefaultMaxStrikes = 5
 
 // DefaultNameChangesPerDay is the default NAME_CHANGES_PER_DAY.
 const DefaultNameChangesPerDay = 3
@@ -393,7 +397,7 @@ func Load() (*Config, error) {
 	c.Game = GameConfig{
 		TurnTimeout:             getDur("TURN_SECONDS", 20*time.Second),
 		TurnTimeoutDisconnected: getDur("TURN_SECONDS_DISCONNECTED", 8*time.Second),
-		MaxStrikes:              getInt("MAX_STRIKES", 3),
+		MaxStrikes:              getInt("MAX_STRIKES", DefaultMaxStrikes),
 		FillTimeout:             getDur("MATCHMAKING_FILL_SECONDS", 30*time.Second),
 		LobbyDisconnectGrace:    getDur("LOBBY_DISCONNECT_GRACE_SECONDS", 15*time.Second),
 		RematchWindow:           getDur("REMATCH_SECONDS", 30*time.Second),

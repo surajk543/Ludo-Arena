@@ -2468,8 +2468,27 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return '$name dikeluarkan setelah 3 kali melewatkan giliran';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$name dikeluarkan setelah $count kali berturut-turut melewatkan giliran',
+      one: '$name dikeluarkan setelah melewatkan giliran',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Kamu dikeluarkan dari pertandingan karena melewatkan $count giliran berturut-turut.',
+      one: 'Kamu dikeluarkan dari pertandingan karena melewatkan giliranmu.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2477,6 +2496,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get playPlayerForfeited => 'Keluar';
+
+  @override
+  String get playPlayerOnline => 'Online';
+
+  @override
+  String get playPlayerMuted => 'Dibisukan';
 
   @override
   String get playPanelTurnA11y => 'giliran saat ini';
@@ -3008,6 +3033,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get socialReported => 'Dilaporkan';
 
   @override
+  String get socialMutePlayer => 'Bisukan pemain';
+
+  @override
+  String get socialUnmutePlayer => 'Bunyikan pemain';
+
+  @override
+  String get socialMutedNote =>
+      'Kamu tidak akan melihat chat atau emote pemain ini.';
+
+  @override
   String get socialAlreadyReported =>
       'Kamu sudah melaporkan pemain ini dalam 24 jam terakhir.';
 
@@ -3041,7 +3076,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get socialReasonOffensiveName => 'Nama yang menyinggung';
 
   @override
-  String get socialReasonAbusiveBehavior => 'Perilaku kasar';
+  String get socialReasonAbusiveBehavior => 'Pelecehan atau chat kasar';
 
   @override
   String get socialReasonLeavingOrStalling =>

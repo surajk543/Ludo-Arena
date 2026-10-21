@@ -501,10 +501,12 @@ any attribute named `*token`, `*key`, `*authorization`, `*secret`, …).
   Display names carry **no** bot label: the backend strips a leading `Bot`
   word (any case, followed by a space, `-`, `_`, `:` or `.`) from the
   requested name and falls back to a neutral first name (never "Bot") when
-  nothing is left. The app shows no bot tag or badge — a UI choice; the
-  server still treats bots as bots everywhere (no wallets, fees or payouts,
-  no XP or analytics, cannot be friended or reported: `cannot_report_bot`),
-  and the app simply does not offer those actions on `bot: true` seats.
+  nothing is left. The app shows no bot tag or badge and offers the same
+  pod actions (add friend, mute, report) on every opponent. The server still
+  treats bots as bots (no wallets, fees or payouts, no XP or analytics); a
+  report against a bot is stored with `reported_bot` and kept out of the
+  operator queue, and a friend request to a bot stays pending in Redis and
+  lapses after 72 h (see `docs/progression.md`).
 * **Integrity.** All game logic is server-side. The evaluator is advisory;
   a wrong estimate only produces a weaker move.
 * **Limitations.** Bots cannot follow a public rematch into a new private

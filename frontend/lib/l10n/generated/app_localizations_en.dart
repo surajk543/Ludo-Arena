@@ -2477,8 +2477,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return '$name was removed after 3 missed turns';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name was removed after $count missed turns in a row',
+      one: '$name was removed after missing a turn',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You were removed from the match because you missed $count turns in a row.',
+      one: 'You were removed from the match because you missed your turn.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2486,6 +2504,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playPlayerForfeited => 'Left';
+
+  @override
+  String get playPlayerOnline => 'Online';
+
+  @override
+  String get playPlayerMuted => 'Muted';
 
   @override
   String get playPanelTurnA11y => 'current turn';
@@ -3013,6 +3037,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get socialReported => 'Reported';
 
   @override
+  String get socialMutePlayer => 'Mute player';
+
+  @override
+  String get socialUnmutePlayer => 'Unmute player';
+
+  @override
+  String get socialMutedNote => 'You won\'t see this player\'s chat or emotes.';
+
+  @override
   String get socialAlreadyReported =>
       'You reported this player in the last 24 hours.';
 
@@ -3046,7 +3079,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get socialReasonOffensiveName => 'Offensive name';
 
   @override
-  String get socialReasonAbusiveBehavior => 'Abusive behavior';
+  String get socialReasonAbusiveBehavior => 'Harassment or abusive chat';
 
   @override
   String get socialReasonLeavingOrStalling => 'Leaving or stalling';

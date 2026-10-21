@@ -2476,8 +2476,26 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return '3 बारियाँ चूकने पर $name को हटा दिया गया';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'लगातार $count बारियाँ चूकने पर $name को हटा दिया गया',
+      one: 'बारी चूकने पर $name को हटा दिया गया',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'आपको मैच से हटा दिया गया क्योंकि आपने लगातार $count बारियाँ चूक दीं।',
+      one: 'आपको मैच से हटा दिया गया क्योंकि आपने अपनी बारी चूक दी।',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2485,6 +2503,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get playPlayerForfeited => 'चला गया';
+
+  @override
+  String get playPlayerOnline => 'ऑनलाइन';
+
+  @override
+  String get playPlayerMuted => 'म्यूट';
 
   @override
   String get playPanelTurnA11y => 'अभी इनकी बारी';
@@ -3017,6 +3041,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get socialReported => 'रिपोर्ट की गई';
 
   @override
+  String get socialMutePlayer => 'खिलाड़ी को म्यूट करें';
+
+  @override
+  String get socialUnmutePlayer => 'खिलाड़ी को अनम्यूट करें';
+
+  @override
+  String get socialMutedNote => 'आपको इस खिलाड़ी की चैट या इमोट नहीं दिखेंगे।';
+
+  @override
   String get socialAlreadyReported =>
       'आपने पिछले 24 घंटों में इस खिलाड़ी की रिपोर्ट की है।';
 
@@ -3050,7 +3083,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get socialReasonOffensiveName => 'आपत्तिजनक नाम';
 
   @override
-  String get socialReasonAbusiveBehavior => 'अपमानजनक व्यवहार';
+  String get socialReasonAbusiveBehavior => 'उत्पीड़न या अपमानजनक चैट';
 
   @override
   String get socialReasonLeavingOrStalling => 'गेम छोड़ना या जानबूझकर देर करना';

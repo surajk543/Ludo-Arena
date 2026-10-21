@@ -9,6 +9,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../progression/application/meta_support.dart';
 import '../application/friends_controller.dart';
+import '../application/muted_players.dart';
 import '../application/reports_controller.dart';
 import '../domain/report_models.dart';
 import '../domain/social_models.dart';
@@ -26,7 +27,6 @@ class PlayerSheetTarget {
     this.level = 1,
     this.frameId = 'frame_none',
     this.seatColor,
-    this.bot = false,
   });
 
   final String uid;
@@ -40,14 +40,12 @@ class PlayerSheetTarget {
   final int level;
   final String frameId;
   final SeatColor? seatColor;
-
-  /// Server-flagged bot: shown like anyone else, but without actions.
-  final bool bot;
 }
 
 /// Opponent options during (or right after) a match: profile header, Add
-/// friend (state from `GET /friends`) and Report (reason → confirm →
-/// `POST /reports`).
+/// friend (state from `GET /friends`), Mute / Unmute (this device only, see
+/// [MutedPlayersController]) and Report (reason → confirm → `POST /reports`).
+/// Every opponent gets the same options, whoever holds the seat.
 abstract final class PlayerActionsSheet {
   /// Opens the sheet over the match. [canAct] is false for spectators (no
   /// seat): only the profile is shown. A successful report closes the sheet
@@ -114,7 +112,7 @@ class _PlayerActionsPanelState extends ConsumerState<PlayerActionsPanel> {
   String? _reportError;
 
   PlayerSheetTarget get _p => widget.player;
-  bool get _actions => widget.canAct && !_p.bot;
+  bool get _actions => widget.canAct;
 
   AppLocalizations get _l10n => AppLocalizations.of(context);
 
@@ -267,6 +265,8 @@ class _PlayerActionsPanelState extends ConsumerState<PlayerActionsPanel> {
           ),
         ],
         const SizedBox(height: AppSpacing.md),
+        _muteButton(),
+        const SizedBox(height: AppSpacing.sm),
         PremiumButton(
           key: const ValueKey('sheet-report'),
           label: reported ? l10n.socialReported : l10n.socialReportPlayer,
@@ -289,6 +289,37 @@ class _PlayerActionsPanelState extends ConsumerState<PlayerActionsPanel> {
                 ? Icons.info_outline_rounded
                 : Icons.flag_outlined,
             color: exhausted ? c.warning : null,
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Mute / Unmute this player's quick chat and emotes (kept on this
+  /// device across matches).
+  Widget _muteButton() {
+    final l10n = _l10n;
+    final muted = ref.watch(mutedPlayersProvider).contains(_p.uid);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PremiumButton(
+          key: const ValueKey('sheet-mute'),
+          label: muted ? l10n.socialUnmutePlayer : l10n.socialMutePlayer,
+          icon: muted ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          variant: PremiumButtonVariant.ghost,
+          size: PremiumButtonSize.medium,
+          onPressed: () => ref
+              .read(mutedPlayersProvider.notifier)
+              .setMuted(_p.uid, muted: !muted),
+        ),
+        if (muted) ...[
+          const SizedBox(height: AppSpacing.xs),
+          _Note(
+            key: const ValueKey('sheet-mute-note'),
+            text: l10n.socialMutedNote,
+            icon: Icons.volume_off_rounded,
           ),
         ],
       ],

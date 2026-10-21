@@ -5,11 +5,11 @@
 // Storage: friendships live in PostgreSQL (progression.friendships, created by
 // migrations/003_progression.sql; this package is the only writer).
 // Progression reads the same table inside its match transaction for the
-// friend XP bonus. Recent opponents, invites and the weekly XP leaderboard are
-// ephemeral Redis data (lost on a Redis wipe without affecting anything
-// durable). Responses never contain account ids, emails or provider ids of
-// other players: only public uid, display name, avatar, profile picture,
-// level and title.
+// friend XP bonus. Recent opponents, invites, the weekly XP leaderboard and
+// pending requests to bots (bots.go) are ephemeral Redis data (lost on a
+// Redis wipe without affecting anything durable). Responses never contain
+// account ids, emails or provider ids of other players: only public uid,
+// display name, avatar, profile picture, level and title.
 //
 // Dependency: social uses *progression.Service for summaries (level, title),
 // durable public-id resolution and per-account row locks, and registers
@@ -85,9 +85,15 @@ type Options struct {
 	// friendship (request, auto-accept or accept) is refused when EITHER
 	// side already has MaxFriends; accounts above the cap keep their friends.
 	MaxFriends  int
-	MaxOutgoing int              // pending requests sent per account (default 100)
+	MaxOutgoing int              // pending requests sent per account, to people and bots (default 100)
 	MaxIncoming int              // pending requests received per account (default 100)
 	Now         func() time.Time // default time.Now
+	// Bots finds a bot seat by public id so that a request to a bot looks
+	// like one to a person who never answers (nil: bot codes are unknown).
+	Bots BotLookup
+	// BotRequestTTL is how long a request to a bot stays pending (default
+	// DefaultBotRequestTTL).
+	BotRequestTTL time.Duration
 }
 
 // Service implements the social features and gameevents.Inviter.
@@ -119,6 +125,9 @@ func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, prog 
 	}
 	if opts.Now == nil {
 		opts.Now = time.Now
+	}
+	if opts.BotRequestTTL <= 0 {
+		opts.BotRequestTTL = DefaultBotRequestTTL
 	}
 	if log == nil {
 		log = slog.Default()
@@ -345,8 +354,13 @@ func (s *Service) Friends(ctx context.Context, me uuid.UUID) (FriendsView, error
 	if err != nil {
 		return FriendsView{}, err
 	}
-	out := FriendsView{Friends: []Friend{}, Incoming: []Friend{}, Outgoing: []Friend{}, MaxFriends: s.opts.MaxFriends}
-	for _, f := range all {
+	bots, err := s.botRequests(ctx, me)
+	if err != nil {
+		return FriendsView{}, err
+	}
+	out := FriendsView{Friends: []Friend{}, Incoming: []Friend{}, MaxFriends: s.opts.MaxFriends}
+	var outgoing []datedFriend
+	for i, f := range all { // views keeps the order of ids (= rels)
 		switch f.Status {
 		case StatusFriend:
 			out.Friends = append(out.Friends, f)
@@ -356,9 +370,10 @@ func (s *Service) Friends(ctx context.Context, me uuid.UUID) (FriendsView, error
 		case StatusIncoming:
 			out.Incoming = append(out.Incoming, f)
 		case StatusOutgoing:
-			out.Outgoing = append(out.Outgoing, f)
+			outgoing = append(outgoing, datedFriend{at: rels[i].created, f: f})
 		}
 	}
+	out.Outgoing = mergeOutgoing(outgoing, bots)
 	sort.SliceStable(out.Friends, func(i, j int) bool {
 		a, b := out.Friends[i], out.Friends[j]
 		if a.Online != b.Online {
@@ -417,9 +432,13 @@ func (s *Service) checkFriendLimit(ctx context.Context, tx pgx.Tx, ids ...uuid.U
 
 // Request sends a friend request by friend code (public uid). If the other
 // player already requested me, the friendship is accepted immediately.
-// Repeating a pending request is idempotent.
+// Repeating a pending request is idempotent. A bot's code (a seat the
+// caller can see) gets a request that is never answered (requestBot).
 func (s *Service) Request(ctx context.Context, me uuid.UUID, friendCode string) (Friend, error) {
 	target, err := s.resolve(ctx, friendCode)
+	if errors.Is(err, ErrUnknownPlayer) {
+		return s.requestBot(ctx, me, strings.ToLower(strings.TrimSpace(friendCode)))
+	}
 	if err != nil {
 		return Friend{}, err
 	}
@@ -465,9 +484,14 @@ func (s *Service) Request(ctx context.Context, me uuid.UUID, friendCode string) 
 			metrics.FriendRequests.WithLabelValues("rejected").Inc()
 			return Friend{}, err
 		}
+		// Pending requests to bots count toward the same cap.
+		bots, err := s.botRequests(ctx, me)
+		if err != nil {
+			return Friend{}, err
+		}
 		if n, err := countPending(ctx, tx, me, true); err != nil {
 			return Friend{}, err
-		} else if n >= s.opts.MaxOutgoing {
+		} else if n+len(bots) >= s.opts.MaxOutgoing {
 			metrics.FriendRequests.WithLabelValues("rejected").Inc()
 			return Friend{}, ErrFriendLimit
 		}
@@ -541,9 +565,16 @@ func (s *Service) Accept(ctx context.Context, me uuid.UUID, uid string) (Friend,
 }
 
 // Remove deletes a friendship, declines an incoming request or cancels an
-// outgoing one. Removing a non-existent relationship is a no-op.
+// outgoing one (to a person or a bot). Removing a non-existent relationship
+// is a no-op.
 func (s *Service) Remove(ctx context.Context, me uuid.UUID, uid string) error {
+	if found, err := s.cancelBotRequest(ctx, me, uid); err != nil || found {
+		return err
+	}
 	other, err := s.resolve(ctx, uid)
+	if errors.Is(err, ErrUnknownPlayer) && s.isBot(ctx, me, uid) {
+		return nil // a bot without a pending request: nothing to remove
+	}
 	if err != nil {
 		return err
 	}

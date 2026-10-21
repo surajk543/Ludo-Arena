@@ -480,13 +480,18 @@ final class PlayerForfeitedEvent extends RoomDeltaEvent {
     required super.v,
     super.h,
     required this.seat,
-    this.reason = 'left',
+    this.reason = ForfeitReasons.left,
+    this.strikes = 0,
   });
 
   final int seat;
 
-  /// `left` | `timeouts`.
+  /// [ForfeitReasons]: `left` | `timeouts`.
   final String reason;
+
+  /// The seat's consecutive missed turns; for `timeouts`, the count that
+  /// removed the player (`MAX_STRIKES`).
+  final int strikes;
 
   factory PlayerForfeitedEvent.fromJson(Map<String, dynamic> j) =>
       PlayerForfeitedEvent(
@@ -494,7 +499,8 @@ final class PlayerForfeitedEvent extends RoomDeltaEvent {
         v: readInt(j['v']),
         h: readIntOrNull(j['h']),
         seat: readInt(j['seat']),
-        reason: readString(j['reason'], 'left'),
+        reason: readString(j['reason'], ForfeitReasons.left),
+        strikes: readInt(j['strikes']),
       );
 
   @override

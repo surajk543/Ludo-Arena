@@ -1,12 +1,19 @@
-// Package reports lets a human report another human they shared a room with
+// Package reports lets a human report another player they shared a room with
 // (from the in-game player pod) and shows the reporter the review status of
 // their own reports. Operators review reports through a key-protected admin
 // API.
 //
-// Storage: progression.player_reports (migrations/006_player_reports.sql;
-// this package is the only reader and writer). Rooms are read from Redis to
-// verify that both players hold a seat. Responses to players never contain
-// account ids, reporter ids or operator notes.
+// Storage: progression.player_reports (migrations/006_player_reports.sql and
+// 009_report_bots.sql; this package is the only reader and writer). Rooms are
+// read from Redis to verify that both players hold a seat. Responses to
+// players never contain account ids, reporter ids or operator notes.
+//
+// Bots: a bot seat is reported exactly like a person from the reporter's side
+// (same checks, limits, response and "my reports" entry), so the app never
+// reveals which opponents are bots. Bots are not accounts: the row stores the
+// bot's per-session id with reported_bot = true and a copy of its public
+// profile (reported_profile), which "my reports" shows. The operator queue
+// leaves bot reports out.
 //
 // Limits (per reporter, rolling 24 h window): at most Options.PerDay reports
 // (REPORTS_PER_DAY, default 2) and at most one report per reported player.
@@ -26,7 +33,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"ludoroyale/internal/metrics"
@@ -86,7 +92,6 @@ var (
 	ErrUnknownPlayer   = errors.New("unknown player")
 	ErrRoomGone        = errors.New("room not found")
 	ErrSelf            = errors.New("cannot report yourself")
-	ErrBot             = errors.New("cannot report a bot")
 	ErrNotInRoom       = errors.New("both players must hold a seat in the room")
 	ErrAlreadyReported = errors.New("player already reported in the last 24 hours")
 	ErrNotFound        = errors.New("report not found")
@@ -102,9 +107,14 @@ func (e *LimitError) Error() string { return "daily report limit reached" }
 
 // Seat is a room seat as seen by the report checks.
 type Seat struct {
-	UserID string // internal id ("" or a non-account id for bots)
+	UserID string // internal id (a per-session UUID for bots)
 	UID    string // public id
 	Bot    bool
+	// Public profile shown in the room; stored with a report against a bot.
+	Name    string
+	Avatar  int
+	Picture *playerinfo.Picture
+	Level   int
 }
 
 // RoomInfo is the part of a live room that reports need.
@@ -264,8 +274,6 @@ func resultLabel(err error) string {
 		return "already_reported"
 	case errors.Is(err, ErrSelf):
 		return "cannot_report_self"
-	case errors.Is(err, ErrBot):
-		return "cannot_report_bot"
 	case errors.Is(err, ErrNotInRoom):
 		return "not_in_room"
 	case errors.Is(err, ErrUnknownPlayer):
@@ -287,7 +295,7 @@ func (s *Service) Create(ctx context.Context, me uuid.UUID, in CreateInput) (rep
 	if in.UID == s.profiles.PublicID(me) {
 		return Report{}, Limit{}, ErrSelf
 	}
-	target, game, err := s.seats(ctx, me, in.UID, in.RoomID)
+	target, game, bot, err := s.seats(ctx, me, in.UID, in.RoomID)
 	if err != nil {
 		return Report{}, Limit{}, err
 	}
@@ -312,21 +320,18 @@ func (s *Service) Create(ctx context.Context, me uuid.UUID, in CreateInput) (rep
 	}
 	id := uuid.New()
 	_, err = tx.Exec(ctx, `INSERT INTO progression.player_reports
-		(id, reporter_id, reported_id, reason, room_id, game, status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, 'submitted', $7, $7)`, id, me, target, in.Reason, in.RoomID, game, now)
+		(id, reporter_id, reported_id, reason, room_id, game, status, created_at, updated_at, reported_bot, reported_profile)
+		VALUES ($1, $2, $3, $4, $5, $6, 'submitted', $7, $7, $8, $9)`,
+		id, me, target, in.Reason, in.RoomID, game, now, bot != nil, bot)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23503" { // reported id is not an account
-			return Report{}, Limit{}, ErrBot
-		}
 		return Report{}, Limit{}, err
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return Report{}, Limit{}, err
 	}
-	s.log.Info("player report filed", "report", id.String(), "reason", in.Reason, "game", game)
+	s.log.Info("player report filed", "report", id.String(), "reason", in.Reason, "game", game, "bot", bot != nil)
 	rows := []row{{id: id, reported: target, reason: in.Reason, game: game, roomID: in.RoomID,
-		status: StatusSubmitted, created: now, updated: now}}
+		status: StatusSubmitted, created: now, updated: now, bot: bot}}
 	out, err := s.render(ctx, rows)
 	if err != nil {
 		return Report{}, Limit{}, err
@@ -335,11 +340,12 @@ func (s *Service) Create(ctx context.Context, me uuid.UUID, in CreateInput) (rep
 }
 
 // seats verifies that me and the player uid both hold a seat in roomID and
-// returns the reported account and the room's game.
-func (s *Service) seats(ctx context.Context, me uuid.UUID, uid, roomID string) (uuid.UUID, string, error) {
+// returns the reported id (an account, or a bot's per-session id), the room's
+// game and, for a bot, the public profile to store with the report.
+func (s *Service) seats(ctx context.Context, me uuid.UUID, uid, roomID string) (uuid.UUID, string, *PlayerRef, error) {
 	room, err := s.rooms(ctx, roomID)
 	if err != nil {
-		return uuid.Nil, "", err
+		return uuid.Nil, "", nil, err
 	}
 	mine, theirs := false, -1
 	for i, seat := range room.Seats {
@@ -351,31 +357,36 @@ func (s *Service) seats(ctx context.Context, me uuid.UUID, uid, roomID string) (
 		}
 	}
 	var target uuid.UUID
+	var bot *PlayerRef
 	if theirs >= 0 {
 		seat := room.Seats[theirs]
 		id, perr := uuid.Parse(seat.UserID)
-		if seat.Bot || perr != nil {
-			return uuid.Nil, "", ErrBot
+		if perr != nil {
+			return uuid.Nil, "", nil, ErrUnknownPlayer
 		}
 		target = id
+		if seat.Bot {
+			bot = &PlayerRef{UID: seat.UID, Name: seat.Name, Avatar: seat.Avatar, Picture: seat.Picture,
+				Level: max(seat.Level, 1)}
+		}
 	}
 	if !mine {
-		return uuid.Nil, "", ErrNotInRoom
+		return uuid.Nil, "", nil, ErrNotInRoom
 	}
 	if theirs >= 0 {
 		if target == me {
-			return uuid.Nil, "", ErrSelf
+			return uuid.Nil, "", nil, ErrSelf
 		}
-		return target, room.Game, nil
+		return target, room.Game, bot, nil
 	}
 	// Not seated: distinguish an unknown uid (404) from a stranger (422).
 	if _, err := s.players.ResolvePublicID(ctx, uid); err != nil {
 		if errors.Is(err, progression.ErrUnknownPlayer) {
-			return uuid.Nil, "", ErrUnknownPlayer
+			return uuid.Nil, "", nil, ErrUnknownPlayer
 		}
-		return uuid.Nil, "", err
+		return uuid.Nil, "", nil, err
 	}
-	return uuid.Nil, "", ErrNotInRoom
+	return uuid.Nil, "", nil, ErrNotInRoom
 }
 
 // lockClass namespaces the per-reporter advisory locks ("RPRT").
@@ -419,32 +430,46 @@ type row struct {
 	note              *string
 	created, updated  time.Time
 	total, open, hits int
+	// bot is the stored public profile of a reported bot (nil: an account).
+	bot *PlayerRef
 }
 
-// render turns rows into reporter-facing reports (public profile only).
+// accountIDs returns the distinct reported accounts of rows (bots excluded).
+func accountIDs(rows []row) []uuid.UUID {
+	ids := make([]uuid.UUID, 0, len(rows))
+	seen := map[uuid.UUID]bool{}
+	for _, r := range rows {
+		if r.bot == nil && !seen[r.reported] {
+			seen[r.reported] = true
+			ids = append(ids, r.reported)
+		}
+	}
+	return ids
+}
+
+// render turns rows into reporter-facing reports (public profile only): an
+// account's live profile, or the profile stored with a report against a bot.
 func (s *Service) render(ctx context.Context, rows []row) ([]Report, error) {
 	out := make([]Report, 0, len(rows))
 	if len(rows) == 0 {
 		return out, nil
 	}
-	ids := make([]uuid.UUID, 0, len(rows))
-	seen := map[uuid.UUID]bool{}
-	for _, r := range rows {
-		if !seen[r.reported] {
-			seen[r.reported] = true
-			ids = append(ids, r.reported)
-		}
-	}
+	ids := accountIDs(rows)
 	profs := s.profiles.GetMany(ctx, ids)
 	sums, err := s.players.Summaries(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 	for _, r := range rows {
-		p := profs[r.reported]
-		out = append(out, Report{ID: r.id.String(),
-			Player: PlayerRef{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Picture: sums[r.reported].Picture,
-				Level: sums[r.reported].Level},
+		var player PlayerRef
+		if r.bot != nil {
+			player = *r.bot
+		} else {
+			p := profs[r.reported]
+			player = PlayerRef{UID: p.UID, Name: p.Name, Avatar: p.Avatar, Picture: sums[r.reported].Picture,
+				Level: sums[r.reported].Level}
+		}
+		out = append(out, Report{ID: r.id.String(), Player: player,
 			Reason: r.reason, Game: r.game, RoomID: r.roomID, Status: r.status,
 			CreatedAt: r.created.UnixMilli(), UpdatedAt: r.updated.UnixMilli()})
 	}
@@ -454,16 +479,17 @@ func (s *Service) render(ctx context.Context, rows []row) ([]Report, error) {
 // Mine lists my reports (newest first, at most 100) and my allowance.
 func (s *Service) Mine(ctx context.Context, me uuid.UUID) ([]Report, Limit, error) {
 	now := s.opts.Now().UTC()
-	rows, err := s.pool.Query(ctx, `SELECT id, reported_id, reason, game, room_id, status, created_at, updated_at
-		FROM progression.player_reports WHERE reporter_id = $1
-		ORDER BY created_at DESC, id DESC LIMIT $2`, me, MyReportsLimit)
+	rows, err := s.pool.Query(ctx, `SELECT id, reported_id, reason, game, room_id, status, created_at, updated_at,
+		       CASE WHEN reported_bot THEN reported_profile END
+		  FROM progression.player_reports WHERE reporter_id = $1
+		 ORDER BY created_at DESC, id DESC LIMIT $2`, me, MyReportsLimit)
 	if err != nil {
 		return nil, Limit{}, err
 	}
 	var list []row
 	for rows.Next() {
 		var r row
-		if err := rows.Scan(&r.id, &r.reported, &r.reason, &r.game, &r.roomID, &r.status, &r.created, &r.updated); err != nil {
+		if err := rows.Scan(&r.id, &r.reported, &r.reason, &r.game, &r.roomID, &r.status, &r.created, &r.updated, &r.bot); err != nil {
 			rows.Close()
 			return nil, Limit{}, err
 		}
@@ -565,14 +591,16 @@ func (s *Service) adminRows(ctx context.Context, sql string, args ...any) ([]Adm
 }
 
 // AdminList lists reports newest first, optionally filtered by status.
+// Reports against bots are not part of the queue (nothing to review).
 func (s *Service) AdminList(ctx context.Context, status string, limit int) ([]AdminReport, error) {
 	return s.adminRows(ctx, `WITH page AS (
-		SELECT * FROM progression.player_reports WHERE ($1 = '' OR status = $1)
+		SELECT * FROM progression.player_reports WHERE NOT reported_bot AND ($1 = '' OR status = $1)
 		 ORDER BY created_at DESC, id DESC LIMIT $2)`+adminSelect, status, limit)
 }
 
 // AdminUpdate changes a report's status and/or operator note ("" clears the
-// note). Nil arguments leave the field unchanged.
+// note). Nil arguments leave the field unchanged. Reports against bots are not
+// in the queue and answer ErrNotFound.
 func (s *Service) AdminUpdate(ctx context.Context, id uuid.UUID, status, note *string) (AdminReport, error) {
 	var noteArg *string
 	if note != nil && *note != "" {
@@ -582,7 +610,7 @@ func (s *Service) AdminUpdate(ctx context.Context, id uuid.UUID, status, note *s
 		   SET status = COALESCE($2, status),
 		       note = CASE WHEN $3 THEN $4 ELSE note END,
 		       updated_at = $5
-		 WHERE id = $1`, id, status, note != nil, noteArg, s.opts.Now().UTC())
+		 WHERE id = $1 AND NOT reported_bot`, id, status, note != nil, noteArg, s.opts.Now().UTC())
 	if err != nil {
 		return AdminReport{}, err
 	}
@@ -590,7 +618,8 @@ func (s *Service) AdminUpdate(ctx context.Context, id uuid.UUID, status, note *s
 		return AdminReport{}, ErrNotFound
 	}
 	// Read back after the update so the per-player counts include it.
-	out, err := s.adminRows(ctx, `WITH page AS (SELECT * FROM progression.player_reports WHERE id = $1)`+adminSelect, id)
+	out, err := s.adminRows(ctx, `WITH page AS (
+		SELECT * FROM progression.player_reports WHERE id = $1 AND NOT reported_bot)`+adminSelect, id)
 	if err != nil {
 		return AdminReport{}, err
 	}

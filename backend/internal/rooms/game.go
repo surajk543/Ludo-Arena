@@ -85,7 +85,10 @@ type forfeitP struct {
 	H      uint32 `json:"h"`
 	Seat   int    `json:"seat"`
 	Reason string `json:"reason"`
-	Room   *View  `json:"room,omitempty"`
+	// Strikes is the seat's consecutive missed turns at the forfeit: for
+	// "timeouts" the count that removed the player (MAX_STRIKES).
+	Strikes int   `json:"strikes"`
+	Room    *View `json:"room,omitempty"`
 }
 
 type finishedP struct {
@@ -316,35 +319,41 @@ func (s *Service) actor(r *Room, userID string, turnSeq int) (int, error) {
 
 // Roll handles game.roll_dice.
 func (s *Service) Roll(ctx context.Context, userID, roomID string, turnSeq int) error {
-	_, err := s.mutate(ctx, roomID, func(m *mutation) error {
-		seat, err := s.actor(m.r, userID, turnSeq)
-		if err != nil {
-			return err
-		}
-		p := &m.r.Players[seat]
-		p.Strikes = 0
-		p.Actions++
-		return s.applyRoll(m, seat, false)
-	})
+	_, err := s.mutate(ctx, roomID, func(m *mutation) error { return s.roll(m, userID, turnSeq) })
 	return err
+}
+
+// roll is an own roll: it resets the player's missed-turn strikes.
+func (s *Service) roll(m *mutation, userID string, turnSeq int) error {
+	seat, err := s.actor(m.r, userID, turnSeq)
+	if err != nil {
+		return err
+	}
+	p := &m.r.Players[seat]
+	p.Strikes = 0
+	p.Actions++
+	return s.applyRoll(m, seat, false)
 }
 
 // Move handles game.make_move (Ludo).
 func (s *Service) Move(ctx context.Context, userID, roomID string, turnSeq, token int) error {
-	_, err := s.mutate(ctx, roomID, func(m *mutation) error {
-		seat, err := s.actor(m.r, userID, turnSeq)
-		if err != nil {
-			return err
-		}
-		if m.r.Ludo == nil || m.r.Ludo.Phase != ludo.PhaseAwaitingMove {
-			return protocol.ErrInvalidPhase
-		}
-		p := &m.r.Players[seat]
-		p.Strikes = 0
-		p.Actions++
-		return s.applyMove(m, seat, token, false)
-	})
+	_, err := s.mutate(ctx, roomID, func(m *mutation) error { return s.move(m, userID, turnSeq, token) })
 	return err
+}
+
+// move is an own move: it resets the player's missed-turn strikes.
+func (s *Service) move(m *mutation, userID string, turnSeq, token int) error {
+	seat, err := s.actor(m.r, userID, turnSeq)
+	if err != nil {
+		return err
+	}
+	if m.r.Ludo == nil || m.r.Ludo.Phase != ludo.PhaseAwaitingMove {
+		return protocol.ErrInvalidPhase
+	}
+	p := &m.r.Players[seat]
+	p.Strikes = 0
+	p.Actions++
+	return s.applyMove(m, seat, token, false)
 }
 
 func engineErr(err error) error {
@@ -460,54 +469,61 @@ func (s *Service) afterTurnChange(m *mutation) {
 
 // handleTurnTimeout acts for a player whose deadline passed.
 func (s *Service) handleTurnTimeout(ctx context.Context, roomID string, seq int) error {
-	_, err := s.mutate(ctx, roomID, func(m *mutation) error {
-		r := m.r
-		if r.Status != StatusPlaying {
+	_, err := s.mutate(ctx, roomID, func(m *mutation) error { return s.turnTimedOut(m, seq) })
+	return err
+}
+
+// turnTimedOut adds a strike to the player whose turn seq timed out and
+// acts for them, or forfeits them ("timeouts") at MAX_STRIKES consecutive
+// missed turns.
+func (s *Service) turnTimedOut(m *mutation, seq int) error {
+	r := m.r
+	if r.Status != StatusPlaying {
+		return errNoop
+	}
+	seat, curSeq, phase, _, _, _ := r.turnInfo()
+	if curSeq != seq {
+		return errNoop // the turn already moved on
+	}
+	now := s.nowMs()
+	if now < r.Deadline-50 {
+		m.schedule("turn", strconv.Itoa(seq), r.Deadline) // fired early (clock skew); retry later
+		return nil
+	}
+	if s.Policy != nil && s.Policy.GlobalMaintenanceActive() {
+		// Maintenance pauses games: no auto-moves, forfeits or payouts.
+		r.Deadline = now + s.Game.TurnTimeout.Milliseconds()
+		m.write = true
+		m.schedule("turn", strconv.Itoa(seq), now+5000)
+		return nil
+	}
+	p := &r.Players[seat]
+	p.Strikes++
+	if p.Strikes >= s.Game.MaxStrikes {
+		// MAX_STRIKES consecutive missed turns: removed from the game
+		// (the app tells the player why and leaves the match).
+		return s.forfeit(m, seat, "timeouts")
+	}
+	switch {
+	case r.Snakes != nil:
+		return s.applyRoll(m, seat, true)
+	case phase == PhaseAwaitingRoll:
+		if err := s.applyRoll(m, seat, true); err != nil {
+			return err
+		}
+		if r.Ludo.Phase == ludo.PhaseAwaitingMove && r.Ludo.Turn == seat {
+			if tok, ok := r.Ludo.AutoMoveToken(); ok {
+				return s.applyMove(m, seat, tok, true)
+			}
+		}
+		return nil
+	default:
+		tok, ok := r.Ludo.AutoMoveToken()
+		if !ok {
 			return errNoop
 		}
-		seat, curSeq, phase, _, _, _ := r.turnInfo()
-		if curSeq != seq {
-			return errNoop // the turn already moved on
-		}
-		now := s.nowMs()
-		if now < r.Deadline-50 {
-			m.schedule("turn", strconv.Itoa(seq), r.Deadline) // fired early (clock skew); retry later
-			return nil
-		}
-		if s.Policy != nil && s.Policy.GlobalMaintenanceActive() {
-			// Maintenance pauses games: no auto-moves, forfeits or payouts.
-			r.Deadline = now + s.Game.TurnTimeout.Milliseconds()
-			m.write = true
-			m.schedule("turn", strconv.Itoa(seq), now+5000)
-			return nil
-		}
-		p := &r.Players[seat]
-		p.Strikes++
-		if p.Strikes >= s.Game.MaxStrikes {
-			return s.forfeit(m, seat, "timeouts")
-		}
-		switch {
-		case r.Snakes != nil:
-			return s.applyRoll(m, seat, true)
-		case phase == PhaseAwaitingRoll:
-			if err := s.applyRoll(m, seat, true); err != nil {
-				return err
-			}
-			if r.Ludo.Phase == ludo.PhaseAwaitingMove && r.Ludo.Turn == seat {
-				if tok, ok := r.Ludo.AutoMoveToken(); ok {
-					return s.applyMove(m, seat, tok, true)
-				}
-			}
-			return nil
-		default:
-			tok, ok := r.Ludo.AutoMoveToken()
-			if !ok {
-				return errNoop
-			}
-			return s.applyMove(m, seat, tok, true)
-		}
-	})
-	return err
+		return s.applyMove(m, seat, tok, true)
+	}
 }
 
 // forfeit removes a player from the running game.
@@ -532,7 +548,7 @@ func (s *Service) forfeit(m *mutation, seat int, reason string) error {
 		h = r.Snakes.HashAt(seqBefore, turnSeat)
 	}
 	m.emitV(protocol.TPlayerForfeited, func(v int64) any {
-		return forfeitP{RoomID: r.ID, V: v, H: h, Seat: seat, Reason: reason, Room: m.fullSnap()}
+		return forfeitP{RoomID: r.ID, V: v, H: h, Seat: seat, Reason: reason, Strikes: p.Strikes, Room: m.fullSnap()}
 	})
 	if finished {
 		return s.finishGame(m, "forfeit")
