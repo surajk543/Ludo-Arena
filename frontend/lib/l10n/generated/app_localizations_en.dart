@@ -2439,8 +2439,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return '$name was removed after 3 missed turns';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name was removed after $count missed turns in a row',
+      one: '$name was removed after missing a turn',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You were removed from the match because you missed $count turns in a row.',
+      one: 'You were removed from the match because you missed your turn.',
+    );
+    return '$_temp0';
   }
 
   @override

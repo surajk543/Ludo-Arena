@@ -2430,8 +2430,27 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return '$name dikeluarkan setelah 3 kali melewatkan giliran';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$name dikeluarkan setelah $count kali berturut-turut melewatkan giliran',
+      one: '$name dikeluarkan setelah melewatkan giliran',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Kamu dikeluarkan dari pertandingan karena melewatkan $count giliran berturut-turut.',
+      one: 'Kamu dikeluarkan dari pertandingan karena melewatkan giliranmu.',
+    );
+    return '$_temp0';
   }
 
   @override

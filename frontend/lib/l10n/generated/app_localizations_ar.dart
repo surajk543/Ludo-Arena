@@ -2464,8 +2464,31 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String playForfeitTimeouts(String name) {
-    return 'أُخرج $name بعد تفويت 3 أدوار';
+  String playForfeitTimeouts(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُخرج $name بعد تفويت $count دور متتالٍ',
+      many: 'أُخرج $name بعد تفويت $count دورًا متتاليًا',
+      few: 'أُخرج $name بعد تفويت $count أدوار متتالية',
+      two: 'أُخرج $name بعد تفويت دورين متتاليين',
+      one: 'أُخرج $name بعد تفويت دوره',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playRemovedForInactivity(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُخرجت من المباراة بسبب تفويت $count دور متتالٍ.',
+      many: 'أُخرجت من المباراة بسبب تفويت $count دورًا متتاليًا.',
+      few: 'أُخرجت من المباراة بسبب تفويت $count أدوار متتالية.',
+      two: 'أُخرجت من المباراة بسبب تفويت دورين متتاليين.',
+      one: 'أُخرجت من المباراة بسبب تفويت دورك.',
+    );
+    return '$_temp0';
   }
 
   @override
