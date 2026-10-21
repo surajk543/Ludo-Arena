@@ -2043,6 +2043,21 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String numberThousand(String value) {
+    return '$value हज़ार';
+  }
+
+  @override
+  String numberMillion(String value) {
+    return '$value मिलियन';
+  }
+
+  @override
+  String numberBillion(String value) {
+    return '$value बिलियन';
+  }
+
+  @override
   String get onboardingLanguageTitle => 'अपनी भाषा चुनें';
 
   @override
@@ -2835,6 +2850,29 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'भाषा';
+
+  @override
+  String get settingsNumberSystem => 'संख्या प्रारूप';
+
+  @override
+  String get settingsNumberSystemHint =>
+      'चुनें कि सिक्कों की राशि कैसे दिखाई जाए।';
+
+  @override
+  String get settingsNumberSystemIndian => 'भारतीय';
+
+  @override
+  String get settingsNumberSystemInternational => 'अंतरराष्ट्रीय';
+
+  @override
+  String settingsNumberSystemExample(String full, String compact) {
+    return '$full · $compact';
+  }
+
+  @override
+  String settingsNumberSystemSummary(String system, String example) {
+    return '$system ($example)';
+  }
 
   @override
   String get settingsSoundAndHaptics => 'आवाज़ और वाइब्रेशन';

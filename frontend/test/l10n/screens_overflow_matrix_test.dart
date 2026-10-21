@@ -7,6 +7,8 @@ import 'package:ludo_royale/features/app_update/presentation/maintenance_screen.
 import 'package:ludo_royale/features/app_update/presentation/not_found_screen.dart';
 import 'package:ludo_royale/features/app_update/presentation/splash_screen.dart';
 import 'package:ludo_royale/features/app_update/presentation/unreachable_screen.dart';
+import 'package:ludo_royale/core/localization/number_format.dart';
+import 'package:ludo_royale/core/settings/app_settings.dart';
 import 'package:ludo_royale/features/authentication/application/session_controller.dart';
 import 'package:ludo_royale/features/authentication/presentation/language_onboarding_screen.dart';
 import 'package:ludo_royale/features/authentication/presentation/link_account_screen.dart';
@@ -165,6 +167,75 @@ void main() {
         // Stop timers (maintenance auto-check) before teardown.
         await tester.pumpWidget(const SizedBox());
       });
+    }
+  }
+
+  // Settings → Number format: the row (live example in its subtitle) and the
+  // picker sheet, for each system, at the app's maximum text scale (1.35).
+  for (final locale in const [
+    Locale('en'),
+    Locale('hi'),
+    Locale('ur'),
+    Locale('ar'),
+    Locale('id'),
+  ]) {
+    for (final mode in const [ThemeMode.light, ThemeMode.dark]) {
+      for (final system in NumberSystem.values) {
+        final name =
+            'settings number format ${system.name} ${locale.languageCode} '
+            '${mode.name} x1.35 @320x640';
+        testWidgets(name, (tester) async {
+          addTearDown(() => AppNumberFormat.preferredSystem = null);
+          final env = await TestEnv.create();
+          env.routeHappyPath();
+          await pumpScreen(
+            tester,
+            env,
+            const SettingsScreen(),
+            locale: locale,
+            themeMode: mode,
+            size: Viewports.small,
+            textScale: 1.35,
+            prepare: (c) async {
+              await signedIn(c);
+              await c
+                  .read(settingsControllerProvider.notifier)
+                  .setNumberSystem(system);
+            },
+          );
+          expect(tester.takeException(), isNull);
+          await scrollThrough(tester);
+          expect(tester.takeException(), isNull);
+
+          final row = find.byKey(const ValueKey('settings.numberSystem'));
+          // Back up to the Appearance section (the list builds lazily).
+          await tester.scrollUntilVisible(
+            row,
+            -200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.ensureVisible(row);
+          await tester.pumpAndSettle();
+          await tester.tap(row);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          for (final s in NumberSystem.values) {
+            final tile = find.byKey(ValueKey('numberSystem.${s.name}'));
+            expect(tile, findsOneWidget);
+            expect(
+              tester.getSemantics(tile),
+              isSemantics(isSelected: s == system, isButton: true),
+            );
+          }
+          final dir = Directionality.of(
+            tester.element(find.byKey(const ValueKey('numberSystem.indian'))),
+          );
+          final rtl =
+              locale.languageCode == 'ar' || locale.languageCode == 'ur';
+          expect(dir, rtl ? TextDirection.rtl : TextDirection.ltr);
+          await tester.pumpWidget(const SizedBox());
+        });
+      }
     }
   }
 }

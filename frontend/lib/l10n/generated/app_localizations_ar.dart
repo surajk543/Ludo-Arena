@@ -2062,6 +2062,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String numberThousand(String value) {
+    return '$value ألف';
+  }
+
+  @override
+  String numberMillion(String value) {
+    return '$value مليون';
+  }
+
+  @override
+  String numberBillion(String value) {
+    return '$value مليار';
+  }
+
+  @override
   String get onboardingLanguageTitle => 'اختر لغتك';
 
   @override
@@ -2862,6 +2877,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'اللغة';
+
+  @override
+  String get settingsNumberSystem => 'تنسيق الأرقام';
+
+  @override
+  String get settingsNumberSystemHint => 'اختر طريقة عرض مبالغ العملات.';
+
+  @override
+  String get settingsNumberSystemIndian => 'هندي';
+
+  @override
+  String get settingsNumberSystemInternational => 'دولي';
+
+  @override
+  String settingsNumberSystemExample(String full, String compact) {
+    return '$full · $compact';
+  }
+
+  @override
+  String settingsNumberSystemSummary(String system, String example) {
+    return '$system ($example)';
+  }
 
   @override
   String get settingsSoundAndHaptics => 'الصوت والاهتزاز';

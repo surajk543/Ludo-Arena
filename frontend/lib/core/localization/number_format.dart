@@ -1,22 +1,65 @@
 import 'dart:ui';
 
 import 'package:intl/intl.dart';
+import 'package:intl/number_symbols.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 
+/// How large numbers are grouped and abbreviated (Settings → Number format).
+enum NumberSystem {
+  /// `12,34,567`, `10 Lakh`, `1.5 Crore`.
+  indian,
+
+  /// `1,234,567`, `1M`, `1.5B`.
+  international;
+
+  static NumberSystem? parse(String? name) {
+    for (final s in values) {
+      if (s.name == name) return s;
+    }
+    return null;
+  }
+}
+
 /// Locale-aware number / coin / date formatting.
 ///
-/// - **en, hi, ur**: Indian grouping (`12,34,567`) and lakh/crore words for
-///   large values (`10 Lakh`, `10 लाख`, `10 لاکھ`, `1.5 Crore`).
-/// - **id, ar** (and anything else): the locale's own grouping and compact
-///   formats (`1 jt`, `1 مليون`).
-/// - Digits follow the locale's default numbering system in `intl`.
+/// The [NumberSystem] decides grouping and the compact words; the locale
+/// decides digits, separators and the words' language:
+///
+/// - **Indian**: `12,34,567` and lakh/crore words for large values
+///   (`10 Lakh`, `10 लाख`, `10 لاکھ`, `1.5 Crore`).
+/// - **International**: `1,234,567` and thousand/million/billion words
+///   (`1M`, `1 jt`, `1 مليون`).
+///
+/// The system is the user's choice ([preferredSystem], kept in sync with the
+/// setting by `NumberSystemDelegate`) or, until they pick one, follows the
+/// language: Indian for en/hi/ur, international otherwise. Every formatter
+/// also takes an explicit `system` (previews in Settings, tests).
+///
+/// Digits follow the locale's default numbering system in `intl`.
 abstract final class AppNumberFormat {
+  static const int thousand = 1000;
   static const int lakh = 100000;
+  static const int million = 1000000;
   static const int crore = 10000000;
+  static const int billion = 1000000000;
 
-  static bool usesIndianSystem(Locale locale) =>
-      const {'en', 'hi', 'ur'}.contains(locale.languageCode);
+  /// The user's explicit choice; null follows the language
+  /// ([defaultSystemFor]). Set only by `NumberSystemDelegate`, which also
+  /// rebuilds every widget that reads the app locale when it changes.
+  static NumberSystem? preferredSystem;
+
+  /// The system used when the user has not chosen one: Indian for en/hi/ur
+  /// (the behaviour before the setting existed), international otherwise.
+  static NumberSystem defaultSystemFor(Locale locale) =>
+      const {'en', 'hi', 'ur'}.contains(locale.languageCode)
+      ? NumberSystem.indian
+      : NumberSystem.international;
+
+  /// The effective system: [system] if given, else the user's choice, else
+  /// the language default.
+  static NumberSystem systemFor(Locale locale, [NumberSystem? system]) =>
+      system ?? preferredSystem ?? defaultSystemFor(locale);
 
   static String _tag(Locale locale) => switch (locale.languageCode) {
     'en' => 'en_IN',
@@ -29,73 +72,76 @@ abstract final class AppNumberFormat {
           'en',
   };
 
+  static NumberSymbols _symbols(Locale locale) =>
+      NumberFormat.decimalPattern(_tag(locale)).symbols;
+
   /// A whole percentage in the locale's format (`80%`, `80 %`, `٨٠٪`).
   static String percent(int value, Locale locale) =>
       NumberFormat.percentPattern(_tag(locale)).format(value / 100);
 
-  /// Full precision with locale grouping: `12,34,567` (en/hi/ur),
-  /// `1.234.567` (id), `1,234,567` (ar).
-  static String full(int value, Locale locale) {
-    if (usesIndianSystem(locale)) return _indianGrouping(value, locale);
-    return NumberFormat.decimalPattern(_tag(locale)).format(value);
-  }
+  /// Full precision with the system's grouping and the locale's symbols:
+  /// Indian `12,34,567` (id: `12.34.567`), international `1,234,567`
+  /// (id: `1.234.567`).
+  static String full(int value, Locale locale, {NumberSystem? system}) =>
+      _group(
+        value,
+        locale,
+        indian: systemFor(locale, system) == NumberSystem.indian,
+      );
 
-  /// Large **round** values use words (`10 Lakh`); anything that would lose
-  /// precision is shown in full (`12,34,567`). id/ar use compact formats for
-  /// values ≥ 1,000,000 when exact (`1 jt`).
-  static String coins(int value, Locale locale) {
+  /// Large **round** values use words (`10 Lakh`, `1M`); anything that
+  /// would lose precision is shown in full (`12,34,567`). Indian words start
+  /// at one lakh, international ones at one million.
+  static String coins(int value, Locale locale, {NumberSystem? system}) {
+    final s = systemFor(locale, system);
     final abs = value.abs();
-    if (usesIndianSystem(locale)) {
+    if (s == NumberSystem.indian) {
       if (abs >= crore && _exactIn(abs, crore)) {
-        return _indianWords(value, crore, locale);
+        return _words(value, crore, locale, s);
       }
       if (abs >= lakh && _exactIn(abs, lakh)) {
-        return _indianWords(value, lakh, locale);
+        return _words(value, lakh, locale, s);
       }
-      return full(value, locale);
+    } else if (abs >= million) {
+      final unit = abs >= billion ? billion : million;
+      if (_exactIn(abs, unit)) return _words(value, unit, locale, s);
     }
-    if (abs >= 1000000) {
-      final compact = NumberFormat.compact(locale: _tag(locale))
-        ..maximumFractionDigits = 2;
-      final s = compact.format(value);
-      // Only use compact when it round-trips exactly.
-      if (_exactIn(abs, _compactUnit(abs))) return s;
-    }
-    return full(value, locale);
+    return full(value, locale, system: s);
   }
 
   /// Always compact for tight spaces (balance chips): floors to two decimals
-  /// so a balance is never overstated (`12,34,567` → `12.34 Lakh`).
-  static String coinsCompact(int value, Locale locale) {
+  /// so a balance is never overstated (`12,34,567` → `12.34 Lakh`,
+  /// `1,234,567` → `1.23M`). Indian stays exact below one lakh (`54,321`),
+  /// international below ten thousand (`9,999`, then `54.32K`).
+  static String coinsCompact(int value, Locale locale, {NumberSystem? system}) {
+    final s = systemFor(locale, system);
     final abs = value.abs();
-    if (usesIndianSystem(locale)) {
-      if (abs >= crore) return _indianWords(value, crore, locale, floor: true);
-      if (abs >= lakh) return _indianWords(value, lakh, locale, floor: true);
-      return full(value, locale);
+    if (s == NumberSystem.indian) {
+      if (abs >= crore) return _words(value, crore, locale, s, floor: true);
+      if (abs >= lakh) return _words(value, lakh, locale, s, floor: true);
+      return full(value, locale, system: s);
     }
-    if (abs >= 10000) {
-      final unit = _compactUnit(abs);
-      final floored = (value ~/ (unit ~/ 100)) * (unit ~/ 100);
-      final compact = NumberFormat.compact(locale: _tag(locale))
-        ..maximumFractionDigits = 2;
-      return compact.format(floored);
+    if (abs >= 10 * thousand) {
+      final unit = abs >= billion
+          ? billion
+          : abs >= million
+          ? million
+          : thousand;
+      return _words(value, unit, locale, s, floor: true);
     }
-    return full(value, locale);
-  }
-
-  static int _compactUnit(int abs) {
-    if (abs >= 1000000000) return 1000000000;
-    if (abs >= 1000000) return 1000000;
-    return 1000;
+    return full(value, locale, system: s);
   }
 
   /// True when [value] / [unit] has at most two decimals.
   static bool _exactIn(int value, int unit) => value % (unit ~/ 100) == 0;
 
-  static String _indianWords(
+  /// `value / unit` with up to two decimals plus the unit word
+  /// (`12.5 Lakh`, `1.23M`, `1,23 jt`).
+  static String _words(
     int value,
     int unit,
-    Locale locale, {
+    Locale locale,
+    NumberSystem system, {
     bool floor = false,
   }) {
     final hundredths = floor
@@ -103,15 +149,21 @@ abstract final class AppNumberFormat {
         : ((value.abs() * 100) / unit).round();
     final whole = hundredths ~/ 100;
     final frac = hundredths % 100;
-    var number = full(whole, locale);
+    final symbols = _symbols(locale);
+    var number = full(whole, locale, system: system);
     if (frac != 0) {
       final f = frac.toString().padLeft(2, '0').replaceAll(RegExp(r'0$'), '');
-      final sep = NumberFormat.decimalPattern(_tag(locale)).symbols.DECIMAL_SEP;
-      number = '$number$sep$f';
+      number = '$number${symbols.DECIMAL_SEP}${_localizeDigits(f, symbols)}';
     }
-    if (value < 0) number = '-$number';
+    if (value < 0) number = '${symbols.MINUS_SIGN}$number';
     final l10n = lookupAppLocalizations(_l10nLocale(locale));
-    return unit == crore ? l10n.numberCrore(number) : l10n.numberLakh(number);
+    return switch (unit) {
+      crore => l10n.numberCrore(number),
+      lakh => l10n.numberLakh(number),
+      billion => l10n.numberBillion(number),
+      million => l10n.numberMillion(number),
+      _ => l10n.numberThousand(number),
+    };
   }
 
   static Locale _l10nLocale(Locale locale) {
@@ -121,30 +173,26 @@ abstract final class AppNumberFormat {
     return const Locale('en');
   }
 
-  /// `12,34,567`: last three digits, then groups of two.
-  static String _indianGrouping(int value, Locale locale) {
-    final symbols = NumberFormat.decimalPattern(_tag(locale)).symbols;
-    final negative = value < 0;
+  /// Indian: last three digits, then groups of two (`12,34,567`).
+  /// International: groups of three (`1,234,567`).
+  static String _group(int value, Locale locale, {required bool indian}) {
+    final symbols = _symbols(locale);
     final digits = value.abs().toString();
-    String grouped;
-    if (digits.length <= 3) {
-      grouped = digits;
-    } else {
-      final last3 = digits.substring(digits.length - 3);
-      var rest = digits.substring(0, digits.length - 3);
-      final parts = <String>[];
-      while (rest.length > 2) {
-        parts.insert(0, rest.substring(rest.length - 2));
-        rest = rest.substring(0, rest.length - 2);
-      }
-      if (rest.isNotEmpty) parts.insert(0, rest);
-      grouped = '${parts.join(symbols.GROUP_SEP)}${symbols.GROUP_SEP}$last3';
+    final parts = <String>[];
+    var rest = digits;
+    var size = 3;
+    while (rest.length > size) {
+      parts.insert(0, rest.substring(rest.length - size));
+      rest = rest.substring(0, rest.length - size);
+      if (indian) size = 2;
     }
-    grouped = _localizeDigits(grouped, symbols.ZERO_DIGIT);
-    return negative ? '${symbols.MINUS_SIGN}$grouped' : grouped;
+    parts.insert(0, rest);
+    final grouped = _localizeDigits(parts.join(symbols.GROUP_SEP), symbols);
+    return value < 0 ? '${symbols.MINUS_SIGN}$grouped' : grouped;
   }
 
-  static String _localizeDigits(String s, String zeroDigit) {
+  static String _localizeDigits(String s, NumberSymbols symbols) {
+    final zeroDigit = symbols.ZERO_DIGIT;
     if (zeroDigit == '0') return s;
     final zero = zeroDigit.codeUnitAt(0);
     return String.fromCharCodes(
@@ -178,13 +226,13 @@ abstract final class AppNumberFormat {
 }
 
 /// Spec helper: exact-or-words coin formatting. See [AppNumberFormat.coins].
-String formatCoins(int value, Locale locale) =>
-    AppNumberFormat.coins(value, locale);
+String formatCoins(int value, Locale locale, {NumberSystem? system}) =>
+    AppNumberFormat.coins(value, locale, system: system);
 
 /// Compact coin formatting for chips. See [AppNumberFormat.coinsCompact].
-String formatCoinsCompact(int value, Locale locale) =>
-    AppNumberFormat.coinsCompact(value, locale);
+String formatCoinsCompact(int value, Locale locale, {NumberSystem? system}) =>
+    AppNumberFormat.coinsCompact(value, locale, system: system);
 
 /// Full-precision grouping. See [AppNumberFormat.full].
-String formatNumberFull(int value, Locale locale) =>
-    AppNumberFormat.full(value, locale);
+String formatNumberFull(int value, Locale locale, {NumberSystem? system}) =>
+    AppNumberFormat.full(value, locale, system: system);

@@ -2043,6 +2043,21 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String numberThousand(String value) {
+    return '$value ہزار';
+  }
+
+  @override
+  String numberMillion(String value) {
+    return '$value ملین';
+  }
+
+  @override
+  String numberBillion(String value) {
+    return '$value بلین';
+  }
+
+  @override
   String get onboardingLanguageTitle => 'اپنی زبان منتخب کریں';
 
   @override
@@ -2835,6 +2850,29 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'زبان';
+
+  @override
+  String get settingsNumberSystem => 'نمبر فارمیٹ';
+
+  @override
+  String get settingsNumberSystemHint =>
+      'منتخب کریں کہ سکوں کی رقم کیسے دکھائی جائے۔';
+
+  @override
+  String get settingsNumberSystemIndian => 'ہندوستانی';
+
+  @override
+  String get settingsNumberSystemInternational => 'بین الاقوامی';
+
+  @override
+  String settingsNumberSystemExample(String full, String compact) {
+    return '$full · $compact';
+  }
+
+  @override
+  String settingsNumberSystemSummary(String system, String example) {
+    return '$system ($example)';
+  }
 
   @override
   String get settingsSoundAndHaptics => 'آواز اور وائبریشن';

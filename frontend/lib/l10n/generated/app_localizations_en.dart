@@ -2042,6 +2042,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String numberThousand(String value) {
+    return '${value}K';
+  }
+
+  @override
+  String numberMillion(String value) {
+    return '${value}M';
+  }
+
+  @override
+  String numberBillion(String value) {
+    return '${value}B';
+  }
+
+  @override
   String get onboardingLanguageTitle => 'Choose your language';
 
   @override
@@ -2834,6 +2849,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsNumberSystem => 'Number format';
+
+  @override
+  String get settingsNumberSystemHint => 'Choose how coin amounts are shown.';
+
+  @override
+  String get settingsNumberSystemIndian => 'Indian';
+
+  @override
+  String get settingsNumberSystemInternational => 'International';
+
+  @override
+  String settingsNumberSystemExample(String full, String compact) {
+    return '$full · $compact';
+  }
+
+  @override
+  String settingsNumberSystemSummary(String system, String example) {
+    return '$system ($example)';
+  }
 
   @override
   String get settingsSoundAndHaptics => 'Sound & haptics';

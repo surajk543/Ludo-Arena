@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../localization/number_format.dart';
 import '../storage/preferences_store.dart';
 
 /// User-adjustable, non-sensitive settings (persisted in SharedPreferences).
@@ -13,6 +14,7 @@ class AppSettings {
     this.quickChatMuted = false,
     this.sfxVolume = defaultSfxVolume,
     this.musicVolume = defaultMusicVolume,
+    this.numberSystem,
   });
 
   static const double defaultSfxVolume = 0.8;
@@ -34,6 +36,12 @@ class AppSettings {
   /// Lobby music volume, 0..1 (persisted as a whole percentage).
   final double musicVolume;
 
+  /// Indian (`1,00,000 · 10 Lakh`) or international (`100,000 · 1M`)
+  /// grouping and compact words. Null until the user picks one: amounts then
+  /// follow the language ([AppNumberFormat.defaultSystemFor]), which keeps
+  /// the pre-setting behaviour (Indian for en/hi/ur).
+  final NumberSystem? numberSystem;
+
   AppSettings copyWith({
     bool? soundEnabled,
     bool? hapticsEnabled,
@@ -41,6 +49,7 @@ class AppSettings {
     bool? quickChatMuted,
     double? sfxVolume,
     double? musicVolume,
+    NumberSystem? numberSystem,
   }) => AppSettings(
     soundEnabled: soundEnabled ?? this.soundEnabled,
     hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
@@ -48,6 +57,7 @@ class AppSettings {
     quickChatMuted: quickChatMuted ?? this.quickChatMuted,
     sfxVolume: sfxVolume ?? this.sfxVolume,
     musicVolume: musicVolume ?? this.musicVolume,
+    numberSystem: numberSystem ?? this.numberSystem,
   );
 
   @override
@@ -58,7 +68,8 @@ class AppSettings {
       other.reducedMotion == reducedMotion &&
       other.quickChatMuted == quickChatMuted &&
       other.sfxVolume == sfxVolume &&
-      other.musicVolume == musicVolume;
+      other.musicVolume == musicVolume &&
+      other.numberSystem == numberSystem;
 
   @override
   int get hashCode => Object.hash(
@@ -68,6 +79,7 @@ class AppSettings {
     quickChatMuted,
     sfxVolume,
     musicVolume,
+    numberSystem,
   );
 }
 
@@ -100,6 +112,7 @@ class SettingsController extends Notifier<AppSettings> {
         p.getInt(PrefKeys.musicVolume),
         AppSettings.defaultMusicVolume,
       ),
+      numberSystem: NumberSystem.parse(p.getString(PrefKeys.numberSystem)),
     );
   }
 
@@ -118,6 +131,13 @@ class SettingsController extends Notifier<AppSettings> {
         state = state.copyWith(quickChatMuted: value);
         await _prefs.setBool(PrefKeys.quickChatMuted, value);
     }
+  }
+
+  /// Applies [system] at once (every visible amount reformats) and persists
+  /// it.
+  Future<void> setNumberSystem(NumberSystem system) async {
+    state = state.copyWith(numberSystem: system);
+    await _prefs.setString(PrefKeys.numberSystem, system.name);
   }
 
   /// Applies a volume (0..1) at once. Persists unless [persist] is false

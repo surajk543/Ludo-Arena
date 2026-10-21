@@ -7,6 +7,7 @@ import 'package:ludo_royale/core/analytics/analytics_providers.dart';
 import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/links/external_link_launcher.dart';
 import 'package:ludo_royale/core/localization/language_controller.dart';
+import 'package:ludo_royale/core/localization/number_format.dart';
 import 'package:ludo_royale/core/settings/app_settings.dart';
 import 'package:ludo_royale/core/storage/preferences_store.dart';
 import 'package:ludo_royale/core/theme/theme_controller.dart';
@@ -102,6 +103,8 @@ void main() {
     );
     expect(env.analytics.events, contains('settings_changed:sound:false'));
 
+    // Below the Sound section: scroll to it.
+    await reveal(tester, find.text('Mute quick chat'));
     await tester.tap(find.text('Mute quick chat'));
     await tester.pump();
     expect(c.read(settingsControllerProvider).quickChatMuted, isTrue);
@@ -187,6 +190,43 @@ void main() {
     expect(c.read(languageControllerProvider), const Locale('hi'));
     expect(c.read(sessionControllerProvider).isSignedIn, isTrue);
     expect(env.analytics.events, contains('language_changed:hi'));
+  });
+
+  testWidgets('number format row shows a live example and switches at once', (
+    tester,
+  ) async {
+    addTearDown(() => AppNumberFormat.preferredSystem = null);
+    final (env, c) = await pumpSettings(tester);
+    expect(find.text('Number format'), findsOneWidget);
+    expect(find.text('Indian (1,00,000 · 10 Lakh)'), findsOneWidget);
+
+    await tester.tap(find.text('Number format'));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose how coin amounts are shown.'), findsOneWidget);
+    await tester.tap(find.text('International'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('International (100,000 · 1M)'), findsOneWidget);
+    expect(
+      c.read(settingsControllerProvider).numberSystem,
+      NumberSystem.international,
+    );
+    expect(
+      c.read(preferencesStoreProvider).getString(PrefKeys.numberSystem),
+      'international',
+    );
+    expect(
+      env.analytics.events,
+      contains('settings_changed:international_numbers:true'),
+    );
+    expect(c.read(sessionControllerProvider).isSignedIn, isTrue);
+  });
+
+  testWidgets('number format follows the language until chosen (id)', (
+    tester,
+  ) async {
+    await pumpSettings(tester, locale: const Locale('id'));
+    expect(find.text('Internasional (100.000 · 1 jt)'), findsOneWidget);
   });
 
   testWidgets('analytics toggle is disabled when Firebase is not configured', (
