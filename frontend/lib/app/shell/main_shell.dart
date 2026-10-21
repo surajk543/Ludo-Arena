@@ -198,26 +198,28 @@ class AppBottomNav extends ConsumerWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.sm,
-            AppSpacing.sm,
-            AppSpacing.sm,
-            AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              for (var i = 0; i < items.length; i++)
-                Expanded(
-                  child: _NavItem(
-                    destination: items[i],
-                    selected: i == currentIndex,
-                    onTap: () {
-                      ref.read(hapticsServiceProvider).selection();
-                      onSelect(i);
-                    },
-                  ),
-                ),
-            ],
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          // Items stay phone-sized on tablets instead of stretching.
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Row(
+                children: [
+                  for (var i = 0; i < items.length; i++)
+                    Expanded(
+                      child: _NavItem(
+                        destination: items[i],
+                        selected: i == currentIndex,
+                        onTap: () {
+                          ref.read(hapticsServiceProvider).selection();
+                          onSelect(i);
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

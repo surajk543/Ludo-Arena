@@ -20,6 +20,25 @@ void main() {
     (Locale('ar'), ThemeMode.dark),
   ];
 
+  for (final screen in const [HomeScreen(), GamesScreen()]) {
+    testWidgets('${screen.runtimeType} tablet (cards side by side)', (
+      tester,
+    ) async {
+      final env = await TestEnv.create();
+      env.routeHappyPath();
+      await pumpScreen(
+        tester,
+        env,
+        screen,
+        size: Viewports.tablet,
+        prepare: (c) =>
+            c.read(sessionControllerProvider.notifier).continueAsGuest(),
+      );
+      await scrollThrough(tester);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   for (final (locale, mode) in configs) {
     final tag = '${locale.languageCode} ${mode.name} @320x640 x1.35';
 
