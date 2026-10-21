@@ -101,10 +101,17 @@ func (e *env) store(token, query string) (storePage, resp) {
 // allPictures pages through a filter with the given page size.
 func (e *env) allPictures(token, filter string, limit int) []storePicture {
 	e.t.Helper()
+	return e.walkPictures(token, "filter="+filter, limit)
+}
+
+// walkPictures pages through the listing selected by query (filter and
+// excludeOwned, without limit and cursor) with the given page size.
+func (e *env) walkPictures(token, query string, limit int) []storePicture {
+	e.t.Helper()
 	var out []storePicture
 	cursor := ""
 	for pages := 0; pages < 100; pages++ {
-		q := fmt.Sprintf("?filter=%s&limit=%d", filter, limit)
+		q := fmt.Sprintf("?%s&limit=%d", query, limit)
 		if cursor != "" {
 			q += "&cursor=" + cursor
 		}
@@ -317,6 +324,75 @@ func TestStorePurchase(t *testing.T) {
 	// Owning a picture is not owning a Collection item, and vice versa.
 	if r := e.do("GET", "/api/v1/collection", a.Token, nil); r.Status != 200 || strings.Contains(string(r.Raw), pic.ID) {
 		t.Fatalf("collection lists the picture: %d", r.Status)
+	}
+}
+
+// The app's Shop lists only pictures the player does not own yet
+// (excludeOwned=true); the default listing is unchanged.
+func TestStoreExcludeOwned(t *testing.T) {
+	e := newEnv(t, envOpts{})
+	a := e.guest()
+	type listing struct {
+		filter string
+		total  int
+		seeded int
+	}
+	count := func(filter, extra string) listing {
+		t.Helper()
+		p, r := e.store(a.Token, "?filter="+filter+extra)
+		if r.Status != 200 {
+			t.Fatalf("store ?filter=%s%s: %d %s", filter, extra, r.Status, r.Raw)
+		}
+		return listing{filter, p.Total, len(seeded(e.walkPictures(a.Token, "filter="+filter+extra, 50)))}
+	}
+	filters := []string{"all", "animated", "static"}
+	before := map[string]listing{}
+	for _, f := range filters {
+		before[f] = count(f, "&excludeOwned=true")
+		if dflt := count(f, ""); dflt != before[f] {
+			t.Fatalf("%s: nothing owned yet, excludeOwned %+v vs default %+v", f, before[f], dflt)
+		}
+	}
+
+	pic := cheapest(t, e.allPictures(a.Token, "all", 50), "image")
+	if r := e.buyPicture(a.Token, pic.ID, "pfp-"+runID+"-excl"); r.Status != 200 {
+		t.Fatalf("purchase: %d %s", r.Status, r.Raw)
+	}
+	for _, f := range filters {
+		// One fewer picture where the bought one was listed, paged with a
+		// small page size: it is never on any page.
+		want := before[f]
+		if f != "animated" {
+			want.total--
+			want.seeded--
+		}
+		if got := count(f, "&excludeOwned=true"); got != want {
+			t.Fatalf("%s excludeOwned after buying: %+v, want %+v", f, got, want)
+		}
+		for _, it := range e.walkPictures(a.Token, "filter="+f+"&excludeOwned=true", 20) {
+			if it.ID == pic.ID || it.Owned {
+				t.Fatalf("%s excludeOwned lists owned %+v", f, it)
+			}
+		}
+	}
+	// excludeOwned=false is the default listing: the picture is there, owned.
+	found := false
+	for _, it := range e.walkPictures(a.Token, "filter=static&excludeOwned=false", 50) {
+		if it.ID == pic.ID {
+			found = it.Owned
+		}
+	}
+	if !found {
+		t.Fatal("excludeOwned=false hides the owned picture")
+	}
+
+	for _, q := range []string{"?filter=owned&excludeOwned=true", "?excludeOwned=yes", "?excludeOwned=1", "?excludeOwned=TRUE"} {
+		if _, r := e.store(a.Token, q); r.Status != 400 || errCode(r) != "bad_request" {
+			t.Errorf("GET store%s: %d %s", q, r.Status, r.Raw)
+		}
+	}
+	if owned, r := e.store(a.Token, "?filter=owned&excludeOwned=false"); r.Status != 200 || owned.Total != 1 {
+		t.Fatalf("owned with excludeOwned=false: %d %+v", r.Status, owned)
 	}
 }
 
