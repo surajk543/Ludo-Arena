@@ -11,7 +11,7 @@ import '../play_text.dart';
 
 /// "Seats filling" visual for matchmaking and practice: [capacity] seats on
 /// a ring around a pulsing center. Seats fill with the real players from
-/// the server snapshot (avatar + frame + BOT badge) as they arrive.
+/// the server snapshot (avatar + frame) as they arrive.
 class SeatOrbit extends StatefulWidget {
   const SeatOrbit({
     super.key,

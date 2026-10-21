@@ -529,7 +529,13 @@ Map<String, dynamic> friendsJson({
   List<Map<String, dynamic>>? friends,
   List<Map<String, dynamic>>? incoming,
   List<Map<String, dynamic>>? outgoing,
+  int? onlineCount,
+  int? friendCount,
+  int? maxFriends,
 }) => {
+  'onlineCount': ?onlineCount,
+  'friendCount': ?friendCount,
+  'maxFriends': ?maxFriends,
   'friends':
       friends ??
       [
@@ -547,6 +553,43 @@ Map<String, dynamic> friendsJson({
   'outgoing':
       outgoing ??
       [friendJson('u_sara5555pppp', 'Sara', status: 'outgoing', level: 9)],
+};
+
+/// Fixed server "now" of the meta tests (FakeClock start).
+int get kMetaNowMs => DateTime(2026, 10, 21, 12).millisecondsSinceEpoch;
+
+Map<String, dynamic> reportJson(
+  String id, {
+  String uid = 'u_zaid1111aaaa',
+  String name = 'Zaid',
+  String reason = 'cheating',
+  String status = 'submitted',
+  String game = 'ludo',
+  Duration ago = const Duration(hours: 2),
+}) => {
+  'id': id,
+  'player': {'uid': uid, 'name': name, 'avatar': 4, 'level': 6},
+  'reason': reason,
+  'game': game,
+  'roomId': 'r_$id',
+  'status': status,
+  'createdAt': kMetaNowMs - ago.inMilliseconds,
+  'updatedAt': kMetaNowMs - ago.inMilliseconds,
+};
+
+Map<String, dynamic> limitJson({int remaining = 2, int? resetsAt}) => {
+  'perDay': 2,
+  'remaining': remaining,
+  'resetsAt': resetsAt,
+};
+
+Map<String, dynamic> reportsJson({
+  List<Map<String, dynamic>> reports = const [],
+  int remaining = 2,
+  int? resetsAt,
+}) => {
+  'reports': reports,
+  'limit': limitJson(remaining: remaining, resetsAt: resetsAt),
 };
 
 Map<String, dynamic> recentJson() => {
@@ -646,6 +689,28 @@ void routeMeta(TestEnv env) {
     ..json('GET', '/friends', friendsJson())
     ..json('GET', '/social/recent', recentJson())
     ..json('GET', '/leaderboards/friends', leaderboardJson())
+    ..json(
+      'GET',
+      '/reports',
+      reportsJson(
+        // Older than 24 h: both of today's reports are still available.
+        reports: [
+          reportJson(
+            'rep_a',
+            status: 'reviewing',
+            ago: const Duration(hours: 26),
+          ),
+          reportJson(
+            'rep_b',
+            uid: 'u_neha4444rrrr',
+            name: 'Neha',
+            reason: 'other',
+            status: 'action_taken',
+            ago: const Duration(days: 3),
+          ),
+        ],
+      ),
+    )
     ..json('GET', '/progression', progressionJson());
 }
 

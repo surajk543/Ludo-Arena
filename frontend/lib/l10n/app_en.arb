@@ -2555,9 +2555,14 @@
   "@metaErrorCannotFriendSelf": {
     "description": "Error: own code."
   },
-  "metaErrorFriendLimit": "The friend or request limit has been reached. Remove a friend or request and try again.",
+  "metaErrorFriendLimit": "You can have up to {max} friends. Remove a friend to add someone new.",
   "@metaErrorFriendLimit": {
-    "description": "Error: friend limit."
+    "description": "Error friend_limit: the accepted-friends cap is reached.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
   },
   "metaErrorUnknownFriendCode": "No player has this friend code. Check it and try again.",
   "@metaErrorUnknownFriendCode": {
@@ -3812,6 +3817,256 @@
   "settingsConsentDeny": "No thanks",
   "@settingsConsentDeny": {
     "description": "Decline analytics."
+  },
+  "socialPodOptionsHint": "Show player options",
+  "@socialPodOptionsHint": {
+    "description": "Screen-reader action hint on an opponent pod."
+  },
+  "socialRequestSent": "Request sent",
+  "@socialRequestSent": {
+    "description": "Player sheet: friend request already sent."
+  },
+  "socialAcceptRequest": "Accept request",
+  "@socialAcceptRequest": {
+    "description": "Player sheet: accept their friend request."
+  },
+  "socialReportPlayer": "Report player",
+  "@socialReportPlayer": {
+    "description": "Player sheet: open the report flow."
+  },
+  "socialReported": "Reported",
+  "@socialReported": {
+    "description": "Player sheet: this player was already reported (disabled)."
+  },
+  "socialAlreadyReported": "You reported this player in the last 24 hours.",
+  "@socialAlreadyReported": {
+    "description": "Player was reported in the last 24 hours (also 409 already_reported)."
+  },
+  "socialReportsLeft": "Reports left today: {remaining} of {total}",
+  "@socialReportsLeft": {
+    "description": "Remaining reports in the rolling 24 hours.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "socialReportLimitAt": "You've used today's {total} reports. You can report again at {time}.",
+  "@socialReportLimitAt": {
+    "description": "Daily report limit reached (429 report_limit), with the local reset time.",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "socialReportLimitLater": "You've used today's {total} reports. Try again later.",
+  "@socialReportLimitLater": {
+    "description": "Daily report limit reached, reset time unknown.",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "socialReportTitle": "Report {name}",
+  "@socialReportTitle": {
+    "description": "Report step header.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialReportWhy": "What happened?",
+  "@socialReportWhy": {
+    "description": "Report step: reason picker label."
+  },
+  "socialReasonCheating": "Cheating",
+  "@socialReasonCheating": {
+    "description": "Report reason."
+  },
+  "socialReasonOffensiveName": "Offensive name",
+  "@socialReasonOffensiveName": {
+    "description": "Report reason."
+  },
+  "socialReasonAbusiveBehavior": "Abusive behavior",
+  "@socialReasonAbusiveBehavior": {
+    "description": "Report reason."
+  },
+  "socialReasonLeavingOrStalling": "Leaving or stalling",
+  "@socialReasonLeavingOrStalling": {
+    "description": "Report reason."
+  },
+  "socialReasonOther": "Something else",
+  "@socialReasonOther": {
+    "description": "Report reason."
+  },
+  "socialReportReviewNote": "Our team reviews every report. Follow its status in the Reported tab on the Friends screen.",
+  "@socialReportReviewNote": {
+    "description": "Report step: what happens next."
+  },
+  "socialSendReport": "Send report",
+  "@socialSendReport": {
+    "description": "Report step: confirm button."
+  },
+  "socialReportSent": "Report sent. {remaining} of {total} reports left today.",
+  "@socialReportSent": {
+    "description": "Toast after a report was stored.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "socialFriendLimitNote": "You can have up to {max} friends — remove one to add more.",
+  "@socialFriendLimitNote": {
+    "description": "Friend limit reached: adding/accepting is disabled.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "socialErrorCannotReportSelf": "You can't report yourself.",
+  "@socialErrorCannotReportSelf": {
+    "description": "Error cannot_report_self."
+  },
+  "socialErrorCannotReportBot": "This player can't be reported.",
+  "@socialErrorCannotReportBot": {
+    "description": "Error cannot_report_bot. Never mention bots (players are not labelled)."
+  },
+  "socialErrorNotInRoom": "You can only report players from a match you're in.",
+  "@socialErrorNotInRoom": {
+    "description": "Error not_in_room while reporting."
+  },
+  "socialErrorRoomNotFound": "This match can't be found anymore, so the report wasn't sent.",
+  "@socialErrorRoomNotFound": {
+    "description": "Error room_not_found while reporting."
+  },
+  "socialErrorPlayerNotFound": "This player couldn't be found.",
+  "@socialErrorPlayerNotFound": {
+    "description": "Error not_found while reporting."
+  },
+  "socialTabReported": "Reported",
+  "@socialTabReported": {
+    "description": "Friends screen tab: my reports."
+  },
+  "socialOnlineNow": "Online now ({count})",
+  "@socialOnlineNow": {
+    "description": "Friends tab section header: friends online now.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialOfflineCount": "Offline ({count})",
+  "@socialOfflineCount": {
+    "description": "Friends tab section header: offline friends.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialFriendsCount": "Friends {count}/{max}",
+  "@socialFriendsCount": {
+    "description": "Friends tab header: accepted friends of the maximum.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "socialReportsResetAt": "You can report again at {time}.",
+  "@socialReportsResetAt": {
+    "description": "Reported tab: when reports are available again.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "socialReportsInfo": "You can report up to {total} players a day. Our team reviews every report.",
+  "@socialReportsInfo": {
+    "description": "Reported tab: explanation of the daily limit.",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "socialNoReportsTitle": "No reports",
+  "@socialNoReportsTitle": {
+    "description": "Reported tab empty state title."
+  },
+  "socialNoReportsMessage": "Players you report from a match show up here with the status of each report.",
+  "@socialNoReportsMessage": {
+    "description": "Reported tab empty state message."
+  },
+  "socialStatusSubmitted": "Submitted",
+  "@socialStatusSubmitted": {
+    "description": "Report status chip."
+  },
+  "socialStatusReviewing": "Under review",
+  "@socialStatusReviewing": {
+    "description": "Report status chip."
+  },
+  "socialStatusActionTaken": "Action taken",
+  "@socialStatusActionTaken": {
+    "description": "Report status chip."
+  },
+  "socialStatusDismissed": "Dismissed",
+  "@socialStatusDismissed": {
+    "description": "Report status chip."
+  },
+  "socialJustNow": "Just now",
+  "@socialJustNow": {
+    "description": "Relative time: under a minute ago."
+  },
+  "socialMinutesAgo": "{minutes} min ago",
+  "@socialMinutesAgo": {
+    "description": "Relative time in minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "socialHoursAgo": "{hours} h ago",
+  "@socialHoursAgo": {
+    "description": "Relative time in hours.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "socialYesterday": "Yesterday",
+  "@socialYesterday": {
+    "description": "Relative time: the previous day."
+  },
+  "socialReportStatusA11y": "Status: {status}",
+  "@socialReportStatusA11y": {
+    "description": "Screen-reader text for a report status chip.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
   },
   "walletTitle": "Your wallet",
   "@walletTitle": {

@@ -28,6 +28,7 @@ class ResultsPanel extends ConsumerStatefulWidget {
     required this.onRematch,
     required this.onPlayAgain,
     required this.onHome,
+    this.onPlayerTap,
   });
 
   /// The finished room (server snapshot).
@@ -39,6 +40,9 @@ class ResultsPanel extends ConsumerStatefulWidget {
   final Future<void> Function(bool accept) onRematch;
   final FutureOr<void> Function() onPlayAgain;
   final FutureOr<void> Function() onHome;
+
+  /// Opens an opponent's options from the finishing order.
+  final ValueChanged<RoomPlayer>? onPlayerTap;
 
   @override
   ConsumerState<ResultsPanel> createState() => _ResultsPanelState();
@@ -147,7 +151,7 @@ class _ResultsPanelState extends ConsumerState<ResultsPanel> {
                   children: [
                     _Header(view: view, title: title, subtitle: subtitle),
                     const SizedBox(height: AppSpacing.lg),
-                    _Placements(view: view),
+                    _Placements(view: view, onPlayerTap: widget.onPlayerTap),
                     const SizedBox(height: AppSpacing.md),
                     _Rewards(view: view, rewards: widget.rewards, room: room),
                     const SizedBox(height: AppSpacing.md),
@@ -253,9 +257,26 @@ class _Header extends StatelessWidget {
 }
 
 class _Placements extends StatelessWidget {
-  const _Placements({required this.view});
+  const _Placements({required this.view, this.onPlayerTap});
 
   final MatchResultView view;
+  final ValueChanged<RoomPlayer>? onPlayerTap;
+
+  /// Opponent rows open the player's options (my own row never does).
+  Widget _tappable(BuildContext context, PlacementRow row, Widget child) {
+    final tap = onPlayerTap;
+    if (tap == null || row.isSelf) return child;
+    return Semantics(
+      button: true,
+      onTapHint: AppLocalizations.of(context).socialPodOptionsHint,
+      child: InkWell(
+        key: ValueKey('placement-${row.player.seat}'),
+        borderRadius: AppRadii.smAll,
+        onTap: () => tap(row.player),
+        child: child,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -266,45 +287,49 @@ class _Placements extends StatelessWidget {
       child: Column(
         children: [
           for (final row in view.rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                children: [
-                  _Medal(place: row.place, forfeited: row.player.forfeited),
-                  const SizedBox(width: AppSpacing.sm),
-                  PlayerAvatar(
-                    avatarIndex: row.player.avatar,
-                    frameId: row.player.cosmetics.frame,
-                    size: 34,
-                    seatColor: SeatColor.tryFromName(row.player.color),
-                    dimmed: row.player.forfeited,
-                    semanticLabel: PlayText.playerName(l10n, row.player),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      row.isSelf
-                          ? l10n.playNameYou(
-                              PlayText.playerName(l10n, row.player),
-                            )
-                          : PlayText.playerName(l10n, row.player),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelLarge?.copyWith(
-                        color: row.isSelf ? c.brand : c.textPrimary,
+            _tappable(
+              context,
+              row,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    _Medal(place: row.place, forfeited: row.player.forfeited),
+                    const SizedBox(width: AppSpacing.sm),
+                    PlayerAvatar(
+                      avatarIndex: row.player.avatar,
+                      frameId: row.player.cosmetics.frame,
+                      size: 34,
+                      seatColor: SeatColor.tryFromName(row.player.color),
+                      dimmed: row.player.forfeited,
+                      semanticLabel: PlayText.playerName(l10n, row.player),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        row.isSelf
+                            ? l10n.playNameYou(
+                                PlayText.playerName(l10n, row.player),
+                              )
+                            : PlayText.playerName(l10n, row.player),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.labelLarge?.copyWith(
+                          color: row.isSelf ? c.brand : c.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                  if (row.player.forfeited) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      l10n.playPlayerForfeited,
-                      style: context.textTheme.labelSmall?.copyWith(
-                        color: c.textMuted,
+                    if (row.player.forfeited) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        l10n.playPlayerForfeited,
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: c.textMuted,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
         ],

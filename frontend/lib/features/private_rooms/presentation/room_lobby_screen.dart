@@ -21,7 +21,7 @@ import '../application/room_share.dart';
 import 'invite_friends_sheet.dart';
 
 /// `/rooms/:id/lobby` — private room lobby: big shareable code, seats with
-/// avatar / frame / level / BOT badge / connection / host crown, host
+/// avatar / frame / level / connection / host crown, host
 /// controls (start, allow bots, add / remove bot, invite friends) and leave.
 /// Goes straight to the game on `game.started`.
 class RoomLobbyScreen extends ConsumerStatefulWidget {

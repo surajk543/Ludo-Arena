@@ -1883,8 +1883,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get metaErrorCannotFriendSelf => 'That\'s your own friend code.';
 
   @override
-  String get metaErrorFriendLimit =>
-      'The friend or request limit has been reached. Remove a friend or request and try again.';
+  String metaErrorFriendLimit(int max) {
+    return 'You can have up to $max friends. Remove a friend to add someone new.';
+  }
 
   @override
   String get metaErrorUnknownFriendCode =>
@@ -2766,6 +2767,165 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsConsentDeny => 'No thanks';
+
+  @override
+  String get socialPodOptionsHint => 'Show player options';
+
+  @override
+  String get socialRequestSent => 'Request sent';
+
+  @override
+  String get socialAcceptRequest => 'Accept request';
+
+  @override
+  String get socialReportPlayer => 'Report player';
+
+  @override
+  String get socialReported => 'Reported';
+
+  @override
+  String get socialAlreadyReported =>
+      'You reported this player in the last 24 hours.';
+
+  @override
+  String socialReportsLeft(int remaining, int total) {
+    return 'Reports left today: $remaining of $total';
+  }
+
+  @override
+  String socialReportLimitAt(int total, String time) {
+    return 'You\'ve used today\'s $total reports. You can report again at $time.';
+  }
+
+  @override
+  String socialReportLimitLater(int total) {
+    return 'You\'ve used today\'s $total reports. Try again later.';
+  }
+
+  @override
+  String socialReportTitle(String name) {
+    return 'Report $name';
+  }
+
+  @override
+  String get socialReportWhy => 'What happened?';
+
+  @override
+  String get socialReasonCheating => 'Cheating';
+
+  @override
+  String get socialReasonOffensiveName => 'Offensive name';
+
+  @override
+  String get socialReasonAbusiveBehavior => 'Abusive behavior';
+
+  @override
+  String get socialReasonLeavingOrStalling => 'Leaving or stalling';
+
+  @override
+  String get socialReasonOther => 'Something else';
+
+  @override
+  String get socialReportReviewNote =>
+      'Our team reviews every report. Follow its status in the Reported tab on the Friends screen.';
+
+  @override
+  String get socialSendReport => 'Send report';
+
+  @override
+  String socialReportSent(int remaining, int total) {
+    return 'Report sent. $remaining of $total reports left today.';
+  }
+
+  @override
+  String socialFriendLimitNote(int max) {
+    return 'You can have up to $max friends — remove one to add more.';
+  }
+
+  @override
+  String get socialErrorCannotReportSelf => 'You can\'t report yourself.';
+
+  @override
+  String get socialErrorCannotReportBot => 'This player can\'t be reported.';
+
+  @override
+  String get socialErrorNotInRoom =>
+      'You can only report players from a match you\'re in.';
+
+  @override
+  String get socialErrorRoomNotFound =>
+      'This match can\'t be found anymore, so the report wasn\'t sent.';
+
+  @override
+  String get socialErrorPlayerNotFound => 'This player couldn\'t be found.';
+
+  @override
+  String get socialTabReported => 'Reported';
+
+  @override
+  String socialOnlineNow(int count) {
+    return 'Online now ($count)';
+  }
+
+  @override
+  String socialOfflineCount(int count) {
+    return 'Offline ($count)';
+  }
+
+  @override
+  String socialFriendsCount(int count, int max) {
+    return 'Friends $count/$max';
+  }
+
+  @override
+  String socialReportsResetAt(String time) {
+    return 'You can report again at $time.';
+  }
+
+  @override
+  String socialReportsInfo(int total) {
+    return 'You can report up to $total players a day. Our team reviews every report.';
+  }
+
+  @override
+  String get socialNoReportsTitle => 'No reports';
+
+  @override
+  String get socialNoReportsMessage =>
+      'Players you report from a match show up here with the status of each report.';
+
+  @override
+  String get socialStatusSubmitted => 'Submitted';
+
+  @override
+  String get socialStatusReviewing => 'Under review';
+
+  @override
+  String get socialStatusActionTaken => 'Action taken';
+
+  @override
+  String get socialStatusDismissed => 'Dismissed';
+
+  @override
+  String get socialJustNow => 'Just now';
+
+  @override
+  String socialMinutesAgo(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String socialHoursAgo(int hours) {
+    return '$hours h ago';
+  }
+
+  @override
+  String get socialYesterday => 'Yesterday';
+
+  @override
+  String socialReportStatusA11y(String status) {
+    return 'Status: $status';
+  }
 
   @override
   String get walletTitle => 'Your wallet';

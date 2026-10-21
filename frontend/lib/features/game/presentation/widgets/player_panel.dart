@@ -27,6 +27,7 @@ class PlayerPanel extends StatelessWidget {
     required this.isTurn,
     this.turnTotalMs = 20000,
     this.stacked = false,
+    this.onTap,
   });
 
   final RoomPlayer player;
@@ -42,6 +43,10 @@ class PlayerPanel extends StatelessWidget {
   /// Card layout (large avatar with the progress column beside it, full-width
   /// name below), used when the screen has spare height around the board.
   final bool stacked;
+
+  /// Opens the player's options (opponents only). The pod then reads as a
+  /// button to screen readers.
+  final VoidCallback? onTap;
 
   SeatColor get _seat => SeatColor.tryFromName(player.color) ?? SeatColor.red;
 
@@ -185,110 +190,123 @@ class PlayerPanel extends StatelessWidget {
       ],
     );
 
+    final pod = AnimatedContainer(
+      duration: reduce ? Duration.zero : AppDurations.medium,
+      curve: AppCurves.standard,
+      constraints: BoxConstraints(minHeight: m.minHeight),
+      padding: EdgeInsetsDirectional.fromSTEB(
+        m.padStart,
+        m.padVertical,
+        m.padEnd,
+        m.padVertical,
+      ),
+      decoration: BoxDecoration(
+        color: isTurn
+            ? Color.lerp(c.surface, shades.base, c.isDark ? 0.22 : 0.12)
+            : c.surface.withValues(alpha: c.isDark ? 0.72 : 0.86),
+        borderRadius: AppRadii.mdAll,
+        border: Border.all(color: border, width: isTurn ? 2 : 1),
+        boxShadow: isTurn
+            ? [
+                BoxShadow(
+                  color: shades.glow.withValues(alpha: 0.45),
+                  blurRadius: 14,
+                  spreadRadius: 0.5,
+                ),
+              ]
+            : c.shadow(AppElevation.low),
+      ),
+      child: switch ((stacked, side)) {
+        // Card: [avatar | progress column] above the name.
+        (true, true) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: cardRow,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    children: [
+                      avatar,
+                      if (out || offline)
+                        // Offline / left: a stamp on the dimmed avatar.
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: _StatusStamp(out: out),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (progress != null) ...[
+                    SizedBox(width: m.sideGap),
+                    Flexible(child: progress.$1),
+                  ],
+                ],
+              ),
+            ),
+            SizedBox(height: m.lineGap + 2),
+            nameLine(center: true, strikes: true),
+          ],
+        ),
+        (true, false) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            avatar,
+            SizedBox(height: m.lineGap + 2),
+            nameLine(center: true),
+            SizedBox(height: m.lineGap),
+            detailLine(center: true),
+          ],
+        ),
+        (false, _) => Row(
+          children: [
+            avatar,
+            if (side && progress != null) ...[
+              SizedBox(width: m.sideGap),
+              progress.$1,
+            ],
+            SizedBox(width: m.gap),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  nameLine(center: false),
+                  // With the progress beside the avatar the second line
+                  // only carries the offline / left state and strikes.
+                  if (!side || out || offline || player.strikes > 0) ...[
+                    SizedBox(height: m.lineGap),
+                    detailLine(center: false),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      },
+    );
+    final tap = onTap;
     return Semantics(
       container: true,
       label: semantics,
+      button: tap != null,
+      onTap: tap,
+      onTapHint: tap == null ? null : l10n.socialPodOptionsHint,
       excludeSemantics: true,
-      child: AnimatedContainer(
-        duration: reduce ? Duration.zero : AppDurations.medium,
-        curve: AppCurves.standard,
-        constraints: BoxConstraints(minHeight: m.minHeight),
-        padding: EdgeInsetsDirectional.fromSTEB(
-          m.padStart,
-          m.padVertical,
-          m.padEnd,
-          m.padVertical,
-        ),
-        decoration: BoxDecoration(
-          color: isTurn
-              ? Color.lerp(c.surface, shades.base, c.isDark ? 0.22 : 0.12)
-              : c.surface.withValues(alpha: c.isDark ? 0.72 : 0.86),
-          borderRadius: AppRadii.mdAll,
-          border: Border.all(color: border, width: isTurn ? 2 : 1),
-          boxShadow: isTurn
-              ? [
-                  BoxShadow(
-                    color: shades.glow.withValues(alpha: 0.45),
-                    blurRadius: 14,
-                    spreadRadius: 0.5,
-                  ),
-                ]
-              : c.shadow(AppElevation.low),
-        ),
-        child: switch ((stacked, side)) {
-          // Card: [avatar | progress column] above the name.
-          (true, true) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                height: cardRow,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Stack(
-                      children: [
-                        avatar,
-                        if (out || offline)
-                          // Offline / left: a stamp on the dimmed avatar.
-                          Positioned.fill(
-                            child: Align(
-                              alignment: Alignment.topCenter,
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: _StatusStamp(out: out),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (progress != null) ...[
-                      SizedBox(width: m.sideGap),
-                      Flexible(child: progress.$1),
-                    ],
-                  ],
-                ),
-              ),
-              SizedBox(height: m.lineGap + 2),
-              nameLine(center: true, strikes: true),
-            ],
-          ),
-          (true, false) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              avatar,
-              SizedBox(height: m.lineGap + 2),
-              nameLine(center: true),
-              SizedBox(height: m.lineGap),
-              detailLine(center: true),
-            ],
-          ),
-          (false, _) => Row(
-            children: [
-              avatar,
-              if (side && progress != null) ...[
-                SizedBox(width: m.sideGap),
-                progress.$1,
-              ],
-              SizedBox(width: m.gap),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    nameLine(center: false),
-                    // With the progress beside the avatar the second line
-                    // only carries the offline / left state and strikes.
-                    if (!side || out || offline || player.strikes > 0) ...[
-                      SizedBox(height: m.lineGap),
-                      detailLine(center: false),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        },
-      ),
+      child: tap == null
+          ? pod
+          : GestureDetector(
+              key: ValueKey('pod-${player.seat}'),
+              behavior: HitTestBehavior.opaque,
+              excludeFromSemantics: true,
+              onTap: tap,
+              child: pod,
+            ),
     );
   }
 

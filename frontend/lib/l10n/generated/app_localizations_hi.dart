@@ -1885,8 +1885,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get metaErrorCannotFriendSelf => 'यह आपका अपना फ़्रेंड कोड है।';
 
   @override
-  String get metaErrorFriendLimit =>
-      'दोस्तों या रिक्वेस्ट की सीमा पूरी हो गई है। किसी दोस्त या रिक्वेस्ट को हटाकर फिर कोशिश करें।';
+  String metaErrorFriendLimit(int max) {
+    return 'आपके ज़्यादा से ज़्यादा $max दोस्त हो सकते हैं। किसी नए को जोड़ने के लिए एक दोस्त हटाएँ।';
+  }
 
   @override
   String get metaErrorUnknownFriendCode =>
@@ -2770,6 +2771,166 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get settingsConsentDeny => 'नहीं, धन्यवाद';
+
+  @override
+  String get socialPodOptionsHint => 'खिलाड़ी के विकल्प देखें';
+
+  @override
+  String get socialRequestSent => 'रिक्वेस्ट भेजी गई';
+
+  @override
+  String get socialAcceptRequest => 'रिक्वेस्ट स्वीकार करें';
+
+  @override
+  String get socialReportPlayer => 'खिलाड़ी की रिपोर्ट करें';
+
+  @override
+  String get socialReported => 'रिपोर्ट की गई';
+
+  @override
+  String get socialAlreadyReported =>
+      'आपने पिछले 24 घंटों में इस खिलाड़ी की रिपोर्ट की है।';
+
+  @override
+  String socialReportsLeft(int remaining, int total) {
+    return 'आज बची रिपोर्ट: $total में से $remaining';
+  }
+
+  @override
+  String socialReportLimitAt(int total, String time) {
+    return 'आपने आज की $total रिपोर्ट इस्तेमाल कर ली हैं। आप $time पर फिर से रिपोर्ट कर सकते हैं।';
+  }
+
+  @override
+  String socialReportLimitLater(int total) {
+    return 'आपने आज की $total रिपोर्ट इस्तेमाल कर ली हैं। बाद में फिर कोशिश करें।';
+  }
+
+  @override
+  String socialReportTitle(String name) {
+    return '$name की रिपोर्ट करें';
+  }
+
+  @override
+  String get socialReportWhy => 'क्या हुआ?';
+
+  @override
+  String get socialReasonCheating => 'धोखाधड़ी';
+
+  @override
+  String get socialReasonOffensiveName => 'आपत्तिजनक नाम';
+
+  @override
+  String get socialReasonAbusiveBehavior => 'अपमानजनक व्यवहार';
+
+  @override
+  String get socialReasonLeavingOrStalling => 'गेम छोड़ना या जानबूझकर देर करना';
+
+  @override
+  String get socialReasonOther => 'कुछ और';
+
+  @override
+  String get socialReportReviewNote =>
+      'हमारी टीम हर रिपोर्ट की समीक्षा करती है। इसकी स्थिति दोस्त स्क्रीन के रिपोर्ट टैब में देखें।';
+
+  @override
+  String get socialSendReport => 'रिपोर्ट भेजें';
+
+  @override
+  String socialReportSent(int remaining, int total) {
+    return 'रिपोर्ट भेज दी गई। आज $total में से $remaining रिपोर्ट बची हैं।';
+  }
+
+  @override
+  String socialFriendLimitNote(int max) {
+    return 'आपके ज़्यादा से ज़्यादा $max दोस्त हो सकते हैं — नया जोड़ने के लिए किसी एक को हटाएँ।';
+  }
+
+  @override
+  String get socialErrorCannotReportSelf => 'आप ख़ुद की रिपोर्ट नहीं कर सकते।';
+
+  @override
+  String get socialErrorCannotReportBot =>
+      'इस खिलाड़ी की रिपोर्ट नहीं की जा सकती।';
+
+  @override
+  String get socialErrorNotInRoom =>
+      'आप सिर्फ़ उसी मैच के खिलाड़ियों की रिपोर्ट कर सकते हैं जिसमें आप हैं।';
+
+  @override
+  String get socialErrorRoomNotFound =>
+      'यह मैच अब नहीं मिल रहा, इसलिए रिपोर्ट नहीं भेजी जा सकी।';
+
+  @override
+  String get socialErrorPlayerNotFound => 'यह खिलाड़ी नहीं मिला।';
+
+  @override
+  String get socialTabReported => 'रिपोर्ट की गई';
+
+  @override
+  String socialOnlineNow(int count) {
+    return 'अभी ऑनलाइन ($count)';
+  }
+
+  @override
+  String socialOfflineCount(int count) {
+    return 'ऑफ़लाइन ($count)';
+  }
+
+  @override
+  String socialFriendsCount(int count, int max) {
+    return 'दोस्त $count/$max';
+  }
+
+  @override
+  String socialReportsResetAt(String time) {
+    return 'आप $time पर फिर से रिपोर्ट कर सकते हैं।';
+  }
+
+  @override
+  String socialReportsInfo(int total) {
+    return 'आप एक दिन में ज़्यादा से ज़्यादा $total खिलाड़ियों की रिपोर्ट कर सकते हैं। हमारी टीम हर रिपोर्ट की समीक्षा करती है।';
+  }
+
+  @override
+  String get socialNoReportsTitle => 'कोई रिपोर्ट नहीं';
+
+  @override
+  String get socialNoReportsMessage =>
+      'मैच से जिन खिलाड़ियों की आप रिपोर्ट करेंगे, वे यहाँ हर रिपोर्ट की स्थिति के साथ दिखेंगे।';
+
+  @override
+  String get socialStatusSubmitted => 'भेजी गई';
+
+  @override
+  String get socialStatusReviewing => 'समीक्षा जारी';
+
+  @override
+  String get socialStatusActionTaken => 'कार्रवाई हुई';
+
+  @override
+  String get socialStatusDismissed => 'ख़ारिज';
+
+  @override
+  String get socialJustNow => 'अभी-अभी';
+
+  @override
+  String socialMinutesAgo(int minutes) {
+    return '$minutes मिनट पहले';
+  }
+
+  @override
+  String socialHoursAgo(int hours) {
+    return '$hours घंटे पहले';
+  }
+
+  @override
+  String get socialYesterday => 'कल';
+
+  @override
+  String socialReportStatusA11y(String status) {
+    return 'स्थिति: $status';
+  }
 
   @override
   String get walletTitle => 'आपका वॉलेट';

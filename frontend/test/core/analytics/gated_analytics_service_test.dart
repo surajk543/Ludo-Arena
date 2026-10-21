@@ -314,6 +314,24 @@ void main() {
       expect(backend.events[1].$2, {'game_type': 'ludo'});
     });
 
+    test('social events carry only the reason / source enum', () async {
+      a.playerReported('offensive_name');
+      a.playerReported('u_3f9a1c2b7d4e'); // never an id
+      a.friendRequestSent('match');
+      a.friendRequestSent('Ravi'); // never a name
+      await flush();
+      expect(backend.names, [
+        'player_reported',
+        'player_reported',
+        'friend_request_sent',
+        'friend_request_sent',
+      ]);
+      expect(backend.events[0].$2, {'reason': 'offensive_name'});
+      expect(backend.events[1].$2, isEmpty);
+      expect(backend.events[2].$2, {'source': 'match'});
+      expect(backend.events[3].$2, isEmpty);
+    });
+
     test('catalog rejects unknown events and unknown params', () {
       expect(AnalyticsCatalog.sanitize('purchase', {'value': 1}), isNull);
       expect(
