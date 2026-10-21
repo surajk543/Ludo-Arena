@@ -226,7 +226,7 @@
   "metaFriendRequestBanner": "{name} ingin berteman denganmu",
   "metaView": "Lihat",
   "metaErrorCannotFriendSelf": "Itu kode temanmu sendiri.",
-  "metaErrorFriendLimit": "Batas teman atau permintaan sudah tercapai. Hapus teman atau permintaan lalu coba lagi.",
+  "metaErrorFriendLimit": "Kamu bisa punya maksimal {max} teman. Hapus satu teman untuk menambah yang baru.",
   "metaErrorUnknownFriendCode": "Tidak ada pemain dengan kode ini. Periksa lalu coba lagi.",
   "metaErrorRequestInProgress": "Masih diproses — coba lagi sebentar lagi.",
   "metaErrorMissionEnded": "Misi ini sudah berakhir. Tarik ke bawah untuk melihat misi saat ini.",

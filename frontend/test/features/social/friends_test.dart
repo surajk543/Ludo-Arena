@@ -78,7 +78,12 @@ void main() {
       );
       expect(byKeyString('incoming-u_kabir9999qqqq'), findsNothing);
       expect(find.text('You and Kabir are now friends!'), findsOneWidget);
-      await tester.tap(find.text('Friends').first);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('friends-tabs')),
+          matching: find.text('Friends'),
+        ),
+      );
       await tester.pump();
       expect(byKeyString('friend-u_kabir9999qqqq'), findsOneWidget);
     });

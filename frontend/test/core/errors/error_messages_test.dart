@@ -171,6 +171,33 @@ void main() {
     }
   });
 
+  test('report codes have specific, translated messages', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    const codes = [
+      'already_reported',
+      'report_limit',
+      'cannot_report_self',
+      'cannot_report_bot',
+    ];
+    for (final code in codes) {
+      expect(isKnownErrorCode(code), isTrue, reason: code);
+      expect(localizedErrorMessage(en, code), isNot(en.errorGeneric));
+      // Players are never labelled as bots, not even in errors.
+      expect(
+        localizedErrorMessage(en, code).toLowerCase(),
+        isNot(contains('bot')),
+      );
+      for (final lang in ['hi', 'ur', 'ar', 'id']) {
+        final other = lookupAppLocalizations(Locale(lang));
+        expect(
+          localizedErrorMessage(other, code),
+          isNot(localizedErrorMessage(en, code)),
+          reason: '$lang/$code',
+        );
+      }
+    }
+  });
+
   test('retryable classification', () {
     expect(isRetryableCode('network_error'), isTrue);
     expect(isRetryableCode('bots_unavailable'), isTrue);

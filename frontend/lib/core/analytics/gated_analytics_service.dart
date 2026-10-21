@@ -228,4 +228,14 @@ class GatedAnalyticsService implements AnalyticsService {
   @override
   void appUpdatePromptShown(String mode) =>
       _log('app_update_prompt_shown', {'mode': mode}, mode);
+
+  // Social --------------------------------------------------------------------
+
+  @override
+  void playerReported(String reason) =>
+      _log('player_reported', {'reason': reason});
+
+  @override
+  void friendRequestSent(String source) =>
+      _log('friend_request_sent', {'source': source});
 }

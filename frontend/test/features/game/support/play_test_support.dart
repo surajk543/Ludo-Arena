@@ -110,10 +110,7 @@ RoomSnapshot ludoRoom({
     board: BoardState(
       ludoTokens:
           tokens ??
-          [
-            for (var s = 0; s < ps.length; s++)
-              List<int>.filled(perPlayer, -1),
-          ],
+          [for (var s = 0; s < ps.length; s++) List<int>.filled(perPlayer, -1)],
     ),
     result: result,
     rematch: rematch,
@@ -308,7 +305,8 @@ class FakeRoomController extends ActiveRoomController {
   }
 
   @override
-  Future<void> allowBots(bool allow) async => calls.add('room.allow_bots:$allow');
+  Future<void> allowBots(bool allow) async =>
+      calls.add('room.allow_bots:$allow');
 
   @override
   Future<void> addBot() async => calls.add('room.add_bot');
@@ -348,6 +346,13 @@ class RecordingPlayAnalytics extends NoopAnalyticsService {
     'game_result_viewed:${game.gameType.param}:${game.matchType.param}:'
     '${game.opponentMix.param}',
   );
+
+  @override
+  void playerReported(String reason) => events.add('player_reported:$reason');
+
+  @override
+  void friendRequestSent(String source) =>
+      events.add('friend_request_sent:$source');
 }
 
 class FakeRoomsRepository implements RoomsRepository {
@@ -422,6 +427,7 @@ class PlayHarness {
     Size size = const Size(360, 740),
     bool connected = true,
     double textScale = 1.0,
+    List<Override> extra = const [],
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -475,10 +481,13 @@ class PlayHarness {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          ...o,
+          ...o.where((a) => !extra.any((b) => identical(a.origin, b.origin))),
+          ...extra,
           realtimeStatusProvider.overrideWith(
             () => _FixedStatus(
-              connected ? RealtimeStatus.connected : RealtimeStatus.reconnecting,
+              connected
+                  ? RealtimeStatus.connected
+                  : RealtimeStatus.reconnecting,
             ),
           ),
         ],

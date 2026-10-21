@@ -1,8 +1,8 @@
 # Progression, Missions, Collection Room, Social & Analytics
 
 Backend design for XP/levels, missions and events, reward claims, cosmetics
-(Collection Room), friends, invites, leaderboards and privacy-conscious
-analytics. HTTP contract: [`rest-api.md`](rest-api.md); push messages:
+(Collection Room), friends, invites, leaderboards, player reports and
+privacy-conscious analytics. HTTP contract: [`rest-api.md`](rest-api.md); push messages:
 [`websocket-protocol.md`](websocket-protocol.md); item ids:
 [`cosmetics-catalog.md`](cosmetics-catalog.md).
 
@@ -10,9 +10,10 @@ analytics. HTTP contract: [`rest-api.md`](rest-api.md); push messages:
 |---|---|
 | `backend/internal/progression` | XP, levels, milestones, missions/events, claims, inventory, loadout, purchases, finished-match recording. Implements `playerinfo.Provider`, `gameevents.Recorder`, `gameevents.Inventory`. |
 | `backend/internal/social` | Friends + requests, recent opponents, friends leaderboard, private-room invites. Implements `gameevents.Inviter`. |
+| `backend/internal/reports` | Player reports (`POST/GET /reports`) and the operator review API (`/admin/reports`). |
 | `backend/internal/analytics` | Pseudonymous active-user sketches, `POST /telemetry/events`. |
 | `backend/config/catalog.json`, `backend/config/missions.json` | Cosmetics catalog and missions/events configuration (validated at startup). |
-| `backend/migrations/003_progression.sql` | The `progression` schema. |
+| `backend/migrations/003_progression.sql`, `006_player_reports.sql` | The `progression` schema. |
 | `backend/migrations/005_display_name.sql`, `backend/internal/profile` | The nullable `player_progress.display_name` column: player-chosen display names (`PATCH /me`), written and read by the `profile` package. |
 
 Every item is cosmetic. Nothing here changes dice, rules, matchmaking or
@@ -37,9 +38,16 @@ player-chosen display name (one nullable column, below).
 | `inventory(user_id, item_id, acquired_at)` | `(user_id, item_id)` | Owned cosmetics. Starter items are implicit (no rows). The PK makes grants and purchases exactly-once. |
 | `loadout(user_id, slot, item_id)` | `(user_id, slot)` | Equipped items. A missing slot means the starter item; a row whose item no longer fits the catalog also falls back to starter. |
 | `friendships(user_lo, user_hi, status, requested_by, created_at)` | `(user_lo, user_hi)`, `CHECK user_lo < user_hi` | One row per unordered pair: `pending` (request by `requested_by`) or `accepted`. Indexed on `user_hi` for "my relationships" lookups. Written only by `social`; read by `progression` inside the match transaction (friend XP bonus, friend missions). |
+| `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats, names) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
 
 Indexes on `match_receipts.processed_at`, `mission_progress.updated_at` and
 `mission_claims.claimed_at` serve the purge job.
+
+`backend/tests/schema_guard_test.go` fails when a migration adds a table
+outside the approved list or a column that looks like gameplay state
+(board, token, position, dice, turn, move, seat, snapshot, state, legal,
+phase, room, game, …; only `player_reports.room_id` / `.game` and
+`player_progress.display_name` are allowed exceptions).
 
 The migration is idempotent (`CREATE ... IF NOT EXISTS`) and is applied on
 every start with the other migrations.
@@ -52,7 +60,11 @@ Every write transaction for an account first runs
 serialized: level-up detection is consistent, and lock order is always
 "progress row first", so claims, purchases and match records for the same
 account cannot deadlock. Friend-graph changes lock both accounts' rows in id
-order. (The insert has no conflict target on purpose: with
+order; every change that creates an accepted friendship (request with
+auto-accept, accept) counts both sides' friends under those locks, so the
+friend cap cannot be exceeded by concurrent accepts. Player reports take a
+per-reporter transaction advisory lock (`pg_advisory_xact_lock`) instead of
+a row lock. (The insert has no conflict target on purpose: with
 `ON CONFLICT (user_id)` two concurrent first inserts fail on the `public_id`
 unique index.)
 
@@ -169,8 +181,18 @@ currency for `purchase` items). Level milestones are derived from the
   (`profile.Resolve`), verified against `profile.PublicID` and then persisted.
 - Requests auto-accept when the other player already requested you;
   repeating a pending request is idempotent; you cannot friend yourself.
-- Limits: 200 accepted friends, 100 pending sent, 100 pending received;
-  60 friend requests per hour per account (plus the 30/min social write limit).
+- Limits: `FRIENDS_MAX` accepted friends (default **20**, ≥ 1), 100 pending
+  sent, 100 pending received; 60 friend requests per hour per account (plus
+  the 30/min social write limit). A new friendship — sending a request,
+  auto-accepting or accepting — fails with `friend_limit` when **either**
+  side already has `FRIENDS_MAX` friends (checked under both accounts' row
+  locks). Pending requests are capped separately and may outnumber free
+  friend slots; the cap is enforced when one is accepted. Accounts that
+  already have more friends (e.g. after `FRIENDS_MAX` was lowered) keep them
+  but cannot add more until they are below the cap.
+- `GET /friends` also returns `friendCount` (accepted friends), `maxFriends`
+  (`FRIENDS_MAX`) and `onlineCount` (accepted friends online now); friends are
+  sorted online first, then by name.
 - Responses contain only public uid, display name, avatar, level, title,
   status and — **for accepted friends only** — `online` (Redis
   `presence:{userId}` set by the WebSocket gateway). Account ids, emails and
@@ -186,6 +208,35 @@ currency for `purchase` items). Level milestones are derived from the
 - New requests push `social.friend_request {fromUid, fromName}` to the
   recipient.
 
+### 7.1 Player reports (`backend/internal/reports`)
+
+- A human reports another human from the in-game player pod:
+  `POST /reports {"uid","roomId","reason"}`. The room is read from Redis
+  (`rooms.LoadRoom`, read-only): **both** players must hold a seat in it
+  (forfeited and left seats count), so reports work during the game and
+  while the finished room exists (finished: `FINISHED_ROOM_TTL` + rematch
+  window ≈ 10.5 min; closed: 2 min); afterwards `room_not_found`.
+- Bot seats (and seats that are not human accounts) → `cannot_report_bot`;
+  yourself → `cannot_report_self`; a uid that is not seated →
+  `not_in_room` (or `not_found` when it is no account at all).
+- Per reporter, rolling 24 h window: at most one report per reported player
+  (`already_reported`, checked first) and at most `REPORTS_PER_DAY` reports
+  (default **2**, ≥ 1; `report_limit` with `Retry-After` and
+  `details.resetsAt`). Window read, both checks and the insert run in one
+  transaction holding `pg_advisory_xact_lock(<reports namespace>,
+  hash(reporter))`, so concurrent bursts cannot exceed the limit on any
+  number of instances. Rejected attempts store nothing and do not count.
+- `GET /reports` lists my reports (newest first, ≤ 100) with the reported
+  player's public profile (uid, name, avatar, level) and review status, plus
+  `limit {perDay, remaining, resetsAt}`. Reporter ids and operator notes are
+  never returned to players; the reported player is never told.
+- Operators review through `GET /admin/reports` and
+  `PATCH /admin/reports/{id}` (header `X-Admin-Key`, compared in constant
+  time against `ADMIN_API_KEY_SHA256`; unset → the routes answer 404; not
+  version gated; 60/min per IP). Expose them **only on the private
+  network**. Status changes are logged (`player report reviewed`, report id
+  and status only).
+
 ## 8. Redis (ephemeral only)
 
 | Key | Type | TTL | Content |
@@ -195,8 +246,8 @@ currency for `purchase` items). Level milestones are derived from the
 | `invite:{from}:{to}:{roomId}` | string | until the invite expires (10 s – 30 min) | invite id (dedupe) |
 | `idem:{userId}:{key}` / `…:lock` | string | 24 h / 30 s | cached successful claim/purchase response |
 | `au:d:{yyyymmdd}`, `au:w:{yyyy-Www}` | HyperLogLog | 40 days | pseudonymous active-user sketches |
-| `rl:invite_user:…`, `rl:friend_request_user:…` | counter | window | rate limits |
-| read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}` | | | set by the gateway / profile service |
+| `rl:invite_user:…`, `rl:friend_request_user:…`, `rl:report_user:…`, `rl:report_read_user:…`, `rl:admin_ip:…` | counter | window | rate limits |
+| read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}` | | | set by the gateway / profile service / room engine (reports verify seats) |
 
 **If Redis is lost:** recent opponents and the current weekly leaderboard
 reset, pending invites disappear (the sender can re-invite), idempotency
@@ -234,7 +285,7 @@ several instances):
 | `match_receipts` | 14 days after processing (a match is never re-delivered that late) |
 | `mission_progress` | 60 days after the last update, never for a running period |
 | `mission_claims` | 60 days after the claim, never for a running period |
-| `player_progress`, `inventory`, `loadout`, `friendships` | for the life of the account |
+| `player_progress`, `inventory`, `loadout`, `friendships`, `player_reports` | for the life of the account (reports are removed with either account) |
 
 Deletes run in batches of 5,000 rows.
 
@@ -257,6 +308,8 @@ its keys are rebuilt as players play (see §8).
 `cosmetic_purchases_total{currency}`, `friend_requests_total{event}`
 (`sent|accepted|auto_accepted|declined|cancelled|removed|rejected`),
 `invites_sent_total{result}` (`sent|not_friends|rate_limited|error`),
+`player_reports_total{reason,result}` (reason: the five reasons or
+`invalid`; result: `created|already_reported|report_limit|cannot_report_self|cannot_report_bot|not_in_room|not_found|room_not_found|bad_request|error`),
 `returning_users_estimate{window}`; plus the existing
 `active_users_estimate`, `client_errors_total`, `client_reconnect_total`.
 All count humans only; labels are bounded.
@@ -266,10 +319,13 @@ All count humans only; labels are bounded.
 ```go
 prog, err := progression.New(pool, rdb, profiles, notifier, log, progression.Options{
     CatalogPath: "config/catalog.json", MissionsPath: "config/missions.json"})
-soc := social.New(pool, rdb, profiles, prog, notifier, log, social.Options{}) // subscribes to prog
+soc := social.New(pool, rdb, profiles, prog, notifier, log,
+    social.Options{MaxFriends: cfg.Social.FriendsMax}) // subscribes to prog
+rep := reports.New(pool, profiles, prog, roomLookup /* rooms.LoadRoom */, log, reports.Options{
+    PerDay: cfg.Social.ReportsPerDay, AdminKeySHA256: cfg.AdminKeySHA256})
 tracker := analytics.New(rdb, cfg.Telemetry.ActiveUserKey, log)
 
-prog.Register(router); soc.Register(router); tracker.Register(router)
+prog.Register(router); soc.Register(router); rep.Register(router); tracker.Register(router)
 go prog.Run(ctx); go tracker.Run(ctx)
 
 authSvc.OnNewAccount = func(ctx context.Context, id uuid.UUID) { _ = prog.Bootstrap(ctx, id); _ = tracker.Touch(ctx, id) }

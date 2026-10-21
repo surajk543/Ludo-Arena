@@ -614,18 +614,6 @@ abstract class AppLocalizations {
   /// **'Nothing here yet'**
   String get commonNothingHereYet;
 
-  /// Short badge shown on bot players' avatars. Keep very short (≤ 4 characters if possible).
-  ///
-  /// In en, this message translates to:
-  /// **'BOT'**
-  String get commonBotBadge;
-
-  /// Accessibility label for the BOT badge.
-  ///
-  /// In en, this message translates to:
-  /// **'Computer player'**
-  String get commonBotPlayerLabel;
-
   /// Label for the current user in player lists.
   ///
   /// In en, this message translates to:
@@ -3259,11 +3247,11 @@ abstract class AppLocalizations {
   /// **'That\'s your own friend code.'**
   String get metaErrorCannotFriendSelf;
 
-  /// Error: friend limit.
+  /// Error friend_limit: the accepted-friends cap is reached.
   ///
   /// In en, this message translates to:
-  /// **'The friend or request limit has been reached. Remove a friend or request and try again.'**
-  String get metaErrorFriendLimit;
+  /// **'You can have up to {max} friends. Remove a friend to add someone new.'**
+  String metaErrorFriendLimit(int max);
 
   /// Error: no player with this code.
   ///
@@ -3934,7 +3922,7 @@ abstract class AppLocalizations {
   /// Practice explanation.
   ///
   /// In en, this message translates to:
-  /// **'Practice is free and pays no coins. Bots are computer players and always carry a bot badge.'**
+  /// **'Practice is free and pays no coins. You play against computer players.'**
   String get playPracticeNote;
 
   /// Practice status: creating the table.
@@ -3990,12 +3978,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}\'s turn'**
   String playTurnOther(String name);
-
-  /// Status: a bot player's turn.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} (bot) is playing…'**
-  String playTurnBot(String name);
 
   /// Ludo: the third six in a row is void.
   ///
@@ -4279,11 +4261,11 @@ abstract class AppLocalizations {
   /// **'Wallet: {amount} coins'**
   String playRewardCoinsBalance(String amount);
 
-  /// No coins because a bot was seated.
+  /// No coins from this match (a computer player was seated, or practice).
   ///
   /// In en, this message translates to:
-  /// **'Matches with bots don\'t pay coins.'**
-  String get playRewardNoCoinsBots;
+  /// **'This match doesn\'t pay coins.'**
+  String get playRewardNoCoinsMatch;
 
   /// No coins for a player who did not win.
   ///
@@ -4800,6 +4782,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No thanks'**
   String get settingsConsentDeny;
+
+  /// Screen-reader action hint on an opponent pod.
+  ///
+  /// In en, this message translates to:
+  /// **'Show player options'**
+  String get socialPodOptionsHint;
+
+  /// Player sheet: friend request already sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent'**
+  String get socialRequestSent;
+
+  /// Player sheet: accept their friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept request'**
+  String get socialAcceptRequest;
+
+  /// Player sheet: open the report flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Report player'**
+  String get socialReportPlayer;
+
+  /// Player sheet: this player was already reported (disabled).
+  ///
+  /// In en, this message translates to:
+  /// **'Reported'**
+  String get socialReported;
+
+  /// Player was reported in the last 24 hours (also 409 already_reported).
+  ///
+  /// In en, this message translates to:
+  /// **'You reported this player in the last 24 hours.'**
+  String get socialAlreadyReported;
+
+  /// Remaining reports in the rolling 24 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports left today: {remaining} of {total}'**
+  String socialReportsLeft(int remaining, int total);
+
+  /// Daily report limit reached (429 report_limit), with the local reset time.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve used today\'s {total} reports. You can report again at {time}.'**
+  String socialReportLimitAt(int total, String time);
+
+  /// Daily report limit reached, reset time unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve used today\'s {total} reports. Try again later.'**
+  String socialReportLimitLater(int total);
+
+  /// Report step header.
+  ///
+  /// In en, this message translates to:
+  /// **'Report {name}'**
+  String socialReportTitle(String name);
+
+  /// Report step: reason picker label.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get socialReportWhy;
+
+  /// Report reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheating'**
+  String get socialReasonCheating;
+
+  /// Report reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Offensive name'**
+  String get socialReasonOffensiveName;
+
+  /// Report reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Abusive behavior'**
+  String get socialReasonAbusiveBehavior;
+
+  /// Report reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving or stalling'**
+  String get socialReasonLeavingOrStalling;
+
+  /// Report reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get socialReasonOther;
+
+  /// Report step: what happens next.
+  ///
+  /// In en, this message translates to:
+  /// **'Our team reviews every report. Follow its status in the Reported tab on the Friends screen.'**
+  String get socialReportReviewNote;
+
+  /// Report step: confirm button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get socialSendReport;
+
+  /// Toast after a report was stored.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent. {remaining} of {total} reports left today.'**
+  String socialReportSent(int remaining, int total);
+
+  /// Friend limit reached: adding/accepting is disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'You can have up to {max} friends — remove one to add more.'**
+  String socialFriendLimitNote(int max);
+
+  /// Error cannot_report_self.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t report yourself.'**
+  String get socialErrorCannotReportSelf;
+
+  /// Error cannot_report_bot. Never mention bots (players are not labelled).
+  ///
+  /// In en, this message translates to:
+  /// **'This player can\'t be reported.'**
+  String get socialErrorCannotReportBot;
+
+  /// Error not_in_room while reporting.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only report players from a match you\'re in.'**
+  String get socialErrorNotInRoom;
+
+  /// Error room_not_found while reporting.
+  ///
+  /// In en, this message translates to:
+  /// **'This match can\'t be found anymore, so the report wasn\'t sent.'**
+  String get socialErrorRoomNotFound;
+
+  /// Error not_found while reporting.
+  ///
+  /// In en, this message translates to:
+  /// **'This player couldn\'t be found.'**
+  String get socialErrorPlayerNotFound;
+
+  /// Friends screen tab: my reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported'**
+  String get socialTabReported;
+
+  /// Friends tab section header: friends online now.
+  ///
+  /// In en, this message translates to:
+  /// **'Online now ({count})'**
+  String socialOnlineNow(int count);
+
+  /// Friends tab section header: offline friends.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline ({count})'**
+  String socialOfflineCount(int count);
+
+  /// Friends tab header: accepted friends of the maximum.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends {count}/{max}'**
+  String socialFriendsCount(int count, int max);
+
+  /// Reported tab: when reports are available again.
+  ///
+  /// In en, this message translates to:
+  /// **'You can report again at {time}.'**
+  String socialReportsResetAt(String time);
+
+  /// Reported tab: explanation of the daily limit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can report up to {total} players a day. Our team reviews every report.'**
+  String socialReportsInfo(int total);
+
+  /// Reported tab empty state title.
+  ///
+  /// In en, this message translates to:
+  /// **'No reports'**
+  String get socialNoReportsTitle;
+
+  /// Reported tab empty state message.
+  ///
+  /// In en, this message translates to:
+  /// **'Players you report from a match show up here with the status of each report.'**
+  String get socialNoReportsMessage;
+
+  /// Report status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get socialStatusSubmitted;
+
+  /// Report status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get socialStatusReviewing;
+
+  /// Report status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Action taken'**
+  String get socialStatusActionTaken;
+
+  /// Report status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismissed'**
+  String get socialStatusDismissed;
+
+  /// Relative time: under a minute ago.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get socialJustNow;
+
+  /// Relative time in minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min ago'**
+  String socialMinutesAgo(int minutes);
+
+  /// Relative time in hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h ago'**
+  String socialHoursAgo(int hours);
+
+  /// Relative time: the previous day.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get socialYesterday;
+
+  /// Screen-reader text for a report status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: {status}'**
+  String socialReportStatusA11y(String status);
 
   /// Wallet sheet title.
   ///

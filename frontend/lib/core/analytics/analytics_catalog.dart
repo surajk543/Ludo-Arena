@@ -94,6 +94,16 @@ abstract final class AnalyticsValues {
   };
   static const rarities = {'common', 'rare', 'epic', 'legendary'};
   static const updateModes = {'optional_update', 'force_update'};
+  static const reportReasons = {
+    'cheating',
+    'offensive_name',
+    'abusive_behavior',
+    'leaving_or_stalling',
+    'other',
+  };
+
+  /// Where a friend request was sent from.
+  static const friendRequestSources = {'match', 'recent', 'code'};
 
   /// Protocol + REST + client error codes that may be reported as
   /// `error_code` (anything else is bucketed to `other`).
@@ -213,6 +223,10 @@ abstract final class AnalyticsCatalog {
     'cosmetic_equipped': {'item_kind': EnumRule(AnalyticsValues.itemKinds)},
     'collection_viewed': {},
     'app_update_prompt_shown': {'mode': EnumRule(AnalyticsValues.updateModes)},
+    'player_reported': {'reason': EnumRule(AnalyticsValues.reportReasons)},
+    'friend_request_sent': {
+      'source': EnumRule(AnalyticsValues.friendRequestSources),
+    },
   };
 
   static bool isKnown(String name) => events.containsKey(name);

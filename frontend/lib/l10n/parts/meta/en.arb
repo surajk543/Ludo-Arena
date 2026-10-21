@@ -1201,9 +1201,14 @@
   "@metaErrorCannotFriendSelf": {
     "description": "Error: own code."
   },
-  "metaErrorFriendLimit": "The friend or request limit has been reached. Remove a friend or request and try again.",
+  "metaErrorFriendLimit": "You can have up to {max} friends. Remove a friend to add someone new.",
   "@metaErrorFriendLimit": {
-    "description": "Error: friend limit."
+    "description": "Error friend_limit: the accepted-friends cap is reached.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
   },
   "metaErrorUnknownFriendCode": "No player has this friend code. Check it and try again.",
   "@metaErrorUnknownFriendCode": {

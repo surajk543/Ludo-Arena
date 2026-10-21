@@ -226,7 +226,7 @@
   "metaFriendRequestBanner": "{name} يريد أن يكون صديقك",
   "metaView": "عرض",
   "metaErrorCannotFriendSelf": "هذا رمز صداقتك أنت.",
-  "metaErrorFriendLimit": "تم بلوغ حد الأصدقاء أو الطلبات. أزل صديقًا أو طلبًا ثم حاول مجددًا.",
+  "metaErrorFriendLimit": "يمكنك امتلاك {max} صديقًا كحد أقصى. أزل صديقًا لإضافة شخص جديد.",
   "metaErrorUnknownFriendCode": "لا يوجد لاعب بهذا الرمز. تحقق منه وحاول مجددًا.",
   "metaErrorRequestInProgress": "لا يزال الطلب قيد المعالجة — حاول مجددًا بعد قليل.",
   "metaErrorMissionEnded": "انتهت هذه المهمة. اسحب للأسفل لرؤية المهام الحالية.",

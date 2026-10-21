@@ -342,19 +342,28 @@ void main() {
       expect(ringRect.center, avatar.center);
     });
 
-    testWidgets('bots keep the full name and the BOT badge on the avatar', (
+    testWidgets('bots are never labelled (no badge, no bot wording)', (
       tester,
     ) async {
+      final semantics = tester.ensureSemantics();
       await _pumpPanel(
         tester,
         width: 150.5,
         p: player(1, bot: true, name: 'Bot Riya'),
       );
-      expect(find.text('Bot Riya'), findsOneWidget);
-      final badge = tester.getRect(find.byType(BotBadge));
-      final pod = tester.getRect(find.byType(PlayerPanel));
-      expect(pod.contains(badge.topLeft), isTrue);
-      expect(pod.contains(badge.bottomRight), isTrue);
+      // A legacy "Bot " name prefix is dropped; nothing says "bot".
+      expect(find.text('Riya'), findsOneWidget);
+      expect(
+        find.textContaining(RegExp('bot', caseSensitive: false)),
+        findsNothing,
+      );
+      final label = tester
+          .getSemantics(find.byType(PlayerPanel))
+          .label
+          .toLowerCase();
+      expect(label, isNot(contains('bot')));
+      expect(label, isNot(contains('computer')));
+      semantics.dispose();
     });
 
     testWidgets('Snakes & Ladders: the square beside the avatar', (

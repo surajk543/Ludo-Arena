@@ -29,11 +29,11 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 | 400 | `bad_request`, `client_version_required`, `environment_mismatch`, `invalid_name` (details = `{"reason"}`) |
 | 401 | `unauthorized`, `invalid_credential`, `refresh_reused`, `session_replaced` |
 | 403 | `forbidden` |
-| 404 | `not_found`, `invalid_code` |
-| 409 | `identity_conflict`, `provider_already_linked`, `already_owned`, `already_claimed`, `already_friends`, `request_in_progress` |
-| 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `idempotency_key_reused` |
+| 404 | `not_found`, `invalid_code`, `room_not_found` |
+| 409 | `identity_conflict`, `provider_already_linked`, `already_owned`, `already_claimed`, `already_friends`, `already_reported`, `request_in_progress` |
+| 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `cannot_report_self`, `cannot_report_bot`, `not_in_room`, `idempotency_key_reused` |
 | 426 | `update_required` (details = policy) |
-| 429 | `rate_limited` (`Retry-After` header) |
+| 429 | `rate_limited`, `report_limit` (`Retry-After` header; `report_limit` details = `Limit`) |
 | 503 | `maintenance` (details = policy), `provider_unavailable` |
 
 ---
@@ -330,17 +330,22 @@ writes 30/min, new friend requests 60/hour.
 
 | Method & path | Body | Response |
 |---|---|---|
-| `GET /friends` | – | `{"friends":[Friend],"incoming":[Friend],"outgoing":[Friend]}` (friends: online first, then by name; requests: newest first) |
-| `POST /friends/requests` | `{"friendCode":"u_3f9a1c2b7d"}` | 201 `{"friend"}`; auto-accepts if they already requested you (`status: "friend"`); repeating a pending request returns it again (`status: "outgoing"`). 404 `not_found` (unknown code), 409 `already_friends`, 422 `cannot_friend_self`, 422 `friend_limit` |
-| `POST /friends/requests/{uid}/accept` | – | `{"friend"}`; 404 `not_found` (no pending request from `uid`), 422 `friend_limit`; accepting an existing friend returns it |
+| `GET /friends` | – | `{"friends":[Friend],"incoming":[Friend],"outgoing":[Friend],"onlineCount":3,"friendCount":12,"maxFriends":20}` (friends: online first, then by name; requests: newest first). `onlineCount` = accepted friends online now, `friendCount` = accepted friends, `maxFriends` = the cap (`FRIENDS_MAX`) |
+| `POST /friends/requests` | `{"friendCode":"u_3f9a1c2b7d"}` | 201 `{"friend"}`; auto-accepts if they already requested you (`status: "friend"`); repeating a pending request returns it again (`status: "outgoing"`). 404 `not_found` (unknown code), 409 `already_friends`, 422 `cannot_friend_self`, 422 `friend_limit` (you **or** they already have `maxFriends` friends, or a pending-request cap is reached) |
+| `POST /friends/requests/{uid}/accept` | – | `{"friend"}`; 404 `not_found` (no pending request from `uid`), 422 `friend_limit` (either side has `maxFriends` friends); accepting an existing friend returns it |
 | `DELETE /friends/{uid}` | – | 204 (removes friend or declines/cancels request; no-op if none); 404 `not_found` for an unknown uid |
 | `GET /social/recent` | – | `{"players":[Friend]}` last 20 human opponents (14 days), newest first |
 | `GET /leaderboards/friends` | – | `{"periodKey":"w2026-W43","entries":[{"uid","name","avatar","level","weeklyXp","rank","isMe"}]}` |
 
 **Friend**: `{"uid","name","avatar","level","title","online","status":"friend|incoming|outgoing|none"}`
 
-- Friend codes are the public uid, case-insensitive. Limits: 200 friends,
-  100 pending sent, 100 pending received.
+- Friend codes are the public uid, case-insensitive. Limits: `FRIENDS_MAX`
+  accepted friends (default **20**), 100 pending sent, 100 pending received.
+  A new friendship (request, auto-accept or accept) is refused with
+  `friend_limit` when **either** player is at the cap, atomically (two
+  concurrent accepts cannot both take the last slot). Pending requests may
+  outnumber free slots; the cap is checked again on acceptance. Accounts
+  already above the cap keep their friends but cannot add more.
 - `online` is only reported for accepted friends (always `false` otherwise).
 - No response ever contains another player's account id, email or provider
   id.
@@ -348,6 +353,66 @@ writes 30/min, new friend requests 60/hour.
   week (Monday 00:00 UTC; matches and mission rewards); equal XP share a rank.
 - A new request pushes `social.friend_request` to the recipient. Invites are
   sent over WebSocket (`room.invite`, friends only, 10/min per sender).
+
+## Player reports
+
+Authenticated humans, version gated. Rate limits per account: `POST` 20/min,
+`GET` 120/min (separate from the daily report limit). Stored in PostgreSQL
+(`progression.player_reports`: report metadata only, no game state).
+
+| Method & path | Body | Response |
+|---|---|---|
+| `POST /reports` | `{"uid":"u_3f9a1c2b7d","roomId":"r_k3m9x2","reason":"cheating"}` | 201 `{"report":Report,"limit":Limit}` |
+| `GET /reports` | – | `{"reports":[Report],"limit":Limit}` — my reports, newest first, at most 100 |
+
+`reason`: `cheating` \| `offensive_name` \| `abusive_behavior` \|
+`leaving_or_stalling` \| `other`.
+
+**Report**: `{"id","player":{"uid","name","avatar","level"},"reason","game","roomId","status":"submitted|reviewing|action_taken|dismissed","createdAt","updatedAt"}`
+(`player` is the reported player's public profile; reporter ids and operator
+notes are never returned).
+
+**Limit**: `{"perDay":2,"remaining":1,"resetsAt":1792588328065}` — `perDay` =
+`REPORTS_PER_DAY` (default 2); `resetsAt` (unix ms) is when `remaining` next
+goes up (the oldest report of the rolling 24 h window leaves it), `null` when
+no report is counted.
+
+`POST /reports` errors, in check order:
+
+| HTTP | Code | When |
+|---|---|---|
+| 400 | `bad_request` | malformed body, unknown field, unknown `reason`, malformed `uid`/`roomId` |
+| 422 | `cannot_report_self` | `uid` is the caller |
+| 404 | `room_not_found` | the room no longer exists (rooms are kept while playing and ≈ 10.5 min after the game ends) |
+| 422 | `cannot_report_bot` | the seat is a bot (or not a human account) |
+| 422 | `not_in_room` | the caller or the reported player does not hold a seat in that room (forfeited / left seats count) |
+| 404 | `not_found` | `uid` is not seated and is no player at all |
+| 409 | `already_reported` | the caller already reported this player in the last 24 h |
+| 429 | `report_limit` | the caller already filed `perDay` reports in the last 24 h; `Retry-After` header and `details` = `Limit` (`details.resetsAt`) |
+
+Both 24 h rules are rolling windows enforced atomically per reporter (a
+burst of concurrent reports stores at most `perDay`). Rejected attempts are
+not stored and do not count. The reported player is not notified.
+
+### Operator API (private network only)
+
+Not for the app. **Not version gated**, no user token: header
+`X-Admin-Key: <key>` is compared in constant time with
+`ADMIN_API_KEY_SHA256` (hex sha256 of the key). When that variable is unset
+both routes answer **404** `not_found`; a missing or wrong key answers
+**401** `unauthorized`. Rate limited 60/min per client IP (checked before the
+key). Expose `/api/v1/admin/*` only on the private network (block it at the
+public proxy).
+
+| Method & path | Body | Response |
+|---|---|---|
+| `GET /admin/reports?status=submitted&limit=50` | – | `{"reports":[AdminReport]}` newest first; `status` optional (one of the four statuses), `limit` 1–200 (default 50); else 400 |
+| `PATCH /admin/reports/{id}` | `{"status":"reviewing","note":"…"}` (at least one; `note` ≤ 1000 chars, `""` clears it) | `{"report":AdminReport}`; 400 `bad_request`, 404 `not_found` (unknown id) |
+
+**AdminReport**: `{"id","reporter":{"uid","name"},"reported":{"uid","name"},"reason","roomId","game","status","note":null,"createdAt","updatedAt","reportedStats":{"total","open","reporters"}}`
+— `reportedStats` counts every report against the reported player (`open` =
+`submitted` + `reviewing`; `reporters` = distinct reporters). Account ids are
+never returned.
 
 ## Telemetry (privacy-conscious, aggregate only)
 
@@ -371,7 +436,7 @@ Service-to-service endpoints, **not** version-gated, disabled unless
 | `GET /bot/assignments?wait=20` | controller JWT | – | Long-poll. `{"assignments":[{"id","roomId","game","variant","kind":"practice\|private\|public_fill","expiresAt"}]}`; each assignment is handed out once. During maintenance: `{"assignments":[],"maintenance":true}` |
 | `GET /bot/lobbies` | controller JWT | – | `{"lobbies":[{"roomId","game","variant","capacity","humans","bots","pendingBots","waitingMs"}],"publicFillEnabled":bool}` open public lobbies |
 | `POST /bot/lobbies/{roomId}/fill` | controller JWT | `{"count":2}` | `{"requested":2}` — the assignments are delivered through `GET /bot/assignments`; 409 when the lobby changed, is full, or already has pending bots; 403 when public fill is disabled |
-| `POST /bot/sessions` | controller JWT | `{"assignmentId","name","profile"}` or `{"mode":"loadtest","name"}` | `{"accessToken","expiresAt","uid","roomId"}` — seats the bot (assignment) or scopes it to the isolated load-test pool. Load-test sessions are refused when `APP_ENV=production` or `BOT_LOADTEST_ENABLED` is false. |
+| `POST /bot/sessions` | controller JWT | `{"assignmentId","name","profile"}` or `{"mode":"loadtest","name"}` | `{"accessToken","expiresAt","uid","roomId"}` — seats the bot (assignment) or scopes it to the isolated load-test pool. Load-test sessions are refused when `APP_ENV=production` or `BOT_LOADTEST_ENABLED` is false. The display name is `name` sanitized (≤ 20 runes) with any leading `Bot` label stripped (empty → a neutral first name); bots are identified by `players[].bot`, never by their name. |
 | `DELETE /bot/sessions/{uid}` | controller JWT | – | 204, revokes the bot session (bot leaves its room) |
 
 ## Health & metrics

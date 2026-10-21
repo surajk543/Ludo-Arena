@@ -25,12 +25,14 @@ type Caller struct {
 	Bot      bool
 	LoadTest bool
 	BotRoom  string
+	BotName  string // display name of a bot session (from its token)
 	Epoch    int64
 }
 
 // CallerFrom builds a Caller from an authenticated principal.
 func CallerFrom(p auth.Principal, epoch int64) Caller {
-	return Caller{UserID: p.UserID.String(), Bot: p.IsBot(), LoadTest: p.LoadTest, BotRoom: p.RoomID, Epoch: epoch}
+	return Caller{UserID: p.UserID.String(), Bot: p.IsBot(), LoadTest: p.LoadTest, BotRoom: p.RoomID,
+		BotName: p.BotName, Epoch: epoch}
 }
 
 func validGame(game, variant string, capacity int) error {
@@ -268,7 +270,7 @@ func (s *Service) rankCandidates(ctx context.Context, ids []string, level int) [
 func (s *Service) newSeat(ctx context.Context, c Caller) Player {
 	var p Player
 	if c.Bot {
-		p = Player{UserID: c.UserID, UID: "b_" + strings.ReplaceAll(c.UserID, "-", "")[:10], Name: "Bot", Bot: true,
+		p = Player{UserID: c.UserID, UID: "b_" + strings.ReplaceAll(c.UserID, "-", "")[:10], Name: botName(c.BotName, c.UserID), Bot: true,
 			Level: 1, Cosmetics: map[string]string{}, JoinedAt: s.nowMs()}
 	} else {
 		p = s.playerFor(ctx, c.UserID)

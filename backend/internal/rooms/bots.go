@@ -6,15 +6,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"hash/fnv"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"ludoroyale/internal/auth"
 	"ludoroyale/internal/config"
 	"ludoroyale/internal/httpapi"
 	"ludoroyale/internal/metrics"
+	"ludoroyale/internal/playerinfo"
 	"ludoroyale/internal/profile"
 	"ludoroyale/internal/protocol"
 	"ludoroyale/internal/ratelimit"
@@ -235,7 +239,8 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 	if err := json.Unmarshal([]byte(raw), &a); err != nil {
 		return auth.BotSession{}, nil, "", err
 	}
-	sess, err := s.BotAuth.IssueBot(ctx, a.RoomID, false, botName(name), profileName, s.Bots.SessionTTL)
+	display := botName(name, asgID)
+	sess, err := s.BotAuth.IssueBot(ctx, a.RoomID, false, display, profileName, s.Bots.SessionTTL)
 	if err != nil {
 		return auth.BotSession{}, nil, "", err
 	}
@@ -249,8 +254,15 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 		if r.PendingBots > 0 {
 			r.PendingBots--
 		}
-		r.Players = append(r.Players, Player{UserID: sess.BotID.String(), UID: uid, Name: botName(name),
-			Avatar: int(sess.BotID[15]) % 12, Level: 1, Title: "", Cosmetics: map[string]string{},
+		// Seated like a brand-new player (starter title and cosmetics) so the
+		// seat looks the same as a human's in the app.
+		starter := playerinfo.Starter()
+		cos := map[string]string{}
+		for _, slot := range []string{"dice", "token", "frame", "trail", "victory"} {
+			cos[slot] = starter.Loadout[slot]
+		}
+		r.Players = append(r.Players, Player{UserID: sess.BotID.String(), UID: uid, Name: display,
+			Avatar: int(sess.BotID[15]) % 12, Level: starter.Level, Title: starter.Title, Cosmetics: cos,
 			Bot: true, BotProfile: profile.SanitizeName(profileName), BotSID: sess.SessionID, JoinedAt: s.nowMs()})
 		m.setPointer(sess.BotID.String())
 		full := len(r.Players) == r.Capacity
@@ -275,19 +287,52 @@ func (s *Service) claimAssignment(ctx context.Context, asgID, name, profileName 
 	return sess, room, uid, nil
 }
 
-// botName enforces a visible bot label.
-func botName(name string) string {
+// neutralBotNames are fallback display names for bots whose requested name
+// is empty (common Indian, Indonesian and Arabic first names).
+var neutralBotNames = []string{
+	"Aarav", "Priya", "Rohan", "Ananya", "Vikram", "Kavya", "Arjun", "Isha",
+	"Rizky", "Putri", "Budi", "Sari", "Dewi", "Agus",
+	"Omar", "Layla", "Yusuf", "Amira", "Karim", "Noor",
+}
+
+// botName returns a bot's display name. Names carry no bot label: a leading
+// "Bot" word (any case, followed by a space, "-", "_", ":" or "." — e.g.
+// bot-play's display_name_prefix) is stripped, and an empty result falls
+// back to a neutral first name chosen from seed. Bots stay identifiable to
+// the server and clients through players[].bot and actorType, never the name.
+func botName(name, seed string) string {
 	name = profile.SanitizeName(name)
-	if name == "" {
-		name = "Bot"
+	for {
+		rest, ok := stripBotWord(name)
+		if !ok {
+			break
+		}
+		name = rest
 	}
-	if !strings.HasPrefix(strings.ToLower(name), "bot") {
-		name = "Bot " + name
+	if name == "" {
+		h := fnv.New32a()
+		h.Write([]byte(seed))
+		name = neutralBotNames[h.Sum32()%uint32(len(neutralBotNames))]
 	}
 	if r := []rune(name); len(r) > 20 {
-		name = string(r[:20])
+		name = strings.TrimSpace(string(r[:20]))
 	}
 	return name
+}
+
+// stripBotWord removes one leading "bot" label word from name.
+func stripBotWord(name string) (string, bool) {
+	if len(name) < 3 || !strings.EqualFold(name[:3], "bot") {
+		return name, false
+	}
+	rest := name[3:]
+	if rest == "" {
+		return "", true
+	}
+	if !strings.ContainsRune(" -_:.", rune(rest[0])) {
+		return name, false // e.g. "Botan"
+	}
+	return strings.TrimLeft(rest, " -_:."), true
 }
 
 // ---- REST endpoints for bot-play (docs/rest-api.md → Bot service) ----
@@ -431,7 +476,7 @@ func (s *Service) RegisterBotRoutes(rt *httpapi.Router, env string) {
 			if env == config.EnvProduction || !s.Bots.LoadTestEnabled {
 				return httpapi.Errf(http.StatusForbidden, "loadtest_disabled", "Load-test sessions are not allowed on this server.")
 			}
-			sess, err := s.BotAuth.IssueBot(r.Context(), "", true, botName(body.Name), body.Profile, s.Bots.SessionTTL)
+			sess, err := s.BotAuth.IssueBot(r.Context(), "", true, botName(body.Name, uuid.NewString()), body.Profile, s.Bots.SessionTTL)
 			if err != nil {
 				return err
 			}

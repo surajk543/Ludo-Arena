@@ -71,12 +71,14 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Bo'), findsOneWidget);
-    expect(find.text('BOT'), findsOneWidget);
+    expect(find.text('BOT'), findsNothing);
 
     h.controller.pushSnapshot(
-      _lobby([player(0), player(1), player(2)]).copyWith(
-        status: RoomStatuses.playing,
-      ),
+      _lobby([
+        player(0),
+        player(1),
+        player(2),
+      ]).copyWith(status: RoomStatuses.playing),
       game: true,
     );
     await flush(tester);
