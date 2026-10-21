@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/protocol/protocol.dart';
 import 'package:ludo_royale/core/realtime/active_room_controller.dart';
 import 'package:ludo_royale/features/snakes_ladders/presentation/board/board.dart';
@@ -132,5 +133,10 @@ void main() {
     expect(find.bySemanticsLabel(RegExp(r'Square 44')), findsOneWidget);
     semantics.dispose();
     expect(h.audio.played, isNotEmpty);
+    // Local roll → its landing → the ladder; the turn passed to someone else.
+    expect(h.audio.played.first, Sfx.diceRoll);
+    expect(h.audio.played, contains(Sfx.diceLand));
+    expect(h.audio.played.where((s) => s == Sfx.ladderClimb), hasLength(1));
+    expect(h.audio.played, isNot(contains(Sfx.turnMine)));
   });
 }

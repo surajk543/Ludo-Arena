@@ -2771,7 +2771,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get settingsSoundAndHaptics => 'آواز اور وائبریشن';
 
   @override
-  String get settingsSound => 'ساؤنڈ ایفیکٹس';
+  String get settingsSound => 'آواز';
+
+  @override
+  String get settingsSoundSubtitle => 'موسیقی اور ساؤنڈ ایفیکٹس';
+
+  @override
+  String get settingsSfxVolume => 'ساؤنڈ ایفیکٹس کا والیوم';
+
+  @override
+  String get settingsMusicVolume => 'موسیقی کا والیوم';
 
   @override
   String get settingsHaptics => 'وائبریشن';

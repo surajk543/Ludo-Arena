@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../core/analytics/analytics_providers.dart';
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/realtime/realtime_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_controller.dart';
@@ -84,7 +85,10 @@ class HomeHeader extends ConsumerWidget {
               child: InkWell(
                 customBorder: const CircleBorder(),
                 // Profile is a bottom-navigation tab: switch to it.
-                onTap: () => context.go(AppRoutes.profile),
+                onTap: () {
+                  playUiSound(context, Sfx.uiTap);
+                  context.go(AppRoutes.profile);
+                },
                 child: PlayerAvatar(
                   avatarIndex: user.avatar,
                   frameId: user.loadout.frame,

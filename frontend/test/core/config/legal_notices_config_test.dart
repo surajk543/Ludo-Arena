@@ -3,25 +3,30 @@ import 'package:ludo_royale/core/config/app_config.dart';
 import 'package:ludo_royale/core/links/external_link_launcher.dart';
 
 void main() {
-  test('legal notices default to the backend page, overridable', () {
+  test('legal notices default to the studio website page, overridable', () {
     const base = AppConfig(
       apiBaseUrl: 'https://api.ludoroyale.app',
       environment: AppEnvironment.production,
     );
     expect(
       base.legalNoticesUrl,
-      'https://api.ludoroyale.app/legal/open-source',
+      'https://sungamestudio.com/ludo-royale/legal/',
     );
+    expect(base.legalNoticesUrl, AppConfig.defaultLegalNoticesUrl);
+    // The backend route stays available as an explicit fallback.
     const custom = AppConfig(
       apiBaseUrl: 'https://api.ludoroyale.app',
       environment: AppEnvironment.production,
-      legalNoticesUrlOverride: 'https://ludoroyale.app/legal',
+      legalNoticesUrlOverride: 'https://api.ludoroyale.app/legal/open-source',
     );
-    expect(custom.legalNoticesUrl, 'https://ludoroyale.app/legal');
-    // Not supplied at build time in tests: the backend page is used.
+    expect(
+      custom.legalNoticesUrl,
+      'https://api.ludoroyale.app/legal/open-source',
+    );
+    // Not supplied at build time in tests: the website page is used.
     expect(
       AppConfig.fromEnvironment(isAndroid: false).legalNoticesUrl,
-      'http://localhost:8080/legal/open-source',
+      'https://sungamestudio.com/ludo-royale/legal/',
     );
   });
 

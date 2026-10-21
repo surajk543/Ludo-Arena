@@ -25,16 +25,20 @@ class SnakesBoardBinding extends MatchBoardBinding {
   SnakesBoardBinding._({
     required this.board,
     required this.dice,
+    required this.selfSeat,
     required this._feedback,
   }) {
     board
-      ..onStep = ((_, _) => _feedback.step())
-      ..onSnake = ((_, _, _) => _feedback.snake())
-      ..onLadder = ((_, _, _) => _feedback.ladder())
-      ..onFinish = ((_) => _feedback.home());
-    dice
-      ..onTumbleStart = _feedback.diceTumble
-      ..onSettle = ((_) => _feedback.diceSettled());
+      // The finish square stays silent: the finish cue plays there.
+      ..onStep = ((seat, square) {
+        if (square < 100) _feedback.step(mine: seat == selfSeat);
+      })
+      ..onSnake = ((seat, _, _) => _feedback.snake(mine: seat == selfSeat))
+      ..onLadder = ((seat, _, _) => _feedback.ladder(mine: seat == selfSeat))
+      ..onFinish = ((seat) => _feedback.home(mine: seat == selfSeat));
+    // The local roll sound plays on the tap (MatchView); every settle gets a
+    // soft landing cue.
+    dice.onSettle = ((_) => _feedback.diceSettled(mine: _rollSeat == selfSeat));
   }
 
   static MatchBoardBinding create(
@@ -51,6 +55,7 @@ class SnakesBoardBinding extends MatchBoardBinding {
       dice: DiceController(
         initialValue: room.turn.dice > 0 ? room.turn.dice : 1,
       ),
+      selfSeat: selfSeat,
       feedback: feedback,
     );
   }
@@ -58,7 +63,11 @@ class SnakesBoardBinding extends MatchBoardBinding {
   final SnakesBoardController board;
   @override
   final DiceController dice;
+  final int? selfSeat;
   final MatchFeedback _feedback;
+
+  /// Seat of the die being animated.
+  int? _rollSeat;
 
   @override
   void showLegalMoves(RoomSnapshot room) {}
@@ -79,7 +88,10 @@ class SnakesBoardBinding extends MatchBoardBinding {
     DiceResultEvent event,
     RoomSnapshot room,
     RoomSnapshot previous,
-  ) => dice.roll(event.value.clamp(1, 6));
+  ) {
+    _rollSeat = event.seat;
+    return dice.roll(event.value.clamp(1, 6));
+  }
 
   @override
   Future<void> playMove(
@@ -143,9 +155,7 @@ class SnakesBoardBinding extends MatchBoardBinding {
       ..onSnake = null
       ..onLadder = null
       ..onFinish = null;
-    dice
-      ..onTumbleStart = null
-      ..onSettle = null;
+    dice.onSettle = null;
     board.dispose();
     dice.dispose();
   }

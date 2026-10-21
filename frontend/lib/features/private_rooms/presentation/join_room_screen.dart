@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../core/localization/number_format.dart';
 import '../../../core/network/api_exception.dart';
@@ -296,6 +297,7 @@ class _JoinRoomScreenState extends ConsumerState<JoinRoomScreen> {
                               : l10n.playJoinAction,
                           icon: Icons.login_rounded,
                           loading: _joining,
+                          sound: Sfx.lobbyPlay,
                           onPressed: canJoin ? _join : null,
                         ),
                         if (_previewError != null &&

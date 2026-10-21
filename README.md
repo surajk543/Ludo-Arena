@@ -72,6 +72,8 @@ monitoring/ Prometheus (targets, rules/thresholds.yml, alert rule tests), Alertm
             Telegram status / daily KPI PDFs and enriched alerts
 docs/       Architecture page and contracts (REST, WebSocket, auth, app policy, progression,
             bot-play, deployment, performance, cosmetics)
+website/    Ludo Royale pages for sungamestudio.com (static, deployed by hand): game page,
+            privacy policy draft, open-source notices, homepage snippets (website/README.md)
 ```
 
 ## Quick start
@@ -195,6 +197,7 @@ list with groups is in [the architecture page](docs/architecture.html#env-vars).
 | [backend/docs/game-rules.md](backend/docs/game-rules.md) | Game rules, board geometry, state hash |
 | [backend/docs/redis-keys.md](backend/docs/redis-keys.md) | Redis key layout |
 | [bot-play/README.md](bot-play/README.md) | bot-play quick start |
+| [website/README.md](website/README.md) | Ludo Royale pages for sungamestudio.com and how to deploy them |
 
 ## Status / pending items
 

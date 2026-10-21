@@ -12,6 +12,11 @@ Four independent projects — never mix their code or dependencies:
 | `bot-play/` | Go 1.27 (separate module) | `ludoroyale/botplay` |
 | `monitoring/` | Prometheus 3, Alertmanager, node_exporter + Telegram ops bot in Go 1.27 (`monitoring/ops-bot`, separate module; gonum/plot charts, go-pdf/fpdf PDFs) | `ludoroyale/opsbot` |
 
+`website/` — Ludo Royale pages for sungamestudio.com (static, deployed by hand; not
+part of the app or backend). See `website/README.md`; regenerate
+`website/ludo-royale/legal/index.html` with `website/build_legal_page.py` whenever
+`backend/config/legal/open-source-notices.html` changes.
+
 Start with `README.md` and `docs/architecture.html`. Contracts are the source
 of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
 `docs/app-version-policy.md`, `docs/cosmetics-catalog.md`,
@@ -90,7 +95,7 @@ real data.
 - `backend/internal/{auth,identity,wallet,apppolicy,progression,social,analytics}`.
 - `backend/config/` — app policy per environment, `catalog.json`, `missions.json`.
 - `frontend/lib/core/` — config, network (Dio + refresh), protocol (models, reducer, FNV hash), realtime (socket, `ActiveRoomController`), analytics, theme, localization.
-- `frontend/lib/features/` — feature folders; routes are registered in `lib/app/feature_routes.dart` via `play_routes.dart` and `meta_routes.dart`.
+- `frontend/lib/features/` — feature folders; routes are registered in `lib/app/feature_routes.dart` via `play_routes.dart` and `meta_routes.dart`, except the five bottom-navigation tabs (Home, Games, Missions, Friends, Profile), which are one `StatefulShellRoute` in `lib/app/shell/main_shell.dart` (switch tabs with `context.go`, never push them).
 - `frontend/lib/shared/game_visuals/`, `features/{ludo,snakes_ladders}/presentation/board/` — board, dice, token and cosmetic renderers.
 - `monitoring/` — Prometheus scrape targets (`prometheus/targets/`), alert thresholds in one file (`prometheus/rules/thresholds.yml`), alert rules + promtool tests, Alertmanager routing to the ops bot. `monitoring/ops-bot/internal/` — `report` (PromQL + text), `pdfreport` + `charts` (PDF/PNG), `telegram` (429 retry, token redaction), `alertmanager` (webhook + dedupe), `google` (Play CSV in GCS, GA4 Data API), `schedule`. See `monitoring/README.md`.
 

@@ -2,9 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/audio_haptics/audio_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'premium_button.dart';
+
+/// Open / close cues for modal sheets and dialogs. The open sound wins over
+/// the tap that opened it (same gesture); the close sound only plays when
+/// nothing else just played (closing by an action keeps that action's sound).
+Future<T?> withOverlaySounds<T>(BuildContext context, Future<T?> route) {
+  final audio = audioServiceOf(context)?..play(Sfx.uiOpen);
+  return route.whenComplete(() => audio?.play(Sfx.uiClose));
+}
 
 /// Premium modal bottom sheet: drag handle, optional title with a close
 /// button, safe areas, keyboard insets, ≤ 90 % height, scrollable content.
@@ -15,6 +24,25 @@ abstract final class AppBottomSheet {
     String? title,
     bool isScrollControlled = true,
     bool isDismissible = true,
+  }) {
+    return withOverlaySounds(
+      context,
+      _show(
+        context,
+        builder: builder,
+        title: title,
+        isScrollControlled: isScrollControlled,
+        isDismissible: isDismissible,
+      ),
+    );
+  }
+
+  static Future<T?> _show<T>(
+    BuildContext context, {
+    required WidgetBuilder builder,
+    String? title,
+    required bool isScrollControlled,
+    required bool isDismissible,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -170,18 +198,21 @@ abstract final class AppDialog {
     bool barrierDismissible = true,
     bool canPop = true,
   }) {
-    return showDialog<T>(
-      context: context,
-      barrierDismissible: barrierDismissible && canPop,
-      barrierColor: Colors.black.withValues(alpha: 0.55),
-      builder: (dialogContext) => PopScope(
-        canPop: canPop,
-        child: _AppDialogBody<T>(
-          title: title,
-          message: message,
-          content: content,
-          illustration: illustration,
-          actions: actions,
+    return withOverlaySounds(
+      context,
+      showDialog<T>(
+        context: context,
+        barrierDismissible: barrierDismissible && canPop,
+        barrierColor: Colors.black.withValues(alpha: 0.55),
+        builder: (dialogContext) => PopScope(
+          canPop: canPop,
+          child: _AppDialogBody<T>(
+            title: title,
+            message: message,
+            content: content,
+            illustration: illustration,
+            actions: actions,
+          ),
         ),
       ),
     );
@@ -310,6 +341,10 @@ abstract final class AppToast {
   }) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
+    // A failed action gets a subtle error cue (successes have their own).
+    if (kind == ToastKind.error || kind == ToastKind.warning) {
+      playUiSound(context, Sfx.uiError);
+    }
     final c = context.colors;
     final accent = switch (kind) {
       ToastKind.info =>

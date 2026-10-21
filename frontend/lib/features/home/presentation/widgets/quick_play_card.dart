@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/localization/number_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -250,6 +251,8 @@ class _QuickPlayCardState extends ConsumerState<QuickPlayCard> {
                     label: l10n.homePlayNow,
                     icon: Icons.play_arrow_rounded,
                     variant: PremiumButtonVariant.gold,
+                    // One tap straight into matchmaking.
+                    sound: Sfx.lobbyPlay,
                     loading: _launching,
                     onPressed: short ? null : _play,
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/audio_haptics/audio_service.dart';
 import '../../core/audio_haptics/haptics_service.dart';
 import '../../core/audio_haptics/reduced_motion.dart';
 import '../../core/theme/app_theme.dart';
@@ -213,6 +214,10 @@ class AppBottomNav extends ConsumerWidget {
                         selected: i == currentIndex,
                         onTap: () {
                           ref.read(hapticsServiceProvider).selection();
+                          // Like tabs and chips: a sound only on a change.
+                          if (i != currentIndex) {
+                            ref.read(audioServiceProvider).play(Sfx.uiTab);
+                          }
                           onSelect(i);
                         },
                       ),

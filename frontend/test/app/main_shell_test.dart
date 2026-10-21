@@ -8,6 +8,7 @@ import 'package:ludo_royale/app/router.dart';
 import 'package:ludo_royale/app/routes.dart';
 import 'package:ludo_royale/app/shell/main_shell.dart';
 import 'package:ludo_royale/app/shell/tab_nav.dart';
+import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
 import 'package:ludo_royale/core/storage/preferences_store.dart';
 import 'package:ludo_royale/core/theme/theme_controller.dart';
 import 'package:ludo_royale/features/home/presentation/games_screen.dart';
@@ -96,6 +97,18 @@ void main() {
     await _tapTab(tester, 'Home');
     expect(find.byType(HomeScreen), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a tab change plays one tab sound; the current tab is silent', (
+    tester,
+  ) async {
+    final c = await _bootHome(tester);
+    final audio = c.read(audioServiceProvider) as SilentAudioService;
+    final before = audio.played.length;
+    await _tapTab(tester, 'Missions');
+    expect(audio.played.skip(before).toList(), [Sfx.uiTab]);
+    await _tapTab(tester, 'Missions');
+    expect(audio.played.skip(before).toList(), [Sfx.uiTab]);
   });
 
   testWidgets('tabs keep their state while switching', (tester) async {

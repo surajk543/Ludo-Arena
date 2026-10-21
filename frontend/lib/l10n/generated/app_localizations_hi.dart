@@ -2771,7 +2771,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsSoundAndHaptics => 'आवाज़ और वाइब्रेशन';
 
   @override
-  String get settingsSound => 'साउंड इफ़ेक्ट्स';
+  String get settingsSound => 'आवाज़';
+
+  @override
+  String get settingsSoundSubtitle => 'संगीत और साउंड इफ़ेक्ट्स';
+
+  @override
+  String get settingsSfxVolume => 'साउंड इफ़ेक्ट्स वॉल्यूम';
+
+  @override
+  String get settingsMusicVolume => 'संगीत वॉल्यूम';
 
   @override
   String get settingsHaptics => 'वाइब्रेशन';

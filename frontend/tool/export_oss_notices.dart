@@ -1,6 +1,7 @@
-// Exports the app's open-source notices as a static HTML page served by the
-// backend at GET /legal/open-source (Settings > About > Legal notices opens
-// it in the browser). The app itself shows no license page.
+// Exports the app's open-source notices as a static HTML page, published at
+// https://sungamestudio.com/ludo-royale/legal/ (Settings > About > Legal
+// notices opens it in the browser) and also served by the backend at
+// GET /legal/open-source as a fallback. The app itself shows no license page.
 //
 // Input: the NOTICES file of a build (gzip/zlib-compressed `NOTICES.Z`, or
 // plain text) — the exact license texts the build collected from every
