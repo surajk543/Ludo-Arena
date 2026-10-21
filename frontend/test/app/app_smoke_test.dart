@@ -49,6 +49,29 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('reinstall on a bound device boots straight to Home', (
+    tester,
+  ) async {
+    // Fresh storage and preferences, as after a reinstall.
+    final env = await TestEnv.create();
+    env.routeHappyPath();
+    env.device.id = 'abcdef0123456789';
+    env.backend.json(
+      'POST',
+      '/auth/device/resume',
+      authJson(uid: 'u_dev', coins: 4321),
+    );
+    final c = await _boot(tester, env);
+    expect(c.read(appGateControllerProvider).phase, GatePhase.ready);
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.byType(LanguageOnboardingScreen), findsNothing);
+    expect(env.backend.calls('POST', '/auth/device/resume').single.json, {
+      'deviceId': 'abcdef0123456789',
+    });
+    expect(env.backend.calls('POST', '/auth/guest'), isEmpty);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('first launch shows the language picker, then login', (
     tester,
   ) async {

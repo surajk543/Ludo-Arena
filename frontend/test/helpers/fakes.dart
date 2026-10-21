@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ludo_royale/core/analytics/analytics_service.dart';
 import 'package:ludo_royale/core/analytics/noop_analytics_service.dart';
+import 'package:ludo_royale/core/device/device_identity.dart';
 import 'package:ludo_royale/core/network/api_models.dart';
 import 'package:ludo_royale/features/app_update/application/store_launcher.dart';
 import 'package:ludo_royale/features/authentication/data/provider_credential.dart';
@@ -45,6 +46,21 @@ class FakeIdentityClient implements IdentityProviderClient {
 
   @override
   Future<void> signOut() async => signOuts++;
+}
+
+/// Device id source; `null` (the default) = a device without an id, which
+/// keeps the pre-device-binding behaviour.
+class FakeDeviceIdentity implements DeviceIdentity {
+  FakeDeviceIdentity([this.id]);
+
+  String? id;
+  int calls = 0;
+
+  @override
+  Future<String?> deviceId() async {
+    calls++;
+    return id;
+  }
 }
 
 /// Records analytics calls by name.

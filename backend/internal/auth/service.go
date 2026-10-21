@@ -91,6 +91,37 @@ func (s *Service) CreateGuest(ctx context.Context) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
+	return s.newGuest(ctx, acct, secret)
+}
+
+// GuestForDevice signs in to the account bound to the device (deviceSubject
+// from identity.DeviceSubject) or, if the device is unbound, creates a new
+// guest account bound to it. Only a newly created guest gets a guest secret;
+// an existing account never gets a second welcome grant.
+func (s *Service) GuestForDevice(ctx context.Context, deviceSubject string) (Result, error) {
+	secret := NewSecret("gs_")
+	acct, err := s.ids.FindOrCreateDeviceGuest(ctx, deviceSubject, HashSecret(secret))
+	if err != nil {
+		return Result{}, err
+	}
+	if !acct.Created {
+		return s.signIn(ctx, acct.UserID, false, "")
+	}
+	return s.newGuest(ctx, acct, secret)
+}
+
+// ResumeDevice signs in to the account bound to the device (guest or
+// linked). identity.ErrNotFound if no account is bound; never creates one.
+func (s *Service) ResumeDevice(ctx context.Context, deviceSubject string) (Result, error) {
+	id, err := s.ids.Lookup(ctx, identity.Device, deviceSubject)
+	if err != nil {
+		return Result{}, err
+	}
+	return s.signIn(ctx, id, false, "")
+}
+
+// newGuest finishes a guest sign-in: profile, session, new-account hook.
+func (s *Service) newGuest(ctx context.Context, acct identity.Account, secret string) (Result, error) {
 	if _, err := s.profiles.Save(ctx, acct.UserID, ""); err != nil {
 		return Result{}, err
 	}
