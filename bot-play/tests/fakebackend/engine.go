@@ -36,7 +36,13 @@ type player struct {
 	gone      bool // no longer receives room events (left the room)
 	strikes   int
 	colour    string
+	// forfeitWhy is "left" or "timeouts" once forfeited.
+	forfeitWhy string
 }
+
+// maxStrikes mirrors the backend's MAX_STRIKES default: consecutive missed
+// turns that forfeit a player (reason "timeouts").
+const maxStrikes = 5
 
 type room struct {
 	s            *Server
@@ -184,6 +190,9 @@ func (rm *room) snapshot() map[string]any {
 			"cosmetics": map[string]any{"dice": "dice_classic"}, "color": p.colour,
 			"connected": p.connected, "bot": p.bot, "forfeited": p.forfeited, "strikes": p.strikes,
 		})
+		if p.forfeited {
+			players[len(players)-1]["forfeitWhy"] = p.forfeitWhy
+		}
 	}
 	board := map[string]any{}
 	if rm.game == "snakes_ladders" {
@@ -373,7 +382,7 @@ func (s *Server) autoActLocked(rm *room, p *player) {
 	if auto {
 		rm.autos++
 		p.strikes++
-		if p.strikes >= 3 {
+		if p.strikes >= maxStrikes {
 			s.forfeitLocked(rm, p.seat, "timeouts")
 			return
 		}
@@ -598,7 +607,8 @@ func (s *Server) forfeitLocked(rm *room, seat int, reason string) {
 			rm.tokens[seat][i] = -1
 		}
 	}
-	s.emitLocked(rm, "player.forfeited", map[string]any{"seat": seat, "reason": reason}, true, "", "")
+	p.forfeitWhy = reason
+	s.emitLocked(rm, "player.forfeited", map[string]any{"seat": seat, "reason": reason, "strikes": p.strikes}, true, "", "")
 	var remaining []*player
 	for _, o := range rm.players {
 		if !o.forfeited {

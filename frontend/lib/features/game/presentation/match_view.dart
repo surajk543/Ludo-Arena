@@ -20,6 +20,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/game_visuals/game_visuals.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../social/presentation/player_actions_sheet.dart';
+import '../application/inactivity_removal.dart';
 import '../application/match_event_sequencer.dart';
 import '../application/match_result_view.dart';
 import '../application/quick_chat.dart';
@@ -110,6 +111,9 @@ class _MatchViewState extends ConsumerState<MatchView> {
   bool _commandInFlight = false;
   bool _leaving = false;
   bool _navigating = false;
+
+  /// The server removed the local player for missing turns in a row.
+  bool _removed = false;
   bool _waitingNextRound = false;
   String? _finishedKey;
   bool _showVictory = false;
@@ -137,6 +141,9 @@ class _MatchViewState extends ConsumerState<MatchView> {
         _armProgressionTimeout();
       }
       WidgetsBinding.instance.addPostFrameCallback((_) => _onPresented());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _leaveIfRemoved(room);
+      });
     }
     _sub = ref
         .read(activeRoomControllerProvider.notifier)
@@ -215,13 +222,14 @@ class _MatchViewState extends ConsumerState<MatchView> {
   // ------------------------------------------------------------- events
 
   void _onEvent(RoomEvent e) {
-    if (!mounted) return;
+    if (!mounted || _removed) return;
     switch (e) {
       case RoomSnapshotApplied(:final room):
         if (room.id != widget.roomId) {
           _followRoom(room);
           return;
         }
+        if (_leaveIfRemoved(room)) return;
         final stage = _stage;
         if (stage == null || _stageKey(room) != stage.key) {
           _onNewRound(room);
@@ -231,7 +239,8 @@ class _MatchViewState extends ConsumerState<MatchView> {
           setState(() => _waitingNextRound = false);
         }
         stage.sequencer.add(e);
-      case RoomDeltaApplied():
+      case RoomDeltaApplied(:final room):
+        if (_leaveIfRemoved(room)) return;
         _stage?.sequencer.add(e);
       case QuickChatReceived(:final chat, :final fromSelf):
         _showBubble(chat.seat, fromSelf, text: chat.msg);
@@ -252,6 +261,30 @@ class _MatchViewState extends ConsumerState<MatchView> {
       default:
         break;
     }
+  }
+
+  /// The server removed the local player for missing turns in a row (live
+  /// `player.forfeited` or a snapshot after a resync): tell them why, once
+  /// per room round, and leave the match — also when that forfeit ended a
+  /// two-player game (no results). Returns true when leaving.
+  bool _leaveIfRemoved(RoomSnapshot room) {
+    if (_removed) return true;
+    if (room.id != widget.roomId) return false;
+    final selfUid = ref.read(activeRoomControllerProvider).selfUid;
+    final missed = inactivityRemovalOf(room, selfUid);
+    if (missed == null) return false;
+    _removed = true;
+    _navigating = true;
+    if (!_leaving && ref.read(inactivityRemovalNoticesProvider).claim(room)) {
+      AppToast.show(
+        context,
+        AppLocalizations.of(context).playRemovedForInactivity(missed),
+        kind: ToastKind.warning,
+        duration: const Duration(seconds: 5),
+      );
+    }
+    unawaited(_leaveTo(AppRoutes.home));
+    return true;
   }
 
   /// A snapshot for another room (e.g. a public rematch created a new
@@ -367,8 +400,11 @@ class _MatchViewState extends ConsumerState<MatchView> {
     if (player == null) return;
     final name = PlayText.playerName(l10n, player);
     _showCaption(
-      e.reason == 'timeouts'
-          ? l10n.playForfeitTimeouts(name)
+      e.reason == ForfeitReasons.timeouts
+          ? l10n.playForfeitTimeouts(
+              name,
+              e.strikes > 0 ? e.strikes : ForfeitReasons.defaultMaxStrikes,
+            )
           : l10n.playForfeitLeft(name),
     );
   }

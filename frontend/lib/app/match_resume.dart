@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/protocol/protocol.dart';
 import '../core/realtime/realtime_providers.dart';
 import '../core/state/in_match_provider.dart';
+import '../features/game/application/inactivity_removal.dart';
+import '../l10n/generated/app_localizations.dart';
+import '../shared/widgets/widgets.dart';
 import 'gate/app_gate_controller.dart';
 import 'router.dart';
 import 'routes.dart';
@@ -51,12 +54,38 @@ final matchResumeProvider = Provider<void>((ref) {
     expiry = null;
   }
 
+  /// The server removed the user from [room] for missing turns while the
+  /// app was closed: say why (once per room round) and leave the room so
+  /// its events stop. The match itself is not reopened.
+  void announceRemoval(RoomSnapshot room, int missed) {
+    unawaited(
+      ref
+          .read(activeRoomControllerProvider.notifier)
+          .leaveRoom()
+          .catchError((Object _) {}),
+    );
+    if (!ref.read(inactivityRemovalNoticesProvider).claim(room)) return;
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    AppToast.show(
+      context,
+      AppLocalizations.of(context).playRemovedForInactivity(missed),
+      kind: ToastKind.warning,
+      duration: const Duration(seconds: 5),
+    );
+  }
+
   void tryOpen() {
     final id = pending;
     if (id == null) return;
     final state = ref.read(activeRoomControllerProvider);
     if (state.room?.id != id) return;
     disarm();
+    final missed = inactivityRemovalOf(state.room, state.selfUid);
+    if (missed != null && !ref.read(inMatchProvider)) {
+      announceRemoval(state.room!, missed);
+      return;
+    }
     final target = resumeLocationFor(state);
     if (target == null || ref.read(inMatchProvider)) return;
     final router = ref.read(appRouterProvider);

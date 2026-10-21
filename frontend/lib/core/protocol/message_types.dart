@@ -155,6 +155,19 @@ abstract final class TurnPhases {
   static const finished = 'finished';
 }
 
+/// `player.forfeited.reason` / `room.players[].forfeitWhy` values.
+abstract final class ForfeitReasons {
+  /// Left the running game (`room.leave`).
+  static const left = 'left';
+
+  /// Missed `MAX_STRIKES` turns in a row (turn timeouts).
+  static const timeouts = 'timeouts';
+
+  /// The server's default `MAX_STRIKES` (backend/docs/game-rules.md). Only
+  /// a display hint (missed-turn dots); the server decides removals.
+  static const defaultMaxStrikes = 5;
+}
+
 /// `matchmaking.status.status` values.
 abstract final class MatchmakingStatuses {
   static const searching = 'searching';

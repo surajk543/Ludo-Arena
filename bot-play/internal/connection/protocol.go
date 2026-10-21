@@ -133,7 +133,9 @@ type Player struct {
 	Connected bool           `json:"connected"`
 	Bot       bool           `json:"bot"`
 	Forfeited bool           `json:"forfeited"`
-	Strikes   int            `json:"strikes"`
+	// ForfeitWhy is "left" or "timeouts" on forfeited seats (absent otherwise).
+	ForfeitWhy string `json:"forfeitWhy,omitempty"`
+	Strikes    int    `json:"strikes"`
 }
 
 // PlayerPicture is a seat's profile picture (catalogue id, "image" |
@@ -300,10 +302,12 @@ type PlayerEvent struct {
 	Seat int `json:"seat"`
 }
 
-// PlayerForfeited is player.forfeited.
+// PlayerForfeited is player.forfeited. Strikes is the seat's consecutive
+// missed turns (for "timeouts": the count that removed the player).
 type PlayerForfeited struct {
-	Seat   int    `json:"seat"`
-	Reason string `json:"reason"`
+	Seat    int    `json:"seat"`
+	Reason  string `json:"reason"`
+	Strikes int    `json:"strikes"`
 }
 
 // GameFinished is game.finished.

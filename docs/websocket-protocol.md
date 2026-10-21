@@ -204,7 +204,8 @@ in 60 s, or whose write blocks longer than 10 s, is closed with `4508`.
       "connected": true,
       "bot": false,               // server-determined from the session; the app shows no bot badge (names carry no label) but hides friend/report actions on bots
       "forfeited": false,
-      "strikes": 0
+      // "forfeitWhy": "timeouts", // only on forfeited seats: "left" | "timeouts" (not in the state hash)
+      "strikes": 0                // consecutive missed turns (MAX_STRIKES, default 5, forfeits)
     }
   ],
   "turn": {
@@ -261,7 +262,7 @@ Bots wear a random catalogue picture with probability `BOT_PICTURE_SHARE`
 | `matchmaking.cancel` | `{}` | `matchmaking.status` (`cancelled`) | Only while the lobby has not started |
 | `room.create` | `{"game":"snakes_ladders","variant":"classic","capacity":3}` | `room.updated` (contains `code`) | Private room; creator is host, seat 0 |
 | `room.join` | `{"code":"K7Q2MX"}` | `room.updated` | Rate limited (10/min/user) |
-| `room.leave` | `{"roomId":"r_…"}` | `ack` | Lobby: frees the seat (host passes to next seat). Playing: forfeit. Finished: leaves the room. |
+| `room.leave` | `{"roomId":"r_…"}` | `ack` | Lobby: frees the seat (host passes to next seat). Playing: forfeit (already forfeited, e.g. for missed turns: only stops the room's events). Finished: leaves the room. |
 | `practice.start` | `{"game":"ludo","variant":"classic","bots":2}` | `room.updated` | Practice room: caller + 1–3 bots (total ≤ 4). Starts automatically when the bots are seated; closes with `bots_unavailable` if none arrive within 20 s. |
 | `room.allow_bots` | `{"roomId":"r_…","allow":true}` | `room.updated` | Private host only, lobby only |
 | `room.add_bot` | `{"roomId":"r_…"}` | `ack` then `room.updated` when the bot sits down | Private host only; requires `allowBots`; respects capacity |
@@ -298,7 +299,7 @@ Quick-chat ids: `gg` (Good game!), `nice_move` (Nice move!), `well_played`
 | `game.turn_changed` | `{"roomId","v","h","seat","turnSeq","phase","deadline","sixStreak"}` | delta |
 | `player.connected` | `{"roomId","v","seat"}` | delta |
 | `player.disconnected` | `{"roomId","v","seat"}` | delta |
-| `player.forfeited` | `{"roomId","v","h","seat","reason":"left"\|"timeouts"}` | delta |
+| `player.forfeited` | `{"roomId","v","h","seat","reason":"left"\|"timeouts","strikes"}` | delta |
 | `game.finished` | `{"roomId","v","result":{...},"rematch":{...}}` | delta |
 | `room.rematch` | `{"roomId","v","rematch":{...}}` | delta |
 | `wallet.updated` | `{"coins","diamonds","delta":{"coins","diamonds"},"reason":"entry_fee"\|"payout"\|"mission"\|"purchase"\|"level"}` | – |
@@ -320,8 +321,15 @@ Quick-chat ids: `gg` (Good game!), `nice_move` (Nice move!), `well_played`
 - `game.turn_changed`: `turn.seat, turn.turnSeq, turn.phase, turn.deadline,
   turn.sixStreak`; `turn.dice=0; turn.legal=[]`.
 - `player.connected` / `player.disconnected`: `players[seat].connected`.
-- `player.forfeited`: `players[seat].forfeited=true`; Ludo: all that seat's
-  tokens become `-1`.
+- `player.forfeited`: `players[seat].forfeited=true;
+  players[seat].forfeitWhy=reason; players[seat].strikes=strikes`; Ludo: all
+  that seat's tokens become `-1`. `strikes` is the seat's consecutive missed
+  turns: for `timeouts`, the count that removed the player (`MAX_STRIKES`,
+  default 5). When the removed player is the local user, the app shows "You
+  were removed from the match because you missed N turns in a row." and sends
+  `room.leave` (also when it learns it from a snapshot: `forfeited` with
+  `forfeitWhy:"timeouts"`). A forfeited player's `room.leave` only stops the
+  room's events for them (their `forfeitWhy` becomes `left`).
 - `game.finished`: `status="finished"; result; rematch; turn.phase="finished"`.
 - `room.rematch`: `rematch=...`.
 

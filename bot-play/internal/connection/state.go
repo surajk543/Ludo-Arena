@@ -204,7 +204,7 @@ func (s *RoomState) apply(t string, raw json.RawMessage) error {
 			return err
 		}
 		if pl := r.Player(p.Seat); pl != nil {
-			pl.Forfeited = true
+			pl.Forfeited, pl.ForfeitWhy, pl.Strikes = true, p.Reason, p.Strikes
 		}
 		if r.Game != "snakes_ladders" && p.Seat >= 0 && p.Seat < len(r.Board.Tokens) {
 			for i := range r.Board.Tokens[p.Seat] {

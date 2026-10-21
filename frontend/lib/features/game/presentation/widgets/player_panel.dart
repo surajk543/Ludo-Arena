@@ -664,7 +664,8 @@ class _PodMetrics {
       : context.textTheme.labelSmall;
 }
 
-/// Missed-turn strikes (3 → forfeit).
+/// Missed-turn strikes, one dot per allowed miss (server `MAX_STRIKES`, 5
+/// by default → removed). The row keeps a fixed 19.5 dp footprint.
 class _Strikes extends StatelessWidget {
   const _Strikes({required this.count});
 
@@ -673,14 +674,16 @@ class _Strikes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final dots = math.max(count, ForfeitReasons.defaultMaxStrikes);
+    final slot = 19.5 / dots;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (var i = 0; i < 3; i++)
+        for (var i = 0; i < dots; i++)
           Container(
-            width: 5,
-            height: 5,
-            margin: const EdgeInsetsDirectional.only(end: 1.5),
+            width: slot * 0.8,
+            height: slot * 0.8,
+            margin: EdgeInsetsDirectional.only(end: slot * 0.2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: i < count ? c.danger : c.outline.withValues(alpha: 0.6),

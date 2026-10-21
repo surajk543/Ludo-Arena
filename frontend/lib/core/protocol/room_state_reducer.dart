@@ -190,7 +190,11 @@ class RoomStateReducer {
         final players = _updatePlayer(
           s.players,
           f.seat,
-          (p) => p.copyWith(forfeited: true),
+          (p) => p.copyWith(
+            forfeited: true,
+            forfeitWhy: f.reason,
+            strikes: f.strikes,
+          ),
         );
         if (players == null) return null;
         var board = s.board;
