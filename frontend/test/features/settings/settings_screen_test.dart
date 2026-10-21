@@ -191,7 +191,7 @@ void main() {
     await reveal(tester, find.text('Legal notices'));
     await tester.tap(find.text('Legal notices'));
     await drain(tester);
-    expect(links.opened, ['http://test.local/legal/open-source']);
+    expect(links.opened, ['https://sungamestudio.com/ludo-royale/legal/']);
     // Nothing is pushed inside the app: no framework license page.
     expect(find.byType(LicensePage), findsNothing);
     expect(find.byType(AboutDialog), findsNothing);
@@ -237,7 +237,7 @@ void main() {
       expect(legal, findsOneWidget);
       await tester.tap(legal);
       await drain(tester);
-      expect(links.opened, ['http://test.local/legal/open-source']);
+      expect(links.opened, ['https://sungamestudio.com/ludo-royale/legal/']);
       expect(find.byType(LicensePage), findsNothing);
       for (final t in visibleTexts(tester)) {
         expect(t.toLowerCase(), isNot(contains('flutter')), reason: t);

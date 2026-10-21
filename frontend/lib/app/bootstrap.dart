@@ -18,8 +18,8 @@ import 'error_fallback.dart';
 /// symbols, the release error fallback and (consent-gated) analytics.
 ///
 /// Open-source notices are not shown inside the app: they are published as a
-/// web page (`tool/export_oss_notices.dart`, backend `GET /legal/open-source`)
-/// opened from Settings > About > Legal notices.
+/// web page (`tool/export_oss_notices.dart`, sungamestudio.com/ludo-royale/
+/// legal/) opened from Settings > About > Legal notices.
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 

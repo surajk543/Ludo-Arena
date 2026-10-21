@@ -50,7 +50,7 @@ network security config (`10.0.2.2`, `localhost`, `127.0.0.1`); iOS via
 | `APPLE_REDIRECT_URI` | empty | Redirect URI of that Services ID (the backend's `/api/v1/auth/apple/callback`). Both Apple values are needed to show Apple on Android; iOS always uses the native flow. |
 | `FACEBOOK_ENABLED` | `false` | Shows "Continue with Facebook". Also requires the native app id (below). |
 | `FIREBASE_*` | see *Firebase Analytics* | Read from `config/firebase.json` via `--dart-define-from-file`. |
-| `LEGAL_NOTICES_URL` | `${API_BASE_URL}/legal/open-source` | Page opened in the browser by Settings → About → Legal notices. |
+| `LEGAL_NOTICES_URL` | `https://sungamestudio.com/ludo-royale/legal/` | Page opened in the browser by Settings → About → Legal notices (the backend's `${API_BASE_URL}/legal/open-source` is an optional fallback). |
 
 Provider client ids are public identifiers; **no secret is ever compiled
 into the app**.
@@ -248,9 +248,11 @@ page.
   hand-written; see `docs/deployment.md` → "Brand assets".
 - **Open-source notices** are not shown inside the app. Settings → About →
   "Legal notices" opens `LEGAL_NOTICES_URL` (default
-  `${API_BASE_URL}/legal/open-source`, served by the backend) in the browser.
-  Regenerate the page before each release: `flutter build bundle --release &&
-  dart run tool/export_oss_notices.dart`.
+  `https://sungamestudio.com/ludo-royale/legal/`, the studio website) in the
+  browser. Regenerate the page before each release (`flutter build bundle
+  --release && dart run tool/export_oss_notices.dart`) and publish it to
+  sungamestudio.com/ludo-royale/legal/; the backend also serves it at
+  `${API_BASE_URL}/legal/open-source` as an optional fallback.
 - **Release error fallback**: in release/profile builds a widget whose build
   fails renders a small branded "Something went wrong" (`lib/app/error_fallback.dart`).
 

@@ -128,8 +128,12 @@ class AppConfig {
 
   final FirebaseAnalyticsConfig? firebase;
 
-  /// `LEGAL_NOTICES_URL`; empty means the backend page ([legalNoticesUrl]).
+  /// `LEGAL_NOTICES_URL`; empty means [defaultLegalNoticesUrl].
   final String legalNoticesUrlOverride;
+
+  /// The published open-source notices page on the studio website.
+  static const String defaultLegalNoticesUrl =
+      'https://sungamestudio.com/ludo-royale/legal/';
 
   /// Public OAuth client ids (Google Cloud project `ludo-royale-63887`).
   /// The web ("server") client id is the ID-token audience the backend
@@ -187,10 +191,12 @@ class AppConfig {
   }
 
   /// Open-source notices page, opened in the external browser from
-  /// Settings > About. Defaults to the backend's `GET /legal/open-source`.
+  /// Settings > About. Defaults to the studio website
+  /// ([defaultLegalNoticesUrl]); `LEGAL_NOTICES_URL` overrides it (e.g. the
+  /// backend's `GET /legal/open-source` as a fallback).
   String get legalNoticesUrl => legalNoticesUrlOverride.isNotEmpty
       ? legalNoticesUrlOverride
-      : '$apiBaseUrl/legal/open-source';
+      : defaultLegalNoticesUrl;
 
   /// REST root, e.g. `http://10.0.2.2:8080/api/v1`.
   String get apiV1 => '$apiBaseUrl/api/v1';

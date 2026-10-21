@@ -87,10 +87,11 @@ which they flush.
 
 Before each release:
 
-1. **Regenerate the open-source notices page** (the app has no in-app
-   license page; Settings → About → "Legal notices" opens
-   `GET /legal/open-source` in the browser, a legal requirement for the
-   bundled open-source software and OFL fonts):
+1. **Regenerate the open-source notices and publish them to
+   sungamestudio.com/ludo-royale/legal/** (the app has no in-app license
+   page; Settings → About → "Legal notices" opens
+   `https://sungamestudio.com/ludo-royale/legal/` in the browser, a legal
+   requirement for the bundled open-source software and OFL fonts):
 
    ```bash
    cd frontend
@@ -98,13 +99,17 @@ Before each release:
    dart run tool/export_oss_notices.dart   # → backend/config/legal/open-source-notices.html
    ```
 
-   Commit the regenerated HTML (it is deterministic: no diff without
-   dependency changes; `--check` exits 1 when it is stale) and deploy the
-   backend with it. The backend reads `LEGAL_NOTICES_FILE` (default
-   `config/legal/open-source-notices.html`, copied into the image) at startup
-   and on `SIGHUP`; while it is missing the route answers 404. Point
-   `LEGAL_NOTICES_URL` (`--dart-define`) elsewhere only if the page is
-   hosted somewhere else.
+   Publish the regenerated HTML on the studio website at
+   `https://sungamestudio.com/ludo-royale/legal/` before the release ships,
+   and commit it (it is deterministic: no diff without dependency changes;
+   `--check` exits 1 when it is stale). Optional fallback: the backend also
+   serves the same file at `GET /legal/open-source` — it reads
+   `LEGAL_NOTICES_FILE` (default `config/legal/open-source-notices.html`,
+   copied into the image) at startup and on `SIGHUP`; while it is missing the
+   route answers 404. Build with
+   `--dart-define=LEGAL_NOTICES_URL=https://<api-host>/legal/open-source`
+   only to point the app at that fallback (or any other host) instead of
+   the website.
 2. **Build obfuscated** and keep the symbols privately (needed to symbolicate
    crash stack traces; never ship or commit them):
 
