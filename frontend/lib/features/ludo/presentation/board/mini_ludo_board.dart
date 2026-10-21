@@ -37,7 +37,7 @@ class MiniLudoBoard extends StatelessWidget {
     final palette = GamePalette.of(context);
     final style = LudoBoardThemes.style(boardTheme, palette);
     Widget board = AspectRatio(
-      aspectRatio: 1,
+      aspectRatio: LudoBoardLayout.aspectRatio,
       child: RepaintBoundary(
         child: CustomPaint(
           painter: LudoBoardPainter(style: style, detailed: false),

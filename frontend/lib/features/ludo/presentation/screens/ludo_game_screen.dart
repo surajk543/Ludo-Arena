@@ -207,6 +207,9 @@ class LudoBoardBinding extends MatchBoardBinding {
   }
 
   @override
+  double get boardAspectRatio => LudoBoardLayout.aspectRatio;
+
+  @override
   Widget buildBoard(BuildContext context, MatchBoardArgs args) {
     final room = args.presented;
     final seats = board.seatCount;

@@ -52,7 +52,8 @@ class LudoBoardPainter extends CustomPainter {
     final layout = LudoBoardLayout.fit(size);
     canvas.save();
     canvas.translate(layout.gridOrigin.dx, layout.gridOrigin.dy);
-    canvas.scale(layout.cell);
+    // Grid units, rows stretched to the taller board.
+    canvas.scale(layout.cell, layout.cellY);
 
     final paint = Paint()..isAntiAlias = true;
     _paintFrame(canvas, paint);
@@ -342,6 +343,8 @@ class LudoBoardPainter extends CustomPainter {
       final slot = LudoGeometry.baseSlotFor(at, t, tokensPerPlayer);
       final c = LudoGeometry.baseSlotCenter(at, slot);
       const r = 0.68;
+      canvas.save();
+      _unstretch(canvas, c);
       paint
         ..color = const Color(0xFFFFFFFF)
         ..shader = ui.Gradient.radial(
@@ -379,6 +382,7 @@ class LudoBoardPainter extends CustomPainter {
         paint,
       );
       paint.style = PaintingStyle.fill;
+      canvas.restore();
     }
   }
 
@@ -416,7 +420,9 @@ class LudoBoardPainter extends CustomPainter {
     canvas.drawRect(const Rect.fromLTRB(6, 6, 9, 9), paint);
     paint.style = PaintingStyle.fill;
 
-    // Medallion.
+    // Medallion (round on the taller board).
+    canvas.save();
+    _unstretch(canvas, center);
     const r = 0.5;
     paint.color = style.shadow;
     canvas.drawCircle(center.translate(0, 0.05), r, paint);
@@ -437,9 +443,19 @@ class LudoBoardPainter extends CustomPainter {
     paint.color = style.accent;
     if (style.texture == LudoBoardTexture.damask) {
       _crown(canvas, paint, center, 0.3);
+      canvas.restore();
     } else {
+      canvas.restore();
+      // _star keeps its own shape.
       _star(canvas, paint, center, 0.27, 0.115, fill: true);
     }
+  }
+
+  /// Undoes the row stretch around [c] so round art keeps its shape.
+  static void _unstretch(Canvas canvas, Offset c) {
+    canvas.translate(c.dx, c.dy);
+    canvas.scale(1, 1 / LudoBoardLayout.rowHeight);
+    canvas.translate(-c.dx, -c.dy);
   }
 
   // ---------------------------------------------------------------------------
@@ -603,6 +619,8 @@ class LudoBoardPainter extends CustomPainter {
     double inner, {
     required bool fill,
   }) {
+    canvas.save();
+    _unstretch(canvas, c);
     final path = Path();
     for (var i = 0; i < 10; i++) {
       final r = i.isEven ? outer : inner;
@@ -616,6 +634,7 @@ class LudoBoardPainter extends CustomPainter {
     }
     path.close();
     canvas.drawPath(path, paint);
+    canvas.restore();
   }
 
   static void _diamond(Canvas canvas, Paint paint, Offset c, double r) {

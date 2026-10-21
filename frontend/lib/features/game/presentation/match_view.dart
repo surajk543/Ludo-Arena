@@ -798,6 +798,7 @@ class _MatchViewState extends ConsumerState<MatchView> {
                       selfSeat: selfSeat,
                       turns: stage.turns,
                       board: board,
+                      boardAspectRatio: stage.binding.boardAspectRatio,
                       links: _links,
                       turnTotal: _turnTotal,
                       onPlayerTap: _openPlayer,
@@ -968,6 +969,7 @@ class _MatchLayout extends StatelessWidget {
     required this.selfSeat,
     required this.turns,
     required this.board,
+    this.boardAspectRatio = 1,
     required this.links,
     required this.turnTotal,
     required this.onPlayerTap,
@@ -981,6 +983,9 @@ class _MatchLayout extends StatelessWidget {
   final int? selfSeat;
   final int turns;
   final Widget board;
+
+  /// Width / height of [board] (see MatchBoardBinding.boardAspectRatio).
+  final double boardAspectRatio;
   final Map<int, LayerLink> links;
   final int Function(RoomSnapshot) turnTotal;
   final ValueChanged<RoomPlayer> onPlayerTap;
@@ -1034,14 +1039,15 @@ class _MatchLayout extends StatelessWidget {
   }
 
   Widget _portrait(BuildContext context, BoxConstraints constraints) {
-    const diceSlot = 76.0;
+    const diceSlot = 84.0;
     // Large card pods when two rows of them fit around a full-width board
-    // (most phones have spare height there); otherwise compact row pods.
+    // (most phones have spare height there); otherwise compact row pods, so
+    // the (slightly taller than wide) board keeps its full width.
     const stackedPodHeight = 136.0;
     const chromeHeight = 116.0; // top bar + status line + paddings
     final stacked =
         constraints.maxHeight - chromeHeight - 2 * stackedPodHeight >=
-        (constraints.maxWidth - 12) * 0.96;
+        (constraints.maxWidth - 12) / boardAspectRatio * 0.96;
     final ambient = Directionality.of(context);
     Widget row(_Corner start, _Corner end, Widget middle) => Directionality(
       // Panels follow the board's physical corners (the board is LTR).
@@ -1230,8 +1236,8 @@ class _DiceDock extends StatelessWidget {
       onTap: enabled ? onRoll : null,
       excludeFromSemantics: true,
       child: Container(
-        width: 72,
-        height: 72,
+        width: 80,
+        height: 80,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: c.surface.withValues(alpha: c.isDark ? 0.6 : 0.85),
@@ -1252,7 +1258,7 @@ class _DiceDock extends StatelessWidget {
         child: DiceView(
           controller: binding.dice,
           skin: DiceSkins.resolve(current?.cosmetics.dice),
-          size: 50,
+          size: 56,
           enabled: enabled,
           onTap: enabled ? onRoll : null,
           accent: accent,
