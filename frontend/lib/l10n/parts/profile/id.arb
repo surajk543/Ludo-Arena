@@ -15,5 +15,14 @@
   "profileNotLinked": "Belum tertaut",
   "profileSaveProgressCta": "Simpan progres",
   "profileTotalXp": "Total XP",
-  "profileStatsSection": "Progres"
+  "profileStatsSection": "Progres",
+  "profileEditNameTooltip": "Ubah nama",
+  "profileEditNameTitle": "Ganti namamu",
+  "profileNameLabel": "Nama tampilan",
+  "profileNameRules": "3–16 karakter. Boleh huruf, angka, spasi, _ . dan -.",
+  "profileNameNote": "Teman, papan peringkat, dan game baru akan menampilkan nama barumu. Game yang sedang berjalan tetap memakai nama lama.",
+  "profileNameCounterSemantics": "{count} dari {max} karakter",
+  "profileNameSaved": "Namamu sekarang {name}",
+  "profileNameChangeLimit": "Kamu terlalu sering mengganti nama. Silakan coba lagi nanti.",
+  "profileNameChangeLimitRetry": "Kamu terlalu sering mengganti nama. Coba lagi dalam {wait}."
 }

@@ -17,6 +17,7 @@ import 'package:ludo_royale/core/protocol/envelope.dart';
 import 'package:ludo_royale/core/protocol/events.dart';
 import 'package:ludo_royale/core/protocol/room_state_reducer.dart';
 import 'package:ludo_royale/core/realtime/realtime_socket.dart';
+import 'package:ludo_royale/features/profile/domain/display_name.dart';
 
 final String? _backend = Platform.environment['BACKEND_URL'];
 
@@ -42,6 +43,32 @@ Future<Map<String, dynamic>> _post(
     final text = await res.transform(utf8.decoder).join();
     expect(res.statusCode, inInclusiveRange(200, 201), reason: text);
     return jsonDecode(text) as Map<String, dynamic>;
+  } finally {
+    client.close();
+  }
+}
+
+/// Sends [method] [path] with a bearer token; returns the status, the
+/// decoded JSON body and the `Retry-After` header (any status).
+Future<(int, Map<String, dynamic>, String?)> _send(
+  String method,
+  String path,
+  String token, [
+  Map<String, dynamic>? body,
+]) async {
+  final client = HttpClient();
+  try {
+    final req = await client.openUrl(method, Uri.parse('$_backend$path'));
+    req.headers.contentType = ContentType.json;
+    _appHeaders.forEach(req.headers.set);
+    req.headers.set('Authorization', 'Bearer $token');
+    if (body != null) req.write(jsonEncode(body));
+    final res = await req.close();
+    final text = await res.transform(utf8.decoder).join();
+    final json = text.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(text) as Map<String, dynamic>;
+    return (res.statusCode, json, res.headers.value('retry-after'));
   } finally {
     client.close();
   }
@@ -182,6 +209,60 @@ class _AppClient {
 }
 
 void main() {
+  test(
+    'PATCH /me: rejections carry the reasons the app localizes, a valid '
+    'name is applied (or rate limited with Retry-After)',
+    () async {
+      final token = (await _guest('name'))['accessToken'] as String;
+      const rejected = {
+        'Ab': 'too_short',
+        'Abcdefghijklmnopq': 'too_long',
+        'Raj 😎': 'invalid_characters',
+        'Bot Raj': 'reserved',
+        'Super_Admin': 'reserved',
+      };
+      for (final MapEntry(key: name, value: reason) in rejected.entries) {
+        // The app's client-side mirror agrees with the server.
+        expect(DisplayNameRules.validate(name)?.reason, reason, reason: name);
+        final (status, body, _) = await _send('PATCH', '/api/v1/me', token, {
+          'displayName': name,
+        });
+        final error = (body['error'] as Map?) ?? const {};
+        if (status == 429) {
+          expect(error['code'], 'rate_limited');
+          continue;
+        }
+        expect(status, 400, reason: '$name: $body');
+        expect(error['code'], 'invalid_name', reason: name);
+        expect((error['details'] as Map?)?['reason'], reason, reason: name);
+      }
+
+      final wanted =
+          'Contract ${DateTime.now().microsecondsSinceEpoch % 10000}';
+      final (status, body, retryAfter) = await _send(
+        'PATCH',
+        '/api/v1/me',
+        token,
+        {'displayName': '  ${wanted.replaceAll(' ', '   ')} '},
+      );
+      if (status == 429) {
+        // Max changes per 24 h reached by earlier runs.
+        expect((body['error'] as Map)['code'], 'rate_limited');
+        expect(retryAfter, isNotNull);
+        return;
+      }
+      expect(status, 200, reason: '$body');
+      // Normalized by the server (trim + collapsed whitespace).
+      expect((body['user'] as Map)['displayName'], wanted);
+      expect(body['wallet'], isA<Map<String, dynamic>>());
+      final (_, me, _) = await _send('GET', '/api/v1/me', token);
+      expect((me['user'] as Map)['displayName'], wanted);
+    },
+    skip: _backend == null
+        ? 'set BACKEND_URL to run against a live backend'
+        : false,
+  );
+
   test(
     'full game through the real backend with compression and hash-verified deltas',
     () async {

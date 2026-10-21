@@ -124,6 +124,10 @@ abstract interface class AnalyticsService {
   void guestLoginSucceeded();
   void accountLinkSucceeded(LoginMethod method);
 
+  // Profile
+  /// The server accepted a new display name. Never carries the name.
+  void displayNameChanged();
+
   // Matchmaking / rooms
   void matchmakingStarted(AnalyticsGameType game, int seatCount);
   void matchmakingSucceeded(AnalyticsGameType game, int seatCount);

@@ -15,6 +15,7 @@ import '../../authentication/application/session_controller.dart';
 import '../../authentication/identity/identity_providers.dart';
 import '../../authentication/presentation/widgets/provider_button.dart';
 import '../progression.dart';
+import 'display_name_sheet.dart';
 
 /// Profile: avatar + frame, title, level/XP, public friend code (copy /
 /// share), account type, linked sign-in methods and Save Progress.
@@ -68,11 +69,7 @@ class ProfileScreen extends ConsumerWidget {
                           size: 104,
                         ),
                         const SizedBox(height: AppSpacing.md),
-                        Text(
-                          user.displayName,
-                          textAlign: TextAlign.center,
-                          style: context.textTheme.headlineSmall,
-                        ),
+                        _NameRow(name: user.displayName),
                         const SizedBox(height: AppSpacing.sm),
                         TitleChip(titleId: progression.title),
                         const SizedBox(height: AppSpacing.lg),
@@ -222,6 +219,55 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The player's name with a pencil button that opens [DisplayNameSheet].
+/// A balancing gap on the other side keeps the name centered.
+class _NameRow extends StatelessWidget {
+  const _NameRow({required this.name});
+
+  final String name;
+
+  static const double _buttonSize = 36;
+  static const double _slot = 48; // IconCircleButton's min touch target
+
+  Future<void> _edit(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final user = await DisplayNameSheet.show(context);
+    if (user == null || !context.mounted) return;
+    AppToast.show(
+      context,
+      l10n.profileNameSaved(user.displayName),
+      kind: ToastKind.success,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      children: [
+        const SizedBox(width: _slot),
+        Expanded(
+          child: Text(
+            name,
+            key: const ValueKey('profile-display-name'),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: context.textTheme.headlineSmall,
+          ),
+        ),
+        IconCircleButton(
+          key: const ValueKey('profile-edit-name'),
+          icon: Icons.edit_rounded,
+          tooltip: l10n.profileEditNameTooltip,
+          size: _buttonSize,
+          onPressed: () => _edit(context),
+        ),
+      ],
     );
   }
 }
