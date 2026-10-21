@@ -1,0 +1,43 @@
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# --- Secrets & local config (never commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+!**/debug.keystore.example
+key.properties
+service-account*.json
+**/GoogleService-Info.plist
+**/google-services.json
+frontend/config/firebase.json
+backend/config/*.local.json
+bot-play/configs/*.local.yaml
+bot-play/configs/secrets*.yaml
+
+# --- Go ---
+backend/bin/
+bot-play/bin/
+*.test
+*.out
+coverage*.txt
+
+# --- Load test / benchmark raw output ---
+loadtest-results/*.raw
+*.pprof
+
+# --- Python tooling ---
+__pycache__/
+.venv/
+
+# Local build output
+backend/server
+bot-play/bot-play

@@ -1,0 +1,42 @@
+package server
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+
+	"ludoroyale/internal/analytics"
+	"ludoroyale/internal/httpapi"
+	"ludoroyale/internal/progression"
+	"ludoroyale/internal/social"
+)
+
+// DefaultExtensions wires progression (XP, missions, Collection Room),
+// social (friends, invites, recent opponents, leaderboard) and pseudonymous
+// analytics exactly as production runs them.
+func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
+	minMatch := core.Cfg.MinMatchDuration
+	prog, err := progression.New(core.PG, core.RDB, core.Profiles, core.Notifier, core.Log, progression.Options{
+		CatalogPath: core.Cfg.CatalogFile, MissionsPath: core.Cfg.MissionsFile, MinMatchDuration: &minMatch,
+	})
+	if err != nil {
+		return Extensions{}, err
+	}
+	// social subscribes itself to prog for recent opponents; prog stays the
+	// single match Recorder.
+	soc := social.New(core.PG, core.RDB, core.Profiles, prog, core.Notifier, core.Log, social.Options{})
+	tracker := analytics.New(core.RDB, core.Cfg.Telemetry.ActiveUserKey, core.Log)
+	return Extensions{
+		Progression: prog, Recorder: prog, Inviter: soc, Inventory: prog,
+		Routes: []func(rt *httpapi.Router){prog.Register, soc.Register, tracker.Register},
+		OnNewAccount: func(ctx context.Context, id uuid.UUID) {
+			if err := prog.Bootstrap(ctx, id); err != nil {
+				core.Log.Warn("progression bootstrap failed", "error", err.Error())
+			}
+			_ = tracker.Touch(ctx, id)
+		},
+		// Humans only: the gateway never calls this for bot sessions.
+		OnActivity: func(ctx context.Context, id uuid.UUID) { _ = tracker.Touch(ctx, id) },
+		Background: []func(ctx context.Context){prog.Run, tracker.Run},
+	}, nil
+}

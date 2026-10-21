@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "dailyCount": 3,
+  "daily": [
+    {"id": "daily_ludo_match", "title": "Ludo Time", "description": "Complete 1 Ludo match.",
+     "metric": "complete", "filter": {"game": "ludo"}, "target": 1,
+     "reward": {"coins": 500, "xp": 30}},
+    {"id": "daily_snakes_match", "title": "Climb the Ladder", "description": "Complete 1 Snakes & Ladders match.",
+     "metric": "complete", "filter": {"game": "snakes_ladders"}, "target": 1,
+     "reward": {"coins": 500, "xp": 30}},
+    {"id": "daily_play_two", "title": "Warm-Up", "description": "Complete 2 matches in any game.",
+     "metric": "complete", "target": 2,
+     "reward": {"coins": 1000, "xp": 30}},
+    {"id": "daily_friends_private", "title": "Friendly Table", "description": "Complete a private match with a friend.",
+     "metric": "complete", "filter": {"mode": "private", "withFriend": true}, "target": 1,
+     "reward": {"coins": 1500, "xp": 30}},
+    {"id": "daily_finish_strong", "title": "Stay to the End", "description": "Complete a match without leaving early.",
+     "metric": "complete", "target": 1,
+     "reward": {"coins": 500, "xp": 30}},
+    {"id": "daily_win_one", "title": "Taste of Victory", "description": "Win 1 match.",
+     "metric": "win", "target": 1,
+     "reward": {"coins": 2000, "xp": 30}},
+    {"id": "daily_quick_ludo", "title": "Quick Draw", "description": "Complete 1 Quick Ludo match.",
+     "metric": "complete", "filter": {"game": "ludo", "variant": "quick"}, "target": 1,
+     "reward": {"coins": 750, "xp": 30}}
+  ],
+  "weekly": [
+    {"id": "weekly_ten_matches", "title": "Weekly Challenge", "description": "Complete 10 matches across Ludo and Snakes & Ladders.",
+     "metric": "complete", "target": 10,
+     "reward": {"coins": 2000, "diamonds": 5, "xp": 150, "items": ["title_weekly_champion", "badge_friendly"]}}
+  ],
+  "events": [
+    {"id": "autumn_cup", "title": "Autumn Cup", "description": "Celebrate the season with Quick Ludo and win the Autumn Leaf dice.",
+     "startsAtUtc": "2026-10-19T00:00:00Z", "endsAtUtc": "2026-11-02T00:00:00Z",
+     "missions": [
+       {"id": "autumn_quick_ludo", "title": "Autumn Sprint", "description": "Complete 3 Quick Ludo matches.",
+        "metric": "complete", "filter": {"game": "ludo", "variant": "quick"}, "target": 3,
+        "reward": {"coins": 1000, "xp": 30, "items": ["dice_autumn"]}}
+     ]}
+  ]
+}
