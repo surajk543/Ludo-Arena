@@ -4,16 +4,17 @@ import 'package:ludo_royale/features/game/application/rematch_view.dart';
 
 import 'support/play_test_support.dart';
 
-RoomSnapshot _finished({
-  RematchState? rematch,
-  List<RoomPlayer>? players,
-}) => ludoRoom(
-  status: RoomStatuses.finished,
-  players: players ?? [player(0), player(1), player(2)],
-  result: const RoomResult(winnerSeat: 1, placements: [1, 0, 2], payout: 3000),
-  rematch:
-      rematch ?? RematchState(open: true, deadline: kNowMs + 30000),
-);
+RoomSnapshot _finished({RematchState? rematch, List<RoomPlayer>? players}) =>
+    ludoRoom(
+      status: RoomStatuses.finished,
+      players: players ?? [player(0), player(1), player(2)],
+      result: const RoomResult(
+        winnerSeat: 1,
+        placements: [1, 0, 2],
+        payout: 3000,
+      ),
+      rematch: rematch ?? RematchState(open: true, deadline: kNowMs + 30000),
+    );
 
 void main() {
   test('nobody answered → the local player can request', () {

@@ -86,7 +86,8 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             expand: false,
             size: PremiumButtonSize.medium,
             variant: PremiumButtonVariant.secondary,
-            onPressed: () => context.pushReplacement(AppRoutes.missions),
+            // Missions is a bottom-navigation tab.
+            onPressed: () => context.go(AppRoutes.missions),
           ),
         ),
       ];

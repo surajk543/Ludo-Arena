@@ -125,7 +125,8 @@ class LeaderboardScreen extends ConsumerWidget {
                   icon: Icons.person_add_alt_1_rounded,
                   size: PremiumButtonSize.medium,
                   variant: PremiumButtonVariant.secondary,
-                  onPressed: () => context.pushReplacement(AppRoutes.friends),
+                  // Friends is a bottom-navigation tab.
+                  onPressed: () => context.go(AppRoutes.friends),
                 ),
               ],
             ),

@@ -11,12 +11,11 @@ import '../features/app_update/presentation/unreachable_screen.dart';
 import '../features/authentication/presentation/language_onboarding_screen.dart';
 import '../features/authentication/presentation/link_account_screen.dart';
 import '../features/authentication/presentation/login_screen.dart';
-import '../features/home/presentation/home_screen.dart';
-import '../features/profile/presentation/profile_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import 'feature_routes.dart';
 import 'gate/app_gate_controller.dart';
 import 'routes.dart';
+import 'shell/main_shell.dart';
 
 /// Root navigator key (dialogs shown from the app shell use it).
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -118,14 +117,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.login,
         pageBuilder: (_, _) => _fade(const LoginScreen()),
       ),
-      GoRoute(
-        path: AppRoutes.home,
-        pageBuilder: (_, _) => _fade(const HomeScreen()),
-      ),
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (_, _) => const ProfileScreen(),
-      ),
+      // Bottom-navigation tabs: home, games, missions, friends, profile.
+      buildMainTabsRoute(),
       GoRoute(
         path: AppRoutes.settings,
         builder: (_, _) => const SettingsScreen(),

@@ -938,7 +938,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get homeMissionsSubtitle => 'रोज़ाना और साप्ताहिक लक्ष्य';
 
   @override
-  String get homeCollection => 'कलेक्शन रूम';
+  String get homeCollection => 'कलेक्शन';
 
   @override
   String get homeCollectionSubtitle => 'पासे, गोटियाँ और फ़्रेम';
@@ -956,10 +956,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get homeEventsSubtitle => 'सीमित समय के कप';
 
   @override
-  String get homeExploreHeader => 'एक्सप्लोर करें';
+  String get homeExploreHeader => 'और भी एक्सप्लोर करें';
 
   @override
-  String get homeGamesHeader => 'गेम्स';
+  String get homeGamesHeader => 'गेम चुनें';
 
   @override
   String get homeSaveProgressTooltip => 'प्रोग्रेस सेव करें';
@@ -1073,6 +1073,40 @@ class AppLocalizationsHi extends AppLocalizations {
   String homeCoinsGainedToast(String amount) {
     return '+$amount सिक्के';
   }
+
+  @override
+  String get homeQuickPlaySubtitle => 'रैंडम खिलाड़ी ढूँढें और अभी शुरू करें';
+
+  @override
+  String get homePlayNow => 'अभी खेलें';
+
+  @override
+  String get homeQuickLudo => 'क्विक लूडो';
+
+  @override
+  String get homeChangeGameHint => 'गेम बदलें';
+
+  @override
+  String get homeChangePlayersHint => 'खिलाड़ियों की संख्या बदलें';
+
+  @override
+  String get homeGamesSubtitle =>
+      'गेम चुनें, फिर ऑनलाइन, दोस्तों के साथ या बॉट्स के खिलाफ़ खेलें।';
+
+  @override
+  String get homeNavHome => 'होम';
+
+  @override
+  String get homeNavGames => 'गेम्स';
+
+  @override
+  String get homeNavMissions => 'मिशन';
+
+  @override
+  String get homeNavFriends => 'दोस्त';
+
+  @override
+  String get homeNavProfile => 'प्रोफ़ाइल';
 
   @override
   String get metaMissionsTitle => 'मिशन';

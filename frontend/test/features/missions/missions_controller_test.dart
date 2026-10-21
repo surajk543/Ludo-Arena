@@ -59,23 +59,26 @@ void main() {
     });
   });
 
-  test('a successful claim applies server-confirmed wallet, XP and state', () async {
-    env.backend.json(
-      'POST',
-      _claimPath,
-      claimJson(missionJson('daily_ludo_match', progress: 1)),
-    );
-    final outcome = await ctl().claim('d2026-10-21', 'daily_ludo_match');
+  test(
+    'a successful claim applies server-confirmed wallet, XP and state',
+    () async {
+      env.backend.json(
+        'POST',
+        _claimPath,
+        claimJson(missionJson('daily_ludo_match', progress: 1)),
+      );
+      final outcome = await ctl().claim('d2026-10-21', 'daily_ludo_match');
 
-    expect(outcome, isA<ClaimSucceeded>());
-    final req = env.backend.calls('POST', _claimPath).single;
-    expect(req.header('Idempotency-Key'), fakes.issuedKeys.single);
-    expect(c.read(walletControllerProvider).coins, 1000500);
-    expect(c.read(sessionControllerProvider).user!.xp, 550);
-    expect(mission('daily_ludo_match').status, MissionStatus.claimed);
-    expect(fakes.analytics.events, contains('mission_reward_claimed:daily'));
-    expect(ctl().pendingIntentKey('d2026-10-21', 'daily_ludo_match'), isNull);
-  });
+      expect(outcome, isA<ClaimSucceeded>());
+      final req = env.backend.calls('POST', _claimPath).single;
+      expect(req.header('Idempotency-Key'), fakes.issuedKeys.single);
+      expect(c.read(walletControllerProvider).coins, 1000500);
+      expect(c.read(sessionControllerProvider).user!.xp, 550);
+      expect(mission('daily_ludo_match').status, MissionStatus.claimed);
+      expect(fakes.analytics.events, contains('mission_reward_claimed:daily'));
+      expect(ctl().pendingIntentKey('d2026-10-21', 'daily_ludo_match'), isNull);
+    },
+  );
 
   test('double tap sends exactly one claim', () async {
     final gate = Completer<void>();
@@ -102,9 +105,10 @@ void main() {
     expect(failed, isA<ClaimFailed>());
     expect((failed as ClaimFailed).canRetry, isTrue);
     expect(failed.error.code, ClientErrorCodes.network);
-    final firstKey = env.backend.calls('POST', _claimPath).single.header(
-      'Idempotency-Key',
-    );
+    final firstKey = env.backend
+        .calls('POST', _claimPath)
+        .single
+        .header('Idempotency-Key');
     expect(ctl().pendingIntentKey('d2026-10-21', 'daily_ludo_match'), firstKey);
 
     // The server answers the retry (a real server would replay the stored
@@ -200,28 +204,31 @@ void main() {
     expect(metaErrorMessage(l10n, StateError('x')), l10n.errorGeneric);
   });
 
-  test('a level-up claim queues one celebration with the granted items', () async {
-    env.backend.json(
-      'POST',
-      _claimPath,
-      claimJson(
-        missionJson('daily_ludo_match', progress: 1),
-        level: 5,
-        xp: 705,
-        levelUp: true,
-        granted: [
-          itemRef('dice_neon', 'dice', 'rare'),
-          itemRef('title_strategist', 'title', 'rare'),
-        ],
-      ),
-    );
-    await ctl().claim('d2026-10-21', 'daily_ludo_match');
-    final s = c.read(levelUpControllerProvider);
-    expect(s.pending.single.level, 5);
-    expect(s.pending.single.unlocked, ['dice_neon', 'title_strategist']);
-    expect(fakes.analytics.events, contains('level_up:5'));
-    expect(c.read(sessionControllerProvider).user!.level, 5);
-  });
+  test(
+    'a level-up claim queues one celebration with the granted items',
+    () async {
+      env.backend.json(
+        'POST',
+        _claimPath,
+        claimJson(
+          missionJson('daily_ludo_match', progress: 1),
+          level: 5,
+          xp: 705,
+          levelUp: true,
+          granted: [
+            itemRef('dice_neon', 'dice', 'rare'),
+            itemRef('title_strategist', 'title', 'rare'),
+          ],
+        ),
+      );
+      await ctl().claim('d2026-10-21', 'daily_ludo_match');
+      final s = c.read(levelUpControllerProvider);
+      expect(s.pending.single.level, 5);
+      expect(s.pending.single.unlocked, ['dice_neon', 'title_strategist']);
+      expect(fakes.analytics.events, contains('level_up:5'));
+      expect(c.read(sessionControllerProvider).user!.level, 5);
+    },
+  );
 
   test('mission_completed is logged once per mission and period', () async {
     expect(

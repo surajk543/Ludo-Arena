@@ -10,12 +10,8 @@ void main() {
 
     test('allowed once per turnSeq (duplicate taps are ignored)', () {
       final g = TurnInputGuard();
-      bool can() => g.canRoll(
-        live: mine,
-        presented: mine,
-        selfSeat: 0,
-        busy: false,
-      );
+      bool can() =>
+          g.canRoll(live: mine, presented: mine, selfSeat: 0, busy: false);
       expect(can(), isTrue);
       g.markRollSent(7);
       expect(can(), isFalse, reason: 'second tap for the same turnSeq');

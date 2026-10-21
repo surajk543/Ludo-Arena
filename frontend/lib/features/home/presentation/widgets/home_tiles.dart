@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
@@ -10,136 +7,47 @@ import '../../application/play_options.dart';
 import '../join_code_sheet.dart';
 import '../play_options_sheet.dart';
 
-/// Quick Play (one tap into matchmaking with the remembered setup), Private
-/// Room and Join with Code.
-class QuickActions extends ConsumerWidget {
-  const QuickActions({super.key});
+/// Private Room (create a room for friends, game chosen in the sheet) and
+/// Join with Code, side by side with equal heights.
+class RoomActions extends StatelessWidget {
+  const RoomActions({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final c = context.colors;
-    final config = ref.watch(quickPlayProvider);
-    final details = l10n.homeQuickPlayDetails(
-      gameName(l10n, config.game),
-      variantName(l10n, config.effectiveVariant),
-      l10n.commonPlayerCount(config.capacity),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Semantics(
-          button: true,
-          label: '${l10n.homeQuickPlay}, $details',
-          excludeSemantics: true,
-          child: Material(
-            color: Colors.transparent,
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: c.brandGradient,
-                borderRadius: AppRadii.lgAll,
-                boxShadow: c.shadow(AppElevation.medium),
-              ),
-              child: InkWell(
-                borderRadius: AppRadii.lgAll,
-                onTap: () {
-                  // One tap straight into matchmaking.
-                  playUiSound(context, Sfx.lobbyPlay);
-                  context.push(config.routeFor(PlayMode.online));
-                },
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.sm,
-                    AppSpacing.lg,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: c.goldGradient,
-                        ),
-                        child: Icon(
-                          Icons.bolt_rounded,
-                          color: c.onGold,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.homeQuickPlay,
-                              style: context.textTheme.titleLarge?.copyWith(
-                                color: c.onBrand,
-                              ),
-                            ),
-                            Text(
-                              details,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: c.onBrand.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: l10n.homeModeLabel,
-                        icon: Icon(Icons.tune_rounded, color: c.onBrand),
-                        onPressed: () => PlayOptionsSheet.show(
-                          context,
-                          mode: PlayMode.online,
-                          quickPlay: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: LobbyTile(
+              icon: Icons.meeting_room_rounded,
+              color: c.accentSky,
+              title: l10n.homePrivateRoom,
+              subtitle: l10n.homePrivateRoomSubtitle,
+              onTap: () =>
+                  PlayOptionsSheet.show(context, mode: PlayMode.friends),
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _ActionTile(
-                icon: Icons.meeting_room_rounded,
-                color: c.seats.blue,
-                title: l10n.homePrivateRoom,
-                subtitle: l10n.homePrivateRoomSubtitle,
-                onTap: () =>
-                    PlayOptionsSheet.show(context, mode: PlayMode.friends),
-              ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: LobbyTile(
+              icon: Icons.vpn_key_rounded,
+              color: c.accentAmber,
+              title: l10n.homeJoinWithCode,
+              subtitle: l10n.homeJoinWithCodeSubtitle,
+              onTap: () => JoinCodeSheet.show(context),
             ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: _ActionTile(
-                icon: Icons.vpn_key_rounded,
-                color: c.seats.yellow,
-                title: l10n.homeJoinWithCode,
-                subtitle: l10n.homeJoinWithCodeSubtitle,
-                onTap: () => JoinCodeSheet.show(context),
-              ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// Entry tiles for Missions, Collection Room, Friends and Events.
+/// Two-column grid (four columns on wide screens) of entry tiles with equal
+/// heights per row.
 class ExploreGrid extends StatelessWidget {
   const ExploreGrid({super.key, required this.tiles});
 
@@ -150,24 +58,43 @@ class ExploreGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 640 ? 4 : 2;
-        final gap = AppSpacing.md;
-        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final t in tiles)
-              SizedBox(
-                width: width,
-                child: _ActionTile(
-                  icon: t.icon,
-                  color: t.color,
-                  title: t.title,
-                  subtitle: t.subtitle,
-                  onTap: t.onTap,
-                ),
+        const gap = AppSpacing.md;
+        final tileWidth =
+            (constraints.maxWidth - gap * (columns - 1)) / columns;
+        // Badge beside the text only while the text keeps ~80 dp.
+        final scale = MediaQuery.textScalerOf(context).scale(1);
+        final beside = tileWidth - 2 * AppSpacing.md >= 128 * scale;
+        final rows = <Widget>[];
+        for (var i = 0; i < tiles.length; i += columns) {
+          if (rows.isNotEmpty) rows.add(const SizedBox(height: gap));
+          rows.add(
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var j = 0; j < columns; j++) ...[
+                    if (j > 0) const SizedBox(width: gap),
+                    Expanded(
+                      child: i + j < tiles.length
+                          ? LobbyTile(
+                              icon: tiles[i + j].icon,
+                              color: tiles[i + j].color,
+                              title: tiles[i + j].title,
+                              subtitle: tiles[i + j].subtitle,
+                              onTap: tiles[i + j].onTap,
+                              badgeBeside: beside,
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ],
               ),
-          ],
+            ),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: rows,
         );
       },
     );
@@ -190,13 +117,17 @@ class ExploreTileData {
   final VoidCallback onTap;
 }
 
-class _ActionTile extends StatelessWidget {
-  const _ActionTile({
+/// Tappable card with a colored icon badge, a title and a short subtitle
+/// (lobby room actions and More to Explore).
+class LobbyTile extends StatelessWidget {
+  const LobbyTile({
+    super.key,
     required this.icon,
     required this.color,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.badgeBeside = false,
   });
 
   final IconData icon;
@@ -205,9 +136,55 @@ class _ActionTile extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
+  /// Badge beside the text (wide tiles) instead of above it. Decided by the
+  /// parent: tiles sit in `IntrinsicHeight` rows, so they cannot measure
+  /// themselves with a `LayoutBuilder`.
+  final bool badgeBeside;
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final badge = ExcludeSemantics(
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          borderRadius: AppRadii.mdAll,
+          gradient: c.badgeGradient(color),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: c.isDark ? 0.30 : 0.28),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: c.onAccent(color), size: 24),
+      ),
+    );
+    final texts = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          subtitle,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          // bodySmall uses textSecondary: ≥ 4.5:1 on cards in both modes.
+          style: context.textTheme.bodySmall,
+        ),
+      ],
+    );
+
     return Semantics(
       button: true,
       label: title,
@@ -215,45 +192,27 @@ class _ActionTile extends StatelessWidget {
       excludeSemantics: true,
       child: SurfaceCard(
         onTap: onTap,
+        borderRadius: AppRadii.lgAll,
+        elevation: c.isDark ? AppElevation.flat : AppElevation.low,
+        border: Border.all(color: c.cardBorder),
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                borderRadius: AppRadii.smAll,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color.lerp(color, Colors.white, 0.25)!, color],
-                ),
+        child: badgeBeside
+            ? Row(
+                children: [
+                  badge,
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(child: texts),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  badge,
+                  const SizedBox(height: AppSpacing.sm),
+                  texts,
+                ],
               ),
-              child: Icon(
-                icon,
-                color: color.computeLuminance() > 0.5
-                    ? const Color(0xFF2A1F00)
-                    : Colors.white,
-                size: 22,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: context.textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              subtitle,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: context.textTheme.bodySmall?.copyWith(color: c.textMuted),
-            ),
-          ],
-        ),
       ),
     );
   }

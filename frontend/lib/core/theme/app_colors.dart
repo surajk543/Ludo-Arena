@@ -36,6 +36,13 @@ abstract final class BrandPalette {
   static const Color coral = Color(0xFFE5484D);
   static const Color amber = Color(0xFFF59E0B);
   static const Color sky = Color(0xFF3E9BF0);
+
+  // Saturated violet ramp for hero surfaces (Quick Play).
+  static const Color hero300 = Color(0xFF9466FF);
+  static const Color hero400 = Color(0xFF7C4DFF);
+  static const Color hero500 = Color(0xFF6A3BF2);
+  static const Color hero600 = Color(0xFF5A2BE0);
+  static const Color hero700 = Color(0xFF4422B8);
 }
 
 /// Semantic color tokens for the "royal" design language, available through
@@ -140,6 +147,58 @@ class AppColors extends ThemeExtension<AppColors> {
     colors: [BrandPalette.gold300, BrandPalette.gold500, BrandPalette.gold600],
     stops: [0, 0.55, 1],
   );
+
+  /// Saturated violet gradient for hero cards (Quick Play).
+  LinearGradient get heroGradient => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: isDark
+        ? const [
+            BrandPalette.hero400,
+            BrandPalette.hero600,
+            BrandPalette.hero700,
+          ]
+        : const [
+            BrandPalette.hero300,
+            BrandPalette.hero500,
+            BrandPalette.hero600,
+          ],
+    stops: const [0, 0.55, 1],
+  );
+
+  /// Fill and foreground of the light controls placed on a hero card
+  /// (selectors on Quick Play): white pills with royal text in both modes.
+  Color get onHeroControl => Colors.white;
+  Color get onHeroControlText => BrandPalette.royal800;
+
+  /// Accent hues for lobby tiles and icon badges, tuned per brightness.
+  Color get accentCoral =>
+      isDark ? const Color(0xFFFF6B70) : BrandPalette.coral;
+  Color get accentMint => isDark ? const Color(0xFF3DD68C) : BrandPalette.mint;
+  Color get accentSky => isDark ? const Color(0xFF5B8CFF) : BrandPalette.sky;
+  Color get accentAmber =>
+      isDark ? BrandPalette.gold400 : const Color(0xFFF5B400);
+  Color get accentViolet =>
+      isDark ? BrandPalette.royal400 : const Color(0xFF7B4DFF);
+
+  /// Text on [goldSoft] (fee pills): ≥ 4.5:1 in both modes.
+  Color get onGoldSoft => isDark ? BrandPalette.gold300 : BrandPalette.gold800;
+
+  /// Hairline border for cards: subtle borders replace heavy shadows in dark.
+  Color get cardBorder => isDark
+      ? Colors.white.withValues(alpha: 0.08)
+      : outline.withValues(alpha: 0.7);
+
+  /// Diagonal fill for a small icon badge in [color] (lighter top-start).
+  LinearGradient badgeGradient(Color color) => LinearGradient(
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
+    colors: [Color.lerp(color, Colors.white, 0.22)!, color],
+  );
+
+  /// Foreground that reads on top of [color] (dark ink on light hues).
+  Color onAccent(Color color) =>
+      color.computeLuminance() > 0.45 ? const Color(0xFF2A1F00) : Colors.white;
 
   /// Page background gradient.
   LinearGradient get backgroundGradient => LinearGradient(

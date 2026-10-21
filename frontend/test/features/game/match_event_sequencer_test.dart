@@ -100,8 +100,10 @@ RoomDeltaApplied _turn(RoomSnapshot prev, int v, int seat) => RoomDeltaApplied(
   previous: prev,
 );
 
-RoomSnapshotApplied _snapshot(RoomSnapshot room) =>
-    RoomSnapshotApplied(room: room, source: GameStateEvent(room: room));
+RoomSnapshotApplied _snapshot(RoomSnapshot room) => RoomSnapshotApplied(
+  room: room,
+  source: GameStateEvent(room: room),
+);
 
 void main() {
   final base = ludoRoom(v: 40);

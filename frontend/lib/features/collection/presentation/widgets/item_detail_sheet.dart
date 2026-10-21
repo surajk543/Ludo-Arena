@@ -222,7 +222,8 @@ class CollectionItemSheet extends ConsumerWidget {
         variant: PremiumButtonVariant.ghost,
         onPressed: () {
           Navigator.of(context).pop();
-          GoRouter.maybeOf(context)?.push(AppRoutes.missions);
+          // Missions is a bottom-navigation tab.
+          GoRouter.maybeOf(context)?.go(AppRoutes.missions);
         },
       ),
     ];

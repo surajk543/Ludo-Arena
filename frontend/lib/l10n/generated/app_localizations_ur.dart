@@ -937,7 +937,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get homeMissionsSubtitle => 'روزانہ اور ہفتہ وار اہداف';
 
   @override
-  String get homeCollection => 'کلیکشن روم';
+  String get homeCollection => 'کلیکشن';
 
   @override
   String get homeCollectionSubtitle => 'پانسے، گوٹیاں اور فریم';
@@ -955,10 +955,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get homeEventsSubtitle => 'محدود وقت کے کپ';
 
   @override
-  String get homeExploreHeader => 'دریافت کریں';
+  String get homeExploreHeader => 'مزید دریافت کریں';
 
   @override
-  String get homeGamesHeader => 'گیمز';
+  String get homeGamesHeader => 'گیم منتخب کریں';
 
   @override
   String get homeSaveProgressTooltip => 'پیش رفت محفوظ کریں';
@@ -1072,6 +1072,41 @@ class AppLocalizationsUr extends AppLocalizations {
   String homeCoinsGainedToast(String amount) {
     return '+$amount سکے';
   }
+
+  @override
+  String get homeQuickPlaySubtitle =>
+      'بے ترتیب کھلاڑی ڈھونڈیں اور ابھی شروع کریں';
+
+  @override
+  String get homePlayNow => 'ابھی کھیلیں';
+
+  @override
+  String get homeQuickLudo => 'فوری لوڈو';
+
+  @override
+  String get homeChangeGameHint => 'گیم تبدیل کریں';
+
+  @override
+  String get homeChangePlayersHint => 'کھلاڑیوں کی تعداد تبدیل کریں';
+
+  @override
+  String get homeGamesSubtitle =>
+      'گیم چنیں، پھر آن لائن، دوستوں کے ساتھ یا بوٹس کے خلاف کھیلیں۔';
+
+  @override
+  String get homeNavHome => 'ہوم';
+
+  @override
+  String get homeNavGames => 'گیمز';
+
+  @override
+  String get homeNavMissions => 'مشنز';
+
+  @override
+  String get homeNavFriends => 'دوست';
+
+  @override
+  String get homeNavProfile => 'پروفائل';
 
   @override
   String get metaMissionsTitle => 'مشنز';

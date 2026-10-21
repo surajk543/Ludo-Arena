@@ -11,8 +11,12 @@ import '../application/play_options.dart';
 import 'widgets/game_card.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_tiles.dart';
+import 'widgets/quick_play_card.dart';
 
-/// The main hub after the gate is ready.
+/// The lobby (Home tab): compact profile header, Quick Play, private room
+/// actions, the game cards and the More to Explore grid. One vertical
+/// scroll; everything shown comes from state that is already loaded (no
+/// network in build).
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -33,28 +37,29 @@ class HomeScreen extends ConsumerWidget {
     final tiles = [
       ExploreTileData(
         icon: Icons.flag_rounded,
-        color: c.seats.red,
+        color: c.accentCoral,
         title: l10n.homeMissions,
         subtitle: l10n.homeMissionsSubtitle,
-        onTap: () => context.push(AppRoutes.missions),
+        // Missions and Friends are bottom-navigation tabs: switch to them.
+        onTap: () => context.go(AppRoutes.missions),
       ),
       ExploreTileData(
         icon: Icons.diamond_rounded,
-        color: c.brand,
+        color: c.accentViolet,
         title: l10n.homeCollection,
         subtitle: l10n.homeCollectionSubtitle,
         onTap: () => context.push(AppRoutes.collection),
       ),
       ExploreTileData(
         icon: Icons.people_alt_rounded,
-        color: c.seats.green,
+        color: c.accentMint,
         title: l10n.homeFriends,
         subtitle: l10n.homeFriendsSubtitle,
-        onTap: () => context.push(AppRoutes.friends),
+        onTap: () => context.go(AppRoutes.friends),
       ),
       ExploreTileData(
         icon: Icons.emoji_events_rounded,
-        color: c.gold,
+        color: c.accentAmber,
         title: l10n.homeEvents,
         subtitle: l10n.homeEventsSubtitle,
         onTap: () => context.push(AppRoutes.events),
@@ -79,20 +84,22 @@ class HomeScreen extends ConsumerWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                         AppSpacing.lg,
                         AppSpacing.md,
                         AppSpacing.lg,
-                        AppSpacing.huge,
+                        AppSpacing.xxl + MediaQuery.paddingOf(context).bottom,
                       ),
                       sliver: SliverList.list(
                         children: [
                           const HomeHeader(),
-                          const SizedBox(height: AppSpacing.xl),
-                          const QuickActions(),
-                          const SizedBox(height: AppSpacing.xl),
+                          const SizedBox(height: AppSpacing.lg),
+                          const QuickPlayCard(),
+                          const SizedBox(height: AppSpacing.lg),
+                          const RoomActions(),
+                          const SizedBox(height: AppSpacing.lg),
                           SectionHeader(title: l10n.homeGamesHeader),
-                          const SizedBox(height: AppSpacing.md),
+                          const SizedBox(height: AppSpacing.xs),
                           if (wide)
                             const Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,13 +114,10 @@ class HomeScreen extends ConsumerWidget {
                             SizedBox(height: AppSpacing.lg),
                             snakes,
                           ],
-                          const SizedBox(height: AppSpacing.xl),
+                          const SizedBox(height: AppSpacing.lg),
                           SectionHeader(title: l10n.homeExploreHeader),
-                          const SizedBox(height: AppSpacing.md),
+                          const SizedBox(height: AppSpacing.xs),
                           ExploreGrid(tiles: tiles),
-                          SizedBox(
-                            height: MediaQuery.paddingOf(context).bottom,
-                          ),
                         ],
                       ),
                     ),
