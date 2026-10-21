@@ -24,7 +24,8 @@ class WalletState {
   final int lastCoinsDelta;
   final int lastDiamondsDelta;
 
-  /// `entry_fee` | `payout` | `mission` | `purchase` | `level` (or null).
+  /// `entry_fee` | `payout` | `mission` | `purchase` | `level` | `refund`
+  /// (or null). Unknown future reasons only update the balances.
   final String? lastReason;
 
   /// Increments on every server update (lets widgets animate per update).

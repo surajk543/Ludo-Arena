@@ -1,0 +1,21 @@
+{
+  "coinsCategory": "العملات",
+  "coinsHeroTitle": "باقات العملات",
+  "coinsHeroSubtitle": "عملات أكثر لمباريات أكثر. كل باقة تأتي مع ماسات إضافية.",
+  "coinsPackStarter": "المبتدئ",
+  "coinsPackPopular": "الأكثر شيوعًا",
+  "coinsPackGreatValue": "قيمة رائعة",
+  "coinsPackBestValue": "أفضل قيمة",
+  "coinsPackCoins": "{amount} عملة",
+  "coinsPackDiamonds": "+{amount} ماسة",
+  "coinsPackSemantics": "{pack}: {coins} عملة و{diamonds} ماسة مقابل {price}",
+  "coinsBuyFor": "اشترِ مقابل {price}",
+  "coinsGrantedTitle": "أُضيفت العملات!",
+  "coinsGrantedMessage": "أصبحت {coins} عملة و{diamonds} ماسة في محفظتك الآن.",
+  "coinsBuyFailed": "لم تكتمل عملية الشراء. يُرجى المحاولة مرة أخرى.",
+  "coinsDelayed": "عملية الشراء آمنة. سنضيف العملات فور الاتصال بخادم اللعبة.",
+  "coinsNote": "العملات والماسات عناصر افتراضية ليس لها قيمة نقدية. تتم معالجة المدفوعات عبر Google Play أو App Store.",
+  "coinsErrorUnavailable": "هذه الباقة غير متاحة بعد.",
+  "coinsErrorInvalid": "تعذّر التحقق من عملية الشراء هذه، لذا لم يُضَف شيء.",
+  "coinsErrorPending": "دفعتك قيد الانتظار. ستصل العملات فور اكتمالها."
+}

@@ -15,12 +15,14 @@ import 'package:ludo_royale/features/store/application/shop_category.dart';
 import 'package:ludo_royale/features/store/application/store_controller.dart';
 import 'package:ludo_royale/features/store/data/store_api.dart';
 import 'package:ludo_royale/features/store/domain/store_models.dart';
+import 'package:ludo_royale/features/store/iap/iap_store.dart';
 import 'package:ludo_royale/features/store/presentation/shop_screen.dart';
 import 'package:ludo_royale/features/store/presentation/widgets/store_picture_sheet.dart';
 import 'package:ludo_royale/features/wallet/wallet_controller.dart';
 import 'package:ludo_royale/shared/widgets/widgets.dart';
 
 import '../progression/meta_test_support.dart';
+import 'coin_test_support.dart';
 import 'store_test_support.dart';
 
 const _list = '/store/profile-pictures';
@@ -87,11 +89,17 @@ void main() {
       expect(p.affordableWith(null), isTrue);
     });
 
-    test('Shop categories: Pictures, then every kind with priced items', () {
-      expect(shopCategories(null), [kPictureCategory, ...kDefaultShopKinds]);
+    test('Shop categories: Coins, Pictures, then every kind with priced '
+        'items', () {
+      expect(shopCategories(null), [
+        kCoinsCategory,
+        kPictureCategory,
+        ...kDefaultShopKinds,
+      ]);
       final data = CollectionData.fromJson(collectionJson());
       // Titles and badges are only earned, never sold.
       expect(shopCategories(data), [
+        'coins',
         'picture',
         'dice',
         'token',
@@ -126,6 +134,7 @@ void main() {
       env = await TestEnv.create();
       env.routeHappyPath();
       routeStore(env);
+      routeCoinPacks(env);
       fakes = MetaFakes();
       c = metaContainer(env, fakes);
       await signIn(c);
@@ -348,12 +357,19 @@ void main() {
       env.routeHappyPath();
       routeMeta(env);
       routeStore(env);
+      routeCoinPacks(env);
       fakes = MetaFakes();
     });
     tearDown(() => fakes.close());
 
+    // `/shop?category=picture` (the Shop itself opens on Coins).
     Future<ProviderContainer> pumpShop(WidgetTester tester) async {
-      final c = await pumpMeta(tester, env, fakes, const ShopScreen());
+      final c = await pumpMeta(
+        tester,
+        env,
+        fakes,
+        const ShopScreen(initialCategory: kPictureCategory),
+      );
       await flush(tester);
       return c;
     }
@@ -366,8 +382,8 @@ void main() {
       await settleRoute(tester);
     }
 
-    testWidgets('opens on Pictures with unowned pictures only; reaching the '
-        'end loads the next page', (tester) async {
+    testWidgets('Pictures lists unowned pictures only; reaching the end '
+        'loads the next page', (tester) async {
       await pumpShop(tester);
       expect(find.text('Shop'), findsOneWidget);
       expect(find.text('Profile pictures'), findsOneWidget);
@@ -503,6 +519,7 @@ void main() {
       env.routeHappyPath();
       routeMeta(env);
       routeStore(env);
+      routeCoinPacks(env);
       fakes = MetaFakes();
     });
     tearDown(() => fakes.close());
@@ -513,6 +530,7 @@ void main() {
         'its unowned priced items', (tester) async {
       await pumpMeta(tester, env, fakes, const ShopScreen());
       for (final label in const [
+        'Coins',
         'Pictures',
         'Dice',
         'Tokens',
@@ -528,6 +546,8 @@ void main() {
       expect(_category('Titles'), findsNothing);
       expect(_category('Badges'), findsNothing);
 
+      await tester.ensureVisible(_category('Dice'));
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(_category('Dice'));
       await flush(tester);
       expect(shopItem('dice_golden'), findsOneWidget);
@@ -662,6 +682,7 @@ void main() {
       env.routeHappyPath();
       routeMeta(env);
       routeStore(env);
+      routeCoinPacks(env);
       fakes = MetaFakes();
     });
     tearDown(() => fakes.close());
@@ -702,9 +723,8 @@ void main() {
       expectSelected(tester, 'Dice');
     });
 
-    testWidgets('the last category is remembered while the app runs', (
-      tester,
-    ) async {
+    testWidgets('every visit opens on Coins, whatever was chosen last; a '
+        '?category= link still wins', (tester) async {
       final c = await pumpMeta(
         tester,
         env,
@@ -714,8 +734,11 @@ void main() {
       );
       await tester.tap(find.text('open shop'));
       await settleRoute(tester);
-      expectSelected(tester, 'Pictures');
+      expectSelected(tester, 'Coins');
+      expect(c.read(shopCategoryProvider), kCoinsCategory);
+      expect(byKeyString('coin-pack-coins_starter'), findsOneWidget);
       await tester.ensureVisible(_category('Tokens'));
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(_category('Tokens'));
       await flush(tester);
       expect(c.read(shopCategoryProvider), 'token');
@@ -725,8 +748,23 @@ void main() {
       expect(find.byType(ShopScreen), findsNothing);
       await tester.tap(find.text('open shop'));
       await settleRoute(tester);
-      expectSelected(tester, 'Tokens');
-      expect(byKeyString('shop-item-token_crown'), findsOneWidget);
+      expectSelected(tester, 'Coins');
+      expect(c.read(shopCategoryProvider), kCoinsCategory);
+      expect(byKeyString('shop-item-token_crown'), findsNothing);
+      expect(byKeyString('coin-pack-coins_starter'), findsOneWidget);
+    });
+
+    testWidgets('/shop?category=picture opens Pictures', (tester) async {
+      await pumpMeta(
+        tester,
+        env,
+        fakes,
+        const SizedBox(),
+        router: router('/shop?category=picture'),
+      );
+      expectSelected(tester, 'Pictures');
+      expect(byKeyString('pp-pp_item_0'), findsOneWidget);
+      expect(byKeyString('coin-pack-coins_starter'), findsNothing);
     });
   });
 
@@ -742,8 +780,27 @@ void main() {
         env.routeHappyPath();
         routeMeta(env);
         routeStore(env);
+        routeCoinPacks(env);
         final fakes = MetaFakes();
         addTearDown(fakes.close);
+        // Store prices for two packs (one long), fallback prices for the
+        // others.
+        final store = FakeIapStore(
+          products: {
+            'coins_popular': storeProduct(
+              'coins_popular',
+              price: '₹299.00',
+              rawPrice: 299,
+            ),
+            'coins_best_value': storeProduct(
+              'coins_best_value',
+              price: 'Rp 199.000,00',
+              rawPrice: 199000,
+              currency: 'IDR',
+            ),
+          },
+        );
+        addTearDown(store.close);
         final c = await pumpMeta(
           tester,
           env,
@@ -753,9 +810,42 @@ void main() {
           themeMode: mode,
           size: Viewports.small,
           textScale: 1.35,
+          extra: [iapStoreProvider.overrideWithValue(store)],
         );
         await flush(tester);
         expect(tester.takeException(), isNull);
+        // Opens on Coins: every pack card, then the note.
+        expect(c.read(shopCategoryProvider), kCoinsCategory);
+        for (final id in const [
+          'coins_starter',
+          'coins_popular',
+          'coins_great_value',
+          'coins_best_value',
+        ]) {
+          await scrollTo(tester, byKeyString('coin-pack-$id'));
+          expect(tester.takeException(), isNull, reason: id);
+        }
+        expect(find.text('Rp 199.000,00'), findsOneWidget);
+        await scrollThrough(tester);
+        await flush(tester);
+        expect(tester.takeException(), isNull, reason: 'coins');
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, 4000));
+        await flush(tester);
+
+        // Pictures (second pill).
+        final pills = find.descendant(
+          of: find.byKey(
+            const ValueKey('shop-categories'),
+            skipOffstage: false,
+          ),
+          matching: find.byType(InkWell, skipOffstage: false),
+          skipOffstage: false,
+        );
+        await tester.ensureVisible(pills.at(1));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(pills.at(1));
+        await flush(tester);
+        expect(c.read(shopCategoryProvider), kPictureCategory);
         // Cheap, too expensive, long names (scrolling down only).
         for (final i in [0, 3, 4, 5]) {
           await scrollTo(tester, byKeyString('pp-pp_item_$i'));
@@ -778,18 +868,10 @@ void main() {
         // first item.
         final data = c.read(collectionProvider).value!;
         final kinds = shopCategories(data);
-        for (var i = 1; i < kinds.length; i++) {
+        // 0 = Coins, 1 = Pictures (both above).
+        for (var i = 2; i < kinds.length; i++) {
           final kind = kinds[i];
-          final pill = find
-              .descendant(
-                of: find.byKey(
-                  const ValueKey('shop-categories'),
-                  skipOffstage: false,
-                ),
-                matching: find.byType(InkWell, skipOffstage: false),
-                skipOffstage: false,
-              )
-              .at(i);
+          final pill = pills.at(i);
           await tester.ensureVisible(pill);
           await tester.pump(const Duration(milliseconds: 300));
           await tester.tap(pill);

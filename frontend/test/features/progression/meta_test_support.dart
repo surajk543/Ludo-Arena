@@ -41,6 +41,12 @@ class MetaAnalytics extends RecordingAnalytics {
   void cosmeticEquipped(String kind) => events.add('cosmetic_equipped:$kind');
   @override
   void collectionViewed() => events.add('collection_viewed');
+  @override
+  void coinPackPurchased({
+    required String pack,
+    required double value,
+    required String currency,
+  }) => events.add('coin_pack_purchased:$pack:$value:$currency');
 }
 
 /// Push streams + deterministic keys for meta tests.

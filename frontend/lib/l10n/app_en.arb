@@ -397,6 +397,119 @@
   "@boardsLevelUp": {
     "description": "Accessibility label of the level-up burst animation."
   },
+  "coinsCategory": "Coins",
+  "@coinsCategory": {
+    "description": "Shop category pill: coin packs bought with real money (Google Play / App Store)."
+  },
+  "coinsHeroTitle": "Coin packs",
+  "@coinsHeroTitle": {
+    "description": "Header card title of the Shop's Coins category."
+  },
+  "coinsHeroSubtitle": "More coins for more matches. Every pack comes with bonus diamonds.",
+  "@coinsHeroSubtitle": {
+    "description": "Header card text of the Shop's Coins category."
+  },
+  "coinsPackStarter": "Starter",
+  "@coinsPackStarter": {
+    "description": "Name/label of the smallest coin pack."
+  },
+  "coinsPackPopular": "Popular",
+  "@coinsPackPopular": {
+    "description": "Name/label of the coin pack most players buy (highlighted)."
+  },
+  "coinsPackGreatValue": "Great Value",
+  "@coinsPackGreatValue": {
+    "description": "Name/label of the third coin pack."
+  },
+  "coinsPackBestValue": "Best Value",
+  "@coinsPackBestValue": {
+    "description": "Name/label of the largest coin pack, the best price per coin (highlighted)."
+  },
+  "coinsPackCoins": "{amount} coins",
+  "@coinsPackCoins": {
+    "description": "Coins in a pack, e.g. '50 Lakh coins' (amount already formatted).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "coinsPackDiamonds": "+{amount} diamonds",
+  "@coinsPackDiamonds": {
+    "description": "Bonus diamonds in a coin pack, e.g. '+5 diamonds' (amount already formatted).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "coinsPackSemantics": "{pack}: {coins} coins and {diamonds} diamonds for {price}",
+  "@coinsPackSemantics": {
+    "description": "Screen reader label of a coin pack card.",
+    "placeholders": {
+      "pack": {
+        "type": "String"
+      },
+      "coins": {
+        "type": "String"
+      },
+      "diamonds": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "coinsBuyFor": "Buy for {price}",
+  "@coinsBuyFor": {
+    "description": "Screen reader label of a coin pack's buy button (the button shows the price).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "coinsGrantedTitle": "Coins added!",
+  "@coinsGrantedTitle": {
+    "description": "Dialog title after the server verified a coin pack purchase and added it to the wallet."
+  },
+  "coinsGrantedMessage": "{coins} coins and {diamonds} diamonds are now in your wallet.",
+  "@coinsGrantedMessage": {
+    "description": "Dialog text after a coin pack purchase (amounts already formatted).",
+    "placeholders": {
+      "coins": {
+        "type": "String"
+      },
+      "diamonds": {
+        "type": "String"
+      }
+    }
+  },
+  "coinsBuyFailed": "The purchase didn't go through. Please try again.",
+  "@coinsBuyFailed": {
+    "description": "Toast when Google Play / the App Store reports a failed purchase."
+  },
+  "coinsDelayed": "Your purchase is safe. We'll add the coins as soon as we can reach the game server.",
+  "@coinsDelayed": {
+    "description": "Toast when a paid coin pack could not be delivered yet (server unreachable); it is retried automatically, at the latest on the next app start."
+  },
+  "coinsNote": "Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play or the App Store.",
+  "@coinsNote": {
+    "description": "Note under the coin packs: virtual currency, no cash value, payments processed by the platform store."
+  },
+  "coinsErrorUnavailable": "This pack isn't available yet.",
+  "@coinsErrorUnavailable": {
+    "description": "Error iap_unavailable, or the store / product is not available on this device yet."
+  },
+  "coinsErrorInvalid": "This purchase couldn't be verified, so nothing was added.",
+  "@coinsErrorInvalid": {
+    "description": "Error purchase_invalid: the store did not confirm the purchase (not paid, cancelled, another account's purchase, unknown pack)."
+  },
+  "coinsErrorPending": "Your payment is pending. The coins arrive as soon as it completes.",
+  "@coinsErrorPending": {
+    "description": "Error purchase_pending / pending store purchase: the payment has not completed yet."
+  },
   "commonOk": "OK",
   "@commonOk": {
     "description": "Generic confirmation button."

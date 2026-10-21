@@ -293,6 +293,83 @@ class AppLocalizationsHi extends AppLocalizations {
   String get boardsLevelUp => 'लेवल बढ़ गया';
 
   @override
+  String get coinsCategory => 'सिक्के';
+
+  @override
+  String get coinsHeroTitle => 'सिक्का पैक';
+
+  @override
+  String get coinsHeroSubtitle =>
+      'ज़्यादा सिक्के, ज़्यादा मैच। हर पैक के साथ बोनस हीरे मिलते हैं।';
+
+  @override
+  String get coinsPackStarter => 'स्टार्टर';
+
+  @override
+  String get coinsPackPopular => 'लोकप्रिय';
+
+  @override
+  String get coinsPackGreatValue => 'शानदार वैल्यू';
+
+  @override
+  String get coinsPackBestValue => 'बेस्ट वैल्यू';
+
+  @override
+  String coinsPackCoins(String amount) {
+    return '$amount सिक्के';
+  }
+
+  @override
+  String coinsPackDiamonds(String amount) {
+    return '+$amount हीरे';
+  }
+
+  @override
+  String coinsPackSemantics(
+    String pack,
+    String coins,
+    String diamonds,
+    String price,
+  ) {
+    return '$pack: $price में $coins सिक्के और $diamonds हीरे';
+  }
+
+  @override
+  String coinsBuyFor(String price) {
+    return '$price में खरीदें';
+  }
+
+  @override
+  String get coinsGrantedTitle => 'सिक्के जुड़ गए!';
+
+  @override
+  String coinsGrantedMessage(String coins, String diamonds) {
+    return '$coins सिक्के और $diamonds हीरे अब आपके वॉलेट में हैं।';
+  }
+
+  @override
+  String get coinsBuyFailed => 'खरीदारी पूरी नहीं हुई। कृपया फिर कोशिश करें।';
+
+  @override
+  String get coinsDelayed =>
+      'आपकी खरीदारी सुरक्षित है। गेम सर्वर से जुड़ते ही हम सिक्के जोड़ देंगे।';
+
+  @override
+  String get coinsNote =>
+      'सिक्के और हीरे वर्चुअल आइटम हैं, इनका कोई नकद मूल्य नहीं है। भुगतान Google Play या App Store द्वारा किया जाता है।';
+
+  @override
+  String get coinsErrorUnavailable => 'यह पैक अभी उपलब्ध नहीं है।';
+
+  @override
+  String get coinsErrorInvalid =>
+      'इस खरीदारी की पुष्टि नहीं हो सकी, इसलिए कुछ नहीं जोड़ा गया।';
+
+  @override
+  String get coinsErrorPending =>
+      'आपका भुगतान अभी लंबित है। पूरा होते ही सिक्के आ जाएँगे।';
+
+  @override
   String get commonOk => 'ठीक है';
 
   @override

@@ -45,6 +45,13 @@ dependencies:
   package_info_plus: ^10.2.2
   url_launcher: ^6.3.3
 
+  # Coin packs (consumable in-app purchases, Google Play Billing / StoreKit 2).
+  # The Go backend verifies every purchase with the store and grants the
+  # coins; the app only buys, forwards the purchase and consumes/finishes it.
+  in_app_purchase: ^3.3.1
+  # Android-only addition: consume a coin pack after the server granted it.
+  in_app_purchase_android: ^0.5.5
+
   # Product analytics ONLY (no Firebase Auth/Firestore/Remote Config). Gated by core/analytics.
   firebase_core: ^5.0.0
   firebase_analytics: ^13.0.0

@@ -2,6 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../collection/domain/collection_models.dart';
 
+/// Shop category of the coin packs (real-money purchases). Always first, and
+/// where the Shop opens.
+const String kCoinsCategory = 'coins';
+
 /// Shop / Collection category of the profile pictures (the other categories
 /// are cosmetic kinds such as `dice`).
 const String kPictureCategory = 'picture';
@@ -20,10 +24,11 @@ const List<String> kDefaultShopKinds = [
   'emote',
 ];
 
-/// The Shop's categories: Pictures, then every cosmetic kind with priced
-/// items (owned or not; a kind whose items are all owned shows an "all
-/// yours" state rather than disappearing), in Collection order.
+/// The Shop's categories: Coins, Pictures, then every cosmetic kind with
+/// priced items (owned or not; a kind whose items are all owned shows an
+/// "all yours" state rather than disappearing), in Collection order.
 List<String> shopCategories(CollectionData? data) => [
+  kCoinsCategory,
   kPictureCategory,
   if (data == null)
     ...kDefaultShopKinds
@@ -32,11 +37,11 @@ List<String> shopCategories(CollectionData? data) => [
       if (data.items.any((i) => i.kind == k && i.inShopCatalog)) k,
 ];
 
-/// The Shop category chosen last, remembered while the app runs (not
-/// persisted): reopening the Shop shows it again.
+/// The Shop category on screen (not persisted). Opening the Shop always
+/// starts on [kCoinsCategory] unless a `?category=` deep link names another.
 class ShopCategoryController extends Notifier<String> {
   @override
-  String build() => kPictureCategory;
+  String build() => kCoinsCategory;
 
   void select(String category) => state = category;
 }

@@ -292,6 +292,84 @@ class AppLocalizationsAr extends AppLocalizations {
   String get boardsLevelUp => 'ارتقاء في المستوى';
 
   @override
+  String get coinsCategory => 'العملات';
+
+  @override
+  String get coinsHeroTitle => 'باقات العملات';
+
+  @override
+  String get coinsHeroSubtitle =>
+      'عملات أكثر لمباريات أكثر. كل باقة تأتي مع ماسات إضافية.';
+
+  @override
+  String get coinsPackStarter => 'المبتدئ';
+
+  @override
+  String get coinsPackPopular => 'الأكثر شيوعًا';
+
+  @override
+  String get coinsPackGreatValue => 'قيمة رائعة';
+
+  @override
+  String get coinsPackBestValue => 'أفضل قيمة';
+
+  @override
+  String coinsPackCoins(String amount) {
+    return '$amount عملة';
+  }
+
+  @override
+  String coinsPackDiamonds(String amount) {
+    return '+$amount ماسة';
+  }
+
+  @override
+  String coinsPackSemantics(
+    String pack,
+    String coins,
+    String diamonds,
+    String price,
+  ) {
+    return '$pack: $coins عملة و$diamonds ماسة مقابل $price';
+  }
+
+  @override
+  String coinsBuyFor(String price) {
+    return 'اشترِ مقابل $price';
+  }
+
+  @override
+  String get coinsGrantedTitle => 'أُضيفت العملات!';
+
+  @override
+  String coinsGrantedMessage(String coins, String diamonds) {
+    return 'أصبحت $coins عملة و$diamonds ماسة في محفظتك الآن.';
+  }
+
+  @override
+  String get coinsBuyFailed =>
+      'لم تكتمل عملية الشراء. يُرجى المحاولة مرة أخرى.';
+
+  @override
+  String get coinsDelayed =>
+      'عملية الشراء آمنة. سنضيف العملات فور الاتصال بخادم اللعبة.';
+
+  @override
+  String get coinsNote =>
+      'العملات والماسات عناصر افتراضية ليس لها قيمة نقدية. تتم معالجة المدفوعات عبر Google Play أو App Store.';
+
+  @override
+  String get coinsErrorUnavailable => 'هذه الباقة غير متاحة بعد.';
+
+  @override
+  String get coinsErrorInvalid =>
+      'تعذّر التحقق من عملية الشراء هذه، لذا لم يُضَف شيء.';
+
+  @override
+  String get coinsErrorPending =>
+      'دفعتك قيد الانتظار. ستصل العملات فور اكتمالها.';
+
+  @override
   String get commonOk => 'حسنًا';
 
   @override

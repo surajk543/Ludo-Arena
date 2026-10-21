@@ -241,4 +241,17 @@ class GatedAnalyticsService implements AnalyticsService {
   @override
   void friendRequestSent(String source) =>
       _log('friend_request_sent', {'source': source});
+
+  // Shop ----------------------------------------------------------------------
+
+  @override
+  void coinPackPurchased({
+    required String pack,
+    required double value,
+    required String currency,
+  }) => _log('coin_pack_purchased', {
+    'pack': pack,
+    'value': value,
+    'currency': currency,
+  });
 }

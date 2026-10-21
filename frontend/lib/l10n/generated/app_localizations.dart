@@ -578,6 +578,125 @@ abstract class AppLocalizations {
   /// **'Level up'**
   String get boardsLevelUp;
 
+  /// Shop category pill: coin packs bought with real money (Google Play / App Store).
+  ///
+  /// In en, this message translates to:
+  /// **'Coins'**
+  String get coinsCategory;
+
+  /// Header card title of the Shop's Coins category.
+  ///
+  /// In en, this message translates to:
+  /// **'Coin packs'**
+  String get coinsHeroTitle;
+
+  /// Header card text of the Shop's Coins category.
+  ///
+  /// In en, this message translates to:
+  /// **'More coins for more matches. Every pack comes with bonus diamonds.'**
+  String get coinsHeroSubtitle;
+
+  /// Name/label of the smallest coin pack.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter'**
+  String get coinsPackStarter;
+
+  /// Name/label of the coin pack most players buy (highlighted).
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get coinsPackPopular;
+
+  /// Name/label of the third coin pack.
+  ///
+  /// In en, this message translates to:
+  /// **'Great Value'**
+  String get coinsPackGreatValue;
+
+  /// Name/label of the largest coin pack, the best price per coin (highlighted).
+  ///
+  /// In en, this message translates to:
+  /// **'Best Value'**
+  String get coinsPackBestValue;
+
+  /// Coins in a pack, e.g. '50 Lakh coins' (amount already formatted).
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} coins'**
+  String coinsPackCoins(String amount);
+
+  /// Bonus diamonds in a coin pack, e.g. '+5 diamonds' (amount already formatted).
+  ///
+  /// In en, this message translates to:
+  /// **'+{amount} diamonds'**
+  String coinsPackDiamonds(String amount);
+
+  /// Screen reader label of a coin pack card.
+  ///
+  /// In en, this message translates to:
+  /// **'{pack}: {coins} coins and {diamonds} diamonds for {price}'**
+  String coinsPackSemantics(
+    String pack,
+    String coins,
+    String diamonds,
+    String price,
+  );
+
+  /// Screen reader label of a coin pack's buy button (the button shows the price).
+  ///
+  /// In en, this message translates to:
+  /// **'Buy for {price}'**
+  String coinsBuyFor(String price);
+
+  /// Dialog title after the server verified a coin pack purchase and added it to the wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Coins added!'**
+  String get coinsGrantedTitle;
+
+  /// Dialog text after a coin pack purchase (amounts already formatted).
+  ///
+  /// In en, this message translates to:
+  /// **'{coins} coins and {diamonds} diamonds are now in your wallet.'**
+  String coinsGrantedMessage(String coins, String diamonds);
+
+  /// Toast when Google Play / the App Store reports a failed purchase.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase didn\'t go through. Please try again.'**
+  String get coinsBuyFailed;
+
+  /// Toast when a paid coin pack could not be delivered yet (server unreachable); it is retried automatically, at the latest on the next app start.
+  ///
+  /// In en, this message translates to:
+  /// **'Your purchase is safe. We\'ll add the coins as soon as we can reach the game server.'**
+  String get coinsDelayed;
+
+  /// Note under the coin packs: virtual currency, no cash value, payments processed by the platform store.
+  ///
+  /// In en, this message translates to:
+  /// **'Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play or the App Store.'**
+  String get coinsNote;
+
+  /// Error iap_unavailable, or the store / product is not available on this device yet.
+  ///
+  /// In en, this message translates to:
+  /// **'This pack isn\'t available yet.'**
+  String get coinsErrorUnavailable;
+
+  /// Error purchase_invalid: the store did not confirm the purchase (not paid, cancelled, another account's purchase, unknown pack).
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase couldn\'t be verified, so nothing was added.'**
+  String get coinsErrorInvalid;
+
+  /// Error purchase_pending / pending store purchase: the payment has not completed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment is pending. The coins arrive as soon as it completes.'**
+  String get coinsErrorPending;
+
   /// Generic confirmation button.
   ///
   /// In en, this message translates to:

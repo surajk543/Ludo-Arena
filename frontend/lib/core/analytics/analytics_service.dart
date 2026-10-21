@@ -191,4 +191,17 @@ abstract interface class AnalyticsService {
 
   /// [source]: `match` | `recent` | `code`.
   void friendRequestSent(String source);
+
+  // Shop (after the server verified and granted the purchase only)
+
+  /// A coin pack was granted by the server (`replayed: false`). [pack] is
+  /// the label slug (`starter` | `popular` | `great_value` | `best_value`);
+  /// [value] and [currency] are the price paid (the store's price, or the
+  /// fallback price when the store did not report one). Never ids, order
+  /// numbers or purchase tokens.
+  void coinPackPurchased({
+    required String pack,
+    required double value,
+    required String currency,
+  });
 }

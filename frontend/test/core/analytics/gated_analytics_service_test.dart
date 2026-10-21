@@ -332,6 +332,37 @@ void main() {
       expect(backend.events[3].$2, isEmpty);
     });
 
+    test(
+      'coin_pack_purchased carries only the pack slug and the price',
+      () async {
+        a.coinPackPurchased(pack: 'great_value', value: 499, currency: 'INR');
+        a.coinPackPurchased(
+          pack: 'coins_best_value',
+          value: -1,
+          currency: 'rs',
+        );
+        await flush();
+        expect(backend.names, ['coin_pack_purchased', 'coin_pack_purchased']);
+        expect(backend.events[0].$2, {
+          'pack': 'great_value',
+          'value': 499.0,
+          'currency': 'INR',
+        });
+        // A product id is never forwarded; bad amounts/currencies are dropped.
+        expect(backend.events[1].$2, {'pack': 'other'});
+        expect(
+          AnalyticsCatalog.sanitize('coin_pack_purchased', {
+            'pack': 'popular',
+            'value': 299,
+            'currency': 'INR',
+            'order_id': 'GPA.1234',
+            'purchase_token': 'tok',
+          }),
+          {'pack': 'popular', 'value': 299.0, 'currency': 'INR'},
+        );
+      },
+    );
+
     test('catalog rejects unknown events and unknown params', () {
       expect(AnalyticsCatalog.sanitize('purchase', {'value': 1}), isNull);
       expect(
