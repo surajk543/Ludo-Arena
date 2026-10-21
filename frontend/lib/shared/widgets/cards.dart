@@ -2,6 +2,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
+import '../../core/audio_haptics/audio_service.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Solid elevated surface with soft shadow and a hairline highlight. The
@@ -17,11 +18,15 @@ class SurfaceCard extends StatelessWidget {
     this.gradient,
     this.color,
     this.border,
+    this.sound = Sfx.uiTap,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
+
+  /// Tap sound (only when [onTap] is set); null for silent.
+  final Sfx? sound;
   final AppElevation elevation;
   final BorderRadius? borderRadius;
   final Gradient? gradient;
@@ -55,7 +60,7 @@ class SurfaceCard extends StatelessWidget {
         child: Ink(
           decoration: decoration,
           child: InkWell(
-            onTap: onTap,
+            onTap: _tapHandler(context, onTap, sound),
             borderRadius: radius,
             child: Padding(padding: padding, child: child),
           ),
@@ -63,6 +68,16 @@ class SurfaceCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// [onTap] with its UI sound (null stays null: disabled cards are silent).
+VoidCallback? _tapHandler(BuildContext context, VoidCallback? onTap, Sfx? s) {
+  if (onTap == null) return null;
+  if (s == null) return onTap;
+  return () {
+    playUiSound(context, s);
+    onTap();
+  };
 }
 
 /// Frosted translucent card for content layered over rich backgrounds
@@ -74,12 +89,16 @@ class GlassCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(AppSpacing.lg),
     this.onTap,
     this.borderRadius,
+    this.sound = Sfx.uiTap,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
   final BorderRadius? borderRadius;
+
+  /// Tap sound (only when [onTap] is set); null for silent.
+  final Sfx? sound;
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +124,7 @@ class GlassCard extends StatelessWidget {
               border: Border.all(color: c.glassBorder),
             ),
             child: InkWell(
-              onTap: onTap,
+              onTap: _tapHandler(context, onTap, sound),
               borderRadius: radius,
               child: Padding(padding: padding, child: child),
             ),

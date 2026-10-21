@@ -252,7 +252,12 @@ class SettingsNavTile extends StatelessWidget {
                   color: c.textMuted,
                   // Directional: mirrored in RTL by Icon (matchTextDirection).
                 )),
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              playUiSound(context, Sfx.uiTap);
+              onTap!();
+            },
       minVerticalPadding: AppSpacing.sm,
     );
   }

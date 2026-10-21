@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/audio_haptics/haptics_service.dart';
 import '../../../../core/audio_haptics/reduced_motion.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -190,6 +191,7 @@ class _MetaPillTabsState<T> extends ConsumerState<MetaPillTabs<T>> {
               onTap: () {
                 if (isSel) return;
                 ref.read(hapticsServiceProvider).selection();
+                ref.read(audioServiceProvider).play(Sfx.uiTab);
                 widget.onSelected(p.value);
               },
               child: Padding(

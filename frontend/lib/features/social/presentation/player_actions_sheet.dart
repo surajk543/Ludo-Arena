@@ -54,20 +54,23 @@ abstract final class PlayerActionsSheet {
     required bool canAct,
   }) async {
     final l10n = AppLocalizations.of(context);
-    final result = await showModalBottomSheet<ReportSubmitted>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      // Lighter than other sheets: the board and the turn timer stay
-      // readable behind it.
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (_) => AppBottomSheetFrame(
-        child: PlayerActionsPanel(
-          player: player,
-          roomId: roomId,
-          canAct: canAct,
+    final result = await withOverlaySounds(
+      context,
+      showModalBottomSheet<ReportSubmitted>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        // Lighter than other sheets: the board and the turn timer stay
+        // readable behind it.
+        barrierColor: Colors.black.withValues(alpha: 0.3),
+        builder: (_) => AppBottomSheetFrame(
+          child: PlayerActionsPanel(
+            player: player,
+            roomId: roomId,
+            canAct: canAct,
+          ),
         ),
       ),
     );

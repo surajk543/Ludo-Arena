@@ -238,6 +238,8 @@ class CollectionItemSheet extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     switch (outcome) {
       case CollectionSucceeded():
+        // Server-confirmed (e.g. equipped).
+        playUiSound(context, Sfx.uiConfirm);
         AppToast.show(context, success, kind: ToastKind.success);
       case CollectionIgnored():
         break;

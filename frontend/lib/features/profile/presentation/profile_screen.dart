@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../app/routes.dart';
+import '../../../core/audio_haptics/audio_service.dart';
 import '../../../core/localization/number_format.dart';
 import '../../../core/network/api_models.dart';
 import '../../../core/theme/app_theme.dart';
@@ -76,7 +77,10 @@ class ProfileScreen extends ConsumerWidget {
                         // Opens the level road (milestones and rewards).
                         InkWell(
                           borderRadius: BorderRadius.circular(AppRadii.md),
-                          onTap: () => context.push(MetaRoutes.progression),
+                          onTap: () {
+                            playUiSound(context, Sfx.uiTap);
+                            context.push(MetaRoutes.progression);
+                          },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               vertical: AppSpacing.xs,

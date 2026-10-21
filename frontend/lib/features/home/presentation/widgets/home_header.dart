@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/analytics/analytics_providers.dart';
 import '../../../../core/realtime/realtime_providers.dart';
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -45,7 +46,10 @@ class HomeHeader extends ConsumerWidget {
                 button: true,
                 label: l10n.homeProfileTooltip,
                 child: GestureDetector(
-                  onTap: () => context.push(AppRoutes.profile),
+                  onTap: () {
+                    playUiSound(context, Sfx.uiTap);
+                    context.push(AppRoutes.profile);
+                  },
                   child: PlayerAvatar(
                     avatarIndex: user.avatar,
                     frameId: user.loadout.frame,

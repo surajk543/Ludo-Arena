@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
@@ -172,6 +173,7 @@ class _RowActionButtonState extends State<RowActionButton> {
   Future<void> _tap() async {
     final cb = widget.onPressed;
     if (cb == null || _busy) return;
+    playUiSound(context, Sfx.uiTap);
     setState(() => _busy = true);
     try {
       await cb();

@@ -157,6 +157,14 @@ class AudioService {
     if (v <= 0) return false;
     _lastStart[key] = now;
     voices.addLast(now);
+    if (sfx.channel == SfxChannel.event) {
+      // A reward / match-start moment owns the next instant: the dialog or
+      // sheet it opens stays quiet (an error still sounds).
+      final within =
+          _uiPlayedAt != null && now - _uiPlayedAt! < uiGestureWindow;
+      _uiPlayedAt = now;
+      _uiPlayedPriority = math.max(within ? _uiPlayedPriority : -1, 3);
+    }
     unawaited(
       Future<void>.sync(
         () => _backend.playSfx(sfx, v),
@@ -494,17 +502,19 @@ final audioSettingsBinderProvider = Provider<void>((ref) {
   ref.onDispose(sub.cancel);
 });
 
-/// Plays a UI sound from a widget without a `WidgetRef` (stateless widgets,
-/// static helpers). No-op outside a `ProviderScope`.
-void playUiSound(BuildContext context, Sfx sfx, {double volume = 1.0}) {
-  final AudioService audio;
+/// The [AudioService] for widgets without a `WidgetRef` (stateless widgets,
+/// static helpers); null outside a `ProviderScope`.
+AudioService? audioServiceOf(BuildContext context) {
   try {
-    audio = ProviderScope.containerOf(
+    return ProviderScope.containerOf(
       context,
       listen: false,
     ).read(audioServiceProvider);
   } catch (_) {
-    return;
+    return null;
   }
-  audio.play(sfx, volume: volume);
 }
+
+/// Plays [sfx] via [audioServiceOf]; no-op outside a `ProviderScope`.
+void playUiSound(BuildContext context, Sfx sfx, {double volume = 1.0}) =>
+    audioServiceOf(context)?.play(sfx, volume: volume);

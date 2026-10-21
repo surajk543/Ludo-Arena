@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/audio_haptics/audio_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
@@ -42,7 +43,11 @@ class QuickActions extends ConsumerWidget {
               ),
               child: InkWell(
                 borderRadius: AppRadii.lgAll,
-                onTap: () => context.push(config.routeFor(PlayMode.online)),
+                onTap: () {
+                  // One tap straight into matchmaking.
+                  playUiSound(context, Sfx.lobbyPlay);
+                  context.push(config.routeFor(PlayMode.online));
+                },
                 child: Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(
                     AppSpacing.lg,

@@ -224,6 +224,20 @@ void main() {
       expect(rig.backend.played.skip(4), [Sfx.uiTab, Sfx.uiTab]);
     });
 
+    test('a reward moment keeps the dialog it opens quiet', () async {
+      final rig = _Rig();
+      // Claim succeeded → reward cue, then the "new items" dialog opens.
+      rig.audio.play(Sfx.rewardClaim);
+      rig.audio.play(Sfx.uiOpen);
+      await pumpEventQueue();
+      expect(rig.backend.played, [Sfx.rewardClaim]);
+      // An error right after still sounds.
+      rig.advance(20);
+      rig.audio.play(Sfx.uiError);
+      await pumpEventQueue();
+      expect(rig.backend.played, [Sfx.rewardClaim, Sfx.uiError]);
+    });
+
     test('a missing asset never throws, is logged once and then skipped', () {
       fakeAsync((async) {
         final rig = _Rig(missing: {Sfx.diceRoll.assetPath});
