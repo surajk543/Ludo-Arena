@@ -308,6 +308,50 @@ func TestMaliciousCommandsRejected(t *testing.T) {
 	}
 }
 
+// The player whose turn it is cannot choose, preview or re-roll the dice:
+// any extra field is refused, and the server rolls once per turnSeq.
+func TestCurrentPlayerCannotChooseOrRerollDice(t *testing.T) {
+	for _, game := range []string{"ludo", "snakes_ladders"} {
+		t.Run(game, func(t *testing.T) {
+			e := newEnv(t, envOpts{dice: rooms.NewSeededDice(5)})
+			cs := startPublic(t, e, game, "classic", 2)
+			var mover *client
+			for _, c := range cs {
+				if c.snapshot().Turn.Seat == c.seat() {
+					mover = c
+				}
+			}
+			r := mover.snapshot()
+			for _, field := range []string{"dice", "value", "result", "seed"} {
+				m := mover.call("game.roll_dice", map[string]any{"roomId": r.ID, "turnSeq": r.Turn.TurnSeq, field: 6})
+				if m.T != "error" || !strings.Contains(string(m.P), "bad_request") {
+					t.Fatalf("roll with client %q accepted: %s %s", field, m.T, m.P)
+				}
+			}
+			if n := mover.count("game.dice_result"); n != 0 {
+				t.Fatalf("tampered rolls produced %d dice results", n)
+			}
+			if after := mover.snapshot(); after.Turn.Dice != 0 || after.Turn.TurnSeq != r.Turn.TurnSeq {
+				t.Fatalf("tampered rolls changed the turn: dice=%d turnSeq=%d", after.Turn.Dice, after.Turn.TurnSeq)
+			}
+
+			if m := mover.call("game.roll_dice", map[string]any{"roomId": r.ID, "turnSeq": r.Turn.TurnSeq}); m.T == "error" {
+				t.Fatalf("honest roll refused: %s", m.P)
+			}
+			waitFor(t, 5*time.Second, "dice result", func() bool { return mover.count("game.dice_result") >= 1 })
+			// Same turnSeq again: never a second roll for the same turn.
+			m := mover.call("game.roll_dice", map[string]any{"roomId": r.ID, "turnSeq": r.Turn.TurnSeq})
+			if m.T != "error" {
+				t.Fatalf("second roll for turnSeq %d accepted", r.Turn.TurnSeq)
+			}
+			time.Sleep(200 * time.Millisecond)
+			if n := mover.count("game.dice_result"); n != 1 {
+				t.Fatalf("re-roll produced %d dice results, want 1", n)
+			}
+		})
+	}
+}
+
 func TestCompressionNegotiatedAndDecoded(t *testing.T) {
 	e := newEnv(t, envOpts{})
 	c := e.mustDial("z", e.guest())

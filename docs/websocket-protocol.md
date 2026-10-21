@@ -254,7 +254,7 @@ other players.
 | `room.remove_bot` | `{"roomId":"r_…","seat":2}` | `room.updated` | Private host only, lobby only |
 | `room.invite` | `{"roomId":"r_…","friendUid":"u_…"}` | `ack` | Sends `social.invite` to an online friend |
 | `game.start` | `{"roomId":"r_…"}` | `game.started` (broadcast) | Private host only; ≥ 2 connected players |
-| `game.roll_dice` | `{"roomId":"r_…","turnSeq":12}` | `game.dice_result` (broadcast) | |
+| `game.roll_dice` | `{"roomId":"r_…","turnSeq":12}` | `game.dice_result` (broadcast) | The server picks the value (`crypto/rand`); any other field (`dice`, `value`, …) is `bad_request`; one roll per `turnSeq` |
 | `game.make_move` | `{"roomId":"r_…","turnSeq":13,"token":2}` | `game.move_applied` (broadcast) | Ludo only |
 | `game.request_sync` | `{"roomId":"r_…"}` (optional) | `game.state` | Without `roomId` → the user's active room |
 | `game.rematch` | `{"roomId":"r_…","accept":true}` | `room.rematch` (broadcast) | Only while `rematch.open` |

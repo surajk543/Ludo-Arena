@@ -5,6 +5,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
@@ -83,6 +84,9 @@ func NewCore(cfg *config.Config, log *slog.Logger, pg *pgxpool.Pool, rdb *redis.
 // New assembles the application.
 func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App, error) {
 	cfg, log := core.Cfg, core.Log
+	if err := checkDice(cfg.Env, dice); err != nil {
+		return nil, err
+	}
 	policy, err := apppolicy.NewStore(cfg.Policy.File, cfg.Policy.FlagFile, cfg.Env, log)
 	if err != nil {
 		return nil, err
@@ -183,4 +187,17 @@ func (a *App) Start(ctx context.Context) {
 	for _, bg := range a.ext.Background {
 		go bg(ctx)
 	}
+}
+
+// checkDice refuses any dice source other than crypto/rand in production
+// (nil means the default CryptoDice). Deterministic dice exist for tests and
+// load tests only.
+func checkDice(env string, dice rooms.Dice) error {
+	if env != config.EnvProduction || dice == nil {
+		return nil
+	}
+	if _, ok := dice.(rooms.CryptoDice); ok {
+		return nil
+	}
+	return errors.New("server: only crypto/rand dice are allowed in production")
 }
