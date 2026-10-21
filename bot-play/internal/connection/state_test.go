@@ -26,6 +26,33 @@ func TestHashVectors(t *testing.T) {
 	}
 }
 
+// Seats carry "picture" (an object or null); bot-play parses it and the
+// state hash ignores it.
+func TestSnapshotWithSeatPictures(t *testing.T) {
+	raw := `{"id":"r1","v":3,"game":"ludo","variant":"classic","mode":"public","status":"playing","capacity":2,
+		"players":[
+		 {"seat":0,"uid":"u_a","name":"A","avatar":1,"level":3,"title":"title_rookie","cosmetics":{},
+		  "picture":{"id":"pp_wolf","format":"image","path":"profile_pictures/image/wolf.png"},
+		  "color":"red","connected":true,"bot":false,"forfeited":false,"strikes":0},
+		 {"seat":1,"uid":"b_1","name":"B","avatar":2,"level":1,"title":"title_rookie","cosmetics":{},
+		  "picture":null,"color":"yellow","connected":true,"bot":true,"forfeited":false,"strikes":0}],
+		"turn":{"seat":1,"phase":"awaiting_roll","turnSeq":7,"deadline":1,"dice":0,"legal":[],"sixStreak":0},
+		"board":{"tokens":[[-1,-1,5,56],[0,-1,-1,-1]]},"h":2902942580}`
+	var r Room
+	if err := json.Unmarshal([]byte(raw), &r); err != nil {
+		t.Fatal(err)
+	}
+	if p := r.Players[0].Picture; p == nil || p.ID != "pp_wolf" || p.Format != "image" || p.Path != "profile_pictures/image/wolf.png" {
+		t.Fatalf("seat 0 picture %+v", p)
+	}
+	if r.Players[1].Picture != nil {
+		t.Fatalf("seat 1 picture %+v", r.Players[1].Picture)
+	}
+	if match, ok := VerifySnapshotHash(&r); !ok || !match {
+		t.Fatalf("hash with pictures: match=%v ok=%v", match, ok)
+	}
+}
+
 func h32(r *Room) *uint32 { h, _ := StateHash(r); return &h }
 
 func baseRoom() *Room {
