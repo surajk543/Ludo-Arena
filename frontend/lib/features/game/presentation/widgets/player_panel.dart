@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/audio_haptics/reduced_motion.dart';
@@ -12,6 +14,11 @@ import '../play_text.dart';
 /// name, seat color, connection / forfeit state, missed-turn strikes and
 /// progress (Ludo tokens home, Snakes square). The current turn is
 /// emphasised with a seat-colored glow and a server-clock [CountdownRing].
+///
+/// Where the pod has room (the [stacked] card and the widest row tier) the
+/// progress is a narrow vertical column on the avatar's trailing side; the
+/// height the horizontal progress line used to take goes to a larger
+/// avatar, so the pod's outer size does not change.
 class PlayerPanel extends StatelessWidget {
   const PlayerPanel({
     super.key,
@@ -33,22 +40,23 @@ class PlayerPanel extends StatelessWidget {
   /// Full duration of the current turn (for the ring fraction).
   final int turnTotalMs;
 
-  /// Card layout (large avatar on top, full-width name and progress below),
-  /// used when the screen has spare height around the board.
+  /// Card layout (large avatar with the progress column beside it, full-width
+  /// name below), used when the screen has spare height around the board.
   final bool stacked;
 
   SeatColor get _seat => SeatColor.tryFromName(player.color) ?? SeatColor.red;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) => _buildPod(
-      context,
-      stacked
-          ? _PodMetrics.stacked
-          : _PodMetrics.forWidth(
-              constraints.maxWidth.isFinite ? constraints.maxWidth : 240,
-            ),
-    ),
+    builder: (context, constraints) {
+      final width = constraints.maxWidth.isFinite
+          ? constraints.maxWidth
+          : 240.0;
+      return _buildPod(
+        context,
+        stacked ? _PodMetrics.stackedFor(width) : _PodMetrics.forWidth(width),
+      );
+    },
   );
 
   Widget _buildPod(BuildContext context, _PodMetrics m) {
@@ -59,8 +67,22 @@ class PlayerPanel extends StatelessWidget {
     final out = player.forfeited;
     final offline = !player.connected && !out;
     final name = PlayText.playerName(l10n, player);
-    final avatarSize = m.avatar;
     final reduce = ReducedMotion.of(context);
+    final side = m.side;
+    // A side card's avatar row is as tall as the classic card's avatar plus
+    // its progress line (which follows the text scale), so the card keeps
+    // its size; the avatar fills the row up to [_PodMetrics.avatar].
+    final cardRow = stacked && side
+        ? _PodMetrics.classicRingBox +
+              m.lineGap +
+              math.max(
+                m.detailIcon,
+                _lineHeight(context, m.detailStyle(context)),
+              )
+        : 0.0;
+    final avatarSize = stacked && side
+        ? math.min(m.avatar, (cardRow - m.ringGap).floorToDouble())
+        : m.avatar;
 
     Widget avatar = PlayerAvatar(
       avatarIndex: player.avatar,
@@ -114,7 +136,7 @@ class PlayerPanel extends StatelessWidget {
         ? _withoutBotPrefix(name)
         : name;
 
-    Widget nameLine({required bool center}) => Row(
+    Widget nameLine({required bool center, bool strikes = false}) => Row(
       mainAxisAlignment: center
           ? MainAxisAlignment.center
           : MainAxisAlignment.start,
@@ -149,6 +171,10 @@ class PlayerPanel extends StatelessWidget {
             child: BotBadge(height: 16),
           ),
         ],
+        if (strikes && player.strikes > 0) ...[
+          const SizedBox(width: 4),
+          _Strikes(count: player.strikes),
+        ],
       ],
     );
 
@@ -160,7 +186,7 @@ class PlayerPanel extends StatelessWidget {
         // Scale down rather than overflow in the narrowest pods.
         if (status != null)
           Flexible(child: status)
-        else if (progress != null)
+        else if (progress != null && !side)
           Flexible(
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -207,34 +233,79 @@ class PlayerPanel extends StatelessWidget {
                 ]
               : c.shadow(AppElevation.low),
         ),
-        child: stacked
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  avatar,
-                  SizedBox(height: m.lineGap + 2),
-                  nameLine(center: true),
-                  SizedBox(height: m.lineGap),
-                  detailLine(center: true),
-                ],
-              )
-            : Row(
-                children: [
-                  avatar,
-                  SizedBox(width: m.gap),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: switch ((stacked, side)) {
+          // Card: [avatar | progress column] above the name.
+          (true, true) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: cardRow,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
                       children: [
-                        nameLine(center: false),
-                        SizedBox(height: m.lineGap),
-                        detailLine(center: false),
+                        avatar,
+                        if (out || offline)
+                          // Offline / left: a stamp on the dimmed avatar.
+                          Positioned.fill(
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: _StatusStamp(out: out),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
-                  ),
-                ],
+                    if (progress != null) ...[
+                      SizedBox(width: m.sideGap),
+                      Flexible(child: progress.$1),
+                    ],
+                  ],
+                ),
               ),
+              SizedBox(height: m.lineGap + 2),
+              nameLine(center: true, strikes: true),
+            ],
+          ),
+          (true, false) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              avatar,
+              SizedBox(height: m.lineGap + 2),
+              nameLine(center: true),
+              SizedBox(height: m.lineGap),
+              detailLine(center: true),
+            ],
+          ),
+          (false, _) => Row(
+            children: [
+              avatar,
+              if (side && progress != null) ...[
+                SizedBox(width: m.sideGap),
+                progress.$1,
+              ],
+              SizedBox(width: m.gap),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    nameLine(center: false),
+                    // With the progress beside the avatar the second line
+                    // only carries the offline / left state and strikes.
+                    if (!side || out || offline || player.strikes > 0) ...[
+                      SizedBox(height: m.lineGap),
+                      detailLine(center: false),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        },
       ),
     );
   }
@@ -259,6 +330,34 @@ class PlayerPanel extends StatelessWidget {
       final home = mine.where((p) => p >= 56).length;
       final total = mine.length;
       final text = l10n.playTokensHome(home, total);
+      Widget token(int i, double size) => Icon(
+        i < home ? Icons.star_rounded : Icons.circle_outlined,
+        size: size,
+        color: i < home ? c.gold : c.textMuted,
+      );
+      if (m.side) {
+        return (
+          Column(
+            key: const ValueKey('pod-progress-column'),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < total; i++)
+                Padding(
+                  padding: EdgeInsets.only(top: i == 0 ? 0 : m.sideSpacing),
+                  child: token(i, m.sideIcon),
+                ),
+              if (m.showCount) ...[
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('$home/$total', maxLines: 1, style: style),
+                ),
+              ],
+            ],
+          ),
+          text,
+        );
+      }
       return (
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -266,11 +365,7 @@ class PlayerPanel extends StatelessWidget {
             for (var i = 0; i < total; i++)
               Padding(
                 padding: const EdgeInsetsDirectional.only(end: 2),
-                child: Icon(
-                  i < home ? Icons.star_rounded : Icons.circle_outlined,
-                  size: m.detailIcon,
-                  color: i < home ? c.gold : c.textMuted,
-                ),
+                child: token(i, m.detailIcon),
               ),
             if (m.showCount) ...[
               const SizedBox(width: 2),
@@ -292,6 +387,27 @@ class PlayerPanel extends StatelessWidget {
     if (squares == null || player.seat >= squares.length) return null;
     final square = squares[player.seat];
     final text = square <= 0 ? l10n.playAtStart : l10n.playSquare(square);
+    if (m.side) {
+      // The square number under a position pin (0: not on the board yet).
+      return (
+        Column(
+          key: const ValueKey('pod-progress-column'),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.place_rounded,
+              size: m.sideIcon + 2,
+              color: GamePalette.of(context).shades(_seat).base,
+            ),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('${math.max(square, 0)}', maxLines: 1, style: style),
+            ),
+          ],
+        ),
+        text,
+      );
+    }
     return (
       Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
       text,
@@ -330,6 +446,22 @@ class PlayerPanel extends StatelessWidget {
   }
 }
 
+/// Height of one line of [style] as a [Text] lays it out here (font size,
+/// line height and the ambient text scaling).
+double _lineHeight(BuildContext context, TextStyle? style) {
+  final defaults = DefaultTextStyle.of(context);
+  final painter = TextPainter(
+    text: TextSpan(text: '0', style: defaults.style.merge(style)),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+    textHeightBehavior: defaults.textHeightBehavior,
+    maxLines: 1,
+  )..layout();
+  final height = painter.height;
+  painter.dispose();
+  return height;
+}
+
 String _withoutBotPrefix(String name) {
   final m = RegExp(r'^bot\s+', caseSensitive: false).firstMatch(name);
   if (m == null) return name;
@@ -356,8 +488,14 @@ class _PodMetrics {
     required this.detailIcon,
     required this.largeDetail,
     this.showCount = false,
+    this.side = false,
+    this.sideIcon = 0,
+    this.sideSpacing = 0,
+    this.sideGap = 0,
   });
 
+  /// Avatar size; for a [side] card the largest size, capped further by the
+  /// avatar row's height (see [PlayerPanel]).
   final double avatar;
   final double ringGap;
   final double ringStroke;
@@ -372,10 +510,24 @@ class _PodMetrics {
   final double detailIcon;
   final bool largeDetail;
 
-  /// Show the numeric "home/total" next to the token stars.
+  /// Show the numeric "home/total" with the token stars.
   final bool showCount;
 
-  /// Card layout preset (see [PlayerPanel.stacked]).
+  /// Progress as a vertical column beside the avatar (instead of a line
+  /// under the name), [sideGap] from the turn ring, with [sideIcon]-sized
+  /// token marks [sideSpacing] apart.
+  final bool side;
+  final double sideIcon;
+  final double sideSpacing;
+  final double sideGap;
+
+  /// Ring box (avatar + turn ring) of the classic card. A [side] card's
+  /// avatar row is this plus the progress line it replaces, which keeps the
+  /// card's height.
+  static double get classicRingBox => stacked.avatar + stacked.ringGap;
+
+  /// Classic card preset: avatar on top, name and progress lines below.
+  /// Used by [stackedFor] when the card is too narrow for a side column.
   static const stacked = _PodMetrics(
     avatar: 56,
     ringGap: 12,
@@ -393,24 +545,75 @@ class _PodMetrics {
     showCount: true,
   );
 
+  /// Largest card avatar: fills the avatar row (classic ring box + progress
+  /// line, 86.6 dp at the default text size) with its turn ring.
+  static const double _cardAvatar = 74;
+
+  /// Width kept for the progress column next to the card avatar (token
+  /// marks and the "0/4" count; the count scales down below this).
+  static const double _cardColumn = 22;
+
+  /// Card preset (see [PlayerPanel.stacked]) for a pod [width]: the progress
+  /// column beside an avatar as large as the width allows, or the classic
+  /// card when not even the classic avatar fits next to the column.
+  static _PodMetrics stackedFor(double width) {
+    const sideGap = 4.0;
+    // Paddings, the turn border (2 dp per side), the gap and the column.
+    final ringRoom =
+        width - stacked.padStart - stacked.padEnd - 4 - sideGap - _cardColumn;
+    final avatar = math.min(
+      _cardAvatar,
+      (ringRoom - stacked.ringGap).floorToDouble(),
+    );
+    if (avatar < stacked.avatar) return stacked;
+    return _PodMetrics(
+      avatar: avatar,
+      ringGap: stacked.ringGap,
+      ringStroke: stacked.ringStroke,
+      nameFont: stacked.nameFont,
+      padStart: stacked.padStart,
+      padEnd: stacked.padEnd,
+      padVertical: stacked.padVertical,
+      gap: stacked.gap,
+      dot: stacked.dot,
+      lineGap: stacked.lineGap,
+      minHeight: stacked.minHeight,
+      detailIcon: stacked.detailIcon,
+      largeDetail: stacked.largeDetail,
+      showCount: true,
+      side: true,
+      sideIcon: 14,
+      sideSpacing: 2,
+      sideGap: sideGap,
+    );
+  }
+
   static _PodMetrics forWidth(double width) {
     if (width >= 220) {
+      // Progress beside the avatar; the avatar takes 4 dp of the vertical
+      // padding (same 90 dp pod height as with 56 dp + 10 dp padding).
       return const _PodMetrics(
-        avatar: 56,
+        avatar: 64,
         ringGap: 12,
         ringStroke: 4,
         nameFont: 17,
         padStart: 10,
         padEnd: 14,
-        padVertical: 10,
-        gap: 12,
+        padVertical: 6,
+        gap: 10,
         dot: 10,
         lineGap: 4,
         minHeight: 84,
         detailIcon: 13,
         largeDetail: true,
+        side: true,
+        sideIcon: 14,
+        sideSpacing: 2,
+        sideGap: 4,
       );
     }
+    // Narrower rows keep the progress line under the name: a column beside
+    // the avatar would leave the name only a few characters.
     if (width >= 150) {
       return const _PodMetrics(
         avatar: 48,
@@ -490,6 +693,48 @@ class _Strikes extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// "Offline" / "Left" stamp across the top of a card's (dimmed) avatar.
+class _StatusStamp extends StatelessWidget {
+  const _StatusStamp({required this.out});
+
+  final bool out;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final l10n = AppLocalizations.of(context);
+    final color = out ? c.textMuted : c.warning;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(5, 1, 6, 1),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: AppRadii.pillAll,
+        border: Border.all(color: color, width: 1.2),
+        boxShadow: c.shadow(AppElevation.low),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            out ? Icons.logout_rounded : Icons.wifi_off_rounded,
+            size: 12,
+            color: color,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            out ? l10n.playPlayerForfeited : l10n.playPlayerDisconnected,
+            maxLines: 1,
+            style: context.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
