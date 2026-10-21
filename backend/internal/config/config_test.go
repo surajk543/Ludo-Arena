@@ -177,6 +177,43 @@ func TestNameChangesPerDay(t *testing.T) {
 	}
 }
 
+func TestMaxStrikes(t *testing.T) {
+	cases := []struct {
+		raw     string
+		want    int
+		wantErr string
+	}{
+		{"", DefaultMaxStrikes, ""},
+		{"3", 3, ""},
+		{"1", 1, ""},
+		{"0", 0, "MAX_STRIKES must be >= 1"},
+		{"-2", 0, "MAX_STRIKES must be >= 1"},
+		{"five", 0, "MAX_STRIKES: not an integer"},
+	}
+	for _, c := range cases {
+		t.Run(c.raw, func(t *testing.T) {
+			minimalEnv(t)
+			t.Setenv("MAX_STRIKES", c.raw)
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Game.MaxStrikes != c.want {
+				t.Fatalf("MaxStrikes = %d, want %d", cfg.Game.MaxStrikes, c.want)
+			}
+		})
+	}
+	if DefaultMaxStrikes != 5 {
+		t.Fatalf("built-in MAX_STRIKES default changed: %d", DefaultMaxStrikes)
+	}
+}
+
 func TestGameStatsInterval(t *testing.T) {
 	cases := []struct {
 		raw     string

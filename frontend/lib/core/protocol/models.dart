@@ -75,6 +75,7 @@ class RoomPlayer with JsonValueEquality {
     this.connected = true,
     this.bot = false,
     this.forfeited = false,
+    this.forfeitWhy = '',
     this.strikes = 0,
   });
 
@@ -97,7 +98,12 @@ class RoomPlayer with JsonValueEquality {
   final bool bot;
   final bool forfeited;
 
-  /// Consecutive turn timeouts (3 → forfeit).
+  /// Why a forfeited seat is out ([ForfeitReasons]: `left` | `timeouts`);
+  /// empty while playing (and from older servers).
+  final String forfeitWhy;
+
+  /// Consecutive turn timeouts (server `MAX_STRIKES`, default
+  /// [ForfeitReasons.defaultMaxStrikes], → forfeit).
   final int strikes;
 
   factory RoomPlayer.fromJson(Map<String, dynamic> j) => RoomPlayer(
@@ -112,6 +118,7 @@ class RoomPlayer with JsonValueEquality {
     connected: readBool(j['connected'], true),
     bot: readBool(j['bot']),
     forfeited: readBool(j['forfeited']),
+    forfeitWhy: readString(j['forfeitWhy']),
     strikes: readInt(j['strikes']),
   );
 
@@ -128,24 +135,30 @@ class RoomPlayer with JsonValueEquality {
     'connected': connected,
     'bot': bot,
     'forfeited': forfeited,
+    if (forfeitWhy.isNotEmpty) 'forfeitWhy': forfeitWhy,
     'strikes': strikes,
   };
 
-  RoomPlayer copyWith({bool? connected, bool? forfeited, int? strikes}) =>
-      RoomPlayer(
-        seat: seat,
-        uid: uid,
-        name: name,
-        avatar: avatar,
-        level: level,
-        title: title,
-        cosmetics: cosmetics,
-        color: color,
-        connected: connected ?? this.connected,
-        bot: bot,
-        forfeited: forfeited ?? this.forfeited,
-        strikes: strikes ?? this.strikes,
-      );
+  RoomPlayer copyWith({
+    bool? connected,
+    bool? forfeited,
+    String? forfeitWhy,
+    int? strikes,
+  }) => RoomPlayer(
+    seat: seat,
+    uid: uid,
+    name: name,
+    avatar: avatar,
+    level: level,
+    title: title,
+    cosmetics: cosmetics,
+    color: color,
+    connected: connected ?? this.connected,
+    bot: bot,
+    forfeited: forfeited ?? this.forfeited,
+    forfeitWhy: forfeitWhy ?? this.forfeitWhy,
+    strikes: strikes ?? this.strikes,
+  );
 }
 
 /// Whose turn it is and what they may do (`room.turn`).

@@ -183,7 +183,10 @@ type PlayerView struct {
 	Connected bool              `json:"connected"`
 	Bot       bool              `json:"bot"`
 	Forfeited bool              `json:"forfeited"`
-	Strikes   int               `json:"strikes"`
+	// ForfeitWhy is "left" or "timeouts" for a forfeited seat (not part of
+	// the state hash).
+	ForfeitWhy string `json:"forfeitWhy,omitempty"`
+	Strikes    int    `json:"strikes"`
 }
 
 // TurnView is the turn section of a snapshot.
@@ -267,6 +270,9 @@ func (r *Room) View() View {
 		v.Players[i] = PlayerView{Seat: i, UID: p.UID, Name: p.Name, Avatar: p.Avatar, Level: p.Level,
 			Title: p.Title, Cosmetics: p.Cosmetics, Color: color, Connected: p.Connected, Bot: p.Bot,
 			Forfeited: p.Forfeited, Strikes: p.Strikes}
+		if p.Forfeited {
+			v.Players[i].ForfeitWhy = p.ForfeitWhy
+		}
 	}
 	seat, seq, phase, dice, legal, six := r.turnInfo()
 	if r.Status == StatusLobby || r.Status == StatusClosed {
