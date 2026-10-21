@@ -1,0 +1,39 @@
+# Preproduction. Replace the example hosts with the real preprod hosts.
+app:
+  environment: preprod
+  log_level: info
+  log_format: json
+
+connection:
+  backend_http_url: https://preprod-api.ludoroyale.example/api/v1
+  backend_ws_url: wss://preprod-api.ludoroyale.example/api/v1/ws
+
+bots:
+  enabled: true
+  modes: [practice, public_fill]
+  target_active_bots: 200
+  max_concurrent_bots: 400
+  max_room_joins_per_second: 10
+  max_connection_attempts_per_second: 20
+  public_matchmaking:
+    enabled: true
+    per_game: {ludo: true, ludo_quick: true, snakes_ladders: true}
+    fill_after_seconds: 15
+    maximum_wait_seconds: 27
+  behavior:
+    default_profile: balanced
+  shutdown:
+    graceful_timeout_seconds: 120
+    policy: finish_games
+
+loadtest:
+  # Preprod load tests: copy this file, set modes: [loadtest] and
+  # loadtest.enabled: true, and run with --i-understand-this-is-a-load-test.
+  enabled: false
+  allowed_hosts: [preprod-api.ludoroyale.example]
+  forbidden_hosts: [api.ludoroyale.example, "*.prod.ludoroyale.example"]
+  report_path: /tmp/bot-play-loadtest-report.json
+
+metrics:
+  enabled: true
+  listen_addr: 0.0.0.0:9091   # scraped inside the cluster; do not expose publicly

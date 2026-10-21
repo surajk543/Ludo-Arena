@@ -1,0 +1,62 @@
+# Bot behaviour profiles.
+#
+# A profile only changes (a) how long a bot waits before acting and (b) how
+# it ranks the legal Ludo moves the SERVER listed in turn.legal. It never
+# decides legality, never generates dice and never changes outcomes.
+# Snakes & Ladders has no choices (roll only), so only think time applies.
+#
+# think_time_ms is clamped into bots.think_time (config) and always capped at
+# 40% of the time left before the server's turn deadline.
+#
+# Ludo move-scoring features (per legal token; score = sum of weight x feature):
+#   enter_from_base       1 if the move brings a token out of base
+#   capture_opponent      number of opponent tokens sent to base
+#   reach_safe_square     1 if the token ends on a safe square (start/star/home column) from an unsafe one
+#   progress_toward_home  destination progress / 56 (0..1)
+#   complete_home         1 if the token reaches home (56)
+#   escape_danger         +0.5..1 if the token leaves a square an opponent could hit with a 1-6
+#   avoid_danger          -0.5..1 if the token lands 1-6 squares ahead of an opponent on a non-safe square
+#                         (the 0.5..1 factor grows with the progress at risk)
+#   random_jitter         amplitude of seeded uniform noise in [-w, +w]
+# Ties: higher destination progress, then lower token index (deterministic).
+# Weights are magnitudes in 0..1000. Changes apply at the next decision point.
+
+profiles:
+  beginner:
+    description: Slow and casual; mostly pushes tokens forward, barely notices danger.
+    think_time_ms: {min: 1500, max: 5000}
+    weights:
+      enter_from_base: 20
+      capture_opponent: 15
+      reach_safe_square: 2
+      progress_toward_home: 25
+      complete_home: 15
+      escape_danger: 0
+      avoid_danger: 0
+      random_jitter: 25
+
+  balanced:
+    description: Default. Takes captures, values safety and finishing, small randomness.
+    think_time_ms: {min: 800, max: 3000}
+    weights:
+      enter_from_base: 30
+      capture_opponent: 45
+      reach_safe_square: 12
+      progress_toward_home: 20
+      complete_home: 35
+      escape_danger: 15
+      avoid_danger: 20
+      random_jitter: 4
+
+  advanced:
+    description: Quick and careful; strongly prefers captures and avoids exposure.
+    think_time_ms: {min: 500, max: 2000}
+    weights:
+      enter_from_base: 35
+      capture_opponent: 60
+      reach_safe_square: 18
+      progress_toward_home: 15
+      complete_home: 40
+      escape_danger: 30
+      avoid_danger: 35
+      random_jitter: 1
