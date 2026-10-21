@@ -25,6 +25,7 @@ var (
 	RefreshPerIP     = Rule{"refresh_ip", 60, time.Minute}
 	PolicyPerIP      = Rule{"policy_ip", 120, time.Minute}
 	LinkPerUser      = Rule{"link_user", 10, time.Minute}
+	ProfilePerUser   = Rule{"profile_user", 20, time.Minute}
 	RoomCodePerUser  = Rule{"room_code_user", 10, time.Minute}
 	MatchmakePerUser = Rule{"matchmake_user", 20, time.Minute}
 	WalletOpPerUser  = Rule{"wallet_user", 30, time.Minute}
