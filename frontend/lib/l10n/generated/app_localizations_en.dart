@@ -2208,7 +2208,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String playEntryFeeNote(String fee) {
-    return 'Entry fee: $fee coins per player, charged when the game starts. The winner takes the pot. Free when a bot is seated.';
+    return 'Entry fee: $fee coins per player, charged when the game starts. The winner takes the pot.';
   }
 
   @override
@@ -2369,7 +2369,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playAllowBotsHint =>
-      'Fill empty seats with computer players. Matches with bots are free and pay no coins.';
+      'Fill empty seats with computer players. Everyone pays the entry fee, computer players too.';
 
   @override
   String get playAddBot => 'Add bot';
@@ -2381,10 +2381,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String playRemoveBotA11y(String name) {
     return 'Remove $name';
   }
-
-  @override
-  String get playBotsFreeNote =>
-      'A bot is seated: this match is free and pays no coins.';
 
   @override
   String get playInviteFriends => 'Invite friends';

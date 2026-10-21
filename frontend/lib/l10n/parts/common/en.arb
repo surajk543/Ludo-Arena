@@ -76,5 +76,5 @@
   "commonEntryFee": "Entry {amount}",
   "@commonEntryFee": {"description": "Coin entry fee for a match.", "placeholders": {"amount": {"type": "String"}}},
   "commonFree": "Free",
-  "@commonFree": {"description": "No entry fee (e.g. practice vs bots)."}
+  "@commonFree": {"description": "No entry fee (e.g. practice)."}
 }

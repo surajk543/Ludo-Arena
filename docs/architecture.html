@@ -868,15 +868,15 @@ td code { font-size: 0.8rem; }
   <div class="diagram-canvas" role="img" aria-label="Figure 7: Entry-fee settlement when a game starts"><span class="diagram-loading">Rendering diagram…</span></div>
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 7">flowchart TD
-  trig["Start trigger: lobby full, fill deadline,&lt;br/&gt;or host game.start"] --&gt; fee{"Bot seated, practice room,&lt;br/&gt;or load-test room?"}
+  trig["Start trigger: lobby full, fill deadline,&lt;br/&gt;or host game.start"] --&gt; fee{"Practice room&lt;br/&gt;or load-test room?"}
   fee --&gt;|yes| zero["fee = 0: no debit and no payout"] --&gt; begin
   fee --&gt;|no| nx{"SETNX settle:fee:{room}:{round}, 24 h"}
   nx --&gt;|"already set"| skip["Another start is in progress: no-op"]
-  nx --&gt;|"claimed"| debit["wallet.DebitAll: ONE PostgreSQL transaction&lt;br/&gt;SELECT FOR UPDATE on every human, all or nothing"]
+  nx --&gt;|"claimed"| debit["wallet.ChargeEntry: ONE PostgreSQL transaction&lt;br/&gt;SELECT FOR UPDATE on every seat in id order (people and bots),&lt;br/&gt;bot reset/recharge rules first, all or nothing"]
   debit --&gt;|"someone is short"| broke["Rollback, delete guard key&lt;br/&gt;remove those players from the lobby, error insufficient_funds"]
   debit --&gt;|"database error"| dberr["Rollback, delete guard key&lt;br/&gt;wallet_settlement_failures_total op entry_fee"]
   debit --&gt;|"committed"| same{"Redis commit: still the same lobby&lt;br/&gt;with the same players?"}
-  same --&gt;|yes| begin["beginRound: status playing, pot = fee x humans&lt;br/&gt;game.started, wallet.updated reason entry_fee"]
+  same --&gt;|yes| begin["beginRound: status playing, pot = fee x seats&lt;br/&gt;game.started, wallet.updated reason entry_fee (people only)"]
   same --&gt;|"no: start race"| refund["Credit every charged player back&lt;br/&gt;wallet.updated reason entry_fee_refund, delete guard key"]
 </pre>
 </figure>
@@ -918,14 +918,14 @@ td code { font-size: 0.8rem; }
         <thead><tr><th>Operation</th><th>Guarantee</th><th>Mechanism</th><th>Known failure window</th></tr></thead>
         <tbody>
           <tr><td>Welcome grant</td><td>Exactly once per account</td><td>Wallet + identity in one transaction; <code>(provider, subject)</code> PK</td><td>None known</td></tr>
-          <tr><td>Entry fees</td><td>All players charged or none; at most once per room round</td><td><code>DebitAll</code> in one transaction; <code>settle:fee:{room}:{round}</code> guard; refund on start race</td><td>If the process dies <em>after</em> the debit commits but <em>before</em> the room switches to playing, the in-process refund does not run and is not retried; the guard key (24 h) prevents a second charge. A failed refund credit is logged and counted in <code>wallet_settlement_failures_total{op="refund"}</code> but not retried. Neither case is repaired automatically (there is no ledger by design).</td></tr>
+          <tr><td>Entry fees</td><td>All seats (people and bots) charged or none; at most once per room round</td><td><code>ChargeEntry</code> in one transaction; <code>settle:fee:{room}:{round}</code> guard; refund on start race</td><td>If the process dies <em>after</em> the debit commits but <em>before</em> the room switches to playing, the in-process refund does not run and is not retried; the guard key (24 h) prevents a second charge. A failed refund credit is logged and counted in <code>wallet_settlement_failures_total{op="refund"}</code> but not retried. Neither case is repaired automatically (there is no ledger by design).</td></tr>
           <tr><td>Payout</td><td>At most once (never twice)</td><td><code>settle:pay:{room}:{round}</code> claimed with <code>SETNX</code> before the credit; failed credits release the claim and retry (≤ 10)</td><td>A crash between the claim and the PostgreSQL commit loses that payout (no retry).</td></tr>
           <tr><td>Mission claims, purchases</td><td>Exactly once</td><td>Claim/inventory row and wallet change in the same transaction (PK)</td><td>None known (see <a href="#progression">§13</a>)</td></tr>
           <tr><td>Maintenance transitions</td><td>No settlement during maintenance</td><td>Timers pushed forward; no auto-moves, forfeits, payouts or debits</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
-    <p>Rooms with a bot seat, practice rooms and load-test rooms are played with <strong>entry fee 0 and no coin payout</strong>. Bots have no wallet.</p>
+    <p>Practice rooms and load-test rooms are played with <strong>entry fee 0 and no coin payout</strong>. Rooms with bots charge every seat: each bot persona has a coin wallet (a <code>wallet.wallets</code> row flagged <code>is_bot</code>, never an account) that starts at 1 crore, is recharged to 1 crore below 1 lakh (after each settlement and before a fee) and reset to 1 crore above 10 crore before its next match; a bot winner's pot goes to it (see <code>backend/docs/game-rules.md</code> "Coins with bots").</p>
   </section>
 
   <!-- ============================================================ 5 -->
@@ -1098,7 +1098,7 @@ td code { font-size: 0.8rem; }
     <ul>
       <li>Leaving a lobby frees the seat; if the host leaves, host passes to the next seat. When no humans remain the room closes (<code>empty</code>) and its bot sessions are revoked. <code>closeRoom</code> deletes the code mapping (only if it still points to this room), removes the open-lobby entry and clears every player pointer.</li>
       <li>Leaving during play is a forfeit; leaving after the game counts as declining the rematch.</li>
-      <li>Bots: the host must enable <code>room.allow_bots</code>; seats respect capacity and <code>BOT_MAX_PER_ROOM</code>. The room lists them in <code>computerSeats</code> (practice and private rooms only; public rooms never reveal bots) and the game is played with entry fee 0 and no payout.</li>
+      <li>Bots: the host must enable <code>room.allow_bots</code>; seats respect capacity and <code>BOT_MAX_PER_ROOM</code>. The room lists them in <code>computerSeats</code> (practice and private rooms only; public rooms never reveal bots) and every seat pays the entry fee, bots from their own wallets.</li>
       <li>Room TTLs are refreshed on every commit: lobby 30 min, playing 3 h, finished 10 min + rematch window, closed 2 min.</li>
     </ul>
   </section>
@@ -1750,7 +1750,7 @@ td code { font-size: 0.8rem; }
   API--&gt;&gt;BP: Bot token (max 2 h,&lt;br/&gt;this room only), uid, roomId
   Bot-&gt;&gt;WS: Connect with bot token,&lt;br/&gt;platform bot
   WS--&gt;&gt;Bot: connection.ready,&lt;br/&gt;game.state
-  Note over WS: Seat looks like a person (persona look,&lt;br/&gt;u_ uid, no bot flag). Entry fee 0, no payout.
+  Note over WS: Seat looks like a person (persona look,&lt;br/&gt;u_ uid, no bot flag). Pays the fee from its&lt;br/&gt;persona wallet (is_bot), may win the pot.
   Bot-&gt;&gt;WS: game.roll_dice,&lt;br/&gt;game.make_move
   WS--&gt;&gt;Bot: game.finished
   Bot-&gt;&gt;WS: room.leave, close 1000

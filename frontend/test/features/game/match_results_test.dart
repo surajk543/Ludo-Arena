@@ -56,10 +56,11 @@ void main() {
       expect(won.outcome, MatchOutcome.won);
       expect(won.selfPayout, 4000);
       expect(won.noCoinMatch, isFalse);
-      // A match the server played without fees has an empty pot (e.g. a
-      // public match a computer player joined; seats carry no bot flag).
+      // A match the server played without fees has an empty pot (practice);
+      // seats carry no bot flag.
       final free = MatchResultView.from(
         _finished(
+          mode: RoomModes.practice,
           payout: 0,
           pot: 0,
           players: [player(0), player(1)],
@@ -69,18 +70,22 @@ void main() {
       );
       expect(free.noCoinMatch, isTrue);
       expect(free.selfPayout, 0);
+      // Only the server's pot decides: computer players pay the entry fee
+      // like people, so a room with computer seats and a pot pays coins.
       final two = [player(0), player(1)];
       for (final (room, want) in [
-        (_finished(mode: RoomModes.practice, players: two), true),
+        (_finished(mode: RoomModes.practice, players: two, pot: 0), true),
         (
           _finished(
             mode: RoomModes.private,
             players: two,
             computerSeats: const [1],
           ),
-          true,
+          false,
         ),
         (_finished(mode: RoomModes.private, players: two), false),
+        (_finished(mode: RoomModes.public, players: two), false),
+        (_finished(mode: RoomModes.public, players: two, pot: 0), true),
       ]) {
         expect(
           MatchResultView.from(room, 'u_0').noCoinMatch,

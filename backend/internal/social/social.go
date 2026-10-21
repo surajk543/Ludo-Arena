@@ -181,9 +181,10 @@ func PresenceKey(userID uuid.UUID) string { return "presence:" + userID.String()
 // of people and "bot:{uid}" of bots met in public matches.
 func RecentKey(userID uuid.UUID) string { return "recent:" + userID.String() }
 
-// existingAccounts reports which ids are accounts (have a wallet row).
+// existingAccounts reports which ids are accounts (have a wallet row that is
+// not a bot's: bot wallets hold a persona's coins and are never accounts).
 func existingAccounts(ctx context.Context, q querier, ids []uuid.UUID) (map[uuid.UUID]bool, error) {
-	rows, err := q.Query(ctx, `SELECT user_id FROM wallet.wallets WHERE user_id = ANY($1)`, ids)
+	rows, err := q.Query(ctx, `SELECT user_id FROM wallet.wallets WHERE user_id = ANY($1) AND NOT is_bot`, ids)
 	if err != nil {
 		return nil, err
 	}

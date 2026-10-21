@@ -311,7 +311,10 @@ one grant of the configured amount).
 ## Storage (approved design)
 
 ```
-schema wallet:    wallets(user_id PK, coins BIGINT >= 0, diamonds BIGINT >= 0)
+schema wallet:    wallets(user_id PK, coins BIGINT >= 0, diamonds BIGINT >= 0,
+                          is_bot BOOLEAN NOT NULL DEFAULT FALSE)   -- migration 012
+                  is_bot rows hold a bot persona's coins: never an account, no identity,
+                  never deleted by DELETE /account (backend/docs/game-rules.md "Coins with bots")
 schema identity:  auth_identities(provider, subject, user_id → wallet.wallets, created_at,
                                   PK(provider, subject), UNIQUE(user_id, provider))
                   provider ∈ guest | google | facebook | apple | device (internal, migration 004)

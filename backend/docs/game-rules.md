@@ -239,13 +239,68 @@ So row 0 (bottom) reads 1→10 left to right, the next row 11→20 right to left
   and the new room of a public rematch). Public matchmaking only seats a player
   in an open lobby whose fee equals the current fee; older lobbies keep their
   players and fee until they start or time out.
-- Practice rooms, rooms with a bot seat and load-test rooms are free (fee 0,
-  no payout), whatever the configured fee.
-- The winner receives the whole pot (`entryFee × players`).
+- Practice rooms and load-test rooms are free (fee 0, no payout), whatever the
+  configured fee. Every other room charges **every seat**, bots included (see
+  "Coins with bots").
+- The winner receives the whole pot (`entryFee × players`), person or bot.
 - Coins are virtual and non-redeemable. There is no real-money wagering.
 - Settlement is **at-most-once**, guarded by a Redis idempotency key per game.
   See `docs/architecture.md` → "Wallet settlement guarantees" for the exact
   failure window.
+
+### Coins with bots
+
+Owner's rules (22 Oct 2026): bots play for coins like people, and their coins
+stay within a band.
+
+- **Bot wallets.** Every bot persona (`backend/internal/rooms/persona.go`)
+  has a stable id — a UUIDv5 of its pool, display name and slot, so it
+  survives a Redis flush — and a `wallet.wallets` row with `is_bot = TRUE`
+  (migration `012_bot_wallets.sql`) holding its coins. The row is created
+  lazily the first time the persona is seated (`INSERT … ON CONFLICT DO
+  NOTHING`) with `BOT_COINS_START` coins (default **1 crore** = 10,000,000)
+  and no diamonds. It is **not an account**: no identity, session,
+  progression, inventory or friendship rows; every account lookup and count
+  (public ids, friends, recent players, reports queue, account deletion,
+  KPIs) leaves `is_bot` rows out. bot-play never touches wallets: the server
+  does all of this.
+- **Public and private matches** charge the entry fee to every seat when the
+  round starts, people from their wallets and bots from theirs, in **one**
+  PostgreSQL transaction that locks all rows in id order (all or nothing),
+  under the same `settle:fee:{roomId}:{round}` key as before. The pot is
+  `entryFee × seats` and the winner takes it: a person's payout is credited
+  and announced (`wallet.updated`), a bot's goes to its wallet, through the
+  same `settle:pay:{roomId}:{round}` claim. Refunds (a start that lost a race),
+  forfeits and cancellations follow the all-human rules exactly: a seat that
+  forfeits keeps its fee in the pot, a lobby that never starts charges
+  nobody. A person who cannot pay is removed from the lobby
+  (`insufficient_funds`) as before.
+- **Practice stays free** (fee 0, pot 0, no payout) for the person and the
+  bots. Load-test rooms stay free.
+- **Recharge:** a bot wallet below `BOT_COINS_RECHARGE_BELOW` (default
+  **1 lakh** = 100,000) is set to `BOT_COINS_RECHARGE_TO` (default 1 crore)
+  — after every settlement (once the round's payout is made, for every bot
+  seated in it) and before charging its next entry fee. Before a fee the
+  threshold is the larger of `RECHARGE_BELOW` and the fee (and the target the
+  larger of `RECHARGE_TO` and the fee), so a bot can always pay.
+- **Reset:** before a bot starts its next match (in the entry-fee
+  transaction), a wallet above `BOT_COINS_RESET_ABOVE` (default **10 crore**
+  = 100,000,000) is set to `BOT_COINS_RESET_TO` (default 1 crore).
+- **Configuration.** The five `BOT_COINS_*` variables are whole coins in
+  `1..10^12`; startup is refused (every environment, production included)
+  unless `RECHARGE_BELOW < RECHARGE_TO <= RESET_ABOVE` and `START` and
+  `RESET_TO` lie in `[RECHARGE_BELOW, RESET_ABOVE]` (a recharge never
+  triggers a reset and vice versa).
+- **Metrics:** `bot_wallet_recharges_total`, `bot_wallet_resets_total`,
+  `bot_coins_minted_total{reason="start|recharge"}` and
+  `bot_coins_removed_total{reason="reset"}`. Minted minus removed is the net
+  amount of coins the bots put into the economy (what people win from bots
+  in the long run).
+- **Nothing tells clients which seats are bots:** a public match with a bot
+  has the same `entryFee`, `pot`, `result.payout`, `wallet.updated` events
+  and results screen as an all-human one. XP is unchanged (bots never earn
+  XP; people's XP and anti-farming rules are the same), and friend requests
+  to bots are never accepted (they lapse after 72 h).
 
 ---
 

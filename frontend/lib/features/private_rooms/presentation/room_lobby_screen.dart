@@ -359,7 +359,8 @@ class _LobbyBody extends StatelessWidget {
                 ),
                 _InfoPill(
                   leading: const CoinIcon(size: 16),
-                  text: room.hasComputerPlayers
+                  // The server's fee: computer players pay it too.
+                  text: room.entryFee <= 0
                       ? l10n.commonFree
                       : l10n.playEntryFee(formatCoins(room.entryFee, locale)),
                 ),
@@ -400,13 +401,6 @@ class _LobbyBody extends StatelessWidget {
                 );
               },
             ),
-            if (room.hasComputerPlayers) ...[
-              const SizedBox(height: AppSpacing.md),
-              PlayNote(
-                icon: Icons.smart_toy_rounded,
-                text: l10n.playBotsFreeNote,
-              ),
-            ],
             const SizedBox(height: AppSpacing.lg),
             if (p.isHost) ...[
               SurfaceCard(

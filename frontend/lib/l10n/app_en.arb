@@ -701,7 +701,7 @@
   },
   "commonFree": "Free",
   "@commonFree": {
-    "description": "No entry fee (e.g. practice vs bots)."
+    "description": "No entry fee (e.g. practice)."
   },
   "appTitle": "Ludo Royale",
   "@appTitle": {
@@ -3006,7 +3006,7 @@
       }
     }
   },
-  "playEntryFeeNote": "Entry fee: {fee} coins per player, charged when the game starts. The winner takes the pot. Free when a bot is seated.",
+  "playEntryFeeNote": "Entry fee: {fee} coins per player, charged when the game starts. The winner takes the pot.",
   "@playEntryFeeNote": {
     "description": "Entry fee explanation on the private room setup.",
     "placeholders": {
@@ -3238,7 +3238,7 @@
   "@playAllowBots": {
     "description": "Host switch: allow bot seats."
   },
-  "playAllowBotsHint": "Fill empty seats with computer players. Matches with bots are free and pay no coins.",
+  "playAllowBotsHint": "Fill empty seats with computer players. Everyone pays the entry fee, computer players too.",
   "@playAllowBotsHint": {
     "description": "Explains bot seats in private rooms."
   },
@@ -3258,10 +3258,6 @@
         "type": "String"
       }
     }
-  },
-  "playBotsFreeNote": "A bot is seated: this match is free and pays no coins.",
-  "@playBotsFreeNote": {
-    "description": "Note shown when a bot is seated in a private room."
   },
   "playInviteFriends": "Invite friends",
   "@playInviteFriends": {
@@ -3754,7 +3750,7 @@
   },
   "playRewardNoCoinsMatch": "This match doesn't pay coins.",
   "@playRewardNoCoinsMatch": {
-    "description": "No coins from this match (a computer player was seated, or practice)."
+    "description": "No coins from this match (the server reported no pot, e.g. practice)."
   },
   "playRewardNoCoins": "No coins this time — the winner takes the pot.",
   "@playRewardNoCoins": {

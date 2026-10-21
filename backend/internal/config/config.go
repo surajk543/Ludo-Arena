@@ -14,6 +14,7 @@ import (
 
 	"ludoroyale/internal/apppolicy"
 	"ludoroyale/internal/assets"
+	"ludoroyale/internal/wallet"
 )
 
 // Environment names accepted by APP_ENV.
@@ -225,6 +226,11 @@ type BotConfig struct {
 	// PersonaTTL is how long an unused bot persona (look, level, picture,
 	// stable public id) is remembered (BOT_PERSONA_TTL, default 30 days).
 	PersonaTTL time.Duration
+	// Coins are the coin rules of bot wallets: BOT_COINS_START (1 crore),
+	// BOT_COINS_RECHARGE_BELOW (1 lakh) → BOT_COINS_RECHARGE_TO (1 crore),
+	// BOT_COINS_RESET_ABOVE (10 crore) → BOT_COINS_RESET_TO (1 crore). See
+	// backend/docs/game-rules.md "Coins with bots".
+	Coins wallet.BotRules
 }
 
 // DefaultBotPictureShare is the default BOT_PICTURE_SHARE.
@@ -500,6 +506,16 @@ func Load() (*Config, error) {
 		PictureKeepMin:    getInt("BOT_PICTURE_KEEP_MIN", 2),
 		PictureKeepMax:    getInt("BOT_PICTURE_KEEP_MAX", 5),
 		PersonaTTL:        getDur("BOT_PERSONA_TTL", 30*24*time.Hour),
+		Coins: wallet.BotRules{
+			Start:         int64(getInt("BOT_COINS_START", int(wallet.DefaultBotStart))),
+			RechargeBelow: int64(getInt("BOT_COINS_RECHARGE_BELOW", int(wallet.DefaultBotRechargeBelow))),
+			RechargeTo:    int64(getInt("BOT_COINS_RECHARGE_TO", int(wallet.DefaultBotRechargeTo))),
+			ResetAbove:    int64(getInt("BOT_COINS_RESET_ABOVE", int(wallet.DefaultBotResetAbove))),
+			ResetTo:       int64(getInt("BOT_COINS_RESET_TO", int(wallet.DefaultBotResetTo))),
+		},
+	}
+	if err := c.Bots.Coins.Validate(); err != nil {
+		errs = append(errs, err)
 	}
 	if c.Bots.PictureShare < 0 || c.Bots.PictureShare > 1 {
 		errs = append(errs, errors.New("BOT_PICTURE_SHARE must be between 0 and 1"))

@@ -25,7 +25,10 @@ payouts, and there are no random rewards.
 
 Same database as `wallet` and `identity`. Every `user_id` references
 `wallet.wallets(user_id)` (the account) with `ON DELETE CASCADE`, so erasing
-an account erases its progression data. Account deletion
+an account erases its progression data. Wallet rows flagged `is_bot` (bot
+personas' coins, migration 012) are not accounts and never get progression
+rows: lazy row creation, public-id resolution, friends and recent players
+skip them. Account deletion
 (`backend/internal/account`) also deletes every table's rows explicitly in
 one transaction, locking the `player_progress` row before the wallet like
 every progression write; a write that was waiting for that lock then finds no
@@ -43,7 +46,7 @@ player-chosen display name (one nullable column, below).
 | `loadout(user_id, slot, item_id)` | `(user_id, slot)` | Equipped items. A missing slot means the starter item; a row whose item no longer fits the catalog also falls back to starter. Slot `avatar` (migration 007) holds the equipped profile picture; it is reported as `picture`, never in `loadout`. |
 | `profile_pictures(id, name, format, path, price_diamonds, sort_order, active, created_at)` | `id` (`pp_…`), `path` UNIQUE | Owner-approved (2026-10-21). The Store catalogue only (no player data): object path in the private R2 bucket, `image\|lottie`, diamond price, shelf order, `active = false` retires a picture. Seeded by migration 008 from `backend/config/profile_pictures.tsv`; see [cosmetics-catalog.md](cosmetics-catalog.md#profile-pictures). |
 | `friendships(user_lo, user_hi, status, requested_by, created_at)` | `(user_lo, user_hi)`, `CHECK user_lo < user_hi` | One row per unordered pair: `pending` (request by `requested_by`) or `accepted`. Indexed on `user_hi` for "my relationships" lookups. Written only by `social`; read by `progression` inside the match transaction (friend XP bonus, friend missions). |
-| `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at, reported_bot, reported_profile)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `reporter_id` is an account; `reported_id` is an account or, with `reported_bot = true`, a bot persona's id (stable across that bot's sessions, so the once-per-player rule applies as to a person; no foreign key since migration 009: bots are not accounts). `reported_profile` (JSONB, bots only) keeps the bot's public profile at report time (`uid`, `name`, `avatar`, `picture`, `level`), the only name stored here, because no account holds it. `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
+| `player_reports(id, reporter_id, reported_id, reason, room_id, game, status, note, created_at, updated_at, reported_bot, reported_profile)` | `id` (UUID), `CHECK reporter_id <> reported_id` | User-approved. One row per report: who reported whom, why (`cheating\|offensive_name\|abusive_behavior\|leaving_or_stalling\|other`), the review `status` (`submitted\|reviewing\|action_taken\|dismissed`) and an operator `note` (never shown to the reporter). `reporter_id` is an account; `reported_id` is an account or, with `reported_bot = true`, a bot persona's id (stable across that bot's sessions, so the once-per-player rule applies as to a person; no foreign key since migration 009). Since migration 012 that id is also the user_id of the persona's coin wallet (`wallet.wallets` row with `is_bot = TRUE`, never an account), and `reported_bot` is set from that flag. `reported_profile` (JSONB, bots only) keeps the bot's public profile at report time (`uid`, `name`, `avatar`, `picture`, `level`), the only name stored here, because no account holds it. `room_id` and `game` are plain references to where it happened — **no room or game state** (board, dice, turns, moves, chat, seats) is stored. Indexes `(reporter_id, created_at DESC)`, `(status, created_at)`, `(reported_id)`. Written only by `reports` (see §7.1). |
 
 Indexes on `match_receipts.processed_at`, `mission_progress.updated_at` and
 `mission_claims.claimed_at` serve the purge job.
@@ -105,7 +108,9 @@ constraints above are the real guarantee).
   no account is skipped (logged).
 - Practice games against bots count like any completed match for the human
   (entry fee 0, no payout — see the WebSocket protocol), within the rules
-  above. XP is server-side only; clients never report XP.
+  above. Public and private matches with bots are played for coins like any
+  match (bots pay the fee from their own `is_bot` wallet; see
+  `backend/docs/game-rules.md` "Coins with bots"); XP rules do not change. XP is server-side only; clients never report XP.
 - `badge_first_win` is granted on the first eligible win.
 
 ## 4. Match recording (`RecordMatch`)

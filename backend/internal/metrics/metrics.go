@@ -131,8 +131,22 @@ var (
 	BotAssignments = counter("bot_assignments_total", "Bot seat assignments by kind and outcome.", "kind", "event")
 )
 
+// Bot wallets: the play coins of bot personas (wallet.wallets rows with
+// is_bot; backend/docs/game-rules.md "Coins with bots"). Minted minus removed
+// is the net amount of coins the bot rules put into the economy.
+var (
+	BotWalletRecharges = counter0("bot_wallet_recharges_total", "Bot wallets recharged to BOT_COINS_RECHARGE_TO (below BOT_COINS_RECHARGE_BELOW after a settlement or before an entry fee).")
+	BotWalletResets    = counter0("bot_wallet_resets_total", "Bot wallets reset to BOT_COINS_RESET_TO before a match (above BOT_COINS_RESET_ABOVE).")
+	BotCoinsMinted     = counter("bot_coins_minted_total", "Coins created for bot wallets by reason (start: a new bot wallet; recharge).", "reason")
+	BotCoinsRemoved    = counter("bot_coins_removed_total", "Coins removed from bot wallets by reason (reset).", "reason")
+)
+
 func init() {
 	Registry.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	// Export the bot coin series from the start (0 until the first event).
+	BotCoinsMinted.WithLabelValues("start")
+	BotCoinsMinted.WithLabelValues("recharge")
+	BotCoinsRemoved.WithLabelValues("reset")
 }
 
 // Handler serves the registry in Prometheus text format.

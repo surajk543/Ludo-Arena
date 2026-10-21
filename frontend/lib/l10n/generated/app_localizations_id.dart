@@ -2199,7 +2199,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String playEntryFeeNote(String fee) {
-    return 'Biaya masuk: $fee koin per pemain, ditarik saat permainan dimulai. Pemenang mendapat seluruh pot. Gratis jika ada bot.';
+    return 'Biaya masuk: $fee koin per pemain, ditarik saat permainan dimulai. Pemenang mendapat seluruh pot.';
   }
 
   @override
@@ -2361,7 +2361,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get playAllowBotsHint =>
-      'Isi kursi kosong dengan pemain komputer. Pertandingan dengan bot gratis dan tidak memberi koin.';
+      'Isi kursi kosong dengan pemain komputer. Semua pemain membayar biaya masuk, termasuk pemain komputer.';
 
   @override
   String get playAddBot => 'Tambah bot';
@@ -2373,10 +2373,6 @@ class AppLocalizationsId extends AppLocalizations {
   String playRemoveBotA11y(String name) {
     return 'Keluarkan $name';
   }
-
-  @override
-  String get playBotsFreeNote =>
-      'Ada bot di meja: pertandingan ini gratis dan tidak memberi koin.';
 
   @override
   String get playInviteFriends => 'Undang teman';

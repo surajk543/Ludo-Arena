@@ -142,7 +142,8 @@ func (s *Service) eraseOnce(ctx context.Context, userID uuid.UUID) (Erased, erro
 		return Erased{}, err
 	}
 	var one int
-	err = tx.QueryRow(ctx, `SELECT 1 FROM wallet.wallets WHERE user_id = $1 FOR UPDATE`, userID).Scan(&one)
+	// Bot wallets (is_bot) are not accounts and are never deleted here.
+	err = tx.QueryRow(ctx, `SELECT 1 FROM wallet.wallets WHERE user_id = $1 AND NOT is_bot FOR UPDATE`, userID).Scan(&one)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Erased{}, ErrNotFound
 	}
@@ -169,7 +170,7 @@ func (s *Service) eraseOnce(ctx context.Context, userID uuid.UUID) (Erased, erro
 		{&e.Purchases, `DELETE FROM progression.purchases WHERE user_id = $1`},
 		{&e.Progress, `DELETE FROM progression.player_progress WHERE user_id = $1`},
 		{&e.Identities, `DELETE FROM identity.auth_identities WHERE user_id = $1`},
-		{&e.Wallets, `DELETE FROM wallet.wallets WHERE user_id = $1`},
+		{&e.Wallets, `DELETE FROM wallet.wallets WHERE user_id = $1 AND NOT is_bot`},
 	}
 	for _, st := range steps {
 		tag, err := tx.Exec(ctx, st.sql, userID)

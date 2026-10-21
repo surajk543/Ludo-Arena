@@ -33,7 +33,9 @@ of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
   server-confirmed events. Never trust client-supplied ids, balances or
   results.
 - **PostgreSQL boundaries (user-approved):** `wallet.wallets` holds balances
-  only; `identity.auth_identities` maps providers → accounts;
+  plus `is_bot` (owner-approved 2026-10-22: each bot persona has a wallet row
+  flagged `is_bot` for its play coins; it is not an account — every account
+  lookup, count and KPI excludes `is_bot` rows); `identity.auth_identities` maps providers → accounts;
   `progression.*` holds XP, missions/claims, inventory, loadout, friendships,
   player reports (metadata only), idempotency receipts and the
   profile-picture catalogue (`progression.profile_pictures`: paths and
