@@ -96,8 +96,8 @@ these are the exact guarantees and failure windows
 | Operation | Guarantee | Mechanism | Known failure window |
 |---|---|---|---|
 | Welcome grant (default 1,000,000 coins, 50 diamonds; live from `welcome` in the app-policy file) | Exactly once per account | Amounts read once per new account; wallet and identity row inserted in one transaction; the `(provider, subject)` primary key serializes concurrent first sign-ins. Refresh, reconnect, guest and device resume, device binding and linking never grant again; concurrent first `/auth/guest` calls with one `deviceId` create one account; a config change never alters existing wallets. | None known |
-| Entry fees | All players charged or none; at most once per room round | `wallet.DebitAll` (one transaction, `SELECT … FOR UPDATE`); guard key `settle:fee:{room}:{round}` (24 h) taken with `SETNX` first; if the lobby changed before the room switched to playing, every charged player is credited back (`entry_fee_refund`) | If the process dies after the debit commits but before the room commit, the in-process refund does not run and is not retried; the guard key prevents a second charge. A failed refund credit is logged and counted in `wallet_settlement_failures_total{op="refund"}` but not retried. Neither case is repaired automatically (by design there is no ledger to reconcile against). |
-| Payout (pot to the winner) | At most once — never twice | Scheduler job claims `settle:pay:{room}:{round}` with `SETNX` (7 d) **before** the PostgreSQL credit; on a credit error the claim is released and the job retried (attempt × 5 s, at most 10). A winner who deleted their account in the meantime is not paid (no retry; the key is set to `account_gone`) | A crash between the claim and the PostgreSQL commit loses that payout (it is not retried). |
+| Entry fees | All seats (people and bots) charged or none; at most once per room round | `wallet.ChargeEntry` (one transaction, every row `SELECT … FOR UPDATE` in id order; bot wallets created first when missing and get the reset/recharge rules inside the transaction); guard key `settle:fee:{room}:{round}` (24 h) taken with `SETNX` first; if the lobby changed before the room switched to playing, every charged player is credited back (`entry_fee_refund`) | If the process dies after the debit commits but before the room commit, the in-process refund does not run and is not retried; the guard key prevents a second charge. A failed refund credit is logged and counted in `wallet_settlement_failures_total{op="refund"}` but not retried. Neither case is repaired automatically (by design there is no ledger to reconcile against). |
+| Payout (pot to the winner, person or bot) | At most once — never twice | Scheduler job claims `settle:pay:{room}:{round}` with `SETNX` (7 d) **before** the PostgreSQL credit (a bot winner's wallet is credited the same way; then the round's bots below 1 lakh are recharged, `wallet_settlement_failures_total{op="bot_recharge"}` on failure, applied again before their next fee); on a credit error the claim is released and the job retried (attempt × 5 s, at most 10). A winner who deleted their account in the meantime is not paid (no retry; the key is set to `account_gone`) | A crash between the claim and the PostgreSQL commit loses that payout (it is not retried). |
 | Account deletion (`DELETE /account`) | All of the account's rows or none | One transaction locks the progression row, then the wallet (the order every progression write uses), and deletes reports, friendships, missions, claims, receipts, inventory, loadout, progress, identities and the wallet; concurrent deletions serialize and only one finds the account. The running game is left first (forfeit, entry fee not refunded) | Redis cleanup after the commit is best effort (logged; a retry repeats it) — see [authentication.md](authentication.md#deleting-an-account) |
 | Mission claims, purchases | Exactly once | Claim or inventory row and the wallet change in the same transaction (primary key); `Idempotency-Key` replays the stored response | None known |
 | Maintenance | No settlement while active | Turn and fill timers are pushed forward; no auto-moves, forfeits, payouts or debits | — |
@@ -107,8 +107,11 @@ Entry fees are flat per player — **Ludo 100,000 coins, Snakes & Ladders
 per-environment app-policy file (hot-reloaded; `ENTRY_FEE_*` and the built-in
 defaults are fallbacks). A room keeps the fee it was created with, so a change
 only applies to new rooms (`docs/app-version-policy.md` → Entry fees).
-Rooms with a bot seat, practice rooms and load-test rooms charge **no entry
-fee and pay no coins**. Coins and diamonds are virtual and non-redeemable.
+Practice rooms and load-test rooms charge **no entry fee and pay no coins**.
+Rooms with bots charge every seat: each bot persona has its own coin wallet
+(`wallet.wallets` row flagged `is_bot`, not an account), recharged below
+1 lakh and reset above 10 crore (`backend/docs/game-rules.md` "Coins with
+bots"). Coins and diamonds are virtual and non-redeemable.
 
 ## PostgreSQL on the hot path
 
@@ -280,12 +283,19 @@ written by an instance without the index (only during the rolling deploy
 that introduces it) are counted from their next commit. A recount of 20,000
 live rooms takes ≈ 48 ms (≈ 2 µs of Redis time per room).
 
+Bot wallets (`backend/docs/game-rules.md` "Coins with bots") are watched with
+four counters (per instance: `sum` them): `bot_wallet_recharges_total`,
+`bot_wallet_resets_total`, `bot_coins_minted_total{reason="start|recharge"}`
+and `bot_coins_removed_total{reason="reset"}`. Minted minus removed is the
+net amount of coins bots have put into the economy.
+
 ```promql
 max by (actor) (players_in_game)                    # playing now, humans vs bots
 max by (game, mode) (rooms_in_game)
 max by (actor) (players_in_lobby)
 sum by (actor) (ws_connections_active)              # connected now
 time() - max(game_stats_refreshed_timestamp_seconds) > 120   # alert: recount stuck
+sum(increase(bot_coins_minted_total[1d])) - sum(increase(bot_coins_removed_total[1d]))  # coins bots injected per day
 ```
 
 ## Pending (not yet implemented or configured)

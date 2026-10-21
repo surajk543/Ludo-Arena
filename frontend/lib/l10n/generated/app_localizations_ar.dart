@@ -2146,7 +2146,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String playEntryFeeNote(String fee) {
-    return 'رسوم الدخول: $fee عملة لكل لاعب، تُخصم عند بدء اللعبة. يحصل الفائز على كامل المجموع. مجانية عند وجود بوت.';
+    return 'رسوم الدخول: $fee عملة لكل لاعب، تُخصم عند بدء اللعبة. يحصل الفائز على كامل المجموع.';
   }
 
   @override
@@ -2306,7 +2306,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get playAllowBotsHint =>
-      'املأ المقاعد الشاغرة بلاعبين آليين. المباريات مع البوتات مجانية ولا تمنح عملات.';
+      'املأ المقاعد الشاغرة بلاعبين آليين. يدفع الجميع رسوم الدخول، بما في ذلك اللاعبون الآليون.';
 
   @override
   String get playAddBot => 'إضافة بوت';
@@ -2318,10 +2318,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String playRemoveBotA11y(String name) {
     return 'إزالة $name';
   }
-
-  @override
-  String get playBotsFreeNote =>
-      'يوجد بوت على الطاولة: هذه المباراة مجانية ولا تمنح عملات.';
 
   @override
   String get playInviteFriends => 'دعوة الأصدقاء';

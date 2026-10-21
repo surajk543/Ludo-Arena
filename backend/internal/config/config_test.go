@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"ludoroyale/internal/wallet"
 )
 
 // minimalEnv sets the variables Load requires; ENTRY_FEE_* start unset (an
@@ -16,6 +18,8 @@ func minimalEnv(t *testing.T) {
 		"ENTRY_FEE_LUDO": "", "ENTRY_FEE_SNAKES": "", "WELCOME_COINS": "", "WELCOME_DIAMONDS": "",
 		"GAME_STATS_INTERVAL": "", "R2_ACCOUNT_ID": "", "R2_BUCKET": "", "R2_ACCESS_KEY_ID": "",
 		"R2_SECRET_ACCESS_KEY": "", "R2_ENDPOINT": "", "ASSET_URL_TTL": "", "BOT_PICTURE_SHARE": "",
+		"BOT_COINS_START": "", "BOT_COINS_RECHARGE_BELOW": "", "BOT_COINS_RECHARGE_TO": "",
+		"BOT_COINS_RESET_ABOVE": "", "BOT_COINS_RESET_TO": "",
 	} {
 		t.Setenv(k, v)
 	}
@@ -351,6 +355,60 @@ func TestBotPictureShare(t *testing.T) {
 			}
 			if err != nil || cfg.Bots.PictureShare != c.want {
 				t.Fatalf("share %v err %v", cfg, err)
+			}
+		})
+	}
+}
+
+func TestBotCoinRules(t *testing.T) {
+	type env = map[string]string
+	cases := []struct {
+		name    string
+		env     env
+		prod    bool
+		want    wallet.BotRules
+		wantErr string
+	}{
+		{"owner defaults", env{}, false, wallet.BotRules{Start: 10_000_000, RechargeBelow: 100_000, RechargeTo: 10_000_000,
+			ResetAbove: 100_000_000, ResetTo: 10_000_000}, ""},
+		{"custom band", env{"BOT_COINS_START": "500000", "BOT_COINS_RECHARGE_BELOW": "50000", "BOT_COINS_RECHARGE_TO": "400000",
+			"BOT_COINS_RESET_ABOVE": "2000000", "BOT_COINS_RESET_TO": "600000"}, false,
+			wallet.BotRules{Start: 500_000, RechargeBelow: 50_000, RechargeTo: 400_000, ResetAbove: 2_000_000, ResetTo: 600_000}, ""},
+		{"zero start", env{"BOT_COINS_START": "0"}, false, wallet.BotRules{}, "BOT_COINS_START must be between 1 and"},
+		{"negative threshold", env{"BOT_COINS_RECHARGE_BELOW": "-5"}, false, wallet.BotRules{}, "BOT_COINS_RECHARGE_BELOW must be between 1 and"},
+		{"not an integer", env{"BOT_COINS_RESET_ABOVE": "10cr"}, false, wallet.BotRules{}, "BOT_COINS_RESET_ABOVE: not an integer"},
+		{"recharge not above threshold", env{"BOT_COINS_RECHARGE_TO": "100000"}, false, wallet.BotRules{},
+			"BOT_COINS_RECHARGE_TO must be greater than BOT_COINS_RECHARGE_BELOW"},
+		{"recharge triggers reset", env{"BOT_COINS_RECHARGE_TO": "200000000"}, false, wallet.BotRules{},
+			"BOT_COINS_RECHARGE_TO must not exceed BOT_COINS_RESET_ABOVE"},
+		{"reset triggers recharge", env{"BOT_COINS_RESET_TO": "1000"}, false, wallet.BotRules{},
+			"BOT_COINS_RESET_TO must be between BOT_COINS_RECHARGE_BELOW and BOT_COINS_RESET_ABOVE"},
+		{"start outside the band", env{"BOT_COINS_START": "50000"}, false, wallet.BotRules{},
+			"BOT_COINS_START must be between BOT_COINS_RECHARGE_BELOW and BOT_COINS_RESET_ABOVE"},
+		{"nonsense refused in production", env{"BOT_COINS_RESET_ABOVE": "5000000"}, true, wallet.BotRules{},
+			"BOT_COINS_RECHARGE_TO must not exceed BOT_COINS_RESET_ABOVE"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			for k, v := range c.env {
+				t.Setenv(k, v)
+			}
+			if c.prod {
+				t.Setenv("APP_ENV", EnvProduction)
+			}
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Bots.Coins != c.want {
+				t.Fatalf("rules %+v, want %+v", cfg.Bots.Coins, c.want)
 			}
 		})
 	}

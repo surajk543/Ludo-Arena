@@ -78,6 +78,29 @@ void main() {
     expect(h.controller.calls, contains('room.remove_bot:2'));
   });
 
+  testWidgets('a computer seat pays the entry fee: no "free" pill or note', (
+    tester,
+  ) async {
+    await _pump(tester, selfUid: 'u_0', room: _lobby(allowBots: true));
+    expect(find.textContaining('Entry '), findsOneWidget);
+    expect(find.text('Free'), findsNothing);
+    expect(find.textContaining('free'), findsNothing);
+  });
+
+  testWidgets('a room the server reports without a fee shows "Free"', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      selfUid: 'u_0',
+      room: RoomSnapshot.fromJson({
+        ..._lobby(allowBots: true).toJson(),
+        'entryFee': 0,
+      }),
+    );
+    expect(find.text('Free'), findsOneWidget);
+  });
+
   testWidgets('remove is offered only on computerSeats seats', (tester) async {
     await _pump(
       tester,

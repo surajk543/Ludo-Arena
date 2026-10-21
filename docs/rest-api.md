@@ -561,7 +561,12 @@ counts at most 20 (larger counts are capped, so clients should send
 ## Bot service (`bot-play` only)
 
 Service-to-service endpoints, **not** version-gated, disabled unless
-`BOT_SERVICE_KEY_SHA256` is configured. They never touch wallets.
+`BOT_SERVICE_KEY_SHA256` is configured. They never touch people's wallets.
+Seating a bot (`POST /bot/sessions`) creates the persona's own coin wallet
+when it has none (a `wallet.wallets` row flagged `is_bot`, never an
+account); its entry fees and winnings are settled by the room engine like
+anyone's (`backend/docs/game-rules.md` "Coins with bots"). Responses carry
+no balance, and bot-play never reads or changes one.
 
 | Method & path | Auth | Body | Response |
 |---|---|---|---|

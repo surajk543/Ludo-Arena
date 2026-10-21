@@ -2127,7 +2127,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String playEntryFeeNote(String fee) {
-    return 'انٹری فیس: ہر کھلاڑی سے $fee سکے، گیم شروع ہونے پر لیے جائیں گے۔ پورا پاٹ جیتنے والے کو ملے گا۔ بوٹ ہو تو مفت۔';
+    return 'انٹری فیس: ہر کھلاڑی سے $fee سکے، گیم شروع ہونے پر لیے جائیں گے۔ پورا پاٹ جیتنے والے کو ملے گا۔';
   }
 
   @override
@@ -2287,7 +2287,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get playAllowBotsHint =>
-      'خالی سیٹوں پر کمپیوٹر کھلاڑی بٹھائیں۔ بوٹس والے میچ مفت ہیں اور ان میں سکے نہیں ملتے۔';
+      'خالی سیٹوں پر کمپیوٹر کھلاڑی بٹھائیں۔ انٹری فیس سب دیتے ہیں، کمپیوٹر کھلاڑی بھی۔';
 
   @override
   String get playAddBot => 'بوٹ شامل کریں';
@@ -2299,10 +2299,6 @@ class AppLocalizationsUr extends AppLocalizations {
   String playRemoveBotA11y(String name) {
     return '$name کو ہٹائیں';
   }
-
-  @override
-  String get playBotsFreeNote =>
-      'ایک بوٹ بیٹھا ہے: یہ میچ مفت ہے اور اس میں سکے نہیں ملیں گے۔';
 
   @override
   String get playInviteFriends => 'دوستوں کو بلائیں';

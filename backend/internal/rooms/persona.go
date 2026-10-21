@@ -21,7 +21,13 @@ package rooms
 // at a time (the lowest free slot wins, so a bot met again usually is the same
 // persona). The "known" pool (practice and private rooms, where players chose
 // computer opponents) never shares personas with the "public" pool (public
-// lobby fill). Nothing here touches wallets, XP or inventories.
+// lobby fill). Nothing here touches XP or inventories.
+//
+// The persona id is derived from (pool, name, slot) (personaID, a UUIDv5), so
+// it survives a Redis flush: the persona's look is then redrawn, but its id,
+// public uid and coin wallet stay the same. That wallet is a wallet.wallets
+// row with is_bot = TRUE (created when the persona is first seated; see
+// wallet/bots.go and backend/docs/game-rules.md "Coins with bots").
 //
 // Redis (backend/docs/redis-keys.md): botpersona:{pool}:{name}:{slot},
 // botlease:{pool}:{name}:{slot} and the public card botprof:{uid}.
@@ -347,6 +353,17 @@ func nameKey(name string) string {
 	return strconv.FormatUint(h.Sum64(), 16)
 }
 
+// personaNamespace is the UUIDv5 namespace of persona ids (a constant: changing
+// it would give every persona a new id and a new wallet).
+var personaNamespace = uuid.MustParse("6f1d7c2e-3b9a-4f57-9a64-2c8e5d0b7a31")
+
+// personaID is the stable id of the persona in slot of (pool, name): a UUIDv5
+// of "{pool}:{nameKey}:{slot}". It is the bot session's user id and its
+// wallet's user_id, and does not depend on anything stored in Redis.
+func personaID(pool, name string, slot int) uuid.UUID {
+	return uuid.NewSHA1(personaNamespace, []byte(pool+":"+nameKey(name)+":"+strconv.Itoa(slot)))
+}
+
 func personaKey(pool, name string, slot int) string {
 	return "botpersona:" + pool + ":" + nameKey(name) + ":" + strconv.Itoa(slot)
 }
@@ -397,7 +414,7 @@ func newRNG() *mrand.Rand { return mrand.New(mrand.NewPCG(mrand.Uint64(), mrand.
 // leasePersona takes the lowest free persona slot of (pool, name) for one
 // session (token: a unique id of the claim) and advances it to this match.
 // When every slot is busy or Redis fails, it returns a new persona that is
-// not remembered.
+// not remembered (a random id; it gets a wallet like any other persona).
 func (s *Service) leasePersona(ctx context.Context, pool, name, token string) personaLease {
 	rng, items, o := newRNG(), s.catalogItems(), s.wardrobe()
 	keys := make([]string, personaSlots)
@@ -417,16 +434,18 @@ func (s *Service) leasePersona(ctx context.Context, pool, name, token string) pe
 	l := personaLease{key: personaKey(pool, name, slot), lease: keys[slot], token: token}
 	var p persona
 	raw, err := s.RDB.Get(ctx, l.key).Bytes()
-	if err == nil && json.Unmarshal(raw, &p) == nil && p.ID != uuid.Nil && p.Level >= 1 {
-		// No other session holds this persona: any room pointer of its id
-		// is left over from an earlier session.
-		_ = s.RDB.Del(ctx, userRoomKey(p.ID.String())).Err()
-	} else {
+	if err != nil || json.Unmarshal(raw, &p) != nil || p.Level < 1 {
 		if err != nil && !errors.Is(err, redis.Nil) {
 			s.Log.Warn("bot persona read failed", "error", err.Error())
 		}
 		p = newPersona(rng, items, o)
 	}
+	// The slot's id, whatever was stored (personas saved before ids were
+	// derived carried a random one).
+	p.ID = personaID(pool, name, slot)
+	// No other session holds this persona: any room pointer of its id is
+	// left over from an earlier session.
+	_ = s.RDB.Del(ctx, userRoomKey(p.ID.String())).Err()
 	p.nextMatch(rng, items, o)
 	l.p = p
 	return l

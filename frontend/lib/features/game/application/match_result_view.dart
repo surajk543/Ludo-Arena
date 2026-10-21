@@ -46,8 +46,8 @@ class MatchResultView {
   /// The game ended because the others forfeited.
   final bool byForfeit;
 
-  /// The match pays no coins at all (practice, a computer seat in a private
-  /// room, or an empty pot): nobody wins coins, not only the losers.
+  /// The match pays no coins at all (the server's pot is empty, e.g.
+  /// practice): nobody wins coins, not only the losers.
   final bool noCoinMatch;
 
   bool get selfWon => outcome == MatchOutcome.won;
@@ -96,7 +96,9 @@ class MatchResultView {
       winner: room.playerAtSeat(winnerSeat),
       payout: result?.payout ?? 0,
       byForfeit: result?.reason == 'forfeit',
-      noCoinMatch: room.isPractice || room.hasComputerPlayers || room.pot <= 0,
+      // The server's pot decides: bots pay the entry fee like people, so a
+      // match only pays no coins when nobody paid (practice).
+      noCoinMatch: room.pot <= 0,
     );
   }
 }

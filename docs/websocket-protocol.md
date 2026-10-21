@@ -378,11 +378,18 @@ Typical event sequence for one Ludo turn with a single legal move:
 
 ### Bots and coins
 
-Any room that contains a bot seat at game start is played with **entry fee 0
-and no coin payout** (`pot` 0). XP and mission progress for the human players
-work as in any other completed match. Bots have no wallet, XP or collection (a
-bot's level, title, cosmetics, emotes and `picture` come from its persona,
-never from a purchase).
+Bots play for coins like people (owner's rules, 22 Oct 2026; details in
+`backend/docs/game-rules.md` "Coins with bots"). In public and private rooms
+every seat — bot or person — pays `entryFee` when the round starts, `pot` is
+`entryFee × seats` and `result.payout` is the pot for whoever wins, exactly as
+in an all-human match, so nothing in these payloads reveals a bot. Only people
+receive `wallet.updated` (reasons `entry_fee`, `entry_fee_refund`, `payout`);
+a bot's coins live in its server-side wallet (a `wallet.wallets` row flagged
+`is_bot`, recharged below 1 lakh and reset above 10 crore). Practice rooms
+stay free (`entryFee` 0, `pot` 0, `payout` 0). XP and mission progress for the
+human players work as in any other completed match. Bots have no XP or
+collection (a bot's level, title, cosmetics, emotes and `picture` come from
+its persona, never from a purchase).
 
 ## 8. Rematch policy
 
