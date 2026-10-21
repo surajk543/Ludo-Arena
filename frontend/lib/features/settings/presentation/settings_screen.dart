@@ -226,7 +226,8 @@ class SettingsScreen extends ConsumerWidget {
                                 ? l10n.commonGuest
                                 : l10n.profileAccountLinked,
                           ),
-                          onTap: () => context.push(AppRoutes.profile),
+                          // Profile is a bottom-navigation tab.
+                          onTap: () => context.go(AppRoutes.profile),
                         ),
                         if (user.needsSaveProgress)
                           SettingsNavTile(

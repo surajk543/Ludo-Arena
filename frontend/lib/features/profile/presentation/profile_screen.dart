@@ -42,7 +42,18 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(l10n.profileTitle)),
+      appBar: AppBar(
+        title: Text(l10n.profileTitle),
+        // Profile is a bottom-navigation tab: keep Settings one tap away.
+        actions: [
+          IconButton(
+            tooltip: l10n.homeSettingsTooltip,
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: () => context.push(AppRoutes.settings),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+      ),
       body: LayeredBackground(
         child: SafeArea(
           child: Center(

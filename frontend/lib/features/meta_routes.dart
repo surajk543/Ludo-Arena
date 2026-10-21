@@ -4,9 +4,7 @@ import '../app/routes.dart';
 import 'collection/presentation/collection_screen.dart';
 import 'events/presentation/events_screen.dart';
 import 'leaderboard/presentation/leaderboard_screen.dart';
-import 'missions/presentation/missions_screen.dart';
 import 'progression/presentation/progression_screen.dart';
-import 'social/presentation/friends_screen.dart';
 
 /// Meta paths not (yet) in `AppRoutes`.
 abstract final class MetaRoutes {
@@ -35,13 +33,11 @@ abstract final class MetaRoutes {
   }
 }
 
-/// Routes of the meta experience (missions, events, collection, friends,
-/// leaderboard, level road). Spread into `featureRoutes` by the app.
+/// Routes of the meta experience shown above the tab shell (events,
+/// collection, leaderboard, level road). Spread into `featureRoutes` by the
+/// app. Missions (`/missions`) and Friends (`/friends?tab=`) are
+/// bottom-navigation tabs mounted by `app/shell/main_shell.dart`.
 final List<RouteBase> metaRoutes = [
-  GoRoute(
-    path: AppRoutes.missions,
-    builder: (context, state) => const MissionsScreen(),
-  ),
   GoRoute(
     path: AppRoutes.events,
     builder: (context, state) => const EventsScreen(),
@@ -52,11 +48,6 @@ final List<RouteBase> metaRoutes = [
       initialKind: state.uri.queryParameters[MetaRoutes.qKind],
       initialItemId: state.uri.queryParameters[MetaRoutes.qItem],
     ),
-  ),
-  GoRoute(
-    path: AppRoutes.friends,
-    builder: (context, state) =>
-        FriendsScreen(initialTab: state.uri.queryParameters[MetaRoutes.qTab]),
   ),
   GoRoute(
     path: MetaRoutes.leaderboard,

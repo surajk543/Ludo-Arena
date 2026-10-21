@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
+import '../../../app/shell/tab_nav.dart';
 import '../../../core/audio_haptics/haptics_service.dart';
 import '../../../core/audio_haptics/reduced_motion.dart';
 import '../../../core/protocol/protocol.dart';
@@ -13,6 +14,7 @@ import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/state/in_match_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import 'friends_screen.dart';
 
 /// Route to the Requests tab of the Friends screen.
 String friendsRequestsLocation() => Uri(
@@ -61,9 +63,24 @@ class _FriendRequestBannerHostState
         name: e.fromName,
         onOpen: () {
           _remove();
-          final navCtx = _navigator?.context;
-          if (navCtx != null) {
-            GoRouter.maybeOf(navCtx)?.push(friendsRequestsLocation());
+          final navigator = _navigator;
+          final router = navigator == null
+              ? null
+              : GoRouter.maybeOf(navigator.context);
+          if (navigator == null || router == null) return;
+          // Friends is a bottom-navigation tab (see app/shell/tab_nav.dart).
+          switch (tabOpenModeFor(router.routerDelegate.currentConfiguration)) {
+            case TabOpenMode.push:
+              router.push(friendsRequestsLocation());
+            case TabOpenMode.go:
+              router.go(friendsRequestsLocation());
+            case TabOpenMode.overlay:
+              // Keep the play-flow page (e.g. matchmaking) underneath.
+              navigator.push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const FriendsScreen(initialTab: 'requests'),
+                ),
+              );
           }
         },
         onDismiss: _remove,
