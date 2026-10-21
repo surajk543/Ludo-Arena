@@ -47,5 +47,11 @@
   "errorBadResponse": "Kami menerima respons yang tidak terduga. Silakan coba lagi.",
   "errorCancelled": "Dibatalkan.",
   "errorNotConnected": "Kamu sedang tidak terhubung. Menyambung ulang…",
-  "errorRateLimitedRetry": "{seconds, plural, other{Terlalu banyak percobaan. Coba lagi dalam {seconds} detik.}}"
+  "errorRateLimitedRetry": "{seconds, plural, other{Terlalu banyak percobaan. Coba lagi dalam {seconds} detik.}}",
+  "errorInvalidName": "Nama itu tidak bisa dipakai. Silakan pilih nama lain.",
+  "errorInvalidNameTooShort": "Nama minimal 3 karakter.",
+  "errorInvalidNameTooLong": "Nama maksimal 16 karakter.",
+  "errorInvalidNameCharacters": "Gunakan hanya huruf, angka, spasi, _ . atau - (minimal satu huruf). Tanpa emoji atau simbol.",
+  "errorInvalidNameReserved": "Nama itu sudah dicadangkan. Silakan pilih nama lain.",
+  "errorInvalidNameInappropriate": "Nama itu tidak diizinkan. Silakan pilih nama yang sopan."
 }

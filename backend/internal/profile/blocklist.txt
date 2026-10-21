@@ -1,0 +1,82 @@
+# Display-name blocklist (embedded into the backend at build time).
+#
+# A STARTING LIST, deliberately modest: operators extend it by adding lines
+# and redeploying. One entry per line; blank lines and lines starting with '#'
+# are ignored. Any script works.
+#
+# Matching (profile.ValidateName → reason "inappropriate"): the entry and the
+# chosen name are both reduced to a "skeleton" — Unicode NFKD, combining
+# marks removed, lower case, look-alikes folded (0→o 1→i 3→e 4→a 5→s 7→t
+# 8→b l→i, Cyrillic/Greek homoglyphs), everything except letters and digits
+# removed — and the name is rejected if its skeleton CONTAINS the entry's
+# skeleton. "F.u.c k", "FUCK" and "fuсk" (Cyrillic с) all match "fuck".
+#
+# Because matching is by substring, never add short fragments that occur
+# inside ordinary names (e.g. "ass" → Hassan, "shit" → Shital, "nazi" →
+# Nazia, "chut" → Chutney, "gand" → Gandhi, "babi" → Babita, "randi",
+# "lund", "kutta" → Kuttappan, "fuk" → Fukuda, "porn" → Pornchai, "dick",
+# "cock", "sex", "rape").
+# profile/names_test.go checks a list of common names against this file.
+
+# English
+fuck
+cunt
+bitch
+whore
+slut
+nigger
+nigga
+faggot
+retard
+rapist
+pussy
+asshole
+bastard
+dickhead
+bullshit
+penis
+vagina
+hitler
+terrorist
+
+# Hindi / Urdu (Latin transliterations)
+madarchod
+maderchod
+madarchot
+behenchod
+bhenchod
+behanchod
+benchod
+chutiya
+chutiye
+bhosdi
+bhosda
+gandu
+gaandu
+lavda
+lavde
+lawda
+lawde
+chodu
+jhaatu
+haramzada
+haramzade
+haramkhor
+bhadwa
+bhadwe
+bhadve
+raand
+
+# Indonesian (supported app locale). Known trade-off: "kontol" also matches
+# inside the rare Greek surname Kontoleon.
+kontol
+memek
+ngentot
+jancok
+jancuk
+bangsat
+
+# Arabic (Latin transliterations)
+sharmouta
+sharmuta
+kosomak

@@ -47,5 +47,11 @@
   "errorBadResponse": "सर्वर से अनपेक्षित जवाब मिला। कृपया फिर कोशिश करें।",
   "errorCancelled": "रद्द किया गया।",
   "errorNotConnected": "अभी आप कनेक्ट नहीं हैं। फिर से कनेक्ट हो रहा है…",
-  "errorRateLimitedRetry": "{seconds, plural, =1{बहुत ज़्यादा कोशिशें। 1 सेकंड बाद फिर कोशिश करें।} other{बहुत ज़्यादा कोशिशें। {seconds} सेकंड बाद फिर कोशिश करें।}}"
+  "errorRateLimitedRetry": "{seconds, plural, =1{बहुत ज़्यादा कोशिशें। 1 सेकंड बाद फिर कोशिश करें।} other{बहुत ज़्यादा कोशिशें। {seconds} सेकंड बाद फिर कोशिश करें।}}",
+  "errorInvalidName": "यह नाम इस्तेमाल नहीं किया जा सकता। कृपया कोई दूसरा नाम चुनें।",
+  "errorInvalidNameTooShort": "नाम में कम से कम 3 अक्षर होने चाहिए।",
+  "errorInvalidNameTooLong": "नाम में ज़्यादा से ज़्यादा 16 अक्षर हो सकते हैं।",
+  "errorInvalidNameCharacters": "सिर्फ़ अक्षर, अंक, स्पेस, _ . या - इस्तेमाल करें (कम से कम एक अक्षर)। इमोजी या चिह्न नहीं।",
+  "errorInvalidNameReserved": "यह नाम आरक्षित है। कृपया कोई दूसरा नाम चुनें।",
+  "errorInvalidNameInappropriate": "इस नाम की अनुमति नहीं है। कृपया कोई अच्छा-सा नाम चुनें।"
 }

@@ -733,6 +733,29 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String get errorInvalidName =>
+      'यह नाम इस्तेमाल नहीं किया जा सकता। कृपया कोई दूसरा नाम चुनें।';
+
+  @override
+  String get errorInvalidNameTooShort => 'नाम में कम से कम 3 अक्षर होने चाहिए।';
+
+  @override
+  String get errorInvalidNameTooLong =>
+      'नाम में ज़्यादा से ज़्यादा 16 अक्षर हो सकते हैं।';
+
+  @override
+  String get errorInvalidNameCharacters =>
+      'सिर्फ़ अक्षर, अंक, स्पेस, _ . या - इस्तेमाल करें (कम से कम एक अक्षर)। इमोजी या चिह्न नहीं।';
+
+  @override
+  String get errorInvalidNameReserved =>
+      'यह नाम आरक्षित है। कृपया कोई दूसरा नाम चुनें।';
+
+  @override
+  String get errorInvalidNameInappropriate =>
+      'इस नाम की अनुमति नहीं है। कृपया कोई अच्छा-सा नाम चुनें।';
+
+  @override
   String get gateSplashTagline => 'पासा फेंको। दौड़ लगाओ। राज करो।';
 
   @override
@@ -2662,6 +2685,42 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get profileStatsSection => 'प्रोग्रेस';
+
+  @override
+  String get profileEditNameTooltip => 'नाम बदलें';
+
+  @override
+  String get profileEditNameTitle => 'अपना नाम बदलें';
+
+  @override
+  String get profileNameLabel => 'डिस्प्ले नाम';
+
+  @override
+  String get profileNameRules =>
+      '3–16 अक्षर। अक्षर, अंक, स्पेस, _ . और - इस्तेमाल कर सकते हैं।';
+
+  @override
+  String get profileNameNote =>
+      'दोस्तों, लीडरबोर्ड और नए गेम में आपका नया नाम दिखेगा। चल रहे गेम में पुराना नाम ही रहेगा।';
+
+  @override
+  String profileNameCounterSemantics(int count, int max) {
+    return '$max में से $count अक्षर';
+  }
+
+  @override
+  String profileNameSaved(String name) {
+    return 'अब आपका नाम $name है';
+  }
+
+  @override
+  String get profileNameChangeLimit =>
+      'आपने बहुत बार नाम बदला है। कृपया बाद में फिर कोशिश करें।';
+
+  @override
+  String profileNameChangeLimitRetry(String wait) {
+    return 'आपने बहुत बार नाम बदला है। $wait बाद फिर कोशिश करें।';
+  }
 
   @override
   String get settingsTitle => 'सेटिंग्स';

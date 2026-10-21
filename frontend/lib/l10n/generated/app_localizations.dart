@@ -1370,6 +1370,42 @@ abstract class AppLocalizations {
   /// **'{seconds, plural, =1{Too many tries. Try again in 1 second.} other{Too many tries. Try again in {seconds} seconds.}}'**
   String errorRateLimitedRetry(int seconds);
 
+  /// Error code invalid_name (display name rejected, unknown reason).
+  ///
+  /// In en, this message translates to:
+  /// **'That name can\'t be used. Please choose another one.'**
+  String get errorInvalidName;
+
+  /// invalid_name reason too_short (fewer than 3 characters).
+  ///
+  /// In en, this message translates to:
+  /// **'Your name needs at least 3 characters.'**
+  String get errorInvalidNameTooShort;
+
+  /// invalid_name reason too_long (more than 16 characters).
+  ///
+  /// In en, this message translates to:
+  /// **'Your name can have at most 16 characters.'**
+  String get errorInvalidNameTooLong;
+
+  /// invalid_name reason invalid_characters (emoji, symbols, or no letter).
+  ///
+  /// In en, this message translates to:
+  /// **'Use only letters, numbers, spaces, _ . or - (with at least one letter). No emoji or symbols.'**
+  String get errorInvalidNameCharacters;
+
+  /// invalid_name reason reserved (e.g. starts with "bot" or contains "admin").
+  ///
+  /// In en, this message translates to:
+  /// **'That name is reserved. Please choose another one.'**
+  String get errorInvalidNameReserved;
+
+  /// invalid_name reason inappropriate (blocked word).
+  ///
+  /// In en, this message translates to:
+  /// **'That name isn\'t allowed. Please choose a friendly one.'**
+  String get errorInvalidNameInappropriate;
+
   /// Splash screen tagline under the logo.
   ///
   /// In en, this message translates to:
@@ -4500,6 +4536,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Progress'**
   String get profileStatsSection;
+
+  /// Tooltip and screen-reader label of the pencil button next to the player name.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get profileEditNameTooltip;
+
+  /// Title of the change-display-name sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your name'**
+  String get profileEditNameTitle;
+
+  /// Label of the display-name text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get profileNameLabel;
+
+  /// Helper text under the display-name field: the naming rules.
+  ///
+  /// In en, this message translates to:
+  /// **'3–16 characters. Letters, numbers, spaces, _ . and - are allowed.'**
+  String get profileNameRules;
+
+  /// Note in the name sheet: where the new name appears; a running game keeps the old name.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends, leaderboards and new games will show your new name. A game in progress keeps the old one.'**
+  String get profileNameNote;
+
+  /// Screen-reader text of the name character counter.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {max} characters'**
+  String profileNameCounterSemantics(int count, int max);
+
+  /// Toast after the name was changed. {name} is the new name.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name is now {name}'**
+  String profileNameSaved(String name);
+
+  /// Too many name changes (429) without a known wait.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve changed your name too often. Please try again later.'**
+  String get profileNameChangeLimit;
+
+  /// Too many name changes (429). {wait} is a compact duration like "5 h 12 min".
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve changed your name too often. Try again in {wait}.'**
+  String profileNameChangeLimitRetry(String wait);
 
   /// Settings screen title.
   ///

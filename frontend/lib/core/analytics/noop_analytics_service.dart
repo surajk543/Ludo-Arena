@@ -39,6 +39,9 @@ class NoopAnalyticsService implements AnalyticsService {
   void accountLinkSucceeded(LoginMethod method) {}
 
   @override
+  void displayNameChanged() {}
+
+  @override
   void matchmakingStarted(AnalyticsGameType game, int seatCount) {}
 
   @override

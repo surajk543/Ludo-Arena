@@ -39,6 +39,7 @@ type roomState struct {
 	Players  []struct {
 		Seat      int    `json:"seat"`
 		UID       string `json:"uid"`
+		Name      string `json:"name"`
 		Bot       bool   `json:"bot"`
 		Connected bool   `json:"connected"`
 		Forfeited bool   `json:"forfeited"`

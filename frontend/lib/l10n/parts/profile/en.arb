@@ -79,5 +79,59 @@
   "profileStatsSection": "Progress",
   "@profileStatsSection": {
     "description": "Progress section header."
+  },
+  "profileEditNameTooltip": "Edit name",
+  "@profileEditNameTooltip": {
+    "description": "Tooltip and screen-reader label of the pencil button next to the player name."
+  },
+  "profileEditNameTitle": "Change your name",
+  "@profileEditNameTitle": {
+    "description": "Title of the change-display-name sheet."
+  },
+  "profileNameLabel": "Display name",
+  "@profileNameLabel": {
+    "description": "Label of the display-name text field."
+  },
+  "profileNameRules": "3–16 characters. Letters, numbers, spaces, _ . and - are allowed.",
+  "@profileNameRules": {
+    "description": "Helper text under the display-name field: the naming rules."
+  },
+  "profileNameNote": "Friends, leaderboards and new games will show your new name. A game in progress keeps the old one.",
+  "@profileNameNote": {
+    "description": "Note in the name sheet: where the new name appears; a running game keeps the old name."
+  },
+  "profileNameCounterSemantics": "{count} of {max} characters",
+  "@profileNameCounterSemantics": {
+    "description": "Screen-reader text of the name character counter.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "profileNameSaved": "Your name is now {name}",
+  "@profileNameSaved": {
+    "description": "Toast after the name was changed. {name} is the new name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNameChangeLimit": "You've changed your name too often. Please try again later.",
+  "@profileNameChangeLimit": {
+    "description": "Too many name changes (429) without a known wait."
+  },
+  "profileNameChangeLimitRetry": "You've changed your name too often. Try again in {wait}.",
+  "@profileNameChangeLimitRetry": {
+    "description": "Too many name changes (429). {wait} is a compact duration like \"5 h 12 min\".",
+    "placeholders": {
+      "wait": {
+        "type": "String"
+      }
+    }
   }
 }
