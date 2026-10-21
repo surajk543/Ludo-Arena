@@ -141,7 +141,7 @@ class _LudoBoardState extends State<LudoBoard> with TickerProviderStateMixin {
         textDirection: ambient,
         child: Center(
           child: AspectRatio(
-            aspectRatio: 1,
+            aspectRatio: LudoBoardLayout.aspectRatio,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final size = constraints.biggest;
@@ -351,6 +351,7 @@ class LudoTokenPainter extends CustomPainter {
           now: c.now,
           cell: cell,
           origin: layout.gridOrigin,
+          rowScale: LudoBoardLayout.rowHeight,
           color: shades.base,
           opacity: opacity,
         );
@@ -424,6 +425,7 @@ class LudoTokenPainter extends CustomPainter {
       c.now,
       cell: cell,
       origin: layout.gridOrigin,
+      rowScale: LudoBoardLayout.rowHeight,
       palette: palette,
     );
   }
@@ -442,11 +444,9 @@ class LudoTokenPainter extends CustomPainter {
       color.rotated(controller.quarterTurns),
     ).deflate(0.06);
     final shades = palette.shades(color);
-    final rect = Rect.fromLTRB(
-      layout.gridOrigin.dx + g.left * layout.cell,
-      layout.gridOrigin.dy + g.top * layout.cell,
-      layout.gridOrigin.dx + g.right * layout.cell,
-      layout.gridOrigin.dy + g.bottom * layout.cell,
+    final rect = Rect.fromPoints(
+      layout.toPx(g.topLeft),
+      layout.toPx(g.bottomRight),
     );
     final rrect = RRect.fromRectAndRadius(
       rect,

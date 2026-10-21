@@ -340,7 +340,11 @@ void main() {
       final rtl = await tokenRect(TextDirection.rtl);
       expect(rtl, ltr);
       // Red progress 5 is at (6,5): the left half of the board, in both.
-      final layout = LudoBoardLayout.fit(const Size(400, 400));
+      // The board sits in a 400 × 400 box: it fills the height and keeps
+      // its own (slightly taller than wide) aspect.
+      final layout = LudoBoardLayout.fit(
+        const Size(400 * LudoBoardLayout.aspectRatio, 400),
+      );
       expect(ltr.center.dx, closeTo(layout.toPx(const Offset(6.5, 5.5)).dx, 1));
       handle.dispose();
     });

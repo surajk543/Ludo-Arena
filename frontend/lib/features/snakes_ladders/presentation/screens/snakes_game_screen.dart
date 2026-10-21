@@ -130,6 +130,9 @@ class SnakesBoardBinding extends MatchBoardBinding {
   }
 
   @override
+  double get boardAspectRatio => SnakesGeometry.aspectRatio;
+
+  @override
   Widget buildBoard(BuildContext context, MatchBoardArgs args) {
     final room = args.presented;
     final seats = board.seatCount;

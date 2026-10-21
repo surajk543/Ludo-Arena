@@ -21,6 +21,7 @@ abstract final class BoardEffectsRenderer {
     double now, {
     required double cell,
     required Offset origin,
+    double rowScale = 1,
     required GamePalette palette,
   }) {
     for (var i = 0; i < effects.length; i++) {
@@ -28,7 +29,8 @@ abstract final class BoardEffectsRenderer {
       final age = now - e.start;
       if (age < 0) continue;
       final p = e.progress(now);
-      final c = origin + e.center * cell;
+      final c =
+          origin + Offset(e.center.dx * cell, e.center.dy * cell * rowScale);
       final color = e.seatColor == null ? e.color : palette.seat(e.seatColor!);
       switch (e.kind) {
         case BoardEffectKind.captureBurst:

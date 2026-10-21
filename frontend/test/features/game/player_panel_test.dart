@@ -159,31 +159,34 @@ void main() {
     }
 
     for (final c in [
+      // Pods are 4 dp narrower than before the larger dice slot (84 dp).
       (
         size: const Size(393, 852),
         rects: {
-          1: const Rect.fromLTRB(8, 60, 158.5, 193),
-          2: const Rect.fromLTRB(234.5, 60, 385, 193),
-          0: const Rect.fromLTRB(8, 677, 158.5, 812),
-          3: const Rect.fromLTRB(234.5, 678, 385, 811),
+          1: const Rect.fromLTRB(8, 60, 154.5, 193),
+          2: const Rect.fromLTRB(238.5, 60, 385, 193),
+          0: const Rect.fromLTRB(8, 677, 154.5, 812),
+          3: const Rect.fromLTRB(238.5, 678, 385, 811),
         },
       ),
+      // Row pods here: card pods would leave the (taller than wide) board
+      // less than its full width.
       (
         size: const Size(360, 740),
         rects: {
-          1: const Rect.fromLTRB(8, 60, 142, 193),
-          2: const Rect.fromLTRB(218, 60, 352, 193),
-          0: const Rect.fromLTRB(8, 565, 142, 700),
-          3: const Rect.fromLTRB(218, 566, 352, 699),
+          1: const Rect.fromLTRB(8, 60, 138, 130),
+          2: const Rect.fromLTRB(222, 60, 352, 130),
+          0: const Rect.fromLTRB(8, 624, 138, 696),
+          3: const Rect.fromLTRB(222, 625, 352, 695),
         },
       ),
       (
         size: const Size(320, 640),
         rects: {
-          1: const Rect.fromLTRB(8, 60, 122, 124),
-          2: const Rect.fromLTRB(198, 60, 312, 124),
-          0: const Rect.fromLTRB(8, 531, 122, 597),
-          3: const Rect.fromLTRB(198, 532, 312, 596),
+          1: const Rect.fromLTRB(8, 60, 118, 124),
+          2: const Rect.fromLTRB(202, 60, 312, 124),
+          0: const Rect.fromLTRB(8, 527, 118, 593),
+          3: const Rect.fromLTRB(202, 528, 312, 592),
         },
       ),
     ]) {
