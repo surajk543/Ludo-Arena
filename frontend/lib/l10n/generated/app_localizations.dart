@@ -4675,17 +4675,23 @@ abstract class AppLocalizations {
   /// **'Version'**
   String get settingsVersion;
 
-  /// Licenses entry.
+  /// About entry that opens the open-source/legal notices web page in the external browser.
   ///
   /// In en, this message translates to:
-  /// **'Licenses'**
-  String get settingsLicenses;
+  /// **'Legal notices'**
+  String get settingsLegalNotices;
 
-  /// Licenses entry subtitle.
+  /// Legal notices entry subtitle (the page opens outside the app).
   ///
   /// In en, this message translates to:
-  /// **'Open-source software and fonts'**
-  String get settingsLicensesSubtitle;
+  /// **'Open-source licenses · opens in your browser'**
+  String get settingsLegalNoticesSubtitle;
+
+  /// Toast when the legal notices page could not be opened in the browser.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the page. Please try again later.'**
+  String get settingsLegalNoticesOpenFailed;
 
   /// First-run analytics consent sheet title.
   ///

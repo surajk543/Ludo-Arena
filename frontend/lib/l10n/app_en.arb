@@ -3797,13 +3797,17 @@
   "@settingsVersion": {
     "description": "Version label."
   },
-  "settingsLicenses": "Licenses",
-  "@settingsLicenses": {
-    "description": "Licenses entry."
+  "settingsLegalNotices": "Legal notices",
+  "@settingsLegalNotices": {
+    "description": "About entry that opens the open-source/legal notices web page in the external browser."
   },
-  "settingsLicensesSubtitle": "Open-source software and fonts",
-  "@settingsLicensesSubtitle": {
-    "description": "Licenses entry subtitle."
+  "settingsLegalNoticesSubtitle": "Open-source licenses · opens in your browser",
+  "@settingsLegalNoticesSubtitle": {
+    "description": "Legal notices entry subtitle (the page opens outside the app)."
+  },
+  "settingsLegalNoticesOpenFailed": "Couldn't open the page. Please try again later.",
+  "@settingsLegalNoticesOpenFailed": {
+    "description": "Toast when the legal notices page could not be opened in the browser."
   },
   "settingsConsentTitle": "Help us make Ludo Royale better",
   "@settingsConsentTitle": {

@@ -2752,11 +2752,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsVersion => 'Versi';
 
   @override
-  String get settingsLicenses => 'Lisensi';
+  String get settingsLegalNotices => 'Pemberitahuan hukum';
 
   @override
-  String get settingsLicensesSubtitle =>
-      'Perangkat lunak sumber terbuka dan font';
+  String get settingsLegalNoticesSubtitle =>
+      'Lisensi sumber terbuka · dibuka di browser Anda';
+
+  @override
+  String get settingsLegalNoticesOpenFailed =>
+      'Halaman tidak dapat dibuka. Coba lagi nanti.';
 
   @override
   String get settingsConsentTitle =>

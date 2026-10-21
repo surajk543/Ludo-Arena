@@ -102,6 +102,7 @@ class AppConfig {
     this.appleRedirectUri = '',
     this.facebookEnabled = false,
     this.firebase,
+    this.legalNoticesUrlOverride = '',
   });
 
   /// Base URL without the `/api/v1` suffix, e.g. `http://10.0.2.2:8080`.
@@ -126,6 +127,9 @@ class AppConfig {
   final bool facebookEnabled;
 
   final FirebaseAnalyticsConfig? firebase;
+
+  /// `LEGAL_NOTICES_URL`; empty means the backend page ([legalNoticesUrl]).
+  final String legalNoticesUrlOverride;
 
   /// Public OAuth client ids (Google Cloud project `ludo-royale-63887`).
   /// The web ("server") client id is the ID-token audience the backend
@@ -166,6 +170,9 @@ class AppConfig {
       appleRedirectUri: const String.fromEnvironment('APPLE_REDIRECT_URI'),
       facebookEnabled: const bool.fromEnvironment('FACEBOOK_ENABLED'),
       firebase: FirebaseAnalyticsConfig.fromEnvironment,
+      legalNoticesUrlOverride: const String.fromEnvironment(
+        'LEGAL_NOTICES_URL',
+      ).trim(),
     );
   }
 
@@ -178,6 +185,12 @@ class AppConfig {
     if (s.endsWith('/api/v1')) s = s.substring(0, s.length - '/api/v1'.length);
     return s;
   }
+
+  /// Open-source notices page, opened in the external browser from
+  /// Settings > About. Defaults to the backend's `GET /legal/open-source`.
+  String get legalNoticesUrl => legalNoticesUrlOverride.isNotEmpty
+      ? legalNoticesUrlOverride
+      : '$apiBaseUrl/legal/open-source';
 
   /// REST root, e.g. `http://10.0.2.2:8080/api/v1`.
   String get apiV1 => '$apiBaseUrl/api/v1';

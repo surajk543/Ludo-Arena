@@ -63,6 +63,69 @@ which they flush.
   WebSockets with `1001`; clients reconnect and resync.
 - Graceful shutdown: SIGTERM → stop accepting, close sockets, drain HTTP (20 s).
 
+## Release builds (app)
+
+Before each release:
+
+1. **Regenerate the open-source notices page** (the app has no in-app
+   license page; Settings → About → "Legal notices" opens
+   `GET /legal/open-source` in the browser, a legal requirement for the
+   bundled open-source software and OFL fonts):
+
+   ```bash
+   cd frontend
+   flutter build bundle --release          # writes build/flutter_assets/NOTICES.Z
+   dart run tool/export_oss_notices.dart   # → backend/config/legal/open-source-notices.html
+   ```
+
+   Commit the regenerated HTML (it is deterministic: no diff without
+   dependency changes; `--check` exits 1 when it is stale) and deploy the
+   backend with it. The backend reads `LEGAL_NOTICES_FILE` (default
+   `config/legal/open-source-notices.html`, copied into the image) at startup
+   and on `SIGHUP`; while it is missing the route answers 404. Point
+   `LEGAL_NOTICES_URL` (`--dart-define`) elsewhere only if the page is
+   hosted somewhere else.
+2. **Build obfuscated** and keep the symbols privately (needed to symbolicate
+   crash stack traces; never ship or commit them):
+
+   ```bash
+   flutter build appbundle --release --obfuscate --split-debug-info=build/symbols \
+     --dart-define=API_BASE_URL=https://… --dart-define=APP_ENV=production …
+   flutter build ipa --release --obfuscate --split-debug-info=build/symbols …
+   # archive build/symbols/ per version (e.g. in the release's private storage)
+   ```
+
+What users can and cannot see: no screen, string, icon, splash or error
+state names the UI toolkit (branded icons and launch screens, a branded
+release error fallback, notices on the web page only). The binary itself
+still contains the UI engine library and its notices file, so the toolkit is
+detectable by technical inspection of the APK/IPA (e.g. listing native
+libraries) — obfuscation only hides Dart symbol names, not that.
+
+## Brand assets (icons, launch screens)
+
+All launcher icons and launch-screen artwork are rendered from the in-app
+crest (`BrandCrestPainter` in `frontend/lib/shared/widgets/brand_logo.dart`):
+
+```bash
+cd frontend && flutter test tool/generate_brand_assets.dart
+```
+
+It rewrites `assets/branding/` (1024 px masters: App Store icon without
+alpha, Play Store 512 px icon, adaptive foreground/background, monochrome
+themed-icon silhouette, launch crest — not bundled into the app), every size
+in `ios/Runner/Assets.xcassets/AppIcon.appiconset` (opaque, no alpha) and
+`LaunchImage.imageset`, and the Android `mipmap-*` (legacy, round, adaptive
+layers + monochrome) and `drawable-*/launch_logo.png`. The XML is
+hand-written: `mipmap-anydpi-v26/ic_launcher*.xml` (adaptive + Android 13
+themed icon), `drawable*/launch_background.xml` (pre-Android 12 splash),
+`values-v31` + `values-night-v31` styles (Android 12+ system splash), and
+`ios/Runner/Base.lproj/LaunchScreen.storyboard` with the `LaunchBackground`
+color set (light/dark). The launch crest is 132 pt/dp wide, 90 pt above
+center, matching the in-app splash. `frontend/test/tool/brand_assets_test.dart`
+checks sizes, alpha and references. iOS caches launch screens: delete the app
+(or reset the simulator) to see a changed one.
+
 ## Release signing (Android)
 
 The project currently signs release builds with the debug key (Flutter

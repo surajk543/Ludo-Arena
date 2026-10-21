@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Matches the Flutter splash (AppColors.light.backgroundTop) so there is
+    <!-- Matches the in-app splash (AppColors.light.backgroundTop) so there is
          no white flash before the first frame. -->
     <color name="launch_background">#F8F5FF</color>
 </resources>

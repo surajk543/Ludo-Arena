@@ -2758,10 +2758,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsVersion => 'वर्ज़न';
 
   @override
-  String get settingsLicenses => 'लाइसेंस';
+  String get settingsLegalNotices => 'कानूनी सूचनाएँ';
 
   @override
-  String get settingsLicensesSubtitle => 'ओपन-सोर्स सॉफ़्टवेयर और फ़ॉन्ट';
+  String get settingsLegalNoticesSubtitle =>
+      'ओपन-सोर्स लाइसेंस · आपके ब्राउज़र में खुलेगा';
+
+  @override
+  String get settingsLegalNoticesOpenFailed =>
+      'पेज नहीं खुल सका। कृपया बाद में फिर से कोशिश करें।';
 
   @override
   String get settingsConsentTitle =>

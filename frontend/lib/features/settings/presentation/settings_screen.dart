@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/analytics/analytics_providers.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/config/app_info.dart';
+import '../../../core/links/external_link_launcher.dart';
 import '../../../core/localization/language_controller.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_theme.dart';
@@ -18,7 +20,7 @@ import 'settings_widgets.dart';
 
 /// Settings: appearance, language, sound/haptics/motion, quick chat, privacy
 /// (analytics consent), account (Save Progress, switch back to guest, sign
-/// out) and about (version, licenses).
+/// out) and about (version, legal notices).
 ///
 /// Changing theme or language never touches the session, socket or a match.
 class SettingsScreen extends ConsumerWidget {
@@ -30,6 +32,24 @@ class SettingsScreen extends ConsumerWidget {
     SettingKey.reducedMotion => 'reduced_motion',
     SettingKey.quickChatMute => 'quick_chat_mute',
   };
+
+  /// Open-source notices live on a web page (backend `GET /legal/open-source`
+  /// by default, `LEGAL_NOTICES_URL` to override) opened in the browser.
+  static Future<void> _openLegalNotices(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final url = ref.read(appConfigProvider).legalNoticesUrl;
+    final ok = await ref.read(externalLinkLauncherProvider).open(url);
+    if (!ok && context.mounted) {
+      AppToast.show(
+        context,
+        l10n.settingsLegalNoticesOpenFailed,
+        kind: ToastKind.warning,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -252,18 +272,15 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                       SettingsNavTile(
-                        icon: Icons.description_outlined,
-                        title: l10n.settingsLicenses,
-                        subtitle: l10n.settingsLicensesSubtitle,
-                        onTap: () => showLicensePage(
-                          context: context,
-                          applicationName: l10n.appTitle,
-                          applicationVersion: info.display,
-                          applicationIcon: const Padding(
-                            padding: EdgeInsets.all(AppSpacing.md),
-                            child: BrandLogo(size: 72),
-                          ),
+                        icon: Icons.gavel_rounded,
+                        title: l10n.settingsLegalNotices,
+                        subtitle: l10n.settingsLegalNoticesSubtitle,
+                        trailing: Icon(
+                          Icons.open_in_new_rounded,
+                          size: 20,
+                          color: c.textMuted,
                         ),
+                        onTap: () => _openLegalNotices(context, ref),
                       ),
                     ],
                   ),

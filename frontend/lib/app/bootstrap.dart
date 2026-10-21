@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -12,11 +10,16 @@ import '../core/config/app_config.dart';
 import '../core/config/app_info.dart';
 import '../core/storage/preferences_store.dart';
 import 'app.dart';
+import 'error_fallback.dart';
 
 /// Everything that must be ready BEFORE the first frame so the user never
 /// sees a flash of the wrong theme/language or of home before the gate:
 /// preferences (theme, locale, settings, consent), installed version, date
-/// symbols, licenses and (consent-gated) analytics.
+/// symbols, the release error fallback and (consent-gated) analytics.
+///
+/// Open-source notices are not shown inside the app: they are published as a
+/// web page (`tool/export_oss_notices.dart`, backend `GET /legal/open-source`)
+/// opened from Settings > About > Legal notices.
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -25,7 +28,7 @@ Future<void> bootstrap() async {
   final config = AppConfig.fromEnvironment(isAndroid: info.isAndroid);
 
   await initializeDateFormatting();
-  _registerFontLicenses();
+  installErrorWidget();
 
   final consent = AnalyticsConsentController.readPersisted(prefs);
   final analyticsBackend = await initFirebaseAnalytics(
@@ -61,25 +64,4 @@ Future<AppInfo> _loadAppInfo() async {
       build: 1,
     );
   }
-}
-
-/// Bundled fonts are SIL Open Font License 1.1; show them on the licenses
-/// page next to the Dart/Flutter package licenses.
-void _registerFontLicenses() {
-  const fonts = {
-    'Fredoka': 'assets/fonts/OFL-Fredoka.txt',
-    'Nunito': 'assets/fonts/OFL-Nunito.txt',
-    'Baloo 2': 'assets/fonts/OFL-Baloo2.txt',
-    'Baloo Bhaijaan 2': 'assets/fonts/OFL-BalooBhaijaan2.txt',
-  };
-  LicenseRegistry.addLicense(() async* {
-    for (final entry in fonts.entries) {
-      try {
-        final text = await rootBundle.loadString(entry.value);
-        yield LicenseEntryWithLineBreaks([entry.key], text);
-      } catch (_) {
-        // Missing license text must never break the licenses page.
-      }
-    }
-  });
 }
