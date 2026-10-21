@@ -175,6 +175,17 @@ func (s *Service) Save(ctx context.Context, userID uuid.UUID, name string) (Prof
 	return s.cache(ctx, userID, name)
 }
 
+// SaveNew is Save for an account created by the current request: it cannot
+// have a chosen name yet, so PostgreSQL is not read (sign-up stays free of
+// progression queries; see architecture.md → PostgreSQL on the hot path).
+func (s *Service) SaveNew(ctx context.Context, userID uuid.UUID, name string) (Profile, error) {
+	name = SanitizeName(name)
+	if name == "" {
+		name = s.GuestName(userID)
+	}
+	return s.cache(ctx, userID, name)
+}
+
 // cache writes the display profile and the public-id mapping to Redis.
 func (s *Service) cache(ctx context.Context, userID uuid.UUID, name string) (Profile, error) {
 	p := Profile{UID: s.PublicID(userID), Name: name, Avatar: s.Avatar(userID)}
