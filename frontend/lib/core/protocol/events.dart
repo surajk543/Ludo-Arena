@@ -572,7 +572,9 @@ final class WalletUpdatedEvent extends ServerEvent {
   final int deltaCoins;
   final int deltaDiamonds;
 
-  /// `entry_fee` | `payout` | `mission` | `purchase` | `level`.
+  /// `entry_fee` | `payout` | `mission` | `purchase` (also a coin pack:
+  /// positive deltas) | `level` | `refund` (a refunded coin pack taken back:
+  /// negative deltas). Unknown reasons are applied like any other.
   final String reason;
 
   factory WalletUpdatedEvent.fromJson(Map<String, dynamic> j) {

@@ -1,0 +1,22 @@
+{
+  "coinsCategory": "سکے",
+  "coinsHeroTitle": "سکوں کے پیک",
+  "coinsHeroSubtitle": "زیادہ سکے، زیادہ میچ۔ ہر پیک کے ساتھ بونس ہیرے ملتے ہیں۔",
+  "coinsPackStarter": "اسٹارٹر",
+  "coinsPackPopular": "مقبول",
+  "coinsPackGreatValue": "زبردست قیمت",
+  "coinsPackBestValue": "بہترین قیمت",
+  "coinsPackCoins": "{amount} سکے",
+  "coinsPackDiamonds": "+{amount} ہیرے",
+  "coinsPackSemantics": "{pack}: {price} میں {coins} سکے اور {diamonds} ہیرے",
+  "coinsBuyFor": "{price} میں خریدیں",
+  "coinsGrantedTitle": "سکے شامل ہو گئے!",
+  "coinsGrantedMessage": "{coins} سکے اور {diamonds} ہیرے اب آپ کے والٹ میں ہیں۔",
+  "coinsBuyFailed": "خریداری مکمل نہیں ہوئی۔ براہِ کرم دوبارہ کوشش کریں۔",
+  "coinsDelayed": "آپ کی خریداری محفوظ ہے۔ گیم سرور سے رابطہ ہوتے ہی ہم سکے شامل کر دیں گے۔",
+  "coinsNote": "سکے اور ہیرے ورچوئل آئٹمز ہیں جن کی کوئی نقد قیمت نہیں۔ ادائیگی Google Play یا App Store کے ذریعے ہوتی ہے۔",
+  "coinsErrorUnavailable": "یہ پیک ابھی دستیاب نہیں ہے۔",
+  "coinsErrorInvalid": "اس خریداری کی تصدیق نہیں ہو سکی، اس لیے کچھ شامل نہیں کیا گیا۔",
+  "coinsErrorPending": "آپ کی ادائیگی ابھی زیرِ التوا ہے۔ مکمل ہوتے ہی سکے آ جائیں گے۔",
+  "coinsErrorStoreUnreachable": "اسٹور سے رابطہ نہیں ہو سکا۔ آپ کی خریداری محفوظ ہے اور خود بخود شامل ہو جائے گی۔"
+}

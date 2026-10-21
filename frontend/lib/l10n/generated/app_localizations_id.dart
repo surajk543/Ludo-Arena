@@ -291,6 +291,87 @@ class AppLocalizationsId extends AppLocalizations {
   String get boardsLevelUp => 'Naik level';
 
   @override
+  String get coinsCategory => 'Koin';
+
+  @override
+  String get coinsHeroTitle => 'Paket koin';
+
+  @override
+  String get coinsHeroSubtitle =>
+      'Lebih banyak koin, lebih banyak pertandingan. Setiap paket berisi bonus berlian.';
+
+  @override
+  String get coinsPackStarter => 'Pemula';
+
+  @override
+  String get coinsPackPopular => 'Populer';
+
+  @override
+  String get coinsPackGreatValue => 'Nilai Hebat';
+
+  @override
+  String get coinsPackBestValue => 'Nilai Terbaik';
+
+  @override
+  String coinsPackCoins(String amount) {
+    return '$amount koin';
+  }
+
+  @override
+  String coinsPackDiamonds(String amount) {
+    return '+$amount berlian';
+  }
+
+  @override
+  String coinsPackSemantics(
+    String pack,
+    String coins,
+    String diamonds,
+    String price,
+  ) {
+    return '$pack: $coins koin dan $diamonds berlian seharga $price';
+  }
+
+  @override
+  String coinsBuyFor(String price) {
+    return 'Beli seharga $price';
+  }
+
+  @override
+  String get coinsGrantedTitle => 'Koin ditambahkan!';
+
+  @override
+  String coinsGrantedMessage(String coins, String diamonds) {
+    return '$coins koin dan $diamonds berlian kini ada di dompetmu.';
+  }
+
+  @override
+  String get coinsBuyFailed => 'Pembelian tidak berhasil. Silakan coba lagi.';
+
+  @override
+  String get coinsDelayed =>
+      'Pembelianmu aman. Koin akan kami tambahkan begitu server game dapat dihubungi.';
+
+  @override
+  String get coinsNote =>
+      'Koin dan berlian adalah item virtual tanpa nilai uang. Pembayaran diproses oleh Google Play atau App Store.';
+
+  @override
+  String get coinsErrorUnavailable => 'Paket ini belum tersedia.';
+
+  @override
+  String get coinsErrorInvalid =>
+      'Pembelian ini tidak dapat diverifikasi, jadi tidak ada yang ditambahkan.';
+
+  @override
+  String get coinsErrorPending =>
+      'Pembayaranmu masih tertunda. Koin akan masuk begitu pembayaran selesai.';
+
+  @override
+  String get coinsErrorStoreUnreachable =>
+      'Toko tidak dapat dihubungi. Pembelianmu aman dan akan ditambahkan secara otomatis.';
+
+  @override
   String get commonOk => 'OK';
 
   @override

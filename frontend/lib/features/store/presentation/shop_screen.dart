@@ -20,22 +20,26 @@ import '../../wallet/wallet_controller.dart';
 import '../application/emote_shelf_controller.dart';
 import '../application/shop_category.dart';
 import '../application/store_controller.dart';
+import '../application/coin_packs_controller.dart';
 import '../domain/store_models.dart';
+import 'coin_packs_section.dart';
+import 'coin_purchase_host.dart';
 import 'widgets/emote_shelf.dart';
 import 'widgets/picture_shelf.dart';
 
 /// The Shop: everything for sale that the player does not own yet, by
-/// category. "Pictures" is the profile-picture shelf (diamonds; filter
-/// pills, infinite scroll); "Emotes" is the catalogue's priced emotes plus
-/// the Store's animated emotes (diamonds; infinite scroll); every other
-/// category is a cosmetic kind with fixed-price items (coins or diamonds)
-/// opened in the Collection's item sheet. A bought item leaves the Shop and
-/// shows in the Collection. The last category is remembered while the app
-/// runs.
+/// category. "Coins" (first) sells coin packs for real money through
+/// Google Play / the App Store; "Pictures" is the profile-picture shelf
+/// (diamonds; filter pills, infinite scroll); "Emotes" is the catalogue's
+/// priced emotes plus the Store's animated emotes (diamonds; infinite
+/// scroll); every other category is a cosmetic kind with fixed-price items
+/// (coins or diamonds) opened in the Collection's item sheet. A bought item
+/// leaves the Shop and shows in the Collection. The Shop always opens on
+/// Coins (a `?category=` deep link wins).
 class ShopScreen extends ConsumerStatefulWidget {
   const ShopScreen({super.key, this.initialCategory});
 
-  /// `/shop?category=`; null opens the category chosen last.
+  /// `/shop?category=`; null opens Coins.
   final String? initialCategory;
 
   @override
@@ -46,19 +50,16 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   static const double _maxWidth = 960;
 
   final ScrollController _scroll = ScrollController();
-  late String _category =
-      widget.initialCategory ?? ref.read(shopCategoryProvider);
+  late String _category = widget.initialCategory ?? kCoinsCategory;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_maybeLoadMore);
-    if (widget.initialCategory != null) {
-      // A deep link also becomes the remembered category.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _remember(_category);
-      });
-    }
+    // Every visit starts on Coins (or the deep link's category).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _remember(_category);
+    });
   }
 
   @override
@@ -94,7 +95,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
   Future<void> _refresh() async {
     try {
-      if (_onPictures) {
+      if (_category == kCoinsCategory) {
+        await ref.read(coinPacksProvider.notifier).refresh();
+      } else if (_onPictures) {
         await ref.read(storeProvider.notifier).refresh();
       } else if (_onEmotes) {
         await Future.wait([
@@ -126,10 +129,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       }
     });
     final categories = shopCategories(collection.value);
-    // An unknown or (no longer) sold category falls back to Pictures.
+    // An unknown or (no longer) sold category falls back to Coins.
     final category = categories.contains(_category)
         ? _category
-        : kPictureCategory;
+        : kCoinsCategory;
     // The Store's emotes load when their category is shown.
     final emotes = category == kShopEmoteCategory
         ? ref.watch(shopEmotesProvider)
@@ -143,7 +146,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       });
     }
 
-    return MetaScaffold(
+    final scaffold = MetaScaffold(
       title: l10n.storeTitle,
       controller: _scroll,
       onRefresh: _refresh,
@@ -164,17 +167,23 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               for (final k in categories)
                 MetaPill(
                   value: k,
-                  label: k == kPictureCategory
-                      ? l10n.metaTabPictures
-                      : CollectionTexts.tab(l10n, k),
-                  icon: k == kPictureCategory
-                      ? Icons.face_retouching_natural
-                      : CollectionTexts.icon(k),
+                  label: switch (k) {
+                    kCoinsCategory => l10n.coinsCategory,
+                    kPictureCategory => l10n.metaTabPictures,
+                    _ => CollectionTexts.tab(l10n, k),
+                  },
+                  icon: switch (k) {
+                    kCoinsCategory => Icons.monetization_on_rounded,
+                    kPictureCategory => Icons.face_retouching_natural,
+                    _ => CollectionTexts.icon(k),
+                  },
                 ),
             ],
           ),
         ),
-        if (category == kPictureCategory)
+        if (category == kCoinsCategory)
+          const CoinPacksSliver()
+        else if (category == kPictureCategory)
           ..._pictures(context, pictures)
         else if (emotes != null)
           ..._emotes(context, collection, emotes)
@@ -182,6 +191,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
           ..._cosmetics(context, collection, category),
       ],
     );
+    // Purchase results (coins added, pending, refused) while the Shop is
+    // open; the app-wide host shows them elsewhere.
+    return CoinPurchaseHost(child: scaffold);
   }
 
   List<Widget> _pictures(BuildContext context, StoreState state) {

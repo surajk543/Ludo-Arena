@@ -319,7 +319,7 @@ Quick-chat ids: `gg` (Good game!), `nice_move` (Nice move!), `well_played`
 | `player.forfeited` | `{"roomId","v","h","seat","reason":"left"\|"timeouts","strikes"}` | delta |
 | `game.finished` | `{"roomId","v","result":{...},"rematch":{...}}` | delta |
 | `room.rematch` | `{"roomId","v","rematch":{...}}` | delta |
-| `wallet.updated` | `{"coins","diamonds","delta":{"coins","diamonds"},"reason":"entry_fee"\|"payout"\|"mission"\|"purchase"\|"level"}` | – |
+| `wallet.updated` | `{"coins","diamonds","delta":{"coins","diamonds"},"reason":"entry_fee"\|"payout"\|"mission"\|"purchase"\|"level"\|"refund"}` | – |
 | `progression.updated` | `{"xp","level","xpGained","levelUp"?:true,"unlocked":["item_id"],"missions":[{"id","progress","target","completed"}]}` | – |
 | `chat.quick` | `{"roomId","seat","msg"}` | – (not versioned) |
 | `chat.emote` | `{"roomId","seat","emote","asset"?:{"path","format":"lottie"\|"image"}}` — `asset` only for Store emotes (`em_…`): the art's object path, signed with `POST /assets/sign`, downloaded once and kept on the device; absent for built-in emotes. Clients ignore a malformed `asset` (or a path outside `emotes/`) and show a generic emote | – (not versioned) |

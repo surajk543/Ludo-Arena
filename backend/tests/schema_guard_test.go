@@ -35,6 +35,9 @@ var allowedTables = []string{
 	"progression.profile_pictures",
 	// Store emote catalogue (owner-approved 2026-10-21; no player data).
 	"progression.emotes",
+	// Coin pack purchase records (owner-approved 2026-10-22): store
+	// transaction references and amounts granted, no payment details.
+	"progression.purchases",
 }
 
 // gameplayWords are column-name words (split on "_") that indicate stored

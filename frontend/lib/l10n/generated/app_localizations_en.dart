@@ -292,6 +292,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get boardsLevelUp => 'Level up';
 
   @override
+  String get coinsCategory => 'Coins';
+
+  @override
+  String get coinsHeroTitle => 'Coin packs';
+
+  @override
+  String get coinsHeroSubtitle =>
+      'More coins for more matches. Every pack comes with bonus diamonds.';
+
+  @override
+  String get coinsPackStarter => 'Starter';
+
+  @override
+  String get coinsPackPopular => 'Popular';
+
+  @override
+  String get coinsPackGreatValue => 'Great Value';
+
+  @override
+  String get coinsPackBestValue => 'Best Value';
+
+  @override
+  String coinsPackCoins(String amount) {
+    return '$amount coins';
+  }
+
+  @override
+  String coinsPackDiamonds(String amount) {
+    return '+$amount diamonds';
+  }
+
+  @override
+  String coinsPackSemantics(
+    String pack,
+    String coins,
+    String diamonds,
+    String price,
+  ) {
+    return '$pack: $coins coins and $diamonds diamonds for $price';
+  }
+
+  @override
+  String coinsBuyFor(String price) {
+    return 'Buy for $price';
+  }
+
+  @override
+  String get coinsGrantedTitle => 'Coins added!';
+
+  @override
+  String coinsGrantedMessage(String coins, String diamonds) {
+    return '$coins coins and $diamonds diamonds are now in your wallet.';
+  }
+
+  @override
+  String get coinsBuyFailed =>
+      'The purchase didn\'t go through. Please try again.';
+
+  @override
+  String get coinsDelayed =>
+      'Your purchase is safe. We\'ll add the coins as soon as we can reach the game server.';
+
+  @override
+  String get coinsNote =>
+      'Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play or the App Store.';
+
+  @override
+  String get coinsErrorUnavailable => 'This pack isn\'t available yet.';
+
+  @override
+  String get coinsErrorInvalid =>
+      'This purchase couldn\'t be verified, so nothing was added.';
+
+  @override
+  String get coinsErrorPending =>
+      'Your payment is pending. The coins arrive as soon as it completes.';
+
+  @override
+  String get coinsErrorStoreUnreachable =>
+      'The store couldn\'t be reached. Your purchase is safe and will be added automatically.';
+
+  @override
   String get commonOk => 'OK';
 
   @override

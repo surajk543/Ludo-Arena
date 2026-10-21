@@ -35,6 +35,7 @@ import (
 
 	"ludoroyale/internal/assets/r2test"
 	"ludoroyale/internal/config"
+	"ludoroyale/internal/iap/iaptest"
 	"ludoroyale/internal/postgres"
 	"ludoroyale/internal/redisstore"
 	"ludoroyale/internal/rooms"
@@ -128,6 +129,13 @@ type envOpts struct {
 	botPictureShare string
 	// botPictureKeep sets BOT_PICTURE_KEEP_MIN and _MAX ("" = defaults 2..5).
 	botPictureKeep string
+	// google / apple, when set, configure coin pack verification against
+	// these fake stores (iaptest). Without them both stores are
+	// unconfigured, whatever the shell environment holds.
+	google *iaptest.Google
+	apple  *iaptest.Apple
+	// voidedPoll sets GOOGLE_PLAY_VOIDED_POLL_INTERVAL ("" = 0, off).
+	voidedPoll string
 }
 
 func newEnv(t *testing.T, o envOpts) *env {
@@ -159,6 +167,28 @@ func newEnv(t *testing.T, o envOpts) *env {
 		"R2_ACCOUNT_ID": "", "R2_BUCKET": "", "R2_ACCESS_KEY_ID": "", "R2_SECRET_ACCESS_KEY": "",
 		"R2_ENDPOINT": "", "ASSET_URL_TTL": "", "BOT_PICTURE_SHARE": o.botPictureShare,
 		"BOT_PICTURE_KEEP_MIN": o.botPictureKeep, "BOT_PICTURE_KEEP_MAX": o.botPictureKeep,
+		// Coin packs: never pick up real store keys from the shell.
+		"COIN_PACKS_FILE": "../config/coin_packs.json", "GOOGLE_PLAY_SERVICE_ACCOUNT_FILE": "",
+		"GOOGLE_PLAY_PACKAGE_NAME": "", "GOOGLE_PLAY_API_URL": "", "GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "0",
+		"GOOGLE_PLAY_VOIDED_LOOKBACK": "", "APPLE_IAP_ENABLED": "", "APPLE_BUNDLE_ID": "",
+		"APPLE_IAP_ALLOW_SANDBOX": "", "APPLE_IAP_KEY_ID": "", "APPLE_IAP_ISSUER_ID": "", "APPLE_IAP_KEY_FILE": "",
+		"APPLE_ROOT_CA_FILE": "", "APPLE_IAP_API_URL": "",
+	}
+	if o.google != nil {
+		envVars["GOOGLE_PLAY_SERVICE_ACCOUNT_FILE"] = o.google.KeyFile
+		envVars["GOOGLE_PLAY_PACKAGE_NAME"] = o.google.Package
+		envVars["GOOGLE_PLAY_API_URL"] = o.google.URL
+		if o.voidedPoll != "" {
+			envVars["GOOGLE_PLAY_VOIDED_POLL_INTERVAL"] = o.voidedPoll
+		}
+	}
+	if o.apple != nil {
+		envVars["APPLE_IAP_ENABLED"], envVars["APPLE_BUNDLE_ID"] = "true", o.apple.Bundle
+		envVars["APPLE_ROOT_CA_FILE"] = o.apple.RootFile
+		if o.apple.API != nil {
+			envVars["APPLE_IAP_KEY_ID"], envVars["APPLE_IAP_ISSUER_ID"] = o.apple.KeyID, o.apple.IssuerID
+			envVars["APPLE_IAP_KEY_FILE"], envVars["APPLE_IAP_API_URL"] = o.apple.KeyFile, o.apple.API.URL
+		}
 	}
 	if o.r2 != nil {
 		envVars["R2_ACCOUNT_ID"], envVars["R2_BUCKET"] = testR2Account, o.r2.Bucket

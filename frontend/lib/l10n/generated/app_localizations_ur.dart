@@ -293,6 +293,88 @@ class AppLocalizationsUr extends AppLocalizations {
   String get boardsLevelUp => 'لیول بڑھ گیا';
 
   @override
+  String get coinsCategory => 'سکے';
+
+  @override
+  String get coinsHeroTitle => 'سکوں کے پیک';
+
+  @override
+  String get coinsHeroSubtitle =>
+      'زیادہ سکے، زیادہ میچ۔ ہر پیک کے ساتھ بونس ہیرے ملتے ہیں۔';
+
+  @override
+  String get coinsPackStarter => 'اسٹارٹر';
+
+  @override
+  String get coinsPackPopular => 'مقبول';
+
+  @override
+  String get coinsPackGreatValue => 'زبردست قیمت';
+
+  @override
+  String get coinsPackBestValue => 'بہترین قیمت';
+
+  @override
+  String coinsPackCoins(String amount) {
+    return '$amount سکے';
+  }
+
+  @override
+  String coinsPackDiamonds(String amount) {
+    return '+$amount ہیرے';
+  }
+
+  @override
+  String coinsPackSemantics(
+    String pack,
+    String coins,
+    String diamonds,
+    String price,
+  ) {
+    return '$pack: $price میں $coins سکے اور $diamonds ہیرے';
+  }
+
+  @override
+  String coinsBuyFor(String price) {
+    return '$price میں خریدیں';
+  }
+
+  @override
+  String get coinsGrantedTitle => 'سکے شامل ہو گئے!';
+
+  @override
+  String coinsGrantedMessage(String coins, String diamonds) {
+    return '$coins سکے اور $diamonds ہیرے اب آپ کے والٹ میں ہیں۔';
+  }
+
+  @override
+  String get coinsBuyFailed =>
+      'خریداری مکمل نہیں ہوئی۔ براہِ کرم دوبارہ کوشش کریں۔';
+
+  @override
+  String get coinsDelayed =>
+      'آپ کی خریداری محفوظ ہے۔ گیم سرور سے رابطہ ہوتے ہی ہم سکے شامل کر دیں گے۔';
+
+  @override
+  String get coinsNote =>
+      'سکے اور ہیرے ورچوئل آئٹمز ہیں جن کی کوئی نقد قیمت نہیں۔ ادائیگی Google Play یا App Store کے ذریعے ہوتی ہے۔';
+
+  @override
+  String get coinsErrorUnavailable => 'یہ پیک ابھی دستیاب نہیں ہے۔';
+
+  @override
+  String get coinsErrorInvalid =>
+      'اس خریداری کی تصدیق نہیں ہو سکی، اس لیے کچھ شامل نہیں کیا گیا۔';
+
+  @override
+  String get coinsErrorPending =>
+      'آپ کی ادائیگی ابھی زیرِ التوا ہے۔ مکمل ہوتے ہی سکے آ جائیں گے۔';
+
+  @override
+  String get coinsErrorStoreUnreachable =>
+      'اسٹور سے رابطہ نہیں ہو سکا۔ آپ کی خریداری محفوظ ہے اور خود بخود شامل ہو جائے گی۔';
+
+  @override
   String get commonOk => 'ٹھیک ہے';
 
   @override

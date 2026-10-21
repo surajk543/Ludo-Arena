@@ -3,12 +3,14 @@ package server
 import (
 	"context"
 	"errors"
+	"os"
 
 	"github.com/google/uuid"
 
 	"ludoroyale/internal/analytics"
 	"ludoroyale/internal/assets"
 	"ludoroyale/internal/httpapi"
+	"ludoroyale/internal/iap"
 	"ludoroyale/internal/progression"
 	"ludoroyale/internal/reports"
 	"ludoroyale/internal/rooms"
@@ -16,8 +18,9 @@ import (
 )
 
 // DefaultExtensions wires progression (XP, missions, Collection Room),
-// social (friends, invites, recent opponents, leaderboard), player reports
-// and pseudonymous analytics exactly as production runs them.
+// social (friends, invites, recent opponents, leaderboard), player reports,
+// coin pack purchases and pseudonymous analytics exactly as production runs
+// them.
 func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 	minMatch := core.Cfg.MinMatchDuration
 	opts := progression.Options{
@@ -45,9 +48,15 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 	rep := reports.New(core.PG, core.Profiles, prog, roomLookup(core), core.Log, reports.Options{
 		PerDay: core.Cfg.Social.ReportsPerDay, AdminKeySHA256: core.Cfg.AdminKeySHA256})
 	tracker := analytics.New(core.RDB, core.Cfg.Telemetry.ActiveUserKey, core.Log)
+	purchases, err := newIAP(core)
+	if err != nil {
+		return Extensions{}, err
+	}
+	packsPoll := func(ctx context.Context) { purchases.Catalog().Run(ctx, core.Cfg.Policy.PollInterval) }
 	return Extensions{
 		Progression: prog, Pictures: prog, Catalog: prog, Recorder: prog, Inviter: soc, Inventory: prog,
-		Routes: []func(rt *httpapi.Router){prog.Register, soc.Register, rep.Register, tracker.Register},
+		Routes: []func(rt *httpapi.Router){prog.Register, soc.Register, rep.Register, tracker.Register,
+			purchases.Register},
 		OnNewAccount: func(ctx context.Context, id uuid.UUID) {
 			// Off the sign-up request path. Every progression read and write
 			// also creates the row lazily, so a late, failed or dropped
@@ -57,8 +66,44 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 		},
 		// Humans only: the gateway never calls this for bot sessions.
 		OnActivity: func(ctx context.Context, id uuid.UUID) { _ = tracker.Touch(ctx, id) },
-		Background: []func(ctx context.Context){prog.Run, tracker.Run},
+		Background: []func(ctx context.Context){prog.Run, tracker.Run, packsPoll, purchases.RunVoided},
 	}, nil
+}
+
+// newIAP wires coin pack purchases (docs/in-app-purchases.md). A store
+// without configuration answers 503 iap_unavailable; a configured store
+// whose key file is unreadable or invalid stops the startup.
+func newIAP(core *Core) (*iap.Service, error) {
+	cfg := core.Cfg.IAP
+	packs, err := iap.LoadCatalog(cfg.CoinPacksFile, core.Log)
+	if err != nil {
+		return nil, err
+	}
+	opts := iap.Options{TokenKey: core.Cfg.Auth.PublicIDKey,
+		VoidedInterval: cfg.GoogleVoidedInterval, VoidedLookback: cfg.GoogleVoidedLookback}
+	if cfg.GoogleEnabled() {
+		if opts.Google, err = iap.NewGooglePlay(iap.GoogleConfig{ServiceAccountFile: cfg.GooglePlayServiceAccountFile,
+			PackageName: cfg.GooglePlayPackage, APIURL: cfg.GooglePlayAPIURL}); err != nil {
+			return nil, err
+		}
+	} else {
+		core.Log.Warn("GOOGLE_PLAY_SERVICE_ACCOUNT_FILE not set: Google Play coin pack purchases answer 503 iap_unavailable")
+	}
+	if cfg.AppleOn() {
+		ac := iap.AppleConfig{BundleID: cfg.AppleBundleID, AllowSandbox: cfg.AppleAllowSandbox,
+			KeyID: cfg.AppleKeyID, IssuerID: cfg.AppleIssuerID, KeyFile: cfg.AppleKeyFile, APIURL: cfg.AppleAPIURL}
+		if cfg.AppleRootCAFile != "" {
+			if ac.RootCA, err = os.ReadFile(cfg.AppleRootCAFile); err != nil {
+				return nil, errors.New("APPLE_ROOT_CA_FILE cannot be read")
+			}
+		}
+		if opts.Apple, err = iap.NewAppStore(ac); err != nil {
+			return nil, err
+		}
+	} else {
+		core.Log.Warn("APPLE_IAP_ENABLED not set: App Store coin pack purchases answer 503 iap_unavailable")
+	}
+	return iap.New(core.PG, core.RDB, core.Notifier, core.Log, packs, opts), nil
 }
 
 // roomLookup reads live rooms (read-only) for the player-report seat checks.

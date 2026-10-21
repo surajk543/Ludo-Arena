@@ -1,0 +1,45 @@
+{
+  "configVersion": 1,
+  "packs": [
+    {
+      "id": "coins_starter",
+      "label": "Starter",
+      "productIds": { "android": "coins_starter", "ios": "coins_starter" },
+      "coins": 5000000,
+      "diamonds": 5,
+      "fallbackPrice": { "currency": "INR", "amount": 199 },
+      "badge": null,
+      "sortOrder": 1
+    },
+    {
+      "id": "coins_popular",
+      "label": "Popular",
+      "productIds": { "android": "coins_popular", "ios": "coins_popular" },
+      "coins": 8000000,
+      "diamonds": 8,
+      "fallbackPrice": { "currency": "INR", "amount": 299 },
+      "badge": "popular",
+      "sortOrder": 2
+    },
+    {
+      "id": "coins_great_value",
+      "label": "Great Value",
+      "productIds": { "android": "coins_great_value", "ios": "coins_great_value" },
+      "coins": 15000000,
+      "diamonds": 100,
+      "fallbackPrice": { "currency": "INR", "amount": 499 },
+      "badge": null,
+      "sortOrder": 3
+    },
+    {
+      "id": "coins_best_value",
+      "label": "Best Value",
+      "productIds": { "android": "coins_best_value", "ios": "coins_best_value" },
+      "coins": 35000000,
+      "diamonds": 250,
+      "fallbackPrice": { "currency": "INR", "amount": 999 },
+      "badge": "best_value",
+      "sortOrder": 4
+    }
+  ]
+}

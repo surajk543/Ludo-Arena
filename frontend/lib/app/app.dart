@@ -19,6 +19,8 @@ import 'router.dart';
 import 'shell/app_shell_host.dart';
 import '../features/private_rooms/presentation/invite_banner_host.dart';
 import '../features/progression/presentation/meta_shell_host.dart';
+import '../features/store/application/coin_purchase_controller.dart';
+import '../features/store/presentation/coin_purchase_host.dart';
 
 /// Root widget. Theme mode and locale are restored synchronously from
 /// preferences (loaded in bootstrap) so the first frame is already right.
@@ -58,6 +60,9 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
     // Sound settings + lifecycle → audio, then the lobby music.
     ref.watch(audioSettingsBinderProvider);
     ref.watch(lobbyMusicProvider);
+    // Coin pack purchases: listens to the store from app start, so paid but
+    // undelivered purchases are delivered (state changes don't rebuild).
+    ref.listen(coinPurchaseControllerProvider, (_, _) {});
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
     final locale = ref.watch(languageControllerProvider);
@@ -89,7 +94,12 @@ class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
               // app-wide friend-request banner.
               child: MetaShellHost(
                 navigatorKey: rootNavigatorKey,
-                child: child ?? const SizedBox.shrink(),
+                // Coin pack results delivered outside the Shop (e.g. a
+                // purchase re-delivered at startup).
+                child: CoinPurchaseHost(
+                  navigatorKey: rootNavigatorKey,
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           ),

@@ -78,7 +78,62 @@ type Config struct {
 	// NameChangesPerDay is how many successful display-name changes an
 	// account may make per rolling 24 h (NAME_CHANGES_PER_DAY, >= 1).
 	NameChangesPerDay int
+
+	// IAP configures coin pack purchases (docs/in-app-purchases.md).
+	IAP IAPConfig
 }
+
+// IAPConfig configures coin packs and store verification. Without a store's
+// configuration its purchases answer 503 iap_unavailable (the Shop still
+// lists the packs). Key files are read at startup and never logged.
+type IAPConfig struct {
+	// CoinPacksFile is the pack list (COIN_PACKS_FILE, default
+	// config/coin_packs.json), reloaded when it changes.
+	CoinPacksFile string
+
+	// GooglePlayServiceAccountFile is the service account JSON key
+	// (GOOGLE_PLAY_SERVICE_ACCOUNT_FILE); empty disables Google Play.
+	GooglePlayServiceAccountFile string
+	// GooglePlayPackage is the app package (GOOGLE_PLAY_PACKAGE_NAME).
+	GooglePlayPackage string
+	// GooglePlayAPIURL overrides the Android Publisher host (test hook,
+	// GOOGLE_PLAY_API_URL; refused in production).
+	GooglePlayAPIURL string
+	// GoogleVoidedInterval is how often voided purchases are polled
+	// (GOOGLE_PLAY_VOIDED_POLL_INTERVAL, default 1h; 0 disables).
+	GoogleVoidedInterval time.Duration
+	// GoogleVoidedLookback is how far back each poll looks
+	// (GOOGLE_PLAY_VOIDED_LOOKBACK, default 168h, 1h..720h).
+	GoogleVoidedLookback time.Duration
+
+	// AppleEnabled turns on App Store verification (APPLE_IAP_ENABLED); it is
+	// also on when the App Store Server API key is configured.
+	AppleEnabled bool
+	// AppleBundleID is the app bundle id (APPLE_BUNDLE_ID).
+	AppleBundleID string
+	// AppleAllowSandbox accepts sandbox transactions (APPLE_IAP_ALLOW_SANDBOX,
+	// default true: App Review and TestFlight buy in the sandbox).
+	AppleAllowSandbox bool
+	// App Store Server API key (APPLE_IAP_KEY_ID, APPLE_IAP_ISSUER_ID,
+	// APPLE_IAP_KEY_FILE): all three or none.
+	AppleKeyID, AppleIssuerID, AppleKeyFile string
+	// Test hooks (refused in production): APPLE_ROOT_CA_FILE replaces Apple
+	// Root CA - G3, APPLE_IAP_API_URL the App Store Server API host.
+	AppleRootCAFile, AppleAPIURL string
+}
+
+// GoogleEnabled reports whether Google Play purchases can be verified.
+func (c IAPConfig) GoogleEnabled() bool { return c.GooglePlayServiceAccountFile != "" }
+
+// AppleOn reports whether App Store purchases can be verified.
+func (c IAPConfig) AppleOn() bool { return c.AppleEnabled || c.AppleKeyFile != "" }
+
+// Defaults for IAPConfig.
+const (
+	DefaultAppPackage           = "com.ludoroyale.app"
+	DefaultGoogleVoidedInterval = time.Hour
+	DefaultGoogleVoidedLookback = 7 * 24 * time.Hour
+)
 
 // AuthConfig configures application sessions and identity providers.
 type AuthConfig struct {
@@ -534,10 +589,56 @@ func Load() (*Config, error) {
 		}
 	}
 
+	c.IAP = IAPConfig{
+		CoinPacksFile:                get("COIN_PACKS_FILE", "config/coin_packs.json"),
+		GooglePlayServiceAccountFile: get("GOOGLE_PLAY_SERVICE_ACCOUNT_FILE", ""),
+		GooglePlayPackage:            get("GOOGLE_PLAY_PACKAGE_NAME", DefaultAppPackage),
+		GooglePlayAPIURL:             get("GOOGLE_PLAY_API_URL", ""),
+		GoogleVoidedInterval:         getDur("GOOGLE_PLAY_VOIDED_POLL_INTERVAL", DefaultGoogleVoidedInterval),
+		GoogleVoidedLookback:         getDur("GOOGLE_PLAY_VOIDED_LOOKBACK", DefaultGoogleVoidedLookback),
+		AppleEnabled:                 getBool("APPLE_IAP_ENABLED", false),
+		AppleBundleID:                get("APPLE_BUNDLE_ID", DefaultAppPackage),
+		AppleAllowSandbox:            getBool("APPLE_IAP_ALLOW_SANDBOX", true),
+		AppleKeyID:                   get("APPLE_IAP_KEY_ID", ""),
+		AppleIssuerID:                get("APPLE_IAP_ISSUER_ID", ""),
+		AppleKeyFile:                 get("APPLE_IAP_KEY_FILE", ""),
+		AppleRootCAFile:              get("APPLE_ROOT_CA_FILE", ""),
+		AppleAPIURL:                  get("APPLE_IAP_API_URL", ""),
+	}
+	errs = append(errs, c.IAP.validate(c.Env)...)
+
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
 	}
 	return c, nil
+}
+
+func (c IAPConfig) validate(env string) []error {
+	var errs []error
+	if c.GoogleVoidedInterval != 0 && (c.GoogleVoidedInterval < time.Second ||
+		(env == EnvProduction && c.GoogleVoidedInterval < time.Minute)) {
+		errs = append(errs, errors.New("GOOGLE_PLAY_VOIDED_POLL_INTERVAL must be 0 (off) or >= 1s (>= 1m in production)"))
+	}
+	if c.GoogleVoidedLookback < time.Hour || c.GoogleVoidedLookback > 30*24*time.Hour {
+		errs = append(errs, errors.New("GOOGLE_PLAY_VOIDED_LOOKBACK must be between 1h and 720h"))
+	}
+	if n := countSet(c.AppleKeyID, c.AppleIssuerID, c.AppleKeyFile); n != 0 && n != 3 {
+		errs = append(errs, errors.New("APPLE_IAP_KEY_ID, APPLE_IAP_ISSUER_ID and APPLE_IAP_KEY_FILE: set all three or none"))
+	}
+	if env == EnvProduction && (c.GooglePlayAPIURL != "" || c.AppleRootCAFile != "" || c.AppleAPIURL != "") {
+		errs = append(errs, errors.New("GOOGLE_PLAY_API_URL, APPLE_ROOT_CA_FILE and APPLE_IAP_API_URL are test hooks and are not allowed in production"))
+	}
+	return errs
+}
+
+func countSet(vals ...string) int {
+	n := 0
+	for _, v := range vals {
+		if v != "" {
+			n++
+		}
+	}
+	return n
 }
 
 // BotsEnabled reports whether the bot service boundary is configured.

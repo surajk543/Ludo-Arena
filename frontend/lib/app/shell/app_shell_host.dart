@@ -146,7 +146,11 @@ class _AppShellHostState extends ConsumerState<AppShellHost> {
   void _onProgression(ProgressionUpdatedEvent e) {}
 
   void _onWallet(WalletUpdatedEvent e) {
-    if (e.deltaCoins <= 0 || ref.read(inMatchProvider)) return;
+    // A coin pack ("purchase" with coins added) has its own celebration
+    // (CoinPurchaseHost); a refund ("refund", negative) only updates the
+    // balance chips.
+    if (e.deltaCoins <= 0 || e.reason == 'purchase') return;
+    if (ref.read(inMatchProvider)) return;
     final ctx = _navContext;
     if (ctx == null) return;
     ref.read(audioServiceProvider).play(Sfx.coin);

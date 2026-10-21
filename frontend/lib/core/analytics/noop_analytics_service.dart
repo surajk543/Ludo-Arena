@@ -113,4 +113,11 @@ class NoopAnalyticsService implements AnalyticsService {
 
   @override
   void friendRequestSent(String source) {}
+
+  @override
+  void coinPackPurchased({
+    required String pack,
+    required double value,
+    required String currency,
+  }) {}
 }

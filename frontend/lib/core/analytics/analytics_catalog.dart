@@ -45,6 +45,33 @@ class IntRangeRule implements ParamRule {
   }
 }
 
+/// Non-negative amounts up to [max] (ints become doubles; anything else is
+/// dropped). Used for a price paid, never for a balance.
+class AmountRule implements ParamRule {
+  const AmountRule(this.max);
+
+  final double max;
+
+  @override
+  Object? apply(Object? value) {
+    if (value is! num || !value.isFinite || value < 0 || value > max) {
+      return null;
+    }
+    return value.toDouble();
+  }
+}
+
+final RegExp _currencyCode = RegExp(r'^[A-Z]{3}$');
+
+/// An ISO 4217 currency code (`INR`, `USD`).
+class CurrencyRule implements ParamRule {
+  const CurrencyRule();
+
+  @override
+  Object? apply(Object? value) =>
+      value is String && _currencyCode.hasMatch(value) ? value : null;
+}
+
 /// Booleans, sent as `"true"` / `"false"` (Firebase params are strings or
 /// numbers).
 class BoolRule implements ParamRule {
@@ -104,6 +131,10 @@ abstract final class AnalyticsValues {
     'leaving_or_stalling',
     'other',
   };
+
+  /// Coin packs (`pack` of `coin_pack_purchased`): the pack label as a
+  /// slug, never an id or a store product id.
+  static const coinPacks = {'starter', 'popular', 'great_value', 'best_value'};
 
   /// Where a friend request was sent from.
   static const friendRequestSources = {'match', 'recent', 'code'};
@@ -231,6 +262,13 @@ abstract final class AnalyticsCatalog {
     'player_reported': {'reason': EnumRule(AnalyticsValues.reportReasons)},
     'friend_request_sent': {
       'source': EnumRule(AnalyticsValues.friendRequestSources),
+    },
+    // A coin pack the server verified with the store and granted (never a
+    // replay). The price paid only: no order, transaction or product ids.
+    'coin_pack_purchased': {
+      'pack': EnumRule(AnalyticsValues.coinPacks, fallback: 'other'),
+      'value': AmountRule(1000000),
+      'currency': CurrencyRule(),
     },
   };
 

@@ -22,6 +22,7 @@ import 'package:ludo_royale/features/store/presentation/shop_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import '../features/progression/meta_test_support.dart' show collectionJson;
+import '../features/store/coin_test_support.dart';
 import '../features/store/store_test_support.dart';
 import '../helpers/fake_backend.dart';
 import '../helpers/harness.dart';
@@ -145,6 +146,7 @@ void main() {
             env.backend.offline = true;
           case 'shop':
             routeStore(env);
+            routeCoinPacks(env);
             routeStoreEmotes(env);
             env.backend.json('GET', '/collection', collectionJson());
         }
@@ -169,9 +171,18 @@ void main() {
         expect(dir, rtl ? TextDirection.rtl : TextDirection.ltr);
 
         if (entry.key == 'shop') {
-          // Every Shop category: tap its pill, then scroll it through.
+          // The Shop opens on Coins (scrolled through above to its end).
+          expect(
+            find.byKey(
+              const ValueKey('coin-pack-coins_best_value'),
+              skipOffstage: false,
+            ),
+            findsOneWidget,
+          );
+          // Every cosmetic category (index 1 is Pictures, covered by the
+          // Shop's own matrix): tap its pill, then scroll it through.
           final count = shopCategories(null).length;
-          for (var i = 1; i < count; i++) {
+          for (var i = 2; i < count; i++) {
             final pill = find
                 .descendant(
                   of: find.byKey(

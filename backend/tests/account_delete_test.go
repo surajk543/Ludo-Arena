@@ -42,6 +42,7 @@ var accountRowQueries = map[string]string{
 		WHERE user_lo = $1 OR user_hi = $1 OR requested_by = $1`,
 	"progression.player_reports": `SELECT count(*) FROM progression.player_reports
 		WHERE reporter_id = $1 OR reported_id = $1`,
+	"progression.purchases": `SELECT count(*) FROM progression.purchases WHERE user_id = $1`,
 }
 
 // catalogueTables hold shared configuration with no per-account rows (a
@@ -135,6 +136,12 @@ func TestDeleteAccountErasesEverything(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := e.rdb.SAdd(ctx, "emotes:"+a.UserID, "emote_crown").Err(); err != nil {
+		t.Fatal(err)
+	}
+	// A coin pack purchase record (the real purchase flow is in iap_test.go).
+	if _, err := e.app.PG.Exec(ctx, `INSERT INTO progression.purchases
+		(user_id, store, product_id, transaction_id, coins, diamonds)
+		VALUES ($1, 'app_store', 'coins_starter', $2, 5000000, 5)`, a.UserID, fmt.Sprint(time.Now().UnixNano())); err != nil {
 		t.Fatal(err)
 	}
 

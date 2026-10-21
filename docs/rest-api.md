@@ -8,7 +8,7 @@ milliseconds unless the field name ends in `Utc` (ISO-8601 UTC string).
 
 | Header | Required on | Notes |
 |---|---|---|
-| `X-App-Platform` | every endpoint except `/healthz`, `/readyz`, `/metrics`, `/legal/open-source`, Apple callback | `android` \| `ios` |
+| `X-App-Platform` | every endpoint except `/healthz`, `/readyz`, `/metrics`, `/legal/open-source`, Apple callback, App Store Server Notifications | `android` \| `ios` |
 | `X-App-Version` | same | e.g. `1.4.0` (1–4 numeric dot-separated components) |
 | `X-App-Build` | same | positive integer build number |
 | `Authorization` | protected endpoints | `Bearer <accessToken>` |
@@ -30,11 +30,12 @@ Every endpoint behind the version gate answers **426** (`update_required`) or
 | 401 | `unauthorized`, `invalid_credential`, `refresh_reused`, `session_replaced` |
 | 403 | `forbidden` |
 | 404 | `not_found`, `invalid_code`, `room_not_found` |
-| 409 | `identity_conflict`, `provider_already_linked`, `already_owned`, `already_claimed`, `already_friends`, `already_reported`, `request_in_progress` |
-| 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `cannot_report_self`, `not_in_room`, `idempotency_key_reused` |
+| 409 | `identity_conflict`, `provider_already_linked`, `already_owned`, `already_claimed`, `already_friends`, `already_reported`, `request_in_progress`, `purchase_pending` |
+| 422 | `not_completed`, `insufficient_funds`, `item_locked`, `cannot_friend_self`, `friend_limit`, `cannot_report_self`, `not_in_room`, `idempotency_key_reused`, `purchase_invalid` |
 | 426 | `update_required` (details = policy) |
 | 429 | `rate_limited`, `report_limit` (`Retry-After` header; `report_limit` details = `Limit`) |
-| 503 | `maintenance` (details = policy), `provider_unavailable`, `assets_unavailable` |
+| 502 | `store_unreachable` (`POST /store/purchases`: Google Play / the App Store did not answer) |
+| 503 | `maintenance` (details = policy), `provider_unavailable`, `assets_unavailable`, `iap_unavailable` |
 
 ---
 
@@ -438,6 +439,78 @@ picker list `filter=owned`.
 exactly once, catalogue price at that moment, `Idempotency-Key` replay). The
 emote is usable in a match right away (it is added to the server's cached set
 of owned emotes).
+
+## Coin packs (in-app purchases)
+
+Coins and diamonds bought for real money through **Google Play** (Android)
+or the **App Store** (iOS); the app's Shop shows them as its first category,
+**Coins**. The server verifies every purchase with the store and credits the
+pack from its own configuration (`backend/config/coin_packs.json`, never from
+the client). Store setup, verification, refunds and operations:
+[`in-app-purchases.md`](in-app-purchases.md).
+
+The two app routes: authenticated humans, version gated. Rate limits per
+account: list 120/min, purchase 30/min.
+
+| Method & path | Body | Response |
+|---|---|---|
+| `GET /store/coin-packs` | – | `{"packs":[CoinPack],"purchasesAvailable":true,"accountToken":"<uuid>"}` |
+| `POST /store/purchases` | Android `{"platform":"android","productId":"coins_starter","purchaseToken":"…"}`; iOS `{"platform":"ios","productId":"coins_starter","transactionId":"2000000…","signedTransaction":"<JWS>"}` | `{"wallet":Wallet,"granted":{"coins":5000000,"diamonds":5},"pack":CoinPack,"replayed":false}`; 422 `purchase_invalid`, 409 `purchase_pending`, 503 `iap_unavailable`, 502 `store_unreachable`, 400 `bad_request`. Pushes `wallet.updated` (`reason: "purchase"`, positive `delta`) on the first grant only. |
+
+**CoinPack**: `{"id":"coins_popular","productId":"coins_popular","label":"Popular","coins":8000000,"diamonds":8,"fallbackPrice":{"currency":"INR","amount":299},"badge":"popular"|"best_value"|null,"sortOrder":2}`
+— `productId` is the store product id for the caller's `X-App-Platform`;
+`fallbackPrice.amount` is in major units (₹299) and is shown only until the
+store reports the product's localized price; `label` is English (the app
+localizes by `id`).
+
+**List**: always answers the packs, also when purchases are off.
+`purchasesAvailable` = the server can verify this platform's purchases
+(otherwise a purchase answers 503 `iap_unavailable` and the app shows "This
+pack isn't available yet"). `accountToken` is a UUID derived one-way from the
+account (HMAC); the app passes it to the store with every purchase
+(`applicationUserName` → Google `obfuscatedAccountId` / Apple
+`appAccountToken`), and the server refuses a purchase whose token is not the
+caller's (`purchase_invalid`), so a purchase can never be redeemed by another
+account.
+
+**Purchase**: send it after the store reports the purchase as purchased (or
+re-delivers it), then consume (Android) / finish (iOS) it **only after a
+200**. Android: `purchaseToken` = `PurchaseDetails.verificationData.serverVerificationData`.
+iOS: `signedTransaction` = the StoreKit 2 JWS
+(`serverVerificationData`), `transactionId` = `purchaseID` (either is
+enough when the App Store Server API is configured; otherwise
+`signedTransaction` is required). Exactly one grant per store transaction:
+one PostgreSQL transaction inserts the `progression.purchases` row
+(`UNIQUE (store, transaction_id)`) and credits the wallet, so a repeat — a
+retry after a lost answer, a second device, concurrent submissions — answers
+the original grant with `"replayed": true` and changes nothing (`wallet` is
+the current balance). A purchase already granted to another account →
+`purchase_invalid`.
+
+| Code | When | The app |
+|---|---|---|
+| 422 `purchase_invalid` | the store does not know the token / transaction for this app (wrong package or bundle, other product, never bought), the purchase was cancelled or refunded, it is not a consumable, its account token is not the caller's, or the product is not a pack | keeps the purchase unconsumed (Google refunds an unacknowledged purchase after 3 days) |
+| 409 `purchase_pending` | Google Play: payment not completed yet (slow payment methods) | waits; delivered again when the store reports it purchased |
+| 503 `iap_unavailable` | this store's verification is not configured on the server, or its credentials were refused | "This pack isn't available yet"; the purchase stays pending |
+| 502 `store_unreachable` | Google / Apple did not answer | retries with backoff, then on the next start; nothing was recorded |
+| 400 `bad_request` | malformed body (unknown field, wrong platform, missing token, …) | – |
+
+**Refunds** (Google voided purchases, Apple REFUND / REVOKE notifications)
+take back what the purchase granted, each currency clamped at the current
+balance (never below zero), exactly once, and push `wallet.updated` with
+`reason: "refund"` and negative `delta`s.
+
+### App Store Server Notifications (outside the app)
+
+`POST /api/v1/iap/apple/notifications` — Apple's App Store Server
+Notifications **V2** (`{"signedPayload":"<JWS>"}`). No authentication or
+version gate: the payload's certificate chain to Apple Root CA - G3 is the
+authentication (forged or malformed → 400). `REFUND` and `REVOKE` refund the
+transaction (`{"result":"refunded"|"already_refunded"|"unknown"}`); every
+other type (`TEST`, `CONSUMPTION_REQUEST`, `REFUND_DECLINED`,
+`REFUND_REVERSED`, …) is acknowledged with `{"result":"ignored"}`. 503
+`iap_unavailable` while App Store verification is off; a 5xx makes Apple
+retry. Rate limit 600/min per IP.
 
 ## Social
 

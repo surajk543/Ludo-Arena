@@ -61,6 +61,10 @@ void main() {
     'maintenance',
     'provider_unavailable',
     'assets_unavailable',
+    'iap_unavailable',
+    'purchase_invalid',
+    'purchase_pending',
+    'store_unreachable',
     'internal',
   ];
   const clientCodes = [

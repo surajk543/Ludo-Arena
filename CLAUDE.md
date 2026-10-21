@@ -41,7 +41,10 @@ of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
   profile-picture catalogue (`progression.profile_pictures`: paths and
   prices only; ownership = inventory, equipped = loadout slot `avatar`) and
   the Store emote catalogue (`progression.emotes`: paths and prices only;
-  ownership = inventory). **Do not add
+  ownership = inventory) and coin-pack purchases (`progression.purchases`,
+  owner-approved 2026-10-22: one row per store transaction, unique on
+  `(store, transaction_id)`; hashed Play token or App Store id, granted
+  amounts, refund status — never payment details). **Do not add
   tables** (no match history, ledger or profile tables) without asking. Live
   game state lives in Redis only — enforced by
   `backend/tests/schema_guard_test.go` (table allowlist + no gameplay-state columns).
