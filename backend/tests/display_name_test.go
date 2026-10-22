@@ -105,7 +105,7 @@ func TestDisplayNameChangePropagates(t *testing.T) {
 
 	// a hosts a private room that is open before the change; b joins it.
 	ac, bc := e.mustDial("a", a), e.mustDial("b", b)
-	if r := ac.call("room.create", map[string]any{"game": "ludo", "capacity": 4}); r.T != "ack" {
+	if r := ac.call("room.create", map[string]any{"game": "ludo", "capacity": 4}); r.T != "room.updated" {
 		t.Fatalf("create: %s %s", r.T, r.P)
 	}
 	waitFor(t, 3*time.Second, "lobby", func() bool { s := ac.snapshot(); return s != nil && s.Code != "" })
@@ -160,7 +160,7 @@ func TestDisplayNameChangePropagates(t *testing.T) {
 	if m := ac.call("room.leave", map[string]any{"roomId": open.ID}); m.T != "ack" {
 		t.Fatalf("leave: %s %s", m.T, m.P)
 	}
-	if m := ac.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); m.T != "ack" {
+	if m := ac.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); m.T != "room.updated" {
 		t.Fatalf("create 2: %s %s", m.T, m.P)
 	}
 	waitFor(t, 3*time.Second, "new lobby", func() bool { s := ac.snapshot(); return s != nil && s.ID != open.ID && s.Code != "" })

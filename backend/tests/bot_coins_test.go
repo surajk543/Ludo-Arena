@@ -233,7 +233,7 @@ func (e *env) privateBotRoom(t *testing.T, ctl string, names []string) (account,
 	t.Helper()
 	host := e.guest()
 	hc := e.mustDial("host-"+names[0], host)
-	if m := hc.call("room.create", map[string]any{"game": "ludo", "variant": "quick", "capacity": len(names) + 1}); m.T != "ack" {
+	if m := hc.call("room.create", map[string]any{"game": "ludo", "variant": "quick", "capacity": len(names) + 1}); m.T != "room.updated" {
 		t.Fatalf("room.create: %s %s", m.T, m.P)
 	}
 	waitFor(t, 3*time.Second, "private lobby", func() bool { return hc.snapshot() != nil && hc.snapshot().Code != "" })

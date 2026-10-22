@@ -425,7 +425,7 @@ func TestStoreEmoteInRoom(t *testing.T) {
 	}
 
 	ac, bc, cc := e.mustDial("a", a), e.mustDial("b", b), e.mustDial("c", c)
-	if r := ac.call("room.create", map[string]any{"game": "ludo", "capacity": 4}); r.T != "ack" {
+	if r := ac.call("room.create", map[string]any{"game": "ludo", "capacity": 4}); r.T != "room.updated" {
 		t.Fatalf("create: %s %s", r.T, r.P)
 	}
 	waitFor(t, 3*time.Second, "lobby", func() bool { s := ac.snapshot(); return s != nil && s.Code != "" })
