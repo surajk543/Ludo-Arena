@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/errors/error_messages.dart';
-import 'package:ludo_royale/core/network/api_exception.dart';
-import 'package:ludo_royale/core/realtime/realtime_connection.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/core/errors/error_messages.dart';
+import 'package:ludo_arena/core/network/api_exception.dart';
+import 'package:ludo_arena/core/realtime/realtime_connection.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 
 void main() {
   const wsCodes = [

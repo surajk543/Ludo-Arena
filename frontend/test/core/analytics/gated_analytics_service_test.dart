@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/analytics/analytics_catalog.dart';
-import 'package:ludo_royale/core/analytics/analytics_providers.dart';
-import 'package:ludo_royale/core/analytics/gated_analytics_service.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/analytics/analytics_catalog.dart';
+import 'package:ludo_arena/core/analytics/analytics_providers.dart';
+import 'package:ludo_arena/core/analytics/gated_analytics_service.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeBackend implements AnalyticsBackend {

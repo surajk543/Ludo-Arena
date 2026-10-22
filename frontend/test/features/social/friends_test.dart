@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/state/in_match_provider.dart';
-import 'package:ludo_royale/features/social/domain/friend_code.dart';
-import 'package:ludo_royale/features/social/presentation/friend_request_banner.dart';
-import 'package:ludo_royale/features/social/presentation/friends_screen.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/state/in_match_provider.dart';
+import 'package:ludo_arena/features/social/domain/friend_code.dart';
+import 'package:ludo_arena/features/social/presentation/friend_request_banner.dart';
+import 'package:ludo_arena/features/social/presentation/friends_screen.dart';
 
 import '../progression/meta_test_support.dart';
 

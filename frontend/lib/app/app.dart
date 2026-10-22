@@ -25,14 +25,14 @@ import '../features/store/presentation/coin_purchase_host.dart';
 
 /// Root widget. Theme mode and locale are restored synchronously from
 /// preferences (loaded in bootstrap) so the first frame is already right.
-class LudoRoyaleApp extends ConsumerStatefulWidget {
-  const LudoRoyaleApp({super.key});
+class LudoArenaApp extends ConsumerStatefulWidget {
+  const LudoArenaApp({super.key});
 
   @override
-  ConsumerState<LudoRoyaleApp> createState() => _LudoRoyaleAppState();
+  ConsumerState<LudoArenaApp> createState() => _LudoArenaAppState();
 }
 
-class _LudoRoyaleAppState extends ConsumerState<LudoRoyaleApp> {
+class _LudoArenaAppState extends ConsumerState<LudoArenaApp> {
   late final AppLifecycleListener _lifecycle;
 
   @override

@@ -12,14 +12,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/apppolicy"
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/identity"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/ratelimit"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/apppolicy"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/identity"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/ratelimit"
+	"ludoarena/internal/wallet"
 )
 
 // Account bundles the services the account handlers need.

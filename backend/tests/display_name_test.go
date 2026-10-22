@@ -289,6 +289,7 @@ func TestDisplayNameLimitValidationAndAuth(t *testing.T) {
 		{"Asha!", "invalid_characters"},
 		{"B o t Max", "reserved"},
 		{"ADMIN", "reserved"},
+		{"Ludo Arena", "reserved"},
 		{"Ludo Royale", "reserved"},
 		{"Madarchod", "inappropriate"},
 	}

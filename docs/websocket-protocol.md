@@ -1,4 +1,4 @@
-# WebSocket Protocol — `ludo-royale.v1`
+# WebSocket Protocol — `ludo-arena.v1`
 
 Real-time gameplay, matchmaking, private rooms, rematch, quick chat and
 in-app social notifications run over one authenticated WebSocket per client.
@@ -16,7 +16,7 @@ Account, wallet, progression and room-code preview operations use REST — see
 ```
 GET /api/v1/ws
 Authorization: Bearer <accessToken>
-Sec-WebSocket-Protocol: ludo-royale.v1
+Sec-WebSocket-Protocol: ludo-arena.v1
 Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits   (offered by dart:io)
 X-App-Platform: android | ios
 X-App-Version: 1.0.0

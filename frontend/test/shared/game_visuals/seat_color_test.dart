@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/shared/game_visuals/seat_color.dart';
+import 'package:ludo_arena/shared/game_visuals/seat_color.dart';
 
 void main() {
   test('turnsToBottomLeft brings every color to the blue corner', () {

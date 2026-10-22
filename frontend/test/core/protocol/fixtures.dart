@@ -1,4 +1,4 @@
-import 'package:ludo_royale/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
 
 /// Builds a minimal 2-seat Ludo room snapshot JSON.
 Map<String, dynamic> ludoRoomJson({

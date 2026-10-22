@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"regexp"
 
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/ratelimit"
 )
 
 var androidPkg = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$`)

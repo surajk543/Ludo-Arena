@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 // Bots are indistinguishable from people (docs/websocket-protocol.md §4 and

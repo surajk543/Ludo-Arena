@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 // Player reports (docs/rest-api.md "Player reports") and the operator API.

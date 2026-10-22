@@ -1,4 +1,4 @@
-# Alertmanager for Ludo Royale: every alert goes to the ops bot's webhook,
+# Alertmanager for Ludo Arena: every alert goes to the ops bot's webhook,
 # which posts it to Telegram with the current CPU, RAM and player counts.
 #
 # Timing (edit here, then: curl -X POST http://127.0.0.1:9093/-/reload):

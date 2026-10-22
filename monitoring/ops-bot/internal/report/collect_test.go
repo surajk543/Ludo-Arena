@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/opsbot/internal/google"
-	"ludoroyale/opsbot/internal/promapi"
-	"ludoroyale/opsbot/internal/promapi/promtest"
+	"ludoarena/opsbot/internal/google"
+	"ludoarena/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/promapi/promtest"
 )
 
 var (

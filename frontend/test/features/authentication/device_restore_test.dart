@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/analytics/analytics_providers.dart';
-import 'package:ludo_royale/core/network/api_client.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/wallet/wallet_controller.dart';
+import 'package:ludo_arena/core/analytics/analytics_providers.dart';
+import 'package:ludo_arena/core/network/api_client.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/wallet/wallet_controller.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';

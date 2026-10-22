@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"ludoroyale/internal/httpapi"
+	"ludoarena/internal/httpapi"
 )
 
 // GET /api/v1/store/emotes?filter=all|owned&excludeOwned=&limit=&cursor=

@@ -1,9 +1,9 @@
-/// Message type constants for the `ludo-royale.v1` WebSocket protocol
+/// Message type constants for the `ludo-arena.v1` WebSocket protocol
 /// (docs/websocket-protocol.md §5 and §6).
 library;
 
 /// The negotiated WebSocket subprotocol.
-const String kProtocolName = 'ludo-royale.v1';
+const String kProtocolName = 'ludo-arena.v1';
 
 /// Application protocol version reported in `connection.ready`.
 const int kProtocolVersion = 1;

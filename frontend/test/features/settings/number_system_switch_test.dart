@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/localization/number_format.dart';
-import 'package:ludo_royale/core/settings/app_settings.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/features/settings/presentation/number_system_picker.dart';
-import 'package:ludo_royale/shared/widgets/balance_chip.dart';
+import 'package:ludo_arena/core/localization/number_format.dart';
+import 'package:ludo_arena/core/settings/app_settings.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/features/settings/presentation/number_system_picker.dart';
+import 'package:ludo_arena/shared/widgets/balance_chip.dart';
 
 import '../../helpers/harness.dart';
 import '../../helpers/screen_harness.dart';

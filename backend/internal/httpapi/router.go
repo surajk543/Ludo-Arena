@@ -16,10 +16,10 @@ import (
 	"strings"
 	"time"
 
-	"ludoroyale/internal/apppolicy"
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/apppolicy"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/ratelimit"
 )
 
 // APIError is a structured error response.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ludo-deploy: builds and runs Ludo Royale releases on the production VPS.
+# ludo-deploy: builds and runs Ludo Arena releases on the production VPS.
 # Installed as /usr/local/bin/ludo-deploy by provision.sh; run as root.
 #
 #   ludo-deploy deploy [ref]      fetch <ref> (branch, tag or commit; default master)
@@ -10,19 +10,19 @@
 #   ludo-deploy list              releases on disk, oldest first; * marks the active one
 #   ludo-deploy backup [label]    pg_dump the database now
 #
-# Releases are /opt/ludo-royale/releases/<utc>-<commit>; /opt/ludo-royale/current
+# Releases are /opt/ludo-arena/releases/<utc>-<commit>; /opt/ludo-arena/current
 # points at the active one and the systemd units run from it. Source comes from
-# /opt/ludo-royale/src (read-only deploy key, ssh host alias github-ludo).
+# /opt/ludo-arena/src (read-only deploy key, ssh host alias github-ludo).
 #
 # The backend re-applies every backend/migrations/*.sql at startup and never
 # undoes one, so a deploy that changes migrations is preceded by a pg_dump, and
 # a rollback keeps the newer schema.
 set -euo pipefail
 
-BASE=/opt/ludo-royale
+BASE=/opt/ludo-arena
 SRC=$BASE/src
 RELEASES=$BASE/releases
-BACKUPS=/var/backups/ludo-royale
+BACKUPS=/var/backups/ludo-arena
 KEEP=${KEEP:-5}
 
 die() { echo "ludo-deploy: $*" >&2; exit 1; }
@@ -55,8 +55,8 @@ migrations_changed() { ! cmp -s "$RELEASES/$1/MIGRATIONS" "$RELEASES/$2/MIGRATIO
 
 backup() {
   local file
-  file=$BACKUPS/ludo_royale-$(date -u +%Y%m%d%H%M%S)-${1:-manual}.dump
-  sudo -u postgres sh -c "pg_dump -Fc ludo_royale > '$file'"
+  file=$BACKUPS/ludo_arena-$(date -u +%Y%m%d%H%M%S)-${1:-manual}.dump
+  sudo -u postgres sh -c "pg_dump -Fc ludo_arena > '$file'"
   log "database backup: $file ($(du -h "$file" | cut -f1))"
 }
 
@@ -97,7 +97,7 @@ cmd_deploy() {
   cp "$work/bot-play/configs/environments/production.yaml" "$out/bot-play/configs/environments/"
   (cd "$work/backend/migrations" && sha256sum ./*.sql) > "$out/MIGRATIONS"
   printf 'ref=%s\ncommit=%s\nbuilt=%s\n' "$ref" "$commit" "$(date -u +%FT%TZ)" > "$out/RELEASE"
-  env $(cat /etc/ludo-royale/bot-play.env) "$out/bot-play/bot-play" -validate \
+  env $(cat /etc/ludo-arena/bot-play.env) "$out/bot-play/bot-play" -validate \
     --config "$out/bot-play/configs/environments/production.yaml" \
     --profiles "$out/bot-play/configs/profiles.yaml" >/dev/null 2>&1 || die "bot-play rejects production.yaml"
   mv "$out" "$dir"

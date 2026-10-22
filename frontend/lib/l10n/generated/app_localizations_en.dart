@@ -156,7 +156,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String authConflictMessage(String provider) {
-    return 'That $provider account already has its own Ludo Royale account. Nothing will be merged or moved between the two accounts.';
+    return 'That $provider account already has its own Ludo Arena account. Nothing will be merged or moved between the two accounts.';
   }
 
   @override
@@ -524,7 +524,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionBackOnline => 'Back online';
 
   @override
-  String get appTitle => 'Ludo Royale';
+  String get appTitle => 'Ludo Arena';
 
   @override
   String get languageNameNative => 'English';
@@ -905,7 +905,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gateForceUpdateMessage =>
-      'This version of Ludo Royale is no longer supported. Update to keep playing online — your coins and progress are safe.';
+      'This version of Ludo Arena is no longer supported. Update to keep playing online — your coins and progress are safe.';
 
   @override
   String get gateInstalledVersion => 'Installed version';
@@ -936,7 +936,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gateMaintenanceMessage =>
-      'Ludo Royale is down for maintenance. Your coins, progress and running matches are safe — matches resume when we\'re back.';
+      'Ludo Arena is down for maintenance. Your coins, progress and running matches are safe — matches resume when we\'re back.';
 
   @override
   String gateMaintenanceEstimatedEnd(String time) {
@@ -970,7 +970,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gateUnreachableMessage =>
-      'Ludo Royale needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.';
+      'Ludo Arena needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.';
 
   @override
   String get gateUnreachableLastKnownMaintenance =>
@@ -985,7 +985,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gateNotFoundMessage =>
-      'This part of Ludo Royale isn\'t available in this version yet.';
+      'This part of Ludo Arena isn\'t available in this version yet.';
 
   @override
   String get gateGoHome => 'Back to home';
@@ -1947,7 +1947,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String metaShareFriendCodeMessage(String code) {
-    return 'Let\'s play Ludo Royale together! Add me as a friend with my code: $code';
+    return 'Let\'s play Ludo Arena together! Add me as a friend with my code: $code';
   }
 
   @override
@@ -2179,7 +2179,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingPreviewLabel => 'Preview';
 
   @override
-  String get onboardingPreviewTitle => 'Welcome to Ludo Royale!';
+  String get onboardingPreviewTitle => 'Welcome to Ludo Arena!';
 
   @override
   String get onboardingPreviewBody =>
@@ -2348,11 +2348,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String playInviteShareText(String game, String code) {
-    return 'Join me for $game on Ludo Royale! Open the app, tap Join with Code and enter: $code';
+    return 'Join me for $game on Ludo Arena! Open the app, tap Join with Code and enter: $code';
   }
 
   @override
-  String get playInviteShareSubject => 'Ludo Royale invite';
+  String get playInviteShareSubject => 'Ludo Arena invite';
 
   @override
   String playLobbyPlayers(int count, int capacity) {
@@ -2859,7 +2859,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String profileShareFriendCode(String code) {
-    return 'Add me on Ludo Royale! My friend code is $code';
+    return 'Add me on Ludo Arena! My friend code is $code';
   }
 
   @override
@@ -3104,7 +3104,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t open the page. Please try again later.';
 
   @override
-  String get settingsConsentTitle => 'Help us make Ludo Royale better';
+  String get settingsConsentTitle => 'Help us make Ludo Arena better';
 
   @override
   String get settingsConsentMessage =>

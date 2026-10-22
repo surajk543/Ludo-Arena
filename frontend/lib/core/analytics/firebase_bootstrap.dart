@@ -33,7 +33,7 @@ Future<AnalyticsBackend?> initFirebaseAnalytics({
               messagingSenderId: fb.messagingSenderId,
               projectId: fb.projectId,
               storageBucket: fb.storageBucket.isEmpty ? null : fb.storageBucket,
-              iosBundleId: info.isIOS ? 'com.ludoroyale.app' : null,
+              iosBundleId: info.isIOS ? 'com.ludoarena.app' : null,
             ),
           ).timeout(timeout);
     final backend = FirebaseAnalyticsBackend(

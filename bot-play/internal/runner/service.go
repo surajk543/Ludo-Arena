@@ -19,10 +19,10 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/matchmaking"
-	"ludoroyale/botplay/internal/metrics"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/matchmaking"
+	"ludoarena/botplay/internal/metrics"
 )
 
 // Options wires a Service.

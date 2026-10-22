@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ludo_royale/app/app.dart';
-import 'package:ludo_royale/app/gate/app_gate_controller.dart';
-import 'package:ludo_royale/app/router.dart';
-import 'package:ludo_royale/app/routes.dart';
-import 'package:ludo_royale/app/shell/main_shell.dart';
-import 'package:ludo_royale/app/shell/tab_nav.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/core/theme/theme_controller.dart';
-import 'package:ludo_royale/features/home/presentation/games_screen.dart';
-import 'package:ludo_royale/features/home/presentation/home_screen.dart';
-import 'package:ludo_royale/features/missions/presentation/missions_screen.dart';
-import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
-import 'package:ludo_royale/features/settings/presentation/settings_screen.dart';
-import 'package:ludo_royale/features/social/presentation/friends_screen.dart';
-import 'package:ludo_royale/shared/widgets/widgets.dart';
+import 'package:ludo_arena/app/app.dart';
+import 'package:ludo_arena/app/gate/app_gate_controller.dart';
+import 'package:ludo_arena/app/router.dart';
+import 'package:ludo_arena/app/routes.dart';
+import 'package:ludo_arena/app/shell/main_shell.dart';
+import 'package:ludo_arena/app/shell/tab_nav.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/theme/theme_controller.dart';
+import 'package:ludo_arena/features/home/presentation/games_screen.dart';
+import 'package:ludo_arena/features/home/presentation/home_screen.dart';
+import 'package:ludo_arena/features/missions/presentation/missions_screen.dart';
+import 'package:ludo_arena/features/profile/presentation/profile_screen.dart';
+import 'package:ludo_arena/features/settings/presentation/settings_screen.dart';
+import 'package:ludo_arena/features/social/presentation/friends_screen.dart';
+import 'package:ludo_arena/shared/widgets/widgets.dart';
 
 import '../features/progression/meta_test_support.dart' show routeMeta;
 import '../helpers/harness.dart';
@@ -37,7 +37,7 @@ Future<ProviderContainer> _bootHome(WidgetTester tester) async {
       container: container,
       child: const MediaQuery(
         data: MediaQueryData(disableAnimations: true),
-        child: LudoRoyaleApp(),
+        child: LudoArenaApp(),
       ),
     ),
   );

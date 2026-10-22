@@ -14,11 +14,11 @@ import (
 	dto "github.com/prometheus/client_model/go"
 	"go.yaml.in/yaml/v3"
 
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/metrics"
-	"ludoroyale/botplay/internal/runner"
-	"ludoroyale/botplay/tests/fakebackend"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/metrics"
+	"ludoarena/botplay/internal/runner"
+	"ludoarena/botplay/tests/fakebackend"
 )
 
 const testServiceKey = "test-service-key-0123456789abcdefghijklmnop"

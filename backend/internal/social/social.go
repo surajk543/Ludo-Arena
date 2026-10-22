@@ -32,12 +32,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/progression"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/progression"
+	"ludoarena/internal/ratelimit"
 )
 
 // Friend statuses.

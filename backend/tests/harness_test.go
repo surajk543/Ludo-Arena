@@ -3,7 +3,7 @@
 //
 // They are skipped unless TEST_DATABASE_URL and TEST_REDIS_ADDR are set, e.g.
 //
-//	TEST_DATABASE_URL=postgres://ludo@127.0.0.1:5440/ludo_royale_test?sslmode=disable \
+//	TEST_DATABASE_URL=postgres://ludo@127.0.0.1:5440/ludo_arena_test?sslmode=disable \
 //	TEST_REDIS_ADDR=127.0.0.1:6390 go test -race ./tests/...
 package tests
 
@@ -33,13 +33,13 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/assets/r2test"
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/iap/iaptest"
-	"ludoroyale/internal/postgres"
-	"ludoroyale/internal/redisstore"
-	"ludoroyale/internal/rooms"
-	"ludoroyale/internal/server"
+	"ludoarena/internal/assets/r2test"
+	"ludoarena/internal/config"
+	"ludoarena/internal/iap/iaptest"
+	"ludoarena/internal/postgres"
+	"ludoarena/internal/redisstore"
+	"ludoarena/internal/rooms"
+	"ludoarena/internal/server"
 )
 
 const (
@@ -49,7 +49,7 @@ const (
 	appVersion = "1.0.0"
 	// Fake R2 bucket (internal/assets/r2test); never a real account.
 	testR2Account = "0123456789abcdef0123456789abcdef"
-	testR2Bucket  = "ludo-royale"
+	testR2Bucket  = "ludo-arena"
 	testR2KeyID   = "AKIDE2ETEST"
 	testR2Secret  = "e2e-fake-r2-secret"
 )

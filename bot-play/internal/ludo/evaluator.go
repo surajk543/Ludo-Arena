@@ -5,7 +5,7 @@ import (
 	"math/rand/v2"
 	"sort"
 
-	"ludoroyale/botplay/internal/profiles"
+	"ludoarena/botplay/internal/profiles"
 )
 
 // View is the visible state the evaluator needs. Everything comes from the

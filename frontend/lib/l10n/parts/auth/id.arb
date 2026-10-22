@@ -42,7 +42,7 @@
   "authAlreadySavedTitle": "Progresmu sudah tersimpan",
   "authAlreadySavedMessage": "Akun ini sudah tertaut ke metode masuk, jadi progresmu aman.",
   "authConflictTitle": "Akun {provider} ini sudah digunakan",
-  "authConflictMessage": "Akun {provider} itu sudah punya akun Ludo Royale sendiri. Tidak ada yang digabung atau dipindahkan antara kedua akun.",
+  "authConflictMessage": "Akun {provider} itu sudah punya akun Ludo Arena sendiri. Tidak ada yang digabung atau dipindahkan antara kedua akun.",
   "authConflictSignIn": "Masuk ke akun itu",
   "authConflictGuestNote": "Akun tamumu tetap ada di perangkat ini — kamu bisa kembali ke akun itu dari Pengaturan.",
   "authAlreadyLinkedTitle": "Sudah tertaut",

@@ -11,12 +11,12 @@ const testSecret = "test-public-id-key-0123456789abcdef"
 
 // Golden vectors computed independently (Python hmac/hashlib):
 //
-//	k = HMAC-SHA256(secret, "ludo-royale/device-id/v1")
+//	k = HMAC-SHA256(secret, "ludo-arena/device-id/v1")
 //	subject = hex(HMAC-SHA256(k, platform + ":" + deviceId))
 const (
-	goldenKey     = "07de8b71a36016df8e3394ce029c56b86ffd944f4325baaeab0d7700f971ef5e"
-	goldenAndroid = "ecb275414f3f5cd306f8bc5f6984b263663fe062b0e84cac1b43f5da85140d2c"
-	goldenIOS     = "e78426c4073dade5f2fe63ee1ad823a9bc005d0ba662ea0ed489ca2ae9b90c5f"
+	goldenKey     = "b14939389ec43e76ef4fefae686947163fc4c750d3848b254e21477d9657f4ab"
+	goldenAndroid = "33c621c4ede4f3bb6225366aad17bfad2f29563baa5e3f617c108158f6b92f1d"
+	goldenIOS     = "b4a32f02392dbf8a4a5c7cefdc41d9333bf6951dfe9d07b48b0addd39c106b94"
 	goldenID      = "a1b2c3d4e5f60718"
 )
 

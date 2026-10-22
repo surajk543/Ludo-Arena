@@ -24,8 +24,8 @@ import (
 	"syscall"
 	"time"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/ratelimit"
 )
 
 // Path is the public route of the notices page (outside /api/v1).

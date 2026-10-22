@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/realtime/realtime_status.dart';
-import 'package:ludo_royale/core/time/server_clock.dart';
-import 'package:ludo_royale/shared/widgets/widgets.dart';
+import 'package:ludo_arena/core/realtime/realtime_status.dart';
+import 'package:ludo_arena/core/time/server_clock.dart';
+import 'package:ludo_arena/shared/widgets/widgets.dart';
 
 import 'widget_harness.dart';
 

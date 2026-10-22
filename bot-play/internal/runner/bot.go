@@ -12,10 +12,10 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/connection"
-	"ludoroyale/botplay/internal/strategy"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/connection"
+	"ludoarena/botplay/internal/strategy"
 )
 
 const gameNone = "none"

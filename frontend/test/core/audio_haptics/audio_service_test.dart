@@ -3,12 +3,12 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_backend.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/audio_haptics/haptics_service.dart';
-import 'package:ludo_royale/core/lifecycle/app_lifecycle.dart';
-import 'package:ludo_royale/core/settings/app_settings.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_backend.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/audio_haptics/haptics_service.dart';
+import 'package:ludo_arena/core/lifecycle/app_lifecycle.dart';
+import 'package:ludo_arena/core/settings/app_settings.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A service over a [RecordingAudioBackend] with a manual clock.

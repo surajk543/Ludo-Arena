@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
 )
 
 func params() FillParams {

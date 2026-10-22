@@ -33,7 +33,7 @@ import (
 	"strconv"
 	"strings"
 
-	"ludoroyale/internal/game"
+	"ludoarena/internal/game"
 )
 
 // Board constants.

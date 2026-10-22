@@ -69,7 +69,7 @@ class _Pending {
   final Timer timer;
 }
 
-/// The single authenticated WebSocket (`/api/v1/ws`, `ludo-royale.v1`).
+/// The single authenticated WebSocket (`/api/v1/ws`, `ludo-arena.v1`).
 ///
 /// - [start] / [stop] are driven by the session (ready ↔ signed out).
 /// - Reconnects with bounded full-jitter backoff; pauses while the app is

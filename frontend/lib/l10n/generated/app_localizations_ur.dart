@@ -158,7 +158,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String authConflictMessage(String provider) {
-    return 'اس $provider اکاؤنٹ کا اپنا الگ لوڈو رائل اکاؤنٹ پہلے سے موجود ہے۔ دونوں اکاؤنٹس کے درمیان کچھ بھی ضم یا منتقل نہیں ہوگا۔';
+    return 'اس $provider اکاؤنٹ کا اپنا الگ لوڈو ایرینا اکاؤنٹ پہلے سے موجود ہے۔ دونوں اکاؤنٹس کے درمیان کچھ بھی ضم یا منتقل نہیں ہوگا۔';
   }
 
   @override
@@ -525,7 +525,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get connectionBackOnline => 'دوبارہ آن لائن';
 
   @override
-  String get appTitle => 'لوڈو رائل';
+  String get appTitle => 'لوڈو ایرینا';
 
   @override
   String get languageNameNative => 'اردو';
@@ -905,7 +905,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get gateForceUpdateMessage =>
-      'لوڈو رائل کا یہ ورژن اب سپورٹ نہیں ہوتا۔ آن لائن کھیلتے رہنے کے لیے اپڈیٹ کریں — آپ کے سکے اور پیش رفت محفوظ ہیں۔';
+      'لوڈو ایرینا کا یہ ورژن اب سپورٹ نہیں ہوتا۔ آن لائن کھیلتے رہنے کے لیے اپڈیٹ کریں — آپ کے سکے اور پیش رفت محفوظ ہیں۔';
 
   @override
   String get gateInstalledVersion => 'انسٹال شدہ ورژن';
@@ -936,7 +936,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get gateMaintenanceMessage =>
-      'لوڈو رائل پر مینٹیننس جاری ہے۔ آپ کے سکے، پیش رفت اور جاری میچ محفوظ ہیں — ہماری واپسی پر میچ دوبارہ شروع ہوں گے۔';
+      'لوڈو ایرینا پر مینٹیننس جاری ہے۔ آپ کے سکے، پیش رفت اور جاری میچ محفوظ ہیں — ہماری واپسی پر میچ دوبارہ شروع ہوں گے۔';
 
   @override
   String gateMaintenanceEstimatedEnd(String time) {
@@ -970,7 +970,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get gateUnreachableMessage =>
-      'آن لائن کھیلنے کے لیے لوڈو رائل کو انٹرنیٹ کنکشن درکار ہے۔ اپنا وائی فائی یا موبائل ڈیٹا چیک کریں اور دوبارہ کوشش کریں۔';
+      'آن لائن کھیلنے کے لیے لوڈو ایرینا کو انٹرنیٹ کنکشن درکار ہے۔ اپنا وائی فائی یا موبائل ڈیٹا چیک کریں اور دوبارہ کوشش کریں۔';
 
   @override
   String get gateUnreachableLastKnownMaintenance =>
@@ -985,7 +985,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get gateNotFoundMessage =>
-      'لوڈو رائل کا یہ حصہ اس ورژن میں ابھی دستیاب نہیں ہے۔';
+      'لوڈو ایرینا کا یہ حصہ اس ورژن میں ابھی دستیاب نہیں ہے۔';
 
   @override
   String get gateGoHome => 'ہوم پر واپس جائیں';
@@ -1948,7 +1948,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String metaShareFriendCodeMessage(String code) {
-    return 'آئیں مل کر لوڈو رائل کھیلیں! میرے کوڈ سے مجھے دوست بنائیں: $code';
+    return 'آئیں مل کر لوڈو ایرینا کھیلیں! میرے کوڈ سے مجھے دوست بنائیں: $code';
   }
 
   @override
@@ -2180,7 +2180,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get onboardingPreviewLabel => 'جھلک';
 
   @override
-  String get onboardingPreviewTitle => 'لوڈو رائل میں خوش آمدید!';
+  String get onboardingPreviewTitle => 'لوڈو ایرینا میں خوش آمدید!';
 
   @override
   String get onboardingPreviewBody =>
@@ -2349,11 +2349,11 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String playInviteShareText(String game, String code) {
-    return 'Ludo Royale پر میرے ساتھ $game کھیلو! ایپ کھولو، \'کوڈ سے شامل ہوں\' پر ٹیپ کرو اور یہ کوڈ ڈالو: $code';
+    return 'Ludo Arena پر میرے ساتھ $game کھیلو! ایپ کھولو، \'کوڈ سے شامل ہوں\' پر ٹیپ کرو اور یہ کوڈ ڈالو: $code';
   }
 
   @override
-  String get playInviteShareSubject => 'Ludo Royale کی دعوت';
+  String get playInviteShareSubject => 'Ludo Arena کی دعوت';
 
   @override
   String playLobbyPlayers(int count, int capacity) {
@@ -2860,7 +2860,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String profileShareFriendCode(String code) {
-    return 'لوڈو رائل پر مجھے شامل کریں! میرا فرینڈ کوڈ ہے $code';
+    return 'لوڈو ایرینا پر مجھے شامل کریں! میرا فرینڈ کوڈ ہے $code';
   }
 
   @override
@@ -3108,7 +3108,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get settingsConsentTitle =>
-      'لوڈو رائل کو بہتر بنانے میں ہماری مدد کریں';
+      'لوڈو ایرینا کو بہتر بنانے میں ہماری مدد کریں';
 
   @override
   String get settingsConsentMessage =>

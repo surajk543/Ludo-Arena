@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/legal/bundled_licenses.dart';
+import 'package:ludo_arena/core/legal/bundled_licenses.dart';
 
 import '../../tool/export_oss_notices.dart' as tool;
 
@@ -50,7 +50,7 @@ void main() {
     final entries = tool.parseNotices(_fixture);
     final html = tool.renderHtml(entries, appVersion: '1.2.3+4');
     expect(html, startsWith('<!doctype html>'));
-    expect(html, contains('<title>Ludo Royale — Open-source notices</title>'));
+    expect(html, contains('<title>Ludo Arena — Open-source notices</title>'));
     expect(html, contains('app version 1.2.3+4'));
     // Texts are reproduced verbatim, HTML-escaped inside <pre>.
     expect(
@@ -105,7 +105,7 @@ void main() {
     final page = File('../backend/config/legal/open-source-notices.html');
     expect(page.existsSync(), isTrue);
     final html = page.readAsStringSync();
-    expect(html, contains('<title>Ludo Royale — Open-source notices</title>'));
+    expect(html, contains('<title>Ludo Arena — Open-source notices</title>'));
     for (final name in bundledFontLicenses.keys) {
       expect(html, contains('</span> $name</h2>'), reason: name);
     }

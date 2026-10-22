@@ -11,7 +11,7 @@
   "@onboardingPreviewLabel": {
     "description": "Label of the live language preview card."
   },
-  "onboardingPreviewTitle": "Welcome to Ludo Royale!",
+  "onboardingPreviewTitle": "Welcome to Ludo Arena!",
   "@onboardingPreviewTitle": {
     "description": "Preview card headline."
   },

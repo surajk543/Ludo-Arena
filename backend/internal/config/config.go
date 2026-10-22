@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"ludoroyale/internal/apppolicy"
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/apppolicy"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/wallet"
 )
 
 // Environment names accepted by APP_ENV.
@@ -130,7 +130,7 @@ func (c IAPConfig) AppleOn() bool { return c.AppleEnabled || c.AppleKeyFile != "
 
 // Defaults for IAPConfig.
 const (
-	DefaultAppPackage           = "com.ludoroyale.app"
+	DefaultAppPackage           = "com.ludoarena.app"
 	DefaultGoogleVoidedInterval = time.Hour
 	DefaultGoogleVoidedLookback = 7 * 24 * time.Hour
 )
@@ -401,13 +401,13 @@ func Load() (*Config, error) {
 	}
 	c.Auth = AuthConfig{
 		JWTSigningKey:     []byte(signing),
-		JWTIssuer:         get("JWT_ISSUER", "ludo-royale"),
+		JWTIssuer:         get("JWT_ISSUER", "ludo-arena"),
 		AccessTokenTTL:    getDur("ACCESS_TOKEN_TTL", 15*time.Minute),
 		RefreshTokenTTL:   getDur("REFRESH_TOKEN_TTL", 30*24*time.Hour),
 		PublicIDKey:       []byte(publicIDKey),
 		GoogleClientIDs:   getList("GOOGLE_CLIENT_IDS"),
 		AppleAudiences:    getList("APPLE_AUDIENCES"),
-		AppleAndroidPkg:   get("APPLE_ANDROID_PACKAGE", "com.ludoroyale.app"),
+		AppleAndroidPkg:   get("APPLE_ANDROID_PACKAGE", "com.ludoarena.app"),
 		FacebookAppID:     get("FACEBOOK_APP_ID", ""),
 		FacebookAppSecret: get("FACEBOOK_APP_SECRET", ""),
 		GoogleJWKSURL:     get("GOOGLE_JWKS_URL", "https://www.googleapis.com/oauth2/v3/certs"),

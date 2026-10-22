@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/wallet"
 )
 
 // Providers.

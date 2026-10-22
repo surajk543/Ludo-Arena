@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ludo_royale/app/routes.dart';
-import 'package:ludo_royale/core/analytics/analytics_providers.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/links/external_link_launcher.dart';
-import 'package:ludo_royale/core/localization/language_controller.dart';
-import 'package:ludo_royale/core/localization/number_format.dart';
-import 'package:ludo_royale/core/settings/app_settings.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/core/theme/theme_controller.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/settings/presentation/settings_screen.dart';
+import 'package:ludo_arena/app/routes.dart';
+import 'package:ludo_arena/core/analytics/analytics_providers.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/links/external_link_launcher.dart';
+import 'package:ludo_arena/core/localization/language_controller.dart';
+import 'package:ludo_arena/core/localization/number_format.dart';
+import 'package:ludo_arena/core/settings/app_settings.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/theme/theme_controller.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/settings/presentation/settings_screen.dart';
 
 import '../../helpers/harness.dart';
 import '../../helpers/screen_harness.dart';
@@ -311,7 +311,7 @@ void main() {
     await reveal(tester, find.text('Legal notices'));
     await tester.tap(find.text('Legal notices'));
     await drain(tester);
-    expect(links.opened, ['https://sungamestudio.com/ludo-royale/legal/']);
+    expect(links.opened, ['https://sungamestudio.com/ludo-arena/legal/']);
     // Nothing is pushed inside the app: no framework license page.
     expect(find.byType(LicensePage), findsNothing);
     expect(find.byType(AboutDialog), findsNothing);
@@ -357,7 +357,7 @@ void main() {
       expect(legal, findsOneWidget);
       await tester.tap(legal);
       await drain(tester);
-      expect(links.opened, ['https://sungamestudio.com/ludo-royale/legal/']);
+      expect(links.opened, ['https://sungamestudio.com/ludo-arena/legal/']);
       expect(find.byType(LicensePage), findsNothing);
       for (final t in visibleTexts(tester)) {
         expect(t.toLowerCase(), isNot(contains('flutter')), reason: t);

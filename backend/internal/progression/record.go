@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/metrics"
 )
 
 // Anti-farming thresholds (docs/progression.md → Anti-farming).

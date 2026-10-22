@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 // policyWithFees is the test policy plus an "entryFees" object (raw JSON).

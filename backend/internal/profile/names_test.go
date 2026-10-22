@@ -102,6 +102,10 @@ func TestValidateNameRejects(t *testing.T) {
 		{"Support Team", ReasonReserved},
 		{"Official Asha", ReasonReserved},
 		{"System", ReasonReserved},
+		{"Ludo Arena", ReasonReserved},
+		{"ludo_arena_x", ReasonReserved},
+		{"LudoArena", ReasonReserved},
+		{"Ludo 4rena", ReasonReserved},
 		{"Ludo Royale", ReasonReserved},
 		{"ludo_royale_x", ReasonReserved},
 		{"LudoRoyale", ReasonReserved},
@@ -211,6 +215,7 @@ func TestSkeleton(t *testing.T) {
 		{"ａｄｍｉｎ", "admin"},
 		{"𝐚𝐝𝐦𝐢𝐧", "admin"},
 		{"аdmіn", "admin"}, // Cyrillic а, і
+		{"Ludo Arena", "iudoarena"},
 		{"Ludo Royale", "iudoroyaie"},
 		{"1337", "ieet"},
 	}

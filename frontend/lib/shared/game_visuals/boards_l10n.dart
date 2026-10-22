@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 
 import 'seat_color.dart';
 

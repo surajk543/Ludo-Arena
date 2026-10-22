@@ -1,5 +1,5 @@
 // Exports the app's open-source notices as a static HTML page, published at
-// https://sungamestudio.com/ludo-royale/legal/ (Settings > About > Legal
+// https://sungamestudio.com/ludo-arena/legal/ (Settings > About > Legal
 // notices opens it in the browser) and also served by the backend at
 // GET /legal/open-source as a fallback. The app itself shows no license page.
 //
@@ -22,9 +22,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:ludo_royale/core/legal/bundled_licenses.dart';
+import 'package:ludo_arena/core/legal/bundled_licenses.dart';
 
-const String pageTitle = 'Ludo Royale — Open-source notices';
+const String pageTitle = 'Ludo Arena — Open-source notices';
 
 const List<String> defaultNoticesPaths = [
   'build/flutter_assets/NOTICES.Z',
@@ -120,7 +120,7 @@ String renderHtml(List<NoticeEntry> entries, {String? appVersion}) {
     ..writeln('<header>')
     ..writeln('<h1>${escapeHtml(pageTitle)}</h1>')
     ..writeln(
-      '<p>Ludo Royale includes open-source software and fonts. The '
+      '<p>Ludo Arena includes open-source software and fonts. The '
       'license and notice texts of every third-party component in the app '
       'are reproduced below, unmodified.</p>',
     )

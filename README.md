@@ -1,4 +1,4 @@
-# Ludo Royale
+# Ludo Arena
 
 Multiplayer **Ludo** (classic and Quick) and **Snakes & Ladders** for Android
 and iOS. A Flutter app talks to an **authoritative Go backend** (REST +
@@ -69,17 +69,17 @@ A short Markdown companion is in [docs/architecture.md](docs/architecture.md).
 ```
 frontend/   Flutter app (Android/iOS): lib/app, lib/core/{analytics,app_policy,realtime,protocol,
             localization,theme,network,...}, lib/features/*, l10n.yaml, tool/merge_arb.dart
-backend/    Go backend (module "ludoroyale"): cmd/server, internal/{server,httpapi,websocket,auth,
+backend/    Go backend (module "ludoarena"): cmd/server, internal/{server,httpapi,websocket,auth,
             identity,wallet,rooms,game/ludo,game/snakes_ladders,apppolicy,progression,social,
             analytics,...}, migrations/, config/ (app policy, catalog, missions), docs/, tests/
-bot-play/   Go bot service (separate module "ludoroyale/botplay"): cmd/bot-play, internal/*,
+bot-play/   Go bot service (separate module "ludoarena/botplay"): cmd/bot-play, internal/*,
             configs/, tests/
 monitoring/ Prometheus (targets, rules/thresholds.yml, alert rule tests), Alertmanager,
-            docker-compose.yml, and ops-bot/ (separate Go module "ludoroyale/opsbot"):
+            docker-compose.yml, and ops-bot/ (separate Go module "ludoarena/opsbot"):
             Telegram status / daily KPI PDFs and enriched alerts
 docs/       Architecture page and contracts (REST, WebSocket, auth, app policy, progression,
             bot-play, deployment, performance, cosmetics)
-website/    Ludo Royale pages for sungamestudio.com (static, deployed by hand): game page,
+website/    Ludo Arena pages for sungamestudio.com (static, deployed by hand): game page,
             privacy policy draft, open-source notices, homepage snippets (website/README.md)
 ```
 
@@ -156,7 +156,7 @@ notes: [monitoring/README.md](monitoring/README.md).
 cd backend && go test -race ./...
 # Backend: + end-to-end integration tests against a dedicated test PostgreSQL and Redis
 #          (they flush their Redis DB; never point them at real data)
-TEST_DATABASE_URL=postgres://…/ludo_royale_test TEST_REDIS_ADDR=127.0.0.1:6379 go test -race ./...
+TEST_DATABASE_URL=postgres://…/ludo_arena_test TEST_REDIS_ADDR=127.0.0.1:6379 go test -race ./...
 
 # Flutter
 cd frontend && flutter analyze && flutter test
@@ -193,7 +193,7 @@ list with groups is in [the architecture page](docs/architecture.html#env-vars).
 |---|---|
 | [docs/architecture.html](docs/architecture.html) | System architecture and flow diagrams (start here) |
 | [docs/architecture.md](docs/architecture.md) | Markdown overview, wallet settlement guarantees, security |
-| [docs/websocket-protocol.md](docs/websocket-protocol.md) | Realtime protocol `ludo-royale.v1` |
+| [docs/websocket-protocol.md](docs/websocket-protocol.md) | Realtime protocol `ludo-arena.v1` |
 | [docs/rest-api.md](docs/rest-api.md) | REST API `/api/v1` |
 | [docs/authentication.md](docs/authentication.md) | Accounts, sessions, providers |
 | [docs/app-version-policy.md](docs/app-version-policy.md) | Force/optional update and maintenance |
@@ -206,7 +206,7 @@ list with groups is in [the architecture page](docs/architecture.html#env-vars).
 | [backend/docs/game-rules.md](backend/docs/game-rules.md) | Game rules, board geometry, state hash |
 | [backend/docs/redis-keys.md](backend/docs/redis-keys.md) | Redis key layout |
 | [bot-play/README.md](bot-play/README.md) | bot-play quick start |
-| [website/README.md](website/README.md) | Ludo Royale pages for sungamestudio.com and how to deploy them |
+| [website/README.md](website/README.md) | Ludo Arena pages for sungamestudio.com and how to deploy them |
 
 ## Status / pending items
 
@@ -243,7 +243,7 @@ Pending:
     handled by Google Play and are not collected by the app.
   - **App Store App Privacy**: declare **Purchases → Purchase History**, linked
     to the user, not used for tracking, purpose *App Functionality*.
-  - Keep the privacy policy (`website/ludo-royale/privacy/`) in step: it
+  - Keep the privacy policy (`website/ludo-arena/privacy/`) in step: it
     describes the purchase record and refunds.
 - **Firebase Analytics**: DebugView verification on a real device.
 - **Production infrastructure**: load balancer, managed PostgreSQL/Redis,

@@ -48,7 +48,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/playerinfo"
+	"ludoarena/internal/playerinfo"
 )
 
 // Persona pools.

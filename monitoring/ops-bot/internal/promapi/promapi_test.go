@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/opsbot/internal/promapi"
-	"ludoroyale/opsbot/internal/promapi/promtest"
+	"ludoarena/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/promapi/promtest"
 )
 
 func TestQueryAgainstFakeAPI(t *testing.T) {

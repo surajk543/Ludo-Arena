@@ -1,4 +1,4 @@
-module ludoroyale/opsbot
+module ludoarena/opsbot
 
 go 1.27.3
 

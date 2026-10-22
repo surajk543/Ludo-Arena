@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"ludoroyale/opsbot/internal/alertmanager"
-	"ludoroyale/opsbot/internal/google"
+	"ludoarena/opsbot/internal/alertmanager"
+	"ludoarena/opsbot/internal/google"
 )
 
 // Meta is the per-deployment context of every message.
@@ -17,7 +17,7 @@ type Meta struct {
 }
 
 func (m Meta) header(kind string, t time.Time) string {
-	return fmt.Sprintf("<b>Ludo Royale · %s</b> — %s\n%s", Esc(m.Env), kind, Esc(Stamp(t, m.Loc)))
+	return fmt.Sprintf("<b>Ludo Arena · %s</b> — %s\n%s", Esc(m.Env), kind, Esc(Stamp(t, m.Loc)))
 }
 
 func joinNonEmpty(sep string, parts ...string) string {
@@ -122,7 +122,7 @@ func DigestCaption(d Digest, m Meta) string {
 // DigestText renders the daily KPI digest as Telegram HTML.
 func DigestText(d Digest, m Meta) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "<b>Ludo Royale · %s</b> — daily KPIs\n%s (%s)\n\n", Esc(m.Env), Date(d.Day), Esc(d.Day.Format("MST")))
+	fmt.Fprintf(&b, "<b>Ludo Arena · %s</b> — daily KPIs\n%s (%s)\n\n", Esc(m.Env), Date(d.Day), Esc(d.Day.Format("MST")))
 
 	b.WriteString("<b>Players</b>\n")
 	line := "New accounts " + I(d.NewAccounts)

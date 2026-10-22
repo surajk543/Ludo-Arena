@@ -9,8 +9,8 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/rooms"
 )
 
 func asyncCount(job, result string) float64 {

@@ -9,10 +9,10 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/wallet"
 )
 
 // RunScheduler processes due timers (turn deadlines, fill deadlines, lobby

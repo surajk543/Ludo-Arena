@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:ludo_royale/features/leaderboard/domain/leaderboard_models.dart';
-import 'package:ludo_royale/features/leaderboard/presentation/leaderboard_screen.dart';
+import 'package:ludo_arena/features/leaderboard/domain/leaderboard_models.dart';
+import 'package:ludo_arena/features/leaderboard/presentation/leaderboard_screen.dart';
 
 import '../progression/meta_test_support.dart';
 

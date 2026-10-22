@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/active_room_controller.dart';
-import 'package:ludo_royale/features/game/application/play_config.dart';
-import 'package:ludo_royale/features/practice/presentation/practice_screen.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/active_room_controller.dart';
+import 'package:ludo_arena/features/game/application/play_config.dart';
+import 'package:ludo_arena/features/practice/presentation/practice_screen.dart';
 
 import '../game/support/play_test_support.dart';
 

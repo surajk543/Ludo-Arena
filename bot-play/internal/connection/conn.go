@@ -15,7 +15,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/config"
 )
 
 // ErrQueueFull is returned when the bounded outbound queue is full.

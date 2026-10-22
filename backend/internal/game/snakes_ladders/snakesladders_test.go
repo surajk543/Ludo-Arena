@@ -8,7 +8,7 @@ import (
 	"slices"
 	"testing"
 
-	"ludoroyale/internal/game"
+	"ludoarena/internal/game"
 )
 
 func mustNew(t *testing.T, n int) *State {

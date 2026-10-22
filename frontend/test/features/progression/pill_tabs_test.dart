@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/theme/app_theme.dart';
-import 'package:ludo_royale/features/progression/presentation/widgets/pill_tabs.dart';
+import 'package:ludo_arena/core/theme/app_theme.dart';
+import 'package:ludo_arena/features/progression/presentation/widgets/pill_tabs.dart';
 
 Widget _host(int selected, {String? trailing}) => ProviderScope(
   child: MaterialApp(

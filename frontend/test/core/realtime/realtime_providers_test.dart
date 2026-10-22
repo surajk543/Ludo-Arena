@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/lifecycle/app_lifecycle.dart';
-import 'package:ludo_royale/core/realtime/realtime_providers.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/core/storage/secure_session_store.dart';
+import 'package:ludo_arena/core/lifecycle/app_lifecycle.dart';
+import 'package:ludo_arena/core/realtime/realtime_providers.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/storage/secure_session_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

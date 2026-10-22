@@ -2,19 +2,19 @@
 
 Guidance for Claude Code (and engineers) working in this repository.
 
-Ludo Royale: online multiplayer Ludo (classic + quick) and Snakes & Ladders.
+Ludo Arena: online multiplayer Ludo (classic + quick) and Snakes & Ladders.
 Four independent projects — never mix their code or dependencies:
 
 | Dir | Stack | Module / package |
 |---|---|---|
-| `frontend/` | Flutter 3.44 / Dart 3.12, Riverpod 3, go_router 18 | `ludo_royale` |
-| `backend/` | Go 1.27, PostgreSQL 16, Redis 7 | `ludoroyale` |
-| `bot-play/` | Go 1.27 (separate module) | `ludoroyale/botplay` |
-| `monitoring/` | Prometheus 3, Alertmanager, node_exporter + Telegram ops bot in Go 1.27 (`monitoring/ops-bot`, separate module; gonum/plot charts, go-pdf/fpdf PDFs) | `ludoroyale/opsbot` |
+| `frontend/` | Flutter 3.44 / Dart 3.12, Riverpod 3, go_router 18 | `ludo_arena` |
+| `backend/` | Go 1.27, PostgreSQL 16, Redis 7 | `ludoarena` |
+| `bot-play/` | Go 1.27 (separate module) | `ludoarena/botplay` |
+| `monitoring/` | Prometheus 3, Alertmanager, node_exporter + Telegram ops bot in Go 1.27 (`monitoring/ops-bot`, separate module; gonum/plot charts, go-pdf/fpdf PDFs) | `ludoarena/opsbot` |
 
-`website/` — Ludo Royale pages for sungamestudio.com (static, deployed by hand; not
+`website/` — Ludo Arena pages for sungamestudio.com (static, deployed by hand; not
 part of the app or backend). See `website/README.md`; regenerate
-`website/ludo-royale/legal/index.html` with `website/build_legal_page.py` whenever
+`website/ludo-arena/legal/index.html` with `website/build_legal_page.py` whenever
 `backend/config/legal/open-source-notices.html` changes.
 
 `deploy/` — production VPS for `https://ludo.sungamestudio.com` (backend,
@@ -68,7 +68,7 @@ of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
 cd backend
 go build ./... && go vet ./...
 go test -race ./...                                   # unit tests
-TEST_DATABASE_URL=postgres://…/ludo_royale_test?sslmode=disable \
+TEST_DATABASE_URL=postgres://…/ludo_arena_test?sslmode=disable \
 TEST_REDIS_ADDR=127.0.0.1:6379 go test -race ./...    # + e2e tests in tests/
 go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 set -a; . ./.env; set +a; go run ./cmd/server         # :8080, metrics 127.0.0.1:9090
@@ -98,7 +98,7 @@ TELEGRAM_DRY_RUN=true DRY_RUN_DIR=./dry-run go run ./cmd/ops-bot --run-status-no
 ```
 
 Integration tests flush Redis logical DB 13 (backend e2e) and use DB 14
-(progression tests) plus the `ludo_royale_test` database — never point them at
+(progression tests) plus the `ludo_arena_test` database — never point them at
 real data.
 
 ## Where things live

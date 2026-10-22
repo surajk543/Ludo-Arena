@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/active_room_controller.dart';
-import 'package:ludo_royale/features/snakes_ladders/presentation/board/board.dart';
-import 'package:ludo_royale/features/snakes_ladders/presentation/screens/snakes_game_screen.dart';
-import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/active_room_controller.dart';
+import 'package:ludo_arena/features/snakes_ladders/presentation/board/board.dart';
+import 'package:ludo_arena/features/snakes_ladders/presentation/screens/snakes_game_screen.dart';
+import 'package:ludo_arena/shared/game_visuals/game_visuals.dart';
 
 import '../../../game/support/play_test_support.dart';
 

@@ -26,9 +26,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/ratelimit"
 )
 
 // sketchTTL keeps a day sketch long enough for "yesterday" and a week sketch

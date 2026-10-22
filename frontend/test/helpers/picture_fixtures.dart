@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:ludo_royale/core/assets/assets_api.dart';
-import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
-import 'package:ludo_royale/core/protocol/models.dart'
+import 'package:ludo_arena/core/assets/assets_api.dart';
+import 'package:ludo_arena/core/assets/profile_picture_cache.dart';
+import 'package:ludo_arena/core/protocol/models.dart'
     show CatalogAsset, EmoteAsset, PlayerPicture;
 import 'package:lottie/lottie.dart';
 

@@ -14,7 +14,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"ludoroyale/internal/identity"
+	"ludoarena/internal/identity"
 )
 
 // Device binding (docs/authentication.md "Device binding"): a guest is

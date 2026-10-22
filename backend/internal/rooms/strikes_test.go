@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/game/ludo"
-	"ludoroyale/internal/protocol"
+	"ludoarena/internal/config"
+	"ludoarena/internal/game/ludo"
+	"ludoarena/internal/protocol"
 )
 
 // strikeHarness drives a two-player Ludo room in memory (no Redis): each

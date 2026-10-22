@@ -11,7 +11,7 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/metrics"
 )
 
 func quiet() *slog.Logger { return slog.New(slog.NewTextHandler(io.Discard, nil)) }

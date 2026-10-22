@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/config/app_config.dart';
+import 'package:ludo_arena/core/config/app_config.dart';
 
 void main() {
   test('production builds default to the production backend', () {
@@ -32,7 +32,7 @@ void main() {
 
   test('production builds offer Sign in with Apple on Android', () {
     const env = AppEnvironment.production;
-    expect(AppConfig.defaultAppleServiceId(env), 'com.ludoroyale.app.signin');
+    expect(AppConfig.defaultAppleServiceId(env), 'com.ludoarena.app.signin');
     expect(
       AppConfig.defaultAppleRedirectUri(env),
       'https://ludo.sungamestudio.com/api/v1/auth/apple/callback',

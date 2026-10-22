@@ -57,12 +57,12 @@ class IoRealtimeSocket implements RealtimeSocket {
   @override
   String? get closeReason => _ws.closeReason;
 
-  /// What the server selected (`ludo-royale.v1`), if any.
+  /// What the server selected (`ludo-arena.v1`), if any.
   String? get protocol => _ws.protocol;
 }
 
 /// Default connector: `dart:io` [WebSocket.connect] with the
-/// `ludo-royale.v1` subprotocol and permessage-deflate negotiation
+/// `ludo-arena.v1` subprotocol and permessage-deflate negotiation
 /// ([CompressionOptions.compressionDefault]; decompression is transparent and
 /// the application protocol is identical either way).
 Future<RealtimeSocket> ioWebSocketConnector(

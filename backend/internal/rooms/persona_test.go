@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/progression"
-	"ludoroyale/internal/protocol"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/progression"
+	"ludoarena/internal/protocol"
 )
 
 func testCatalog(t *testing.T) []playerinfo.CatalogItem {

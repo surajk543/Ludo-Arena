@@ -35,8 +35,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/theme/app_colors.dart';
-import 'package:ludo_royale/shared/widgets/brand_logo.dart';
+import 'package:ludo_arena/core/theme/app_colors.dart';
+import 'package:ludo_arena/shared/widgets/brand_logo.dart';
 
 /// Launch-screen crest width in points/dp. Matches the in-app splash
 /// (`BrandLogo(size: 132)` in features/app_update/presentation/splash_screen).

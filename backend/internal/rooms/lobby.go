@@ -12,11 +12,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/ratelimit"
 )
 
 // Caller identifies who issued a command.

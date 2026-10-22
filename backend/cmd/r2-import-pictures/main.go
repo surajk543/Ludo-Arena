@@ -40,7 +40,7 @@ import (
 	"syscall"
 	"time"
 
-	"ludoroyale/internal/assets"
+	"ludoarena/internal/assets"
 )
 
 // maxObject bounds a downloaded source file.

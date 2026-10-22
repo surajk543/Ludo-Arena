@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/iap/iaptest"
+	"ludoarena/internal/iap/iaptest"
 )
 
 func newTestGoogle(t *testing.T, fake *iaptest.Google, pkg string) *GooglePlay {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/protocol"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/protocol"
 )
 
 // eligibleRematch lists seats that may vote: humans who finished the round

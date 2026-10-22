@@ -12,8 +12,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/progression/progtest"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/progression/progtest"
 )
 
 // A fixed far-future date keeps these global sketch keys away from real data;

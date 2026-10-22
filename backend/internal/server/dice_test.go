@@ -3,8 +3,8 @@ package server
 import (
 	"testing"
 
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/config"
+	"ludoarena/internal/rooms"
 )
 
 func TestCheckDice(t *testing.T) {

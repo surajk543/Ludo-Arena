@@ -1,4 +1,4 @@
-/// Ludo Royale game-board rendering library (shared visuals).
+/// Ludo Arena game-board rendering library (shared visuals).
 ///
 /// Pure presentation: every widget renders and animates server-confirmed
 /// state handed to it. Board widgets live in

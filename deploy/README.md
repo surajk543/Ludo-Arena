@@ -26,7 +26,7 @@ bot-play ──────────────┘ (loopback)     metrics 12
 | nginx | `nginx` | www-data | `:80` → redirect, `:443` | TLS, WebSocket proxy; the only public service besides SSH |
 | Backend | `ludo-backend` | ludo | `127.0.0.1:8080`, metrics `127.0.0.1:9090` | `APP_ENV=production` |
 | bot-play | `ludo-bot-play` | ludo | metrics `127.0.0.1:9091` | Practice-game bots; connects to `https://ludo.sungamestudio.com` via `/etc/hosts` → 127.0.0.1 |
-| PostgreSQL 16 | `postgresql@16-main` | postgres | `127.0.0.1:5432` | Database `ludo_royale`, role `ludo` |
+| PostgreSQL 16 | `postgresql@16-main` | postgres | `127.0.0.1:5432` | Database `ludo_arena`, role `ludo` |
 | Redis 7 | `redis-server` | redis | `127.0.0.1:6379` | Password; AOF every second + RDB; `noeviction` |
 
 The firewall (ufw) allows only 22, 80 and 443. Nothing else is reachable from
@@ -34,15 +34,15 @@ the internet.
 
 | Path | What |
 |---|---|
-| `/opt/ludo-royale/src` | Git checkout used for builds (read-only deploy key) |
-| `/opt/ludo-royale/releases/<utc>-<commit>/` | Built releases: `backend/`, `bot-play/`, `RELEASE`, `MIGRATIONS` |
-| `/opt/ludo-royale/current` | Symlink to the live release (the units run from it) |
-| `/etc/ludo-royale/backend.env` | Backend settings and secrets (mode 0640 root:ludo) |
-| `/etc/ludo-royale/bot-play.env` | `BOT_SERVICE_KEY` (its SHA-256 is in `backend.env`) |
-| `/etc/ludo-royale/secrets/` | Database password, Google Play service-account key |
-| `/etc/redis/ludo-royale-secret.conf` | Redis password |
-| `/var/backups/ludo-royale/` | Database dumps (nightly + before migrations) |
-| `/root/.ssh/ludo_royale_deploy` | Deploy key (GitHub → Ludo-Royale → Settings → Deploy keys, read-only) |
+| `/opt/ludo-arena/src` | Git checkout used for builds (read-only deploy key) |
+| `/opt/ludo-arena/releases/<utc>-<commit>/` | Built releases: `backend/`, `bot-play/`, `RELEASE`, `MIGRATIONS` |
+| `/opt/ludo-arena/current` | Symlink to the live release (the units run from it) |
+| `/etc/ludo-arena/backend.env` | Backend settings and secrets (mode 0640 root:ludo) |
+| `/etc/ludo-arena/bot-play.env` | `BOT_SERVICE_KEY` (its SHA-256 is in `backend.env`) |
+| `/etc/ludo-arena/secrets/` | Database password, Google Play service-account key |
+| `/etc/redis/ludo-arena-secret.conf` | Redis password |
+| `/var/backups/ludo-arena/` | Database dumps (nightly + before migrations) |
+| `/root/.ssh/ludo_arena_deploy` | Deploy key (GitHub → Ludo-Arena → Settings → Deploy keys, read-only) |
 
 ## 2. Get on the server
 
@@ -75,11 +75,11 @@ What it does, in order:
 
 1. Fetches the repository and resolves the ref to a commit.
 2. Builds `backend` and `bot-play` with Go 1.27.3 into
-   `/opt/ludo-royale/releases/<utc>-<commit>/`, copies `backend/config/` and
+   `/opt/ludo-arena/releases/<utc>-<commit>/`, copies `backend/config/` and
    bot-play's `production.yaml` + `profiles.yaml`, and checks bot-play's
    configuration (`-validate`).
 3. If any `backend/migrations/*.sql` file differs from the live release,
-   takes a database backup first (`/var/backups/ludo-royale/*-pre-<release>.dump`).
+   takes a database backup first (`/var/backups/ludo-arena/*-pre-<release>.dump`).
 4. Points `current` at the new release and restarts the backend, which
    applies the migrations at startup, then waits up to 30 s for `/readyz`.
 5. **If the health check fails, it switches back to the previous release by
@@ -124,8 +124,8 @@ only add things (see §5.2). If a migration itself is the problem:
 If `ludo-deploy` itself is broken:
 
 ```bash
-ls /opt/ludo-royale/releases
-ln -sfn /opt/ludo-royale/releases/<name> /opt/ludo-royale/current
+ls /opt/ludo-arena/releases
+ln -sfn /opt/ludo-arena/releases/<name> /opt/ludo-arena/current
 systemctl restart ludo-backend ludo-bot-play
 ```
 
@@ -133,16 +133,16 @@ systemctl restart ludo-backend ludo-bot-play
 
 ### 5.1 What is stored where
 
-PostgreSQL (`ludo_royale`) holds accounts, wallets, progression, purchases
+PostgreSQL (`ludo_arena`) holds accounts, wallets, progression, purchases
 and reports: schemas `wallet`, `identity`, `progression`. Live games,
 matchmaking, sessions and timers live in **Redis only**. The table list is
 fixed by the owner (`CLAUDE.md`, enforced by `backend/tests/schema_guard_test.go`).
 Ask before adding tables.
 
 ```bash
-sudo -u postgres psql ludo_royale                    # interactive
-sudo -u postgres psql ludo_royale -c '\dt wallet.*'
-sudo -u postgres psql ludo_royale -c 'SELECT count(*) FROM wallet.wallets WHERE NOT is_bot'   # accounts
+sudo -u postgres psql ludo_arena                    # interactive
+sudo -u postgres psql ludo_arena -c '\dt wallet.*'
+sudo -u postgres psql ludo_arena -c 'SELECT count(*) FROM wallet.wallets WHERE NOT is_bot'   # accounts
 ```
 
 Be careful with writes: there is no undo except a backup restore.
@@ -171,15 +171,15 @@ such statements in their own file and test the lock time on a copy first.
 
 | When | File | Kept |
 |---|---|---|
-| Every night 21:30 UTC (03:00 IST), `/etc/cron.d/ludo-royale-backup` | `ludo_royale-YYYY-MM-DD.dump` | 14 days |
-| Before a deploy that changes migrations | `ludo_royale-<utc>-pre-<release>.dump` | until removed |
-| By hand: `ludo-deploy backup [label]` | `ludo_royale-<utc>-<label>.dump` | until removed |
+| Every night 21:30 UTC (03:00 IST), `/etc/cron.d/ludo-arena-backup` | `ludo_arena-YYYY-MM-DD.dump` | 14 days |
+| Before a deploy that changes migrations | `ludo_arena-<utc>-pre-<release>.dump` | until removed |
+| By hand: `ludo-deploy backup [label]` | `ludo_arena-<utc>-<label>.dump` | until removed |
 
-All of them are in `/var/backups/ludo-royale/` on the same disk. **Copy them
+All of them are in `/var/backups/ludo-arena/` on the same disk. **Copy them
 off the server** regularly. From a Mac:
 
 ```bash
-scp root@ludo.sungamestudio.com:/var/backups/ludo-royale/ludo_royale-2026-10-23.dump ~/Backups/
+scp root@ludo.sungamestudio.com:/var/backups/ludo-arena/ludo_arena-2026-10-23.dump ~/Backups/
 ```
 
 ### 5.4 Restore a backup
@@ -190,7 +190,7 @@ This replaces the whole database with the dump.
 ludo-deploy backup before-restore                         # keep what is there now
 systemctl stop ludo-bot-play ludo-backend
 sudo -u postgres pg_restore --clean --if-exists --no-owner --role=ludo \
-  -d ludo_royale /var/backups/ludo-royale/<file>.dump
+  -d ludo_arena /var/backups/ludo-arena/<file>.dump
 systemctl start ludo-backend ludo-bot-play
 ludo-deploy status
 ```
@@ -198,7 +198,7 @@ ludo-deploy status
 ### 5.5 Redis
 
 ```bash
-export REDISCLI_AUTH=$(awk '{print $2}' /etc/redis/ludo-royale-secret.conf)
+export REDISCLI_AUTH=$(awk '{print $2}' /etc/redis/ludo-arena-secret.conf)
 redis-cli info clients | head; redis-cli dbsize
 ```
 
@@ -212,10 +212,10 @@ The files in this folder are the source of truth for the server. Change them
 in the repo first, then apply them on the server, so the next provisioning
 gives the same result.
 
-### 6.1 Backend settings (`/etc/ludo-royale/backend.env`)
+### 6.1 Backend settings (`/etc/ludo-arena/backend.env`)
 
 ```bash
-nano /etc/ludo-royale/backend.env
+nano /etc/ludo-arena/backend.env
 systemctl restart ludo-backend          # sockets reconnect, like a deploy
 ```
 
@@ -242,8 +242,8 @@ fees, welcome grant) is also re-read every 5 s and on
 Emergency maintenance without a deploy:
 
 ```bash
-touch /etc/ludo-royale/MAINTENANCE     # players see the maintenance message
-rm /etc/ludo-royale/MAINTENANCE        # back to normal
+touch /etc/ludo-arena/MAINTENANCE     # players see the maintenance message
+rm /etc/ludo-arena/MAINTENANCE        # back to normal
 ```
 
 ### 6.3 nginx
@@ -313,7 +313,7 @@ curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_gam
 | Practice games get no bot | `systemctl status ludo-bot-play`; `curl -s 127.0.0.1:9091/readyz` |
 | Purchases fail with `iap_unavailable` | Google Play key access in Play Console (log: `store credentials refused`); App Store needs `APPLE_IAP_ENABLED=true` |
 | Profile pictures missing | `R2_*` in `backend.env`; log line `assetSigning` at startup |
-| Disk filling up | `df -h /`; old dumps in `/var/backups/ludo-royale`; `journalctl --vacuum-size=1G` |
+| Disk filling up | `df -h /`; old dumps in `/var/backups/ludo-arena`; `journalctl --vacuum-size=1G` |
 
 ## 9. WebSocket capacity
 
@@ -343,17 +343,17 @@ Measured on this VPS (22 Oct 2026): see §9.1.
 2. From the repository root on a Mac:
    `scp -r deploy root@<ip>:/root/ && ssh root@<ip> bash /root/deploy/scripts/provision.sh`
 3. The first run stops after printing a new deploy key: add it in GitHub →
-   Ludo-Royale → Settings → Deploy keys (read-only; delete the old one) and run
+   Ludo-Arena → Settings → Deploy keys (read-only; delete the old one) and run
    `provision.sh` again.
 4. Add the values that are not generated on the server to
-   `/etc/ludo-royale/backend.env`: the four `R2_*`, and
-   `GOOGLE_PLAY_SERVICE_ACCOUNT_FILE=/etc/ludo-royale/secrets/google-play.json`
+   `/etc/ludo-arena/backend.env`: the four `R2_*`, and
+   `GOOGLE_PLAY_SERVICE_ACCOUNT_FILE=/etc/ludo-arena/secrets/google-play.json`
    after copying the key there (`chown root:ludo`, `chmod 0640`).
 5. Restore the latest database dump (§5.4), then `ludo-deploy deploy`.
 
 A new server generates new `JWT_SIGNING_KEY` and `PUBLIC_ID_KEY`. To keep
 players signed in and their device bindings, copy
-`/etc/ludo-royale/backend.env` from the old server instead (step 4).
+`/etc/ludo-arena/backend.env` from the old server instead (step 4).
 
 ## 11. Files in this folder
 
@@ -363,10 +363,10 @@ players signed in and their device bindings, copy
 | `scripts/ludo-deploy` | `/usr/local/bin/ludo-deploy` |
 | `nginx/nginx.conf` | `/etc/nginx/nginx.conf` |
 | `nginx/ludo.sungamestudio.com.conf` | `/etc/nginx/sites-available/ludo.sungamestudio.com` |
-| `sysctl/99-ludo-royale.conf` | `/etc/sysctl.d/99-ludo-royale.conf` |
+| `sysctl/99-ludo-arena.conf` | `/etc/sysctl.d/99-ludo-arena.conf` |
 | `systemd/ludo-backend.service`, `ludo-bot-play.service` | `/etc/systemd/system/` |
 | `systemd/nginx-limits.conf` | `/etc/systemd/system/nginx.service.d/limits.conf` |
-| `redis/ludo-royale.conf` | `/etc/redis/ludo-royale.conf` (included from `redis.conf`) |
-| `postgresql/ludo-royale.conf` | `/etc/postgresql/16/main/conf.d/ludo-royale.conf` |
-| `backend.env.example` | template for `/etc/ludo-royale/backend.env` |
+| `redis/ludo-arena.conf` | `/etc/redis/ludo-arena.conf` (included from `redis.conf`) |
+| `postgresql/ludo-arena.conf` | `/etc/postgresql/16/main/conf.d/ludo-arena.conf` |
+| `backend.env.example` | template for `/etc/ludo-arena/backend.env` |
 | `read.html` | this runbook as a web page |

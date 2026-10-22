@@ -3,9 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/audio_haptics/reduced_motion.dart';
-import 'package:ludo_royale/features/app_update/presentation/studio_intro.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/audio_haptics/reduced_motion.dart';
+import 'package:ludo_arena/features/app_update/presentation/studio_intro.dart';
 
 import '../../helpers/harness.dart';
 import '../../helpers/screen_harness.dart';

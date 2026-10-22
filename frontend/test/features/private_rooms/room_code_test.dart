@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/features/private_rooms/application/room_code.dart';
+import 'package:ludo_arena/features/private_rooms/application/room_code.dart';
 
 void main() {
   group('RoomCode', () {

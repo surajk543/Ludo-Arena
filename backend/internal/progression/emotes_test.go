@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/wallet"
 )
 
 // The seeded Store emote catalogue (config/emotes.tsv).

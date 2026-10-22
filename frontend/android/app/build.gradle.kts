@@ -43,7 +43,7 @@ if (releaseRequested) {
 }
 
 android {
-    namespace = "com.ludoroyale.app"
+    namespace = "com.ludoarena.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -53,7 +53,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ludoroyale.app"
+        applicationId = "com.ludoarena.app"
         // Flutter's default (24) satisfies Firebase, Google Sign-In, Sign in
         // with Apple and flutter_secure_storage.
         minSdk = maxOf(flutter.minSdkVersion, 24)

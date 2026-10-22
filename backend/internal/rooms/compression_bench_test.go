@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/game/ludo"
-	snakes "ludoroyale/internal/game/snakes_ladders"
-	"ludoroyale/internal/protocol"
+	"ludoarena/internal/game/ludo"
+	snakes "ludoarena/internal/game/snakes_ladders"
+	"ludoarena/internal/protocol"
 )
 
 // samplePayloads plays real games with the real engines and captures the

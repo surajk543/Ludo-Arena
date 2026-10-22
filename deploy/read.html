@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ludo Royale Production Runbook</title>
+<title>Ludo Arena Production Runbook</title>
 <meta name="description" content="How the ludo.sungamestudio.com VPS is built and how to deploy, roll back and change the server or the database.">
 <meta name="color-scheme" content="light dark">
 <!--
@@ -13,7 +13,7 @@
 <script>
 (function () {
   try {
-    var t = localStorage.getItem('ludo-royale-docs-theme');
+    var t = localStorage.getItem('ludo-arena-docs-theme');
     if (t === 'light' || t === 'dark') { document.documentElement.setAttribute('data-theme', t); }
   } catch (e) { /* storage unavailable: follow the system theme */ }
 })();
@@ -293,7 +293,7 @@ td code { font-size: 0.8rem; }
       <polygon points="15,7 23,15 15,23 7,15" fill="#ffffff" opacity="0.95"/>
       <circle cx="15" cy="15" r="2.6" fill="#1d2133"/>
     </svg>
-    <span class="brand-text"><span class="brand-name">Ludo Royale</span><span class="brand-sub">Production runbook · ludo.sungamestudio.com</span></span>
+    <span class="brand-text"><span class="brand-name">Ludo Arena</span><span class="brand-sub">Production runbook · ludo.sungamestudio.com</span></span>
   </a>
   <span class="topbar-spacer"></span>
   <div class="seg" role="group" aria-label="Color theme">
@@ -367,7 +367,7 @@ bot-play ──────────────┘ (loopback)     metrics 12
         <tr><td>nginx</td><td><code>nginx</code></td><td>www-data</td><td><code>:80</code> → redirect, <code>:443</code></td><td>TLS, WebSocket proxy; the only public service besides SSH</td></tr>
         <tr><td>Backend</td><td><code>ludo-backend</code></td><td>ludo</td><td><code>127.0.0.1:8080</code>, metrics <code>:9090</code></td><td><code>APP_ENV=production</code></td></tr>
         <tr><td>bot-play</td><td><code>ludo-bot-play</code></td><td>ludo</td><td>metrics <code>127.0.0.1:9091</code></td><td>Practice-game bots; reaches <code>https://ludo.sungamestudio.com</code> via <code>/etc/hosts</code> → 127.0.0.1</td></tr>
-        <tr><td>PostgreSQL 16</td><td><code>postgresql@16-main</code></td><td>postgres</td><td><code>127.0.0.1:5432</code></td><td>Database <code>ludo_royale</code>, role <code>ludo</code></td></tr>
+        <tr><td>PostgreSQL 16</td><td><code>postgresql@16-main</code></td><td>postgres</td><td><code>127.0.0.1:5432</code></td><td>Database <code>ludo_arena</code>, role <code>ludo</code></td></tr>
         <tr><td>Redis 7</td><td><code>redis-server</code></td><td>redis</td><td><code>127.0.0.1:6379</code></td><td>Password; AOF every second + RDB; <code>noeviction</code></td></tr>
       </tbody>
     </table></div>
@@ -375,15 +375,15 @@ bot-play ──────────────┘ (loopback)     metrics 12
     <div class="table-wrap"><table>
       <thead><tr><th>Path</th><th>What</th></tr></thead>
       <tbody>
-        <tr><td><code>/opt/ludo-royale/src</code></td><td>Git checkout used for builds (read-only deploy key)</td></tr>
-        <tr><td><code>/opt/ludo-royale/releases/&lt;utc&gt;-&lt;commit&gt;/</code></td><td>Built releases: <code>backend/</code>, <code>bot-play/</code>, <code>RELEASE</code>, <code>MIGRATIONS</code></td></tr>
-        <tr><td><code>/opt/ludo-royale/current</code></td><td>Symlink to the live release (the units run from it)</td></tr>
-        <tr><td><code>/etc/ludo-royale/backend.env</code></td><td>Backend settings and secrets (0640 root:ludo)</td></tr>
-        <tr><td><code>/etc/ludo-royale/bot-play.env</code></td><td><code>BOT_SERVICE_KEY</code> (its SHA-256 is in <code>backend.env</code>)</td></tr>
-        <tr><td><code>/etc/ludo-royale/secrets/</code></td><td>Database password, Google Play service-account key</td></tr>
-        <tr><td><code>/etc/redis/ludo-royale-secret.conf</code></td><td>Redis password</td></tr>
-        <tr><td><code>/var/backups/ludo-royale/</code></td><td>Database dumps (nightly + before migrations)</td></tr>
-        <tr><td><code>/root/.ssh/ludo_royale_deploy</code></td><td>Deploy key (GitHub → Ludo-Royale → Settings → Deploy keys, read-only)</td></tr>
+        <tr><td><code>/opt/ludo-arena/src</code></td><td>Git checkout used for builds (read-only deploy key)</td></tr>
+        <tr><td><code>/opt/ludo-arena/releases/&lt;utc&gt;-&lt;commit&gt;/</code></td><td>Built releases: <code>backend/</code>, <code>bot-play/</code>, <code>RELEASE</code>, <code>MIGRATIONS</code></td></tr>
+        <tr><td><code>/opt/ludo-arena/current</code></td><td>Symlink to the live release (the units run from it)</td></tr>
+        <tr><td><code>/etc/ludo-arena/backend.env</code></td><td>Backend settings and secrets (0640 root:ludo)</td></tr>
+        <tr><td><code>/etc/ludo-arena/bot-play.env</code></td><td><code>BOT_SERVICE_KEY</code> (its SHA-256 is in <code>backend.env</code>)</td></tr>
+        <tr><td><code>/etc/ludo-arena/secrets/</code></td><td>Database password, Google Play service-account key</td></tr>
+        <tr><td><code>/etc/redis/ludo-arena-secret.conf</code></td><td>Redis password</td></tr>
+        <tr><td><code>/var/backups/ludo-arena/</code></td><td>Database dumps (nightly + before migrations)</td></tr>
+        <tr><td><code>/root/.ssh/ludo_arena_deploy</code></td><td>Deploy key (GitHub → Ludo-Arena → Settings → Deploy keys, read-only)</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -409,8 +409,8 @@ ludo-deploy deploy ops/vps-deploy  <span class="c"># a branch, tag or commit</sp
     <h3>What it does</h3>
     <ol class="steps">
       <li>Fetches the repository and resolves the ref to a commit.</li>
-      <li>Builds <code>backend</code> and <code>bot-play</code> with Go 1.27.3 into <code>/opt/ludo-royale/releases/&lt;utc&gt;-&lt;commit&gt;/</code>, copies <code>backend/config/</code> and bot-play's <code>production.yaml</code> + <code>profiles.yaml</code>, and checks bot-play's configuration.</li>
-      <li>If any <code>backend/migrations/*.sql</code> file differs from the live release, takes a <strong>database backup first</strong> (<code>/var/backups/ludo-royale/*-pre-&lt;release&gt;.dump</code>).</li>
+      <li>Builds <code>backend</code> and <code>bot-play</code> with Go 1.27.3 into <code>/opt/ludo-arena/releases/&lt;utc&gt;-&lt;commit&gt;/</code>, copies <code>backend/config/</code> and bot-play's <code>production.yaml</code> + <code>profiles.yaml</code>, and checks bot-play's configuration.</li>
+      <li>If any <code>backend/migrations/*.sql</code> file differs from the live release, takes a <strong>database backup first</strong> (<code>/var/backups/ludo-arena/*-pre-&lt;release&gt;.dump</code>).</li>
       <li>Points <code>current</code> at the new release and restarts the backend (which applies the migrations at startup), then waits up to 30 s for <code>/readyz</code>.</li>
       <li><strong>If the health check fails, it switches back to the previous release by itself</strong> and exits with an error. The failed build stays on disk.</li>
       <li>Restarts bot-play in the background and deletes old releases (keeps 5).</li>
@@ -432,8 +432,8 @@ ludo-deploy rollback 20261022150102-1a2b3c4     <span class="c"># a specific one
     <p>Rollback re-points <code>current</code> and restarts; it does not rebuild anything.</p>
     <div class="callout danger"><span class="callout-title">The database is not rolled back</span>The backend never undoes a migration, so the older release runs on the newer schema. That works when migrations only add things (<a href="#migrations">5.2</a>). If a migration itself is the problem, fix it forward with a new migration and deploy. As a last resort, restore the backup taken before that deploy (<a href="#restore">5.4</a>); that loses every wallet, purchase and progression change made since.</div>
     <p>If <code>ludo-deploy</code> itself is broken:</p>
-<pre><code>ls /opt/ludo-royale/releases
-ln -sfn /opt/ludo-royale/releases/&lt;name&gt; /opt/ludo-royale/current
+<pre><code>ls /opt/ludo-arena/releases
+ln -sfn /opt/ludo-arena/releases/&lt;name&gt; /opt/ludo-arena/current
 systemctl restart ludo-backend ludo-bot-play</code></pre>
   </section>
 
@@ -442,10 +442,10 @@ systemctl restart ludo-backend ludo-bot-play</code></pre>
     <div class="section-head"><span class="section-num">5</span><h2 id="database-h">Database</h2></div>
 
     <h3 id="db-what">5.1 What is stored where</h3>
-    <p>PostgreSQL (<code>ludo_royale</code>) holds accounts, wallets, progression, purchases and reports in the schemas <code>wallet</code>, <code>identity</code> and <code>progression</code>. Live games, matchmaking, sessions and timers live in <strong>Redis only</strong>. The table list is fixed by the owner (<code>CLAUDE.md</code>, enforced by <code>backend/tests/schema_guard_test.go</code>); ask before adding tables.</p>
-<pre><code>sudo -u postgres psql ludo_royale                    <span class="c"># interactive</span>
-sudo -u postgres psql ludo_royale -c '\dt wallet.*'
-sudo -u postgres psql ludo_royale -c 'SELECT count(*) FROM wallet.wallets WHERE NOT is_bot'   <span class="c"># accounts</span></code></pre>
+    <p>PostgreSQL (<code>ludo_arena</code>) holds accounts, wallets, progression, purchases and reports in the schemas <code>wallet</code>, <code>identity</code> and <code>progression</code>. Live games, matchmaking, sessions and timers live in <strong>Redis only</strong>. The table list is fixed by the owner (<code>CLAUDE.md</code>, enforced by <code>backend/tests/schema_guard_test.go</code>); ask before adding tables.</p>
+<pre><code>sudo -u postgres psql ludo_arena                    <span class="c"># interactive</span>
+sudo -u postgres psql ludo_arena -c '\dt wallet.*'
+sudo -u postgres psql ludo_arena -c 'SELECT count(*) FROM wallet.wallets WHERE NOT is_bot'   <span class="c"># accounts</span></code></pre>
     <p>Be careful with writes: there is no undo except a backup restore.</p>
 
     <h3 id="migrations">5.2 Schema changes (migrations)</h3>
@@ -461,25 +461,25 @@ sudo -u postgres psql ludo_royale -c 'SELECT count(*) FROM wallet.wallets WHERE 
     <div class="table-wrap"><table>
       <thead><tr><th>When</th><th>File</th><th>Kept</th></tr></thead>
       <tbody>
-        <tr><td>Every night 21:30 UTC (03:00 IST)</td><td><code>ludo_royale-YYYY-MM-DD.dump</code></td><td>14 days</td></tr>
-        <tr><td>Before a deploy that changes migrations</td><td><code>ludo_royale-&lt;utc&gt;-pre-&lt;release&gt;.dump</code></td><td>until removed</td></tr>
-        <tr><td>By hand: <code>ludo-deploy backup [label]</code></td><td><code>ludo_royale-&lt;utc&gt;-&lt;label&gt;.dump</code></td><td>until removed</td></tr>
+        <tr><td>Every night 21:30 UTC (03:00 IST)</td><td><code>ludo_arena-YYYY-MM-DD.dump</code></td><td>14 days</td></tr>
+        <tr><td>Before a deploy that changes migrations</td><td><code>ludo_arena-&lt;utc&gt;-pre-&lt;release&gt;.dump</code></td><td>until removed</td></tr>
+        <tr><td>By hand: <code>ludo-deploy backup [label]</code></td><td><code>ludo_arena-&lt;utc&gt;-&lt;label&gt;.dump</code></td><td>until removed</td></tr>
       </tbody>
     </table></div>
-    <div class="callout pending"><span class="callout-title">Backups are on the same disk</span>All dumps are in <code>/var/backups/ludo-royale/</code> on the VPS. Copy them off the server regularly, for example from a Mac:
-<pre><code>scp root@ludo.sungamestudio.com:/var/backups/ludo-royale/ludo_royale-2026-10-23.dump ~/Backups/</code></pre></div>
+    <div class="callout pending"><span class="callout-title">Backups are on the same disk</span>All dumps are in <code>/var/backups/ludo-arena/</code> on the VPS. Copy them off the server regularly, for example from a Mac:
+<pre><code>scp root@ludo.sungamestudio.com:/var/backups/ludo-arena/ludo_arena-2026-10-23.dump ~/Backups/</code></pre></div>
 
     <h3 id="restore">5.4 Restore a backup</h3>
     <p>This replaces the whole database with the dump.</p>
 <pre><code>ludo-deploy backup before-restore                  <span class="c"># keep what is there now</span>
 systemctl stop ludo-bot-play ludo-backend
 sudo -u postgres pg_restore --clean --if-exists --no-owner --role=ludo \
-  -d ludo_royale /var/backups/ludo-royale/&lt;file&gt;.dump
+  -d ludo_arena /var/backups/ludo-arena/&lt;file&gt;.dump
 systemctl start ludo-backend ludo-bot-play
 ludo-deploy status</code></pre>
 
     <h3 id="redis">5.5 Redis</h3>
-<pre><code>export REDISCLI_AUTH=$(awk '{print $2}' /etc/redis/ludo-royale-secret.conf)
+<pre><code>export REDISCLI_AUTH=$(awk '{print $2}' /etc/redis/ludo-arena-secret.conf)
 redis-cli info clients | head; redis-cli dbsize</code></pre>
     <div class="callout danger"><span class="callout-title">Never flush production Redis</span>Redis holds live games; never run <code>FLUSHALL</code> or <code>FLUSHDB</code>. Data survives restarts (AOF every second + RDB in <code>/var/lib/redis</code>). A Redis restart pauses play for a few seconds; the backend reconnects by itself.</div>
   </section>
@@ -489,8 +489,8 @@ redis-cli info clients | head; redis-cli dbsize</code></pre>
     <div class="section-head"><span class="section-num">6</span><h2 id="config-h">Change server configuration</h2></div>
     <p>The files in <code>deploy/</code> are the source of truth for the server. Change them in the repo first, then apply them on the server, so the next provisioning gives the same result.</p>
 
-    <h3>6.1 Backend settings (<code>/etc/ludo-royale/backend.env</code>)</h3>
-<pre><code>nano /etc/ludo-royale/backend.env
+    <h3>6.1 Backend settings (<code>/etc/ludo-arena/backend.env</code>)</h3>
+<pre><code>nano /etc/ludo-arena/backend.env
 systemctl restart ludo-backend          <span class="c"># sockets reconnect, like a deploy</span></code></pre>
     <ul>
       <li>systemd reads this file: one <code>KEY=value</code> per line, <strong>no inline comments</strong>, no quotes. Option reference: <code>backend/.env.example</code>.</li>
@@ -501,8 +501,8 @@ systemctl restart ludo-backend          <span class="c"># sockets reconnect, lik
     <h3>6.2 App policy, entry fees, catalogues, coin packs</h3>
     <p>These are files in <code>backend/config/</code> and ship with every release: change them in the repo, merge, <code>ludo-deploy deploy</code>. The app policy (<code>app-policy.production.json</code>: minimum versions, maintenance windows, entry fees, welcome grant) is also re-read every 5 s and on <code>systemctl reload ludo-backend</code>.</p>
     <p>Emergency maintenance without a deploy:</p>
-<pre><code>touch /etc/ludo-royale/MAINTENANCE     <span class="c"># players see the maintenance message</span>
-rm /etc/ludo-royale/MAINTENANCE        <span class="c"># back to normal</span></code></pre>
+<pre><code>touch /etc/ludo-arena/MAINTENANCE     <span class="c"># players see the maintenance message</span>
+rm /etc/ludo-arena/MAINTENANCE        <span class="c"># back to normal</span></code></pre>
 
     <h3>6.3 nginx</h3>
     <p>Edit <code>deploy/nginx/</code> in the repo, copy the file to the server, then:</p>
@@ -547,7 +547,7 @@ curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_gam
         <tr><td>Practice games get no bot</td><td><code>systemctl status ludo-bot-play</code>; <code>curl -s 127.0.0.1:9091/readyz</code></td></tr>
         <tr><td>Purchases fail with <code>iap_unavailable</code></td><td>Google Play key access in Play Console (log: <code>store credentials refused</code>); App Store needs <code>APPLE_IAP_ENABLED=true</code></td></tr>
         <tr><td>Profile pictures missing</td><td><code>R2_*</code> in <code>backend.env</code>; startup log field <code>assetSigning</code></td></tr>
-        <tr><td>Disk filling up</td><td><code>df -h /</code>; old dumps in <code>/var/backups/ludo-royale</code>; <code>journalctl --vacuum-size=1G</code></td></tr>
+        <tr><td>Disk filling up</td><td><code>df -h /</code>; old dumps in <code>/var/backups/ludo-arena</code>; <code>journalctl --vacuum-size=1G</code></td></tr>
       </tbody>
     </table></div>
   </section>
@@ -578,11 +578,11 @@ curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_gam
     <ol class="steps">
       <li>Reinstall Ubuntu 24.04 (Bluehost → Server Image → Reimage) and point the Cloudflare <code>ludo</code> record at the new IP (DNS only).</li>
       <li>From the repository root on a Mac: <code>scp -r deploy root@&lt;ip&gt;:/root/ &amp;&amp; ssh root@&lt;ip&gt; bash /root/deploy/scripts/provision.sh</code></li>
-      <li>The first run stops after printing a new deploy key. Add it in GitHub → Ludo-Royale → Settings → Deploy keys (read-only; delete the old one) and run <code>provision.sh</code> again.</li>
-      <li>Add the values that are not generated on the server to <code>/etc/ludo-royale/backend.env</code>: the four <code>R2_*</code>, and <code>GOOGLE_PLAY_SERVICE_ACCOUNT_FILE=/etc/ludo-royale/secrets/google-play.json</code> after copying the key there (<code>chown root:ludo</code>, <code>chmod 0640</code>).</li>
+      <li>The first run stops after printing a new deploy key. Add it in GitHub → Ludo-Arena → Settings → Deploy keys (read-only; delete the old one) and run <code>provision.sh</code> again.</li>
+      <li>Add the values that are not generated on the server to <code>/etc/ludo-arena/backend.env</code>: the four <code>R2_*</code>, and <code>GOOGLE_PLAY_SERVICE_ACCOUNT_FILE=/etc/ludo-arena/secrets/google-play.json</code> after copying the key there (<code>chown root:ludo</code>, <code>chmod 0640</code>).</li>
       <li>Restore the latest database dump (<a href="#restore">5.4</a>), then <code>ludo-deploy deploy</code>.</li>
     </ol>
-    <div class="callout note"><span class="callout-title">Keep players signed in</span>A new server generates new <code>JWT_SIGNING_KEY</code> and <code>PUBLIC_ID_KEY</code>. To keep players signed in and their device bindings, copy <code>/etc/ludo-royale/backend.env</code> from the old server instead (step 4).</div>
+    <div class="callout note"><span class="callout-title">Keep players signed in</span>A new server generates new <code>JWT_SIGNING_KEY</code> and <code>PUBLIC_ID_KEY</code>. To keep players signed in and their device bindings, copy <code>/etc/ludo-arena/backend.env</code> from the old server instead (step 4).</div>
   </section>
 
   <!-- ============================================================ 11 -->
@@ -595,16 +595,16 @@ curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_gam
         <tr><td><code>scripts/ludo-deploy</code></td><td><code>/usr/local/bin/ludo-deploy</code></td></tr>
         <tr><td><code>nginx/nginx.conf</code></td><td><code>/etc/nginx/nginx.conf</code></td></tr>
         <tr><td><code>nginx/ludo.sungamestudio.com.conf</code></td><td><code>/etc/nginx/sites-available/ludo.sungamestudio.com</code></td></tr>
-        <tr><td><code>sysctl/99-ludo-royale.conf</code></td><td><code>/etc/sysctl.d/99-ludo-royale.conf</code></td></tr>
+        <tr><td><code>sysctl/99-ludo-arena.conf</code></td><td><code>/etc/sysctl.d/99-ludo-arena.conf</code></td></tr>
         <tr><td><code>systemd/ludo-backend.service</code>, <code>ludo-bot-play.service</code></td><td><code>/etc/systemd/system/</code></td></tr>
         <tr><td><code>systemd/nginx-limits.conf</code></td><td><code>/etc/systemd/system/nginx.service.d/limits.conf</code></td></tr>
-        <tr><td><code>redis/ludo-royale.conf</code></td><td><code>/etc/redis/ludo-royale.conf</code> (included from <code>redis.conf</code>)</td></tr>
-        <tr><td><code>postgresql/ludo-royale.conf</code></td><td><code>/etc/postgresql/16/main/conf.d/ludo-royale.conf</code></td></tr>
-        <tr><td><code>backend.env.example</code></td><td>template for <code>/etc/ludo-royale/backend.env</code></td></tr>
+        <tr><td><code>redis/ludo-arena.conf</code></td><td><code>/etc/redis/ludo-arena.conf</code> (included from <code>redis.conf</code>)</td></tr>
+        <tr><td><code>postgresql/ludo-arena.conf</code></td><td><code>/etc/postgresql/16/main/conf.d/ludo-arena.conf</code></td></tr>
+        <tr><td><code>backend.env.example</code></td><td>template for <code>/etc/ludo-arena/backend.env</code></td></tr>
         <tr><td><code>README.md</code>, <code>read.html</code></td><td>this runbook</td></tr>
       </tbody>
     </table></div>
-    <p class="footer">Ludo Royale · production runbook · keep in sync with <a href="README.md">deploy/README.md</a></p>
+    <p class="footer">Ludo Arena · production runbook · keep in sync with <a href="README.md">deploy/README.md</a></p>
   </section>
 
   </div>
@@ -616,7 +616,7 @@ curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_gam
   'use strict';
   var doc = document;
   var root = doc.documentElement;
-  var THEME_KEY = 'ludo-royale-docs-theme';
+  var THEME_KEY = 'ludo-arena-docs-theme';
 
   /* ------------------------------------------------------------ theme */
   function readPref() {

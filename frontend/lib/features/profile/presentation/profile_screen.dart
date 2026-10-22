@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ludo_royale/features/meta_routes.dart';
+import 'package:ludo_arena/features/meta_routes.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

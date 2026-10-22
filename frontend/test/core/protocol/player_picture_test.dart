@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/network/api_models.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/features/leaderboard/domain/leaderboard_models.dart';
-import 'package:ludo_royale/features/private_rooms/application/rooms_repository.dart';
-import 'package:ludo_royale/features/social/domain/report_models.dart';
-import 'package:ludo_royale/features/social/domain/social_models.dart';
+import 'package:ludo_arena/core/network/api_models.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/features/leaderboard/domain/leaderboard_models.dart';
+import 'package:ludo_arena/features/private_rooms/application/rooms_repository.dart';
+import 'package:ludo_arena/features/social/domain/report_models.dart';
+import 'package:ludo_arena/features/social/domain/social_models.dart';
 
 import '../../helpers/fake_backend.dart';
 import 'fixtures.dart';

@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/localization/number_format.dart';
-import 'package:ludo_royale/features/missions/presentation/missions_screen.dart';
-import 'package:ludo_royale/features/missions/presentation/widgets/reset_label.dart';
-import 'package:ludo_royale/features/progression/application/meta_support.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations_ar.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations_en.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations_hi.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/localization/number_format.dart';
+import 'package:ludo_arena/features/missions/presentation/missions_screen.dart';
+import 'package:ludo_arena/features/missions/presentation/widgets/reset_label.dart';
+import 'package:ludo_arena/features/progression/application/meta_support.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations_ar.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations_en.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations_hi.dart';
 
 import '../progression/meta_test_support.dart';
 

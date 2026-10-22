@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/iap/iaptest"
+	"ludoarena/internal/iap/iaptest"
 )
 
-const testBundle = "com.ludoroyale.app"
+const testBundle = "com.ludoarena.app"
 
 func newTestAppStore(t *testing.T, fake *iaptest.Apple, mut ...func(*AppleConfig)) *AppStore {
 	t.Helper()

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/wallet"
 )
 
 // minimalEnv sets the variables Load requires; ENTRY_FEE_* start unset (an
@@ -270,7 +270,7 @@ func TestLegalNoticesFile(t *testing.T) {
 }
 
 func TestAssetsConfig(t *testing.T) {
-	full := map[string]string{"R2_ACCOUNT_ID": "0123456789abcdef0123456789abcdef", "R2_BUCKET": "ludo-royale",
+	full := map[string]string{"R2_ACCOUNT_ID": "0123456789abcdef0123456789abcdef", "R2_BUCKET": "ludo-arena",
 		"R2_ACCESS_KEY_ID": "AKIDTEST", "R2_SECRET_ACCESS_KEY": "s3cr3t-value-not-real"}
 	cases := []struct {
 		name    string
@@ -284,7 +284,7 @@ func TestAssetsConfig(t *testing.T) {
 		{"ttl", map[string]string{"ASSET_URL_TTL": "30m"}, false, 30 * time.Minute, ""},
 		{"ttl too long", map[string]string{"ASSET_URL_TTL": "2h"}, false, 0, "ASSET_URL_TTL must be between"},
 		{"ttl too short", map[string]string{"ASSET_URL_TTL": "10s"}, false, 0, "ASSET_URL_TTL must be between"},
-		{"partial", map[string]string{"R2_BUCKET": "ludo-royale", "R2_ACCESS_KEY_ID": "AKIDTEST"}, false, 0,
+		{"partial", map[string]string{"R2_BUCKET": "ludo-arena", "R2_ACCESS_KEY_ID": "AKIDTEST"}, false, 0,
 			"R2 is partially configured"},
 		{"secret only", map[string]string{"R2_SECRET_ACCESS_KEY": "s3cr3t-value-not-real"}, false, 0, "R2_ACCOUNT_ID"},
 		{"endpoint without r2", map[string]string{"R2_ENDPOINT": "http://127.0.0.1:9"}, false, 0, "R2_ENDPOINT requires"},
@@ -373,13 +373,13 @@ func TestIAPConfig(t *testing.T) {
 	}{
 		{"defaults: both stores off", nil, func(t *testing.T, c IAPConfig) {
 			if c.GoogleEnabled() || c.AppleOn() || c.CoinPacksFile != "config/coin_packs.json" ||
-				c.GooglePlayPackage != "com.ludoroyale.app" || c.AppleBundleID != "com.ludoroyale.app" ||
+				c.GooglePlayPackage != "com.ludoarena.app" || c.AppleBundleID != "com.ludoarena.app" ||
 				!c.AppleAllowSandbox || c.GoogleVoidedInterval != time.Hour || c.GoogleVoidedLookback != 7*24*time.Hour {
 				t.Fatalf("%+v", c)
 			}
 		}, ""},
 		{"google on", map[string]string{"GOOGLE_PLAY_SERVICE_ACCOUNT_FILE": "/secrets/sa.json",
-			"GOOGLE_PLAY_PACKAGE_NAME": "com.ludoroyale.app", "GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "0"},
+			"GOOGLE_PLAY_PACKAGE_NAME": "com.ludoarena.app", "GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "0"},
 			func(t *testing.T, c IAPConfig) {
 				if !c.GoogleEnabled() || c.GoogleVoidedInterval != 0 {
 					t.Fatalf("%+v", c)

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
-import 'package:ludo_royale/shared/game_visuals/dice/dice_controller.dart';
-import 'package:ludo_royale/shared/game_visuals/dice/dice_skins.dart';
-import 'package:ludo_royale/shared/game_visuals/dice/dice_view.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/shared/game_visuals/dice/dice_controller.dart';
+import 'package:ludo_arena/shared/game_visuals/dice/dice_skins.dart';
+import 'package:ludo_arena/shared/game_visuals/dice/dice_view.dart';
 
 Widget wrap(
   Widget child, {

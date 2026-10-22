@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/audio_haptics/reduced_motion.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/active_room_controller.dart';
-import 'package:ludo_royale/core/theme/app_theme.dart';
-import 'package:ludo_royale/features/game/presentation/game_route_screen.dart';
-import 'package:ludo_royale/features/game/presentation/widgets/player_panel.dart';
-import 'package:ludo_royale/features/ludo/presentation/board/ludo_board.dart';
-import 'package:ludo_royale/features/snakes_ladders/presentation/board/snakes_board.dart';
-import 'package:ludo_royale/features/social/application/muted_players.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
-import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
-import 'package:ludo_royale/shared/widgets/widgets.dart';
+import 'package:ludo_arena/core/audio_haptics/reduced_motion.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/active_room_controller.dart';
+import 'package:ludo_arena/core/theme/app_theme.dart';
+import 'package:ludo_arena/features/game/presentation/game_route_screen.dart';
+import 'package:ludo_arena/features/game/presentation/widgets/player_panel.dart';
+import 'package:ludo_arena/features/ludo/presentation/board/ludo_board.dart';
+import 'package:ludo_arena/features/snakes_ladders/presentation/board/snakes_board.dart';
+import 'package:ludo_arena/features/social/application/muted_players.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/shared/game_visuals/game_visuals.dart';
+import 'package:ludo_arena/shared/widgets/widgets.dart';
 
 import 'support/play_test_support.dart';
 

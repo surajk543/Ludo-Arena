@@ -12,8 +12,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/progression"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/progression"
+	"ludoarena/internal/rooms"
 )
 
 // Account deletion: DELETE /api/v1/account (docs/authentication.md

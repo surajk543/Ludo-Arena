@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/features/game/application/quick_chat.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/features/game/application/quick_chat.dart';
 
 void main() {
   group('QuickChatThrottle (1 per 3 s, 10 per minute)', () {

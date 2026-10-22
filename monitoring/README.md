@@ -1,4 +1,4 @@
-# Ludo Royale monitoring and Telegram ops bot
+# Ludo Arena monitoring and Telegram ops bot
 
 The fourth independent project of the repository (next to `frontend/`,
 `backend/` and `bot-play/`). It never shares code or dependencies with them;
@@ -7,7 +7,7 @@ it only reads their Prometheus metrics.
 - **Prometheus** scrapes every backend instance, bot-play, node_exporter
   (host CPU / RAM / disk) and the ops bot, and evaluates the alert rules.
 - **Alertmanager** groups alerts and sends them to the ops bot's webhook.
-- **ops-bot** (`ops-bot/`, Go module `ludoroyale/opsbot`) posts to Telegram:
+- **ops-bot** (`ops-bot/`, Go module `ludoarena/opsbot`) posts to Telegram:
   - an **hourly status report** (PDF with charts, or text),
   - a **daily KPI report** for yesterday (PDF with 30-day trends, or text),
     including Google Play installs/uninstalls and Firebase Analytics,
@@ -98,7 +98,7 @@ VM; to see the Mac, run `node_exporter` natively and use
 ## What the reports contain
 
 **Hourly status** (`STATUS_INTERVAL`, default `1h`; file
-`ludo-royale-status-2026-10-21-1700-IST.pdf`, caption e.g. `production ·
+`ludo-arena-status-2026-10-21-1700-IST.pdf`, caption e.g. `production ·
 Playing: 1,234 players · 456 bots · CPU 41% · RAM 63%`):
 real players and bots in game, real players and bots online (WebSocket),
 rooms in game by game, players waiting in lobby, matches started in the last
@@ -109,7 +109,7 @@ players in game (real vs bots), CPU % and RAM % per host, matches started per
 hour by game.
 
 **Daily KPI report** (`DAILY_REPORT_AT`, default `09:00` in `TZ_NAME`; file
-`ludo-royale-daily-2026-10-20.pdf`) for yesterday's local calendar day: new
+`ludo-arena-daily-2026-10-20.pdf`) for yesterday's local calendar day: new
 accounts by provider, sign-ins, DAU / WAU (HyperLogLog estimates per UTC
 day / week), matches started / finished by game and mode, human-only vs
 bot-filled matches, abandons by reason, peak concurrent real players and bots
@@ -168,7 +168,7 @@ rate limits are respected (`TELEGRAM_MIN_GAP` per chat; HTTP 429 waits for
 | `HTTP_ADDR` | `127.0.0.1:9097` | `/healthz`, `/metrics`, `POST /alertmanager` |
 | `WEBHOOK_BEARER_TOKEN` | empty (**secret**, optional) | Require `Authorization: Bearer …` on the webhook |
 | `PLAY_REPORTS_BUCKET` | empty | `gs://pubsite_prod_…` bucket of the Play Console bulk reports |
-| `PLAY_PACKAGE_NAME` | `com.ludoroyale.app` | Package in the report file names |
+| `PLAY_PACKAGE_NAME` | `com.ludoarena.app` | Package in the report file names |
 | `GA4_PROPERTY_ID` | empty | GA4 property of the Firebase project (digits) |
 | `GOOGLE_APPLICATION_CREDENTIALS` | empty | Path to a service-account JSON key (or use workload identity / `gcloud auth application-default login`) |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |

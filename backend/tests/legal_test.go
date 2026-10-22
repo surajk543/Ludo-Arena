@@ -11,7 +11,7 @@ import (
 // The open-source notices page is public: no auth, no X-App-* headers, no
 // version gate (it opens in the external browser), served as locked-down HTML.
 func TestLegalNoticesRoute(t *testing.T) {
-	page := "<!doctype html><title>Ludo Royale — Open-source notices</title><pre>license text</pre>"
+	page := "<!doctype html><title>Ludo Arena — Open-source notices</title><pre>license text</pre>"
 	path := filepath.Join(t.TempDir(), "open-source-notices.html")
 	writeFile(t, path, page)
 	t.Setenv("LEGAL_NOTICES_FILE", path)

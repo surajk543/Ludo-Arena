@@ -40,7 +40,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080 \
 ```bash
 cd backend
 go test -race ./...                       # unit tests (engines, policy, progression…)
-TEST_DATABASE_URL=postgres://…/ludo_royale_test TEST_REDIS_ADDR=127.0.0.1:6379 \
+TEST_DATABASE_URL=postgres://…/ludo_arena_test TEST_REDIS_ADDR=127.0.0.1:6379 \
   go test -race ./...                     # + end-to-end integration tests (tests/)
 
 cd ../frontend && flutter analyze && flutter test
@@ -101,9 +101,9 @@ unless `API_BASE_URL` overrides it.
 Before each release:
 
 1. **Regenerate the open-source notices and publish them to
-   sungamestudio.com/ludo-royale/legal/** (the app has no in-app license
+   sungamestudio.com/ludo-arena/legal/** (the app has no in-app license
    page; Settings → About → "Legal notices" opens
-   `https://sungamestudio.com/ludo-royale/legal/` in the browser, a legal
+   `https://sungamestudio.com/ludo-arena/legal/` in the browser, a legal
    requirement for the bundled open-source software and OFL fonts):
 
    ```bash
@@ -113,7 +113,7 @@ Before each release:
    ```
 
    Publish the regenerated HTML on the studio website at
-   `https://sungamestudio.com/ludo-royale/legal/` before the release ships,
+   `https://sungamestudio.com/ludo-arena/legal/` before the release ships,
    and commit it (it is deterministic: no diff without dependency changes;
    `--check` exits 1 when it is stale). Optional fallback: the backend also
    serves the same file at `GET /legal/open-source` — it reads

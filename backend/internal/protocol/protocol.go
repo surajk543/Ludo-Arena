@@ -10,7 +10,7 @@ import (
 
 // Subprotocol is negotiated via Sec-WebSocket-Protocol.
 const (
-	Subprotocol = "ludo-royale.v1"
+	Subprotocol = "ludo-arena.v1"
 	Version     = 1
 )
 

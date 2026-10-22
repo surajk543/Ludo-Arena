@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 // outgoingUIDs returns the uids of GET /friends "outgoing", in order.

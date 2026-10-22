@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/progression/progtest"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/progression/progtest"
 )
 
 // Same key as progtest, so public ids match the shared fixtures.

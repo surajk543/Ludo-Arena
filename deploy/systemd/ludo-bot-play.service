@@ -1,5 +1,5 @@
 [Unit]
-Description=Ludo Royale bot-play
+Description=Ludo Arena bot-play
 After=network-online.target ludo-backend.service nginx.service
 Wants=network-online.target
 
@@ -7,12 +7,12 @@ Wants=network-online.target
 Type=simple
 User=ludo
 Group=ludo
-WorkingDirectory=/opt/ludo-royale/current/bot-play
+WorkingDirectory=/opt/ludo-arena/current/bot-play
 # BOT_SERVICE_KEY only; its SHA-256 is BOT_SERVICE_KEY_SHA256 in backend.env.
-EnvironmentFile=/etc/ludo-royale/bot-play.env
-ExecStart=/opt/ludo-royale/current/bot-play/bot-play \
-    --config /opt/ludo-royale/current/bot-play/configs/environments/production.yaml \
-    --profiles /opt/ludo-royale/current/bot-play/configs/profiles.yaml
+EnvironmentFile=/etc/ludo-arena/bot-play.env
+ExecStart=/opt/ludo-arena/current/bot-play/bot-play \
+    --config /opt/ludo-arena/current/bot-play/configs/environments/production.yaml \
+    --profiles /opt/ludo-arena/current/bot-play/configs/profiles.yaml
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=5
@@ -29,7 +29,7 @@ ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
-ReadOnlyPaths=/etc/ludo-royale
+ReadOnlyPaths=/etc/ludo-arena
 
 [Install]
 WantedBy=multi-user.target

@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/realtime/backoff.dart';
+import 'package:ludo_arena/core/realtime/backoff.dart';
 
 void main() {
   test('ceiling doubles from 0.5 s and is capped at 30 s', () {

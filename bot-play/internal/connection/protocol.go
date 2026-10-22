@@ -1,4 +1,4 @@
-// Package connection implements the bot side of the `ludo-royale.v1`
+// Package connection implements the bot side of the `ludo-arena.v1`
 // WebSocket protocol (docs/websocket-protocol.md): the transport (one reader
 // and one writer goroutine per connection, bounded outbound queue,
 // heartbeat), the message types, and the versioned room-state reducer.
@@ -10,7 +10,7 @@ import (
 )
 
 // Subprotocol is the only supported WebSocket subprotocol.
-const Subprotocol = "ludo-royale.v1"
+const Subprotocol = "ludo-arena.v1"
 
 // Client -> server message types used by bots.
 const (

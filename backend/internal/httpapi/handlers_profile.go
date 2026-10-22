@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/profile"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/profile"
 )
 
 // nameMessages are the human-readable messages of invalid_name, by reason.

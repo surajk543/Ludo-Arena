@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"ludoroyale/internal/progression/progtest"
+	"ludoarena/internal/progression/progtest"
 )
 
 func TestHTTPProgressionAuthAndShape(t *testing.T) {

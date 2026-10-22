@@ -32,7 +32,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/metrics"
 )
 
 // Default bot coin rules (1 lakh = 100,000; 1 crore = 10,000,000).

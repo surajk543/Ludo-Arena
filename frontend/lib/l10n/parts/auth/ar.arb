@@ -42,7 +42,7 @@
   "authAlreadySavedTitle": "تقدّمك محفوظ",
   "authAlreadySavedMessage": "هذا الحساب مرتبط بطريقة تسجيل دخول، لذا تقدّمك في أمان.",
   "authConflictTitle": "حساب {provider} هذا مستخدم بالفعل",
-  "authConflictMessage": "حساب {provider} هذا لديه بالفعل حساب لودو رويال خاص به. لن يتم دمج أو نقل أي شيء بين الحسابين.",
+  "authConflictMessage": "حساب {provider} هذا لديه بالفعل حساب لودو أرينا خاص به. لن يتم دمج أو نقل أي شيء بين الحسابين.",
   "authConflictSignIn": "تسجيل الدخول إلى ذلك الحساب",
   "authConflictGuestNote": "يبقى حساب الضيف على هذا الجهاز — يمكنك العودة إليه من الإعدادات.",
   "authAlreadyLinkedTitle": "مرتبط بالفعل",

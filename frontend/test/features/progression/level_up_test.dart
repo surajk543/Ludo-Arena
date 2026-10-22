@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/state/in_match_provider.dart';
-import 'package:ludo_royale/features/progression/application/level_up_controller.dart';
-import 'package:ludo_royale/features/progression/domain/progression_models.dart';
-import 'package:ludo_royale/features/progression/presentation/level_up_celebration_host.dart';
-import 'package:ludo_royale/features/progression/presentation/progression_screen.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/state/in_match_provider.dart';
+import 'package:ludo_arena/features/progression/application/level_up_controller.dart';
+import 'package:ludo_arena/features/progression/domain/progression_models.dart';
+import 'package:ludo_arena/features/progression/presentation/level_up_celebration_host.dart';
+import 'package:ludo_arena/features/progression/presentation/progression_screen.dart';
 
 import 'meta_test_support.dart';
 

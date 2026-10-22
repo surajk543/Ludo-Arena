@@ -5,7 +5,7 @@
 # (promtool check rules monitoring/prometheus/rules/*.yml validates the files.)
 # How long a condition must hold ("for:") is set per alert in alerts.yml.
 groups:
-  - name: ludo-royale-thresholds
+  - name: ludo-arena-thresholds
     rules:
       # Host CPU utilisation, % (5-minute average), for 5 minutes.
       - record: threshold:host_cpu_percent

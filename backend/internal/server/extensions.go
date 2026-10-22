@@ -7,14 +7,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/analytics"
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/iap"
-	"ludoroyale/internal/progression"
-	"ludoroyale/internal/reports"
-	"ludoroyale/internal/rooms"
-	"ludoroyale/internal/social"
+	"ludoarena/internal/analytics"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/iap"
+	"ludoarena/internal/progression"
+	"ludoarena/internal/reports"
+	"ludoarena/internal/rooms"
+	"ludoarena/internal/social"
 )
 
 // DefaultExtensions wires progression (XP, missions, Collection Room),

@@ -1,4 +1,4 @@
-// Ludo Royale — iOS identity-provider configuration.
+// Ludo Arena — iOS identity-provider configuration.
 //
 // THE single place for iOS sign-in identifiers. Everything here is a PUBLIC
 // identifier (no secrets). Included by Debug.xcconfig and Release.xcconfig
@@ -25,13 +25,13 @@ GOOGLE_SERVER_CLIENT_ID = 124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.goo
 // Facebook button is hidden and the placeholder scheme below is inert.
 FACEBOOK_APP_ID =
 FACEBOOK_CLIENT_TOKEN =
-FACEBOOK_DISPLAY_NAME = Ludo Royale
+FACEBOOK_DISPLAY_NAME = Ludo Arena
 FACEBOOK_URL_SCHEME = fbnotconfigured
 
 // --- Sign in with Apple ------------------------------------------------------
 // Native on iOS: needs only the "Sign in with Apple" capability, provided by
 // Runner/Runner.entitlements (com.apple.developer.applesignin) and enabled for
-// the App ID com.ludoroyale.app in the Apple Developer portal.
+// the App ID com.ludoarena.app in the Apple Developer portal.
 
 // --- Simulator architectures -------------------------------------------------
 // Xcode 27's lipo rejects several architectures in `-verify_arch`, which

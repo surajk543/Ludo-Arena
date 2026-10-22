@@ -90,13 +90,13 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "client_version_required", "version headers required")
 		return
 	}
-	if !strings.Contains(r.Header.Get("Sec-WebSocket-Protocol"), "ludo-royale.v1") {
-		writeErr(w, http.StatusBadRequest, "bad_request", "subprotocol ludo-royale.v1 required")
+	if !strings.Contains(r.Header.Get("Sec-WebSocket-Protocol"), "ludo-arena.v1") {
+		writeErr(w, http.StatusBadRequest, "bad_request", "subprotocol ludo-arena.v1 required")
 		return
 	}
 	offered := strings.Contains(strings.ToLower(r.Header.Get("Sec-WebSocket-Extensions")), "permessage-deflate")
 	ws, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		Subprotocols:         []string{"ludo-royale.v1"},
+		Subprotocols:         []string{"ludo-arena.v1"},
 		CompressionMode:      websocket.CompressionNoContextTakeover,
 		CompressionThreshold: s.opts.CompressionThreshold,
 	})

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/postgres"
+	"ludoarena/internal/postgres"
 )
 
 // Guard for the PostgreSQL boundaries in CLAUDE.md: live game state lives in

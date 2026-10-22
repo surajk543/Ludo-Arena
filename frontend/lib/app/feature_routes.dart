@@ -12,8 +12,8 @@ import '../features/play_routes.dart';
 // unreachable before the gate is `ready` (deep links are remembered and
 // resumed once ready). Example:
 //
-//   import 'package:ludo_royale/app/routes.dart';
-//   import 'package:ludo_royale/features/matchmaking/matchmaking_screen.dart';
+//   import 'package:ludo_arena/app/routes.dart';
+//   import 'package:ludo_arena/features/matchmaking/matchmaking_screen.dart';
 //
 //   final List<RouteBase> featureRoutes = [
 //     GoRoute(

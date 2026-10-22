@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/metrics"
 )
 
 // GET /api/v1/store/profile-pictures?filter=&excludeOwned=&limit=&cursor=

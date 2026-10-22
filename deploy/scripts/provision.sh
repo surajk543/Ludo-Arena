@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Provisions an Ubuntu 24.04 VPS for Ludo Royale: PostgreSQL 16, Redis 7,
+# Provisions an Ubuntu 24.04 VPS for Ludo Arena: PostgreSQL 16, Redis 7,
 # nginx + Let's Encrypt, kernel limits, firewall, users, systemd units.
 # Idempotent: re-running keeps existing secrets, data and certificates.
 #
@@ -9,11 +9,11 @@
 set -euo pipefail
 
 DOMAIN=${DOMAIN:-ludo.sungamestudio.com}
-REPO=${REPO:-surajk543/Ludo-Royale}
+REPO=${REPO:-surajk543/Ludo-Arena}
 GO_VERSION=${GO_VERSION:-go1.27.3}   # match the go directive in backend/go.mod
 DEPLOY=$(cd "$(dirname "$0")/.." && pwd)
-ETC=/etc/ludo-royale
-SRC=/opt/ludo-royale/src
+ETC=/etc/ludo-arena
+SRC=/opt/ludo-arena/src
 
 log() { printf '\n==> %s\n' "$*"; }
 secret() { openssl rand -hex 32; }
@@ -38,31 +38,31 @@ print(next(f["sha256"] for r in json.load(sys.stdin) if r["version"] == v
 fi
 
 log "kernel limits"
-echo nf_conntrack > /etc/modules-load.d/ludo-royale.conf
+echo nf_conntrack > /etc/modules-load.d/ludo-arena.conf
 modprobe nf_conntrack
-install -m 0644 "$DEPLOY/sysctl/99-ludo-royale.conf" /etc/sysctl.d/99-ludo-royale.conf
+install -m 0644 "$DEPLOY/sysctl/99-ludo-arena.conf" /etc/sysctl.d/99-ludo-arena.conf
 sysctl --quiet --system
 
 log "service user and directories"
-id ludo >/dev/null 2>&1 || useradd --system --home /opt/ludo-royale --shell /usr/sbin/nologin ludo
-install -d -m 0755 /opt/ludo-royale /opt/ludo-royale/releases
+id ludo >/dev/null 2>&1 || useradd --system --home /opt/ludo-arena --shell /usr/sbin/nologin ludo
+install -d -m 0755 /opt/ludo-arena /opt/ludo-arena/releases
 install -d -m 0750 -o root -g ludo "$ETC" "$ETC/secrets"
 
 log "redis"
-REDIS_SECRET=/etc/redis/ludo-royale-secret.conf
+REDIS_SECRET=/etc/redis/ludo-arena-secret.conf
 if [[ ! -f $REDIS_SECRET ]]; then
   printf 'requirepass %s\n' "$(secret)" > "$REDIS_SECRET"
 fi
 chown redis:redis "$REDIS_SECRET" && chmod 0640 "$REDIS_SECRET"
-install -m 0640 -o redis -g redis "$DEPLOY/redis/ludo-royale.conf" /etc/redis/ludo-royale.conf
-grep -qxF 'include /etc/redis/ludo-royale.conf' /etc/redis/redis.conf ||
-  echo 'include /etc/redis/ludo-royale.conf' >> /etc/redis/redis.conf
+install -m 0640 -o redis -g redis "$DEPLOY/redis/ludo-arena.conf" /etc/redis/ludo-arena.conf
+grep -qxF 'include /etc/redis/ludo-arena.conf' /etc/redis/redis.conf ||
+  echo 'include /etc/redis/ludo-arena.conf' >> /etc/redis/redis.conf
 systemctl enable --now redis-server
 systemctl restart redis-server
 REDIS_PASSWORD=$(awk '{print $2}' "$REDIS_SECRET")
 
 log "postgresql"
-install -m 0644 "$DEPLOY/postgresql/ludo-royale.conf" /etc/postgresql/16/main/conf.d/ludo-royale.conf
+install -m 0644 "$DEPLOY/postgresql/ludo-arena.conf" /etc/postgresql/16/main/conf.d/ludo-arena.conf
 systemctl enable --now postgresql
 systemctl restart postgresql@16-main
 DB_PASSWORD_FILE=$ETC/secrets/db-password
@@ -79,8 +79,8 @@ DO \$\$ BEGIN
   END IF;
 END \$\$;
 SQL
-sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'ludo_royale'" | grep -q 1 ||
-  sudo -u postgres createdb -O ludo ludo_royale
+sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'ludo_arena'" | grep -q 1 ||
+  sudo -u postgres createdb -O ludo ludo_arena
 
 log "backend + bot-play environment"
 if [[ ! -f $ETC/bot-play.env ]]; then
@@ -141,10 +141,10 @@ systemctl enable nginx
 systemctl restart nginx
 
 log "nightly database backup"
-install -d -m 0700 -o postgres -g postgres /var/backups/ludo-royale
-cat > /etc/cron.d/ludo-royale-backup <<'CRON'
+install -d -m 0700 -o postgres -g postgres /var/backups/ludo-arena
+cat > /etc/cron.d/ludo-arena-backup <<'CRON'
 # Nightly pg_dump of wallets, identities and progression; keeps 14 days.
-30 21 * * * postgres pg_dump -Fc ludo_royale > /var/backups/ludo-royale/ludo_royale-$(date +\%F).dump && find /var/backups/ludo-royale -name '*.dump' -mtime +14 -delete
+30 21 * * * postgres pg_dump -Fc ludo_arena > /var/backups/ludo-arena/ludo_arena-$(date +\%F).dump && find /var/backups/ludo-arena -name '*.dump' -mtime +14 -delete
 CRON
 
 log "firewall: ssh, http, https only"
@@ -156,7 +156,7 @@ ufw status verbose
 
 log "source checkout (read-only deploy key) and ludo-deploy"
 install -m 0755 "$DEPLOY/scripts/ludo-deploy" /usr/local/bin/ludo-deploy
-key=/root/.ssh/ludo_royale_deploy
+key=/root/.ssh/ludo_arena_deploy
 install -d -m 0700 /root/.ssh
 [[ -f $key ]] || ssh-keygen -q -t ed25519 -N '' -C "ludo-vps-deploy (read-only)" -f "$key"
 grep -q '^Host github-ludo$' /root/.ssh/config 2>/dev/null ||

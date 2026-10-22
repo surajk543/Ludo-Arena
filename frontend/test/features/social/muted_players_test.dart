@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/features/social/application/muted_players.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/features/social/application/muted_players.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A container over [prefs] (one per "app start" / match).

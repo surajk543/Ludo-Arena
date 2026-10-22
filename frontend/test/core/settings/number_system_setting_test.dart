@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/localization/number_format.dart';
-import 'package:ludo_royale/core/settings/app_settings.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/localization/number_format.dart';
+import 'package:ludo_arena/core/settings/app_settings.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

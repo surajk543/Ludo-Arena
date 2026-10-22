@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/metrics"
 )
 
 // Options configure a Runner. Zero values take the defaults.

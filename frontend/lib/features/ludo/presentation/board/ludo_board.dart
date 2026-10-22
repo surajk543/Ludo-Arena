@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 
 import '../../../../shared/game_visuals/boards_l10n.dart';
 import '../../../../shared/game_visuals/game_palette.dart';

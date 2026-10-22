@@ -4,7 +4,7 @@ import (
 	"math/rand/v2"
 	"testing"
 
-	"ludoroyale/botplay/internal/profiles"
+	"ludoarena/botplay/internal/profiles"
 )
 
 func loadProfiles(t *testing.T) *profiles.Set {

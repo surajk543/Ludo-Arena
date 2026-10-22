@@ -11,7 +11,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/metrics"
 )
 
 // Cluster-wide live-game counts (players_in_game, rooms_in_game,

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/opsbot/internal/alertmanager"
-	"ludoroyale/opsbot/internal/google"
+	"ludoarena/opsbot/internal/alertmanager"
+	"ludoarena/opsbot/internal/google"
 )
 
 var meta = Meta{Env: "production", Loc: ist}
@@ -30,7 +30,7 @@ func TestStatusText(t *testing.T) {
 		Firing: []FiringAlert{{Name: "HostCPUHigh", Severity: "warning", Count: 1, Instances: []string{"app-1:9100"}}},
 	}
 	got := StatusText(st, meta)
-	want := `<b>Ludo Royale · production</b> — hourly status
+	want := `<b>Ludo Arena · production</b> — hourly status
 Wed 21 Oct 2026, 17:00 IST
 
 <b>Playing now</b>

@@ -14,13 +14,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/config"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/ratelimit"
 )
 
 // assignment is a pending bot seat handed to bot-play.

@@ -6,9 +6,9 @@
 package rooms
 
 import (
-	"ludoroyale/internal/game/ludo"
-	snakes "ludoroyale/internal/game/snakes_ladders"
-	"ludoroyale/internal/playerinfo"
+	"ludoarena/internal/game/ludo"
+	snakes "ludoarena/internal/game/snakes_ladders"
+	"ludoarena/internal/playerinfo"
 )
 
 // Games, modes and statuses.

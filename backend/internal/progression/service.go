@@ -25,10 +25,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/profile"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/profile"
 )
 
 // Errors.

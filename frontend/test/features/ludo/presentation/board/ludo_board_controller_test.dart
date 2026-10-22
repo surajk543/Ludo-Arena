@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/features/ludo/presentation/board/ludo_board.dart';
-import 'package:ludo_royale/features/ludo/presentation/board/ludo_board_controller.dart';
-import 'package:ludo_royale/features/ludo/presentation/board/ludo_geometry.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
-import 'package:ludo_royale/shared/game_visuals/game_palette.dart';
+import 'package:ludo_arena/features/ludo/presentation/board/ludo_board.dart';
+import 'package:ludo_arena/features/ludo/presentation/board/ludo_board_controller.dart';
+import 'package:ludo_arena/features/ludo/presentation/board/ludo_geometry.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/shared/game_visuals/game_palette.dart';
 
 LudoBoardController _controller({
   int tokensPerPlayer = 4,

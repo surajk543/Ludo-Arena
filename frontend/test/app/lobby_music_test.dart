@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/app/gate/app_gate_controller.dart';
-import 'package:ludo_royale/app/launch_intro.dart';
-import 'package:ludo_royale/app/lobby_music.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/state/in_match_provider.dart';
-import 'package:ludo_royale/features/game/presentation/in_match_scope.dart';
+import 'package:ludo_arena/app/gate/app_gate_controller.dart';
+import 'package:ludo_arena/app/launch_intro.dart';
+import 'package:ludo_arena/app/lobby_music.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/state/in_match_provider.dart';
+import 'package:ludo_arena/features/game/presentation/in_match_scope.dart';
 
 class _Gate extends AppGateController {
   @override

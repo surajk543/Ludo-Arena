@@ -115,11 +115,13 @@ provider `device` and
 
 ```
 subject = hex(HMAC-SHA256(k, platform + ":" + lowercase(deviceId)))
-k       = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-royale/device-id/v1")   # domain-separated
+k       = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-arena/device-id/v1")   # domain-separated
 ```
 
-The raw device id is never stored or logged, and the same id on Android and
-iOS gives different subjects. `PRIMARY KEY (provider, subject)` gives one
+Changing the label would act like rotating `PUBLIC_ID_KEY` and orphan every
+stored binding. The raw device
+id is never stored or logged, and the same id on Android and iOS gives
+different subjects. `PRIMARY KEY (provider, subject)` gives one
 account per device; `UNIQUE (user_id, provider)` one device per account.
 `device` is internal: it is never listed in `linkedProviders`, never counts as
 linked (an account with only guest + device is still `isGuest: true` and is
@@ -389,9 +391,9 @@ Testing mode, test user added). OAuth clients:
 
 | Client | Purpose | Identifier |
 |---|---|---|
-| Web application "Ludo Royale Backend (server client ID)" | `serverClientId` in the app; the `aud` the backend accepts (`GOOGLE_CLIENT_IDS`) | `124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.googleusercontent.com` |
-| iOS "Ludo Royale iOS" | iOS sign-in (`GIDClientID`, reversed id as URL scheme) | `124893613050-etb8okpenf0il17tmb33pr3cet8s9jba.apps.googleusercontent.com` |
-| Android "Ludo Royale Android (debug)" | package `com.ludoroyale.app` + **debug** SHA-1 `7D:A8:67:75:85:7F:BA:77:64:E4:5C:C3:70:A2:68:DE:10:56:82:20` | `124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com` |
+| Web application "Ludo Arena Backend (server client ID)" | `serverClientId` in the app; the `aud` the backend accepts (`GOOGLE_CLIENT_IDS`) | `124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.googleusercontent.com` |
+| iOS "Ludo Arena iOS" | iOS sign-in (`GIDClientID`, reversed id as URL scheme) | `124893613050-etb8okpenf0il17tmb33pr3cet8s9jba.apps.googleusercontent.com` |
+| Android "Ludo Arena Android (debug)" | package `com.ludoarena.app` + **debug** SHA-1 `7D:A8:67:75:85:7F:BA:77:64:E4:5C:C3:70:A2:68:DE:10:56:82:20` | `124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com` |
 
 Client ids are public identifiers. The web client's secret is not used (ID
 token verification needs none) and is not stored anywhere in this repository.
@@ -402,7 +404,7 @@ Testing (verification) before public launch; add more test users as needed.
 
 ### Apple (not yet configured — needs an Apple Developer account)
 
-Enable *Sign in with Apple* for App ID `com.ludoroyale.app`; for Android create
+Enable *Sign in with Apple* for App ID `com.ludoarena.app`; for Android create
 a Services ID and register the return URL
 `{PUBLIC_URL}/api/v1/auth/apple/callback`; set `APPLE_AUDIENCES` to the bundle
 id and Services ID. The callback endpoint is documented in `rest-api.md`.
@@ -410,7 +412,7 @@ id and Services ID. The callback endpoint is documented in `rest-api.md`.
 ### Facebook (not yet configured — needs a Meta app)
 
 Create a Meta app with Facebook Login (Android key hashes for package
-`com.ludoroyale.app`, iOS bundle id), set `FACEBOOK_APP_ID` (public) and
+`com.ludoarena.app`, iOS bundle id), set `FACEBOOK_APP_ID` (public) and
 `FACEBOOK_APP_SECRET` (server secret, env/secret manager only). Until then the
 app hides the Facebook button (`FACEBOOK_ENABLED=false`) and the backend
 answers `503 provider_unavailable`.

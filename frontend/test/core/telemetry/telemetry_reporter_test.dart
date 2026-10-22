@@ -1,6 +1,6 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/telemetry/telemetry_reporter.dart';
+import 'package:ludo_arena/core/telemetry/telemetry_reporter.dart';
 
 void main() {
   test('aggregates and posts once per window', () {

@@ -1,5 +1,5 @@
 [Unit]
-Description=Ludo Royale backend
+Description=Ludo Arena backend
 After=network-online.target postgresql@16-main.service redis-server.service
 Wants=network-online.target postgresql@16-main.service redis-server.service
 
@@ -7,9 +7,9 @@ Wants=network-online.target postgresql@16-main.service redis-server.service
 Type=simple
 User=ludo
 Group=ludo
-WorkingDirectory=/opt/ludo-royale/current/backend
-EnvironmentFile=/etc/ludo-royale/backend.env
-ExecStart=/opt/ludo-royale/current/backend/ludo-server
+WorkingDirectory=/opt/ludo-arena/current/backend
+EnvironmentFile=/etc/ludo-arena/backend.env
+ExecStart=/opt/ludo-arena/current/backend/ludo-server
 # SIGHUP reloads the app policy and the legal notices page.
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
@@ -27,7 +27,7 @@ ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
-ReadOnlyPaths=/etc/ludo-royale
+ReadOnlyPaths=/etc/ludo-arena
 
 [Install]
 WantedBy=multi-user.target

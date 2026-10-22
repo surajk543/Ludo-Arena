@@ -9,11 +9,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/game/ludo"
-	snakes "ludoroyale/internal/game/snakes_ladders"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/game/ludo"
+	snakes "ludoarena/internal/game/snakes_ladders"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/wallet"
 )
 
 // ---- event payloads (docs/websocket-protocol.md §6) ----

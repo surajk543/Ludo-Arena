@@ -159,7 +159,7 @@ func (e *env) dial(name string, acct account, headers map[string]string) (*clien
 	ctx, cancel := context.WithCancel(context.Background())
 	url := "ws" + strings.TrimPrefix(e.srv.URL, "http") + "/api/v1/ws"
 	conn, res, err := websocket.Dial(ctx, url, &websocket.DialOptions{
-		HTTPHeader: h, Subprotocols: []string{"ludo-royale.v1"},
+		HTTPHeader: h, Subprotocols: []string{"ludo-arena.v1"},
 		CompressionMode: websocket.CompressionNoContextTakeover,
 	})
 	if err != nil {

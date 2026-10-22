@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"ludoroyale/botplay/internal/chatter"
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/connection"
-	"ludoroyale/botplay/internal/matchmaking"
-	"ludoroyale/botplay/internal/profiles"
-	"ludoroyale/botplay/internal/snakes_ladders"
+	"ludoarena/botplay/internal/chatter"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/connection"
+	"ludoarena/botplay/internal/matchmaking"
+	"ludoarena/botplay/internal/profiles"
+	"ludoarena/botplay/internal/snakes_ladders"
 )
 
 const (

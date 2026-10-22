@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
 
 const _angry = {'path': 'emotes/angry.json', 'format': 'lottie'};
 

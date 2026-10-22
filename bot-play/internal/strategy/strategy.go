@@ -9,10 +9,10 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/connection"
-	"ludoroyale/botplay/internal/ludo"
-	"ludoroyale/botplay/internal/profiles"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/connection"
+	"ludoarena/botplay/internal/ludo"
+	"ludoarena/botplay/internal/profiles"
 )
 
 // DeadlineFraction caps think time at this fraction of the time remaining

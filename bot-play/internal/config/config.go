@@ -20,7 +20,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
-	"ludoroyale/botplay/internal/profiles"
+	"ludoarena/botplay/internal/profiles"
 )
 
 // Environments.

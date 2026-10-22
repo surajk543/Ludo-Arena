@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/tests/fakebackend"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/tests/fakebackend"
 )
 
 // watchPeak samples the service population until stop is closed.

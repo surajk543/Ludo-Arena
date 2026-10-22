@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ludo_royale/app/routes.dart';
-import 'package:ludo_royale/core/network/api_client.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/authentication/presentation/link_account_screen.dart';
-import 'package:ludo_royale/features/authentication/presentation/login_screen.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/app/routes.dart';
+import 'package:ludo_arena/core/network/api_client.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/authentication/presentation/link_account_screen.dart';
+import 'package:ludo_arena/features/authentication/presentation/login_screen.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';

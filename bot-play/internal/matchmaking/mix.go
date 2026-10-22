@@ -3,7 +3,7 @@ package matchmaking
 import (
 	"sort"
 
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/config"
 )
 
 // Choice is one load-test matchmaking.join target.

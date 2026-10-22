@@ -1,32 +1,32 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/config/app_config.dart';
-import 'package:ludo_royale/core/links/external_link_launcher.dart';
+import 'package:ludo_arena/core/config/app_config.dart';
+import 'package:ludo_arena/core/links/external_link_launcher.dart';
 
 void main() {
   test('legal notices default to the studio website page, overridable', () {
     const base = AppConfig(
-      apiBaseUrl: 'https://api.ludoroyale.app',
+      apiBaseUrl: 'https://api.ludoarena.app',
       environment: AppEnvironment.production,
     );
     expect(
       base.legalNoticesUrl,
-      'https://sungamestudio.com/ludo-royale/legal/',
+      'https://sungamestudio.com/ludo-arena/legal/',
     );
     expect(base.legalNoticesUrl, AppConfig.defaultLegalNoticesUrl);
     // The backend route stays available as an explicit fallback.
     const custom = AppConfig(
-      apiBaseUrl: 'https://api.ludoroyale.app',
+      apiBaseUrl: 'https://api.ludoarena.app',
       environment: AppEnvironment.production,
-      legalNoticesUrlOverride: 'https://api.ludoroyale.app/legal/open-source',
+      legalNoticesUrlOverride: 'https://api.ludoarena.app/legal/open-source',
     );
     expect(
       custom.legalNoticesUrl,
-      'https://api.ludoroyale.app/legal/open-source',
+      'https://api.ludoarena.app/legal/open-source',
     );
     // Not supplied at build time in tests: the website page is used.
     expect(
       AppConfig.fromEnvironment(isAndroid: false).legalNoticesUrl,
-      'https://sungamestudio.com/ludo-royale/legal/',
+      'https://sungamestudio.com/ludo-arena/legal/',
     );
   });
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Insert the Ludo Royale snippets into copies of the studio site's pages.
+"""Insert the Ludo Arena snippets into copies of the studio site's pages.
 
 Usage:
   python3 apply_snippets.py INDEX_HTML SITEMAP_XML [--footer-page PAGE ...]
                            [--keep-more-card-full-width] [--dry-run]
 
-INDEX_HTML  a copy of the site's index.html. Gets the Ludo Royale game card after the
-            Brain Train card, and the Ludo Royale links after the Brain Train links in
+INDEX_HTML  a copy of the site's index.html. Gets the Ludo Arena game card after the
+            Brain Train card, and the Ludo Arena links after the Brain Train links in
             the footer's Games and Legal lists. With three game cards in the two-column
             grid, the "More on the way" card is moved into the free cell next to the
             third card (style="grid-column: auto" on <div class="more-card">), so the
@@ -22,7 +22,7 @@ SITEMAP_XML a copy of the site's sitemap.xml. Gets snippets/sitemap-entries.xml 
 --dry-run   check everything and report, but write nothing.
 
 The script is all-or-nothing: it refuses (exit 1, nothing written) if any anchor is
-missing or ambiguous, or if a file already mentions Ludo Royale. Run it on copies,
+missing or ambiguous, or if a file already mentions Ludo Arena. Run it on copies,
 check the result, then deploy the copies (see README.md).
 """
 
@@ -50,7 +50,7 @@ LEGAL_LI_ANCHOR = re.compile(
 URLSET_END = re.compile(r"^</urlset>", re.M)
 MORE_CARD = re.compile(r'<div class="more-card">')
 MORE_CARD_BESIDE = '<div class="more-card" style="grid-column: auto">'
-ALREADY_HTML = re.compile(r'href="/ludo-royale[/"]')
+ALREADY_HTML = re.compile(r'href="/ludo-arena[/"]')
 
 
 class Refused(Exception):
@@ -97,7 +97,7 @@ def plan(args):
 
     index = read(args.index)
     if ALREADY_HTML.search(index):
-        raise Refused(f"{args.index}: already links to /ludo-royale; nothing to do")
+        raise Refused(f"{args.index}: already links to /ludo-arena; nothing to do")
     index, line = insert_after(index, CARD_ANCHOR, snippet("index-games-card.html"), "Brain Train game card", args.index)
     report.append(f"{args.index}: game card inserted at line {line}")
     if not args.keep_more_card_full_width:
@@ -110,8 +110,8 @@ def plan(args):
     out[args.index] = footer_links(index, args.index, report)
 
     sitemap = read(args.sitemap)
-    if "/ludo-royale" in sitemap:
-        raise Refused(f"{args.sitemap}: already lists /ludo-royale; nothing to do")
+    if "/ludo-arena" in sitemap:
+        raise Refused(f"{args.sitemap}: already lists /ludo-arena; nothing to do")
     out[args.sitemap], line = insert_before(sitemap, URLSET_END, snippet("sitemap-entries.xml"), "</urlset>", args.sitemap)
     report.append(f"{args.sitemap}: entries inserted at line {line}")
 
@@ -120,7 +120,7 @@ def plan(args):
             raise Refused(f"{page}: given twice")
         text = read(page)
         if ALREADY_HTML.search(text):
-            raise Refused(f"{page}: already links to /ludo-royale; nothing to do")
+            raise Refused(f"{page}: already links to /ludo-arena; nothing to do")
         out[page] = footer_links(text, page, report)
     return out, report
 

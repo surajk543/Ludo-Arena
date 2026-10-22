@@ -158,7 +158,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String authConflictMessage(String provider) {
-    return 'उस $provider अकाउंट का अपना अलग लूडो रॉयल अकाउंट पहले से है। दोनों अकाउंट के बीच कुछ भी मर्ज या ट्रांसफ़र नहीं होगा।';
+    return 'उस $provider अकाउंट का अपना अलग लूडो एरीना अकाउंट पहले से है। दोनों अकाउंट के बीच कुछ भी मर्ज या ट्रांसफ़र नहीं होगा।';
   }
 
   @override
@@ -524,7 +524,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get connectionBackOnline => 'फिर से ऑनलाइन';
 
   @override
-  String get appTitle => 'लूडो रॉयल';
+  String get appTitle => 'लूडो एरीना';
 
   @override
   String get languageNameNative => 'हिन्दी';
@@ -905,7 +905,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get gateForceUpdateMessage =>
-      'लूडो रॉयल का यह वर्ज़न अब सपोर्ट नहीं होता। ऑनलाइन खेलते रहने के लिए अपडेट करें — आपके सिक्के और प्रोग्रेस सुरक्षित हैं।';
+      'लूडो एरीना का यह वर्ज़न अब सपोर्ट नहीं होता। ऑनलाइन खेलते रहने के लिए अपडेट करें — आपके सिक्के और प्रोग्रेस सुरक्षित हैं।';
 
   @override
   String get gateInstalledVersion => 'इंस्टॉल वर्ज़न';
@@ -936,7 +936,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get gateMaintenanceMessage =>
-      'लूडो रॉयल पर मेंटेनेंस चल रहा है। आपके सिक्के, प्रोग्रेस और चल रहे मैच सुरक्षित हैं — हमारे लौटते ही मैच फिर से शुरू होंगे।';
+      'लूडो एरीना पर मेंटेनेंस चल रहा है। आपके सिक्के, प्रोग्रेस और चल रहे मैच सुरक्षित हैं — हमारे लौटते ही मैच फिर से शुरू होंगे।';
 
   @override
   String gateMaintenanceEstimatedEnd(String time) {
@@ -970,7 +970,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get gateUnreachableMessage =>
-      'ऑनलाइन खेलने के लिए लूडो रॉयल को इंटरनेट कनेक्शन चाहिए। अपना वाई-फ़ाई या मोबाइल डेटा जाँचें और फिर कोशिश करें।';
+      'ऑनलाइन खेलने के लिए लूडो एरीना को इंटरनेट कनेक्शन चाहिए। अपना वाई-फ़ाई या मोबाइल डेटा जाँचें और फिर कोशिश करें।';
 
   @override
   String get gateUnreachableLastKnownMaintenance =>
@@ -985,7 +985,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get gateNotFoundMessage =>
-      'लूडो रॉयल का यह हिस्सा इस वर्ज़न में अभी उपलब्ध नहीं है।';
+      'लूडो एरीना का यह हिस्सा इस वर्ज़न में अभी उपलब्ध नहीं है।';
 
   @override
   String get gateGoHome => 'होम पर वापस जाएँ';
@@ -1947,7 +1947,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String metaShareFriendCodeMessage(String code) {
-    return 'चलो साथ में लूडो रॉयल खेलें! मेरे कोड से मुझे दोस्त बनाएँ: $code';
+    return 'चलो साथ में लूडो एरीना खेलें! मेरे कोड से मुझे दोस्त बनाएँ: $code';
   }
 
   @override
@@ -2179,7 +2179,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get onboardingPreviewLabel => 'झलक';
 
   @override
-  String get onboardingPreviewTitle => 'लूडो रॉयल में आपका स्वागत है!';
+  String get onboardingPreviewTitle => 'लूडो एरीना में आपका स्वागत है!';
 
   @override
   String get onboardingPreviewBody =>
@@ -2348,11 +2348,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String playInviteShareText(String game, String code) {
-    return 'Ludo Royale पर मेरे साथ $game खेलो! ऐप खोलो, \'कोड से जुड़ें\' पर टैप करो और यह कोड डालो: $code';
+    return 'Ludo Arena पर मेरे साथ $game खेलो! ऐप खोलो, \'कोड से जुड़ें\' पर टैप करो और यह कोड डालो: $code';
   }
 
   @override
-  String get playInviteShareSubject => 'Ludo Royale का न्योता';
+  String get playInviteShareSubject => 'Ludo Arena का न्योता';
 
   @override
   String playLobbyPlayers(int count, int capacity) {
@@ -2859,7 +2859,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String profileShareFriendCode(String code) {
-    return 'लूडो रॉयल पर मुझे जोड़ें! मेरा फ़्रेंड कोड है $code';
+    return 'लूडो एरीना पर मुझे जोड़ें! मेरा फ़्रेंड कोड है $code';
   }
 
   @override
@@ -3107,7 +3107,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get settingsConsentTitle =>
-      'लूडो रॉयल को बेहतर बनाने में हमारी मदद करें';
+      'लूडो एरीना को बेहतर बनाने में हमारी मदद करें';
 
   @override
   String get settingsConsentMessage =>

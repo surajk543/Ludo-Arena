@@ -133,7 +133,7 @@ class AppConfig {
 
   /// The published open-source notices page on the studio website.
   static const String defaultLegalNoticesUrl =
-      'https://sungamestudio.com/ludo-royale/legal/';
+      'https://sungamestudio.com/ludo-arena/legal/';
 
   /// Public OAuth client ids (Google Cloud project `ludo-royale-63887`).
   /// The web ("server") client id is the ID-token audience the backend
@@ -168,7 +168,7 @@ class AppConfig {
   /// Sign in with Apple on Android (Apple's web flow): the Services ID and the
   /// backend callback registered as its return URL in the Apple developer
   /// account.
-  static const String productionAppleServiceId = 'com.ludoroyale.app.signin';
+  static const String productionAppleServiceId = 'com.ludoarena.app.signin';
   static const String productionAppleRedirectUri =
       '$productionApiBaseUrl/api/v1/auth/apple/callback';
 

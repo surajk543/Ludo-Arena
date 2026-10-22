@@ -1,4 +1,4 @@
-module ludoroyale/botplay
+module ludoarena/botplay
 
 go 1.27.3
 

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/ratelimit"
 )
 
 // Rate limits.

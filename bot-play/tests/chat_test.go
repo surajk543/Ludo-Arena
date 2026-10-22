@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/tests/fakebackend"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/tests/fakebackend"
 )
 
 // chatty makes every trigger fire (probability 1) with no typing delay.

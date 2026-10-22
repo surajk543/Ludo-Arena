@@ -23,7 +23,7 @@
   "@gateForceUpdateTitle": {
     "description": "Force-update screen title."
   },
-  "gateForceUpdateMessage": "This version of Ludo Royale is no longer supported. Update to keep playing online — your coins and progress are safe.",
+  "gateForceUpdateMessage": "This version of Ludo Arena is no longer supported. Update to keep playing online — your coins and progress are safe.",
   "@gateForceUpdateMessage": {
     "description": "Force-update screen explanation (used when the server sends no localized message)."
   },
@@ -64,7 +64,7 @@
   "@gateMaintenanceTitle": {
     "description": "Maintenance screen title."
   },
-  "gateMaintenanceMessage": "Ludo Royale is down for maintenance. Your coins, progress and running matches are safe — matches resume when we're back.",
+  "gateMaintenanceMessage": "Ludo Arena is down for maintenance. Your coins, progress and running matches are safe — matches resume when we're back.",
   "@gateMaintenanceMessage": {
     "description": "Maintenance explanation (used when the server sends no localized message)."
   },
@@ -110,7 +110,7 @@
   "@gateUnreachableTitle": {
     "description": "Title when the backend cannot be reached at startup."
   },
-  "gateUnreachableMessage": "Ludo Royale needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.",
+  "gateUnreachableMessage": "Ludo Arena needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.",
   "@gateUnreachableMessage": {
     "description": "Explains that online play needs a connection."
   },
@@ -126,7 +126,7 @@
   "@gateNotFoundTitle": {
     "description": "Title for a route that is not available in this build."
   },
-  "gateNotFoundMessage": "This part of Ludo Royale isn't available in this version yet.",
+  "gateNotFoundMessage": "This part of Ludo Arena isn't available in this version yet.",
   "@gateNotFoundMessage": {
     "description": "Message for a route that is not available in this build."
   },

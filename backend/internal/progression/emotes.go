@@ -23,9 +23,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/wallet"
 )
 
 // ErrEmoteNotFound: no active Store emote with that id.
