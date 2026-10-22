@@ -61,9 +61,9 @@ class FirebaseAnalyticsConfig {
   static const String defaultProjectId = 'ludo-royale-63887';
   static const String defaultMessagingSenderId = '124893613050';
   static const String defaultAndroidAppId =
-      '1:124893613050:android:3ebc79fe014a64a9827243';
+      '1:124893613050:android:872c7caa8077bf3a827243';
   static const String defaultIosAppId =
-      '1:124893613050:ios:5d7bc30967c66409827243';
+      '1:124893613050:ios:cc3be63d4c1725dd827243';
 
   static const FirebaseAnalyticsConfig fromEnvironment =
       FirebaseAnalyticsConfig(
