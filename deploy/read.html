@@ -532,7 +532,7 @@ ssh root@ludo.sungamestudio.com bash /root/deploy/scripts/provision.sh</code></p
     <div class="callout pending"><span class="callout-title">Brief disruption</span>Provisioning restarts Redis, PostgreSQL and nginx (a few seconds): run it when traffic is low. It does not restart the backend; run <code>systemctl restart ludo-backend</code> if a unit file changed.</div>
 
     <h3>6.5 bot-play</h3>
-    <p>Its settings are <code>bot-play/configs/environments/production.yaml</code> in the repo, deployed with each release. <code>public_matchmaking</code> is off: bots join only practice games. To fill public lobbies, turn it on in that file, set <code>BOT_PUBLIC_FILL_ENABLED=true</code> in <code>backend.env</code>, deploy, and restart the backend.</p>
+    <p>Its settings are <code>bot-play/configs/environments/production.yaml</code> in the repo, deployed with each release. Bots play practice games and fill <strong>Play Online</strong> lobbies: when a human has waited <code>fill_after_seconds</code> (10 s) and the lobby is not full, bot-play asks the backend for bots (needs <code>BOT_PUBLIC_FILL_ENABLED=true</code> in <code>backend.env</code>). To stop filling a game, set its <code>public_matchmaking.per_game</code> entry to <code>false</code> and deploy (or edit the file in the live release and <code>systemctl reload ludo-bot-play</code>; the next deploy replaces it). <code>BOT_PUBLIC_FILL_ENABLED=false</code> plus <code>systemctl restart ludo-backend</code> stops all public fill at once.</p>
 
     <h3>6.6 Operating system</h3>
     <p><code>unattended-upgrades</code> installs Ubuntu security updates automatically. All services start on boot, so a reboot (<code>reboot</code>, or Bluehost → Reboot Server) only interrupts play briefly.</p>
