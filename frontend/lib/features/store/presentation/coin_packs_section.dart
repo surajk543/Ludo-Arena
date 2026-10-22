@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/app_info.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
@@ -79,7 +80,10 @@ class CoinPacksSliver extends ConsumerWidget {
           sliver: SliverToBoxAdapter(
             child: MetaNote(
               icon: Icons.info_outline_rounded,
-              text: l10n.coinsNote,
+              // Never name the other platform's store (App Store guideline 2.3.10).
+              text: ref.watch(appInfoProvider).isIOS
+                  ? l10n.coinsNoteAppStore
+                  : l10n.coinsNoteGooglePlay,
             ),
           ),
         ),

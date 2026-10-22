@@ -352,8 +352,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your purchase is safe. We\'ll add the coins as soon as we can reach the game server.';
 
   @override
-  String get coinsNote =>
-      'Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play or the App Store.';
+  String get coinsNoteAppStore =>
+      'Coins and diamonds are virtual items with no cash value. Payments are handled by the App Store.';
+
+  @override
+  String get coinsNoteGooglePlay =>
+      'Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play.';
 
   @override
   String get coinsErrorUnavailable => 'This pack isn\'t available yet.';

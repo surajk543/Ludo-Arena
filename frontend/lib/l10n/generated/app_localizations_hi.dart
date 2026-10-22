@@ -352,8 +352,12 @@ class AppLocalizationsHi extends AppLocalizations {
       'आपकी खरीदारी सुरक्षित है। गेम सर्वर से जुड़ते ही हम सिक्के जोड़ देंगे।';
 
   @override
-  String get coinsNote =>
-      'सिक्के और हीरे वर्चुअल आइटम हैं, इनका कोई नकद मूल्य नहीं है। भुगतान Google Play या App Store द्वारा किया जाता है।';
+  String get coinsNoteAppStore =>
+      'सिक्के और हीरे वर्चुअल आइटम हैं, इनका कोई नकद मूल्य नहीं है। भुगतान App Store द्वारा किया जाता है।';
+
+  @override
+  String get coinsNoteGooglePlay =>
+      'सिक्के और हीरे वर्चुअल आइटम हैं, इनका कोई नकद मूल्य नहीं है। भुगतान Google Play द्वारा किया जाता है।';
 
   @override
   String get coinsErrorUnavailable => 'यह पैक अभी उपलब्ध नहीं है।';

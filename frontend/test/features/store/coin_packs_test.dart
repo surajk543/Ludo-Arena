@@ -517,6 +517,19 @@ void main() {
       );
     });
 
+    testWidgets('the payments note names Google Play, never the App Store', (
+      tester,
+    ) async {
+      await pumpShop(tester);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -4000));
+      await flush(tester);
+      expect(
+        find.textContaining('Payments are handled by Google Play'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('App Store'), findsNothing);
+    });
+
     testWidgets('buy a pack: the server grant shows "Coins added!" with the '
         'purchase sound and updates the balance', (tester) async {
       env.backend.json(
@@ -600,6 +613,45 @@ void main() {
       expect(c.read(walletControllerProvider).coins, 0);
       expect(c.read(walletControllerProvider).lastReason, 'refund');
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('screen: Coins on iOS', () {
+    late TestEnv env;
+    late MetaFakes fakes;
+    late FakeIapStore store;
+
+    setUp(() async {
+      env = await TestEnv.create(platform: 'ios');
+      env.routeHappyPath();
+      routeMeta(env);
+      routeStore(env);
+      routeCoinPacks(env);
+      fakes = MetaFakes();
+      store = FakeIapStore(products: const {});
+    });
+    tearDown(() async {
+      await fakes.close();
+      await store.close();
+    });
+
+    testWidgets('the payments note names the App Store only (guideline '
+        '2.3.10)', (tester) async {
+      await pumpMeta(
+        tester,
+        env,
+        fakes,
+        const ShopScreen(),
+        extra: [iapStoreProvider.overrideWithValue(store), _noWait],
+      );
+      await flush(tester);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -4000));
+      await flush(tester);
+      expect(
+        find.textContaining('Payments are handled by the App Store'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Google Play'), findsNothing);
     });
   });
 
