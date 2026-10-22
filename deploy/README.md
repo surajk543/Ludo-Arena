@@ -305,9 +305,14 @@ run `systemctl restart ludo-backend` if a unit file changed.
 ### 6.5 bot-play
 
 Its settings are `bot-play/configs/environments/production.yaml` in the repo
-(deployed with each release). `public_matchmaking` is off: bots join only
-practice games. Turn it on in that file, set `BOT_PUBLIC_FILL_ENABLED=true` in
-`backend.env`, deploy, and restart the backend.
+(deployed with each release). Bots play practice games and fill **Play
+Online** lobbies: when a human has waited `fill_after_seconds` (10 s) and the
+lobby is not full, bot-play asks the backend for bots (needs
+`BOT_PUBLIC_FILL_ENABLED=true` in `backend.env`). To stop filling a game, set
+its `public_matchmaking.per_game` entry to `false` and deploy (or edit the
+file in the live release and `systemctl reload ludo-bot-play`; the next
+deploy replaces it). `BOT_PUBLIC_FILL_ENABLED=false` plus
+`systemctl restart ludo-backend` stops all public fill at once.
 
 ### 6.6 Operating system
 

@@ -13,7 +13,7 @@ connection:
 
 bots:
   enabled: true
-  modes: [practice]              # add public_fill to enable matchmaking assistance
+  modes: [practice, public_fill] # practice games + Play Online matchmaking assistance
   target_active_bots: 150
   max_concurrent_bots: 300       # production cap is 500
   per_game_max: {ludo: 200, ludo_quick: 100, snakes_ladders: 150}
@@ -21,9 +21,9 @@ bots:
   max_room_joins_per_second: 5
   max_connection_attempts_per_second: 10
   public_matchmaking:
-    enabled: false               # flip to true (and per_game) to start filling public lobbies
-    per_game: {ludo: false, ludo_quick: false, snakes_ladders: false}
-    fill_after_seconds: 20
+    enabled: true                # bots join Play Online lobbies that wait too long
+    per_game: {ludo: true, ludo_quick: true, snakes_ladders: true}
+    fill_after_seconds: 10       # a human waits this long before bots are asked for
     minimum_humans: 1
     maximum_wait_seconds: 28
     refill_cooldown_seconds: 15
