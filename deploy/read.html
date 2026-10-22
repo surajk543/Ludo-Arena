@@ -419,7 +419,7 @@ ludo-deploy deploy ops/vps-deploy  <span class="c"># a branch, tag or commit</sp
 <pre><code>ludo-deploy status
 curl -s https://ludo.sungamestudio.com/readyz        <span class="c"># {"status":"ready"}, from anywhere</span>
 journalctl -u ludo-backend -n 50 --no-pager</code></pre>
-    <div class="callout pending"><span class="callout-title">What players notice</span>The backend restart closes every WebSocket (code <code>1001</code>). The app reconnects within seconds and resyncs; running games continue because their state is in Redis. bot-play waits for its running practice games to finish (up to 5 minutes) before it restarts, so a practice game started in that window may wait for a bot. Deploy when traffic is low.</div>
+    <div class="callout pending"><span class="callout-title">What players notice (measured)</span>A deploy takes about 45 s, but players only see the backend restart. On SIGTERM the backend closes every WebSocket (code <code>1001</code>) and drains in-flight HTTP requests, including bot-play's 20 s assignment long-poll, so the old process exits <strong>10–20 s</strong> later and only then does the new one start. During that gap REST calls answer <code>502</code> and the app keeps retrying its socket; it reconnects and resyncs once the new process is up. Running games continue because their state is in Redis. bot-play waits for its running practice games to finish (up to 5 minutes) before it restarts. Deploy when traffic is low; a rollback has the same 10–20 s gap.</div>
     <p>Only one <code>deploy</code> or <code>rollback</code> runs at a time (lock in <code>/run/ludo-deploy.lock</code>).</p>
   </section>
 
@@ -569,7 +569,26 @@ curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_gam
         <tr><td>nginx <code>proxy_read_timeout</code> (WS)</td><td>120 s</td><td>server pings every 20 s</td></tr>
       </tbody>
     </table></div>
-    <!-- capacity results -->
+    <h3 id="measured">9.1 Measured on this VPS (22 Oct 2026)</h3>
+    <div class="callout measured"><span class="callout-title">20,000 concurrent WebSockets through nginx + TLS</span>Two bot-play load generators on the same VPS (sharing its 8 vCPUs) against a separate development backend, Redis and database; bots played real Ludo, Quick Ludo and Snakes &amp; Ladders games at a human pace (1.5–5 s per action) with reconnect churn and 2 % deliberately slow readers. 120 s steady window after a 100 s ramp.</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Measure</th><th>20,000 sockets</th></tr></thead>
+      <tbody>
+        <tr><td>Connected / failed sessions</td><td>20,000 / 0</td></tr>
+        <tr><td>Hash mismatches (state divergence)</td><td>0</td></tr>
+        <tr><td>Reconnects</td><td>888 of 888 succeeded</td></tr>
+        <tr><td>Machine CPU busy (incl. load generator)</td><td>36–41 % of 8 vCPU</td></tr>
+        <tr><td>Backend</td><td>1.5 cores, 1.9 GB RSS</td></tr>
+        <tr><td>nginx (8 workers)</td><td>0.35 cores, 1.4 GB RSS</td></tr>
+        <tr><td>Redis</td><td>0.24 cores, 0.1 GB RSS</td></tr>
+        <tr><td>Memory still available</td><td>~10 GB of 16 GB</td></tr>
+        <tr><td>Server messages out / commands in</td><td>15.7k/s / 2.3k/s</td></tr>
+        <tr><td>Server command processing</td><td>p99 ≤ 2.5 ms, p99.9 ≤ 5 ms</td></tr>
+        <tr><td>Client roll latency</td><td>p50 0.72 ms, p95 2.3 ms</td></tr>
+        <tr><td>nginx error-log lines</td><td>0</td></tr>
+      </tbody>
+    </table></div>
+    <p>The client p99 (~500 ms) and the 634 client pong timeouts come from the 2 % slow-reader bots, which fall behind by design; all of them reconnected. Without the load generator the server side needs about 2 cores and 3.5 GB for 20k players at this pace. Faster play costs more: the M5 Pro run in <code>docs/performance.md</code> (200–800 ms per action) reached its knee at ~9k players on one Redis. Not yet measured here: a reconnect storm (all 20k sockets reconnecting at once after a deploy).</p>
   </section>
 
   <!-- ============================================================ 10 -->

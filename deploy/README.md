@@ -94,11 +94,16 @@ curl -s https://ludo.sungamestudio.com/readyz        # {"status":"ready"}, from 
 journalctl -u ludo-backend -n 50 --no-pager
 ```
 
-What players notice: the backend restart closes every WebSocket (code
-`1001`). The app reconnects within seconds and resyncs; running games
-continue because their state is in Redis. bot-play waits for its running
-practice games to finish (up to 5 minutes) before it restarts, so a practice
-game started in that window may wait for a bot. Deploy when traffic is low.
+What players notice (measured): a deploy takes about 45 s, but players only
+see the backend restart. On SIGTERM the backend closes every WebSocket
+(code `1001`) and drains in-flight HTTP requests, which includes bot-play's
+20 s assignment long-poll, so the old process exits **10–20 s** later and
+only then does the new one start. During that gap REST calls answer `502`
+and the app keeps retrying its socket; it reconnects and resyncs once the
+new process is up. Running games continue because their state is in Redis.
+bot-play waits for its running practice games to finish (up to 5 minutes)
+before it restarts, so a practice game started in that window may wait for
+a bot. Deploy when traffic is low. A rollback has the same 10–20 s gap.
 
 Only one `ludo-deploy deploy`/`rollback` runs at a time (lock in
 `/run/ludo-deploy.lock`).
@@ -332,9 +337,37 @@ to `127.0.0.1:8080`.
 | `WS_MAX_CONNECTIONS` (backend) | 50,000 | |
 | nginx `proxy_read_timeout` (WS) | 120 s | server pings every 20 s |
 
-Measured on this VPS (22 Oct 2026): see §9.1.
+### 9.1 Measured on this VPS (22 Oct 2026)
 
-<!-- capacity results -->
+Load generator: two bot-play processes in load-test mode on the same VPS
+(they share its 8 vCPUs), against a separate development backend, Redis and
+database, through nginx + TLS on a loopback listener. Bots played real
+Ludo, Quick Ludo and Snakes & Ladders games at a human pace (1.5–5 s per
+action), with 30 reconnects/min of churn per process and 2 % deliberately
+slow readers. Steady window: 120 s after a 100 s ramp.
+
+| | 20,000 sockets |
+|---|---|
+| Connected / failed sessions | 20,000 / 0 |
+| Hash mismatches (state divergence) | 0 |
+| Reconnects | 888 of 888 succeeded |
+| Machine CPU busy (incl. load generator) | 36–41 % of 8 vCPU |
+| Backend | 1.5 cores, 1.9 GB RSS |
+| nginx (8 workers) | 0.35 cores, 1.4 GB RSS |
+| Redis | 0.24 cores, 0.1 GB RSS |
+| Memory still available | ~10 GB of 16 GB |
+| Server messages out / commands in | 15.7k/s / 2.3k/s |
+| Server command processing | p99 ≤ 2.5 ms, p99.9 ≤ 5 ms |
+| Client roll latency | p50 0.72 ms, p95 2.3 ms |
+| nginx error-log lines | 0 |
+
+The client p99 (~500 ms) and the 634 client pong timeouts come from the
+2 % slow-reader bots (250 ms per message), which fall behind by design; all
+of them reconnected. Without the load generator the server side needs about
+2 cores and 3.5 GB for 20k players at this pace. Faster play costs more:
+the repo's M5 Pro run (200–800 ms per action) reached its knee at ~9k
+players on one Redis (`docs/performance.md`). Not yet measured here: a
+reconnect storm (all 20k sockets reconnecting at once after a deploy).
 
 ## 10. Rebuild the server from scratch
 
