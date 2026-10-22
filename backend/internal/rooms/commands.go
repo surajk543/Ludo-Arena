@@ -106,10 +106,13 @@ func (s *Service) dispatch(ctx context.Context, c Caller, in protocol.Inbound) (
 		if p.Variant == "" {
 			p.Variant = "classic"
 		}
-		if _, err := s.CreatePrivate(ctx, c, p.Game, p.Variant, p.Capacity); err != nil {
+		r, err := s.CreatePrivate(ctx, c, p.Game, p.Variant, p.Capacity)
+		if err != nil {
 			return nil, err
 		}
-		return ack(in.ID), nil
+		// Reply with the snapshot: the published room.updated can reach the
+		// caller after a bare ack, which left the app without its room.
+		return [][]byte{protocol.Encode(protocol.TRoomUpdated, in.ID, map[string]any{"room": r.View(), "reason": "created"})}, nil
 
 	case protocol.TRoomJoin:
 		var p struct {
@@ -201,10 +204,11 @@ func (s *Service) dispatch(ctx context.Context, c Caller, in protocol.Inbound) (
 		if p.Variant == "" {
 			p.Variant = "classic"
 		}
-		if _, err := s.PracticeStart(ctx, c, p.Game, p.Variant, p.Bots); err != nil {
+		r, err := s.PracticeStart(ctx, c, p.Game, p.Variant, p.Bots)
+		if err != nil {
 			return nil, err
 		}
-		return ack(in.ID), nil
+		return [][]byte{protocol.Encode(protocol.TRoomUpdated, in.ID, map[string]any{"room": r.View(), "reason": "created"})}, nil
 
 	case protocol.TGameStart:
 		var p struct {

@@ -62,7 +62,7 @@ func TestEntryFeesLiveFromPolicy(t *testing.T) {
 	// A private Snakes room and a public Ludo lobby opened at the defaults.
 	host, friend := e.guest(), e.guest()
 	hc, fc := e.mustDial("host", host), e.mustDial("friend", friend)
-	if r := hc.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); r.T != "ack" {
+	if r := hc.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); r.T != "room.updated" {
 		t.Fatalf("create: %s %s", r.T, r.P)
 	}
 	waitFor(t, 3*time.Second, "private lobby", func() bool { return hc.snapshot() != nil && hc.snapshot().Code != "" })
@@ -123,7 +123,7 @@ func TestEntryFeesLiveFromPolicy(t *testing.T) {
 		t.Fatalf("old-fee lobby was joined or changed: status %s players %d fee %d", s.Status, len(s.Players), s.EntryFee)
 	}
 	h2 := e.mustDial("host2", e.guest())
-	if r := h2.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 3}); r.T != "ack" {
+	if r := h2.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 3}); r.T != "room.updated" {
 		t.Fatalf("create 2: %s %s", r.T, r.P)
 	}
 	waitFor(t, 3*time.Second, "new private lobby", func() bool { return h2.snapshot() != nil })
@@ -169,7 +169,7 @@ func TestEntryFeesLiveFromPolicy(t *testing.T) {
 	if r := pc.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); r.T != "error" || !strings.Contains(string(r.P), "insufficient_funds") {
 		t.Fatalf("room.create with too few coins: %s %s", r.T, r.P)
 	}
-	if r := pc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 1}); r.T != "ack" {
+	if r := pc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 1}); r.T != "room.updated" {
 		t.Fatalf("practice.start: %s %s", r.T, r.P)
 	}
 	waitFor(t, 3*time.Second, "practice lobby", func() bool { return pc.snapshot() != nil })

@@ -64,7 +64,7 @@ func TestBotServiceAuthAndPracticeGame(t *testing.T) {
 	}
 
 	hc := e.mustDial("human", human)
-	if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 2}); m.T != "ack" {
+	if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 2}); m.T != "room.updated" {
 		t.Fatalf("practice.start: %s %s", m.T, m.P)
 	}
 	bots := e.spawnBots(t, ctl, 2)

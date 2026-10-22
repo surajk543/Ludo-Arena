@@ -707,7 +707,7 @@ func TestBotPictureShare(t *testing.T) {
 			}
 			ctl := e.botController(t)
 			hc := e.mustDial("human", human)
-			if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 3}); m.T != "ack" {
+			if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 3}); m.T != "room.updated" {
 				t.Fatalf("practice.start: %s %s", m.T, m.P)
 			}
 			e.spawnBots(t, ctl, 3)

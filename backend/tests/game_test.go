@@ -124,7 +124,8 @@ func TestFullPublicGames(t *testing.T) {
 func TestPrivateRoomAndRematch(t *testing.T) {
 	e := newEnv(t, envOpts{dice: rooms.NewSeededDice(7)})
 	host := e.mustDial("host", e.guest())
-	if r := host.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); r.T != "ack" {
+	// The reply itself carries the room (the app reads the code from it).
+	if r := host.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); r.T != "room.updated" || !strings.Contains(string(r.P), `"code":"`) {
 		t.Fatalf("create: %s %s", r.T, r.P)
 	}
 	waitFor(t, 3*time.Second, "lobby", func() bool { return host.snapshot() != nil && host.snapshot().Code != "" })

@@ -128,7 +128,7 @@ func TestLiveGameGauges(t *testing.T) {
 
 	// Playing: practice Ludo, one human and two bots.
 	ph := e.mustDial("practice", e.guest())
-	if m := ph.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 2}); m.T != "ack" {
+	if m := ph.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": 2}); m.T != "room.updated" {
 		t.Fatalf("practice.start: %s %s", m.T, m.P)
 	}
 	pbots := e.spawnBots(t, ctl, 2)
@@ -174,7 +174,7 @@ func TestLiveGameGauges(t *testing.T) {
 
 	// Lobby: private Snakes & Ladders room with its host.
 	host := e.mustDial("host", e.guest())
-	if r := host.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); r.T != "ack" {
+	if r := host.call("room.create", map[string]any{"game": "snakes_ladders", "capacity": 2}); r.T != "room.updated" {
 		t.Fatalf("create: %s %s", r.T, r.P)
 	}
 	waitFor(t, 3*time.Second, "private lobby", func() bool { return host.snapshot() != nil })

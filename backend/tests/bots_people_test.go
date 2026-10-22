@@ -133,7 +133,7 @@ func TestBotPersonaKeepsIdentityAndChangesPicture(t *testing.T) {
 	var rounds []seen
 	oldRoom := ""
 	for round := 0; round < 3; round++ {
-		if m := hc.call("practice.start", map[string]any{"game": "snakes_ladders", "bots": 1}); m.T != "ack" {
+		if m := hc.call("practice.start", map[string]any{"game": "snakes_ladders", "bots": 1}); m.T != "room.updated" {
 			t.Fatalf("round %d practice.start: %s %s", round, m.T, m.P)
 		}
 		bots := e.spawnNamedBots(t, ctl, []string{"Tara"})

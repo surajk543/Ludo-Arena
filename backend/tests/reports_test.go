@@ -293,7 +293,7 @@ func (e *env) practiceWithBots(t *testing.T, human account, names []string) (*cl
 	t.Helper()
 	ctl := e.botController(t)
 	hc := e.mustDial("human", human)
-	if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": len(names)}); m.T != "ack" {
+	if m := hc.call("practice.start", map[string]any{"game": "ludo", "variant": "quick", "bots": len(names)}); m.T != "room.updated" {
 		t.Fatalf("practice.start: %s %s", m.T, m.P)
 	}
 	e.spawnNamedBots(t, ctl, names)
