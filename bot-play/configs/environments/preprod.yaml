@@ -33,7 +33,7 @@ loadtest:
   # loadtest.enabled: true, and run with --i-understand-this-is-a-load-test.
   enabled: false
   allowed_hosts: [preprod-api.ludoroyale.example]
-  forbidden_hosts: [api.ludoroyale.example, "*.prod.ludoroyale.example"]
+  forbidden_hosts: [api.ludoroyale.example, "*.prod.ludoroyale.example", ludo.sungamestudio.com]
   report_path: /tmp/bot-play-loadtest-report.json
 
 metrics:

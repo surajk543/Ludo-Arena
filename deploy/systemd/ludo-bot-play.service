@@ -1,0 +1,35 @@
+[Unit]
+Description=Ludo Royale bot-play
+After=network-online.target ludo-backend.service nginx.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ludo
+Group=ludo
+WorkingDirectory=/opt/ludo-royale/current/bot-play
+# BOT_SERVICE_KEY only; its SHA-256 is BOT_SERVICE_KEY_SHA256 in backend.env.
+EnvironmentFile=/etc/ludo-royale/bot-play.env
+ExecStart=/opt/ludo-royale/current/bot-play/bot-play \
+    --config /opt/ludo-royale/current/bot-play/configs/environments/production.yaml \
+    --profiles /opt/ludo-royale/current/bot-play/configs/profiles.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+# shutdown.policy finish_games waits up to 300 s for running matches.
+TimeoutStopSec=320
+LimitNOFILE=65536
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadOnlyPaths=/etc/ludo-royale
+
+[Install]
+WantedBy=multi-user.target

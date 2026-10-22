@@ -17,6 +17,11 @@ part of the app or backend). See `website/README.md`; regenerate
 `website/ludo-royale/legal/index.html` with `website/build_legal_page.py` whenever
 `backend/config/legal/open-source-notices.html` changes.
 
+`deploy/` — production VPS for `https://ludo.sungamestudio.com` (backend,
+bot-play, PostgreSQL, Redis, nginx on one Ubuntu host; DNS on Cloudflare, not
+Namecheap). See `deploy/README.md`; release with `deploy/scripts/release.sh`.
+Production app builds default to that URL (`AppConfig.defaultApiBaseUrl`).
+
 Start with `README.md` and `docs/architecture.html`. Contracts are the source
 of truth: `docs/websocket-protocol.md`, `docs/rest-api.md`,
 `docs/app-version-policy.md`, `docs/cosmetics-catalog.md`,

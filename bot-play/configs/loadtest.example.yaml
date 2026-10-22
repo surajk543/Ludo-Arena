@@ -31,7 +31,7 @@ limits:
 loadtest:
   enabled: true
   allowed_hosts: [localhost, 127.0.0.1]
-  forbidden_hosts: [api.ludoroyale.example]
+  forbidden_hosts: [api.ludoroyale.example, ludo.sungamestudio.com]
   target_connections: 200
   ramp_per_second: 20
   duration_seconds: 300

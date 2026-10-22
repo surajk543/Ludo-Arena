@@ -52,6 +52,16 @@ cd .. && promtool test rules prometheus/tests/alerts_test.yml
 Integration tests use a dedicated test database and Redis logical DB 13/14,
 which they flush.
 
+## Production VPS (ludo.sungamestudio.com)
+
+Production currently runs on one Ubuntu 24.04 VPS: backend, bot-play,
+PostgreSQL 16, Redis 7 and nginx (TLS, WebSocket proxy) on the same host,
+with kernel, nginx and systemd limits sized for 20k+ WebSockets. The
+configuration, provisioning script and release/rollback script are in
+[`deploy/`](../deploy/README.md). Production app builds
+(`--dart-define=APP_ENV=production`) use `https://ludo.sungamestudio.com`
+unless `API_BASE_URL` overrides it.
+
 ## Production checklist
 
 - TLS terminates at the load balancer (WebSocket upgrade allowed, idle timeout

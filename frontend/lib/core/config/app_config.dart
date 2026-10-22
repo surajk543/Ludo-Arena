@@ -152,16 +152,30 @@ class AppConfig {
     defaultValue: 'development',
   );
 
-  /// Reads the `--dart-define` values. [isAndroid] picks the emulator-friendly
-  /// default host (`10.0.2.2`) when `API_BASE_URL` is not supplied.
+  /// The production backend (nginx + TLS on the game VPS, `deploy/`).
+  static const String productionApiBaseUrl = 'https://ludo.sungamestudio.com';
+
+  /// Base URL when `API_BASE_URL` is not supplied: production builds use
+  /// [productionApiBaseUrl], every other environment the local backend
+  /// (the Android emulator reaches the host at `10.0.2.2`).
+  static String defaultApiBaseUrl(
+    AppEnvironment environment, {
+    required bool android,
+  }) => environment == AppEnvironment.production
+      ? productionApiBaseUrl
+      : (android ? 'http://10.0.2.2:8080' : 'http://localhost:8080');
+
+  /// Reads the `--dart-define` values; see [defaultApiBaseUrl] for the base
+  /// URL when `API_BASE_URL` is not supplied.
   factory AppConfig.fromEnvironment({bool? isAndroid}) {
     final android = isAndroid ?? (!kIsWeb && Platform.isAndroid);
+    final environment = AppEnvironment.parse(_envDefine);
     final base = _apiBaseUrlDefine.isNotEmpty
         ? _apiBaseUrlDefine
-        : (android ? 'http://10.0.2.2:8080' : 'http://localhost:8080');
+        : defaultApiBaseUrl(environment, android: android);
     return AppConfig(
       apiBaseUrl: normalizeBaseUrl(base),
-      environment: AppEnvironment.parse(_envDefine),
+      environment: environment,
       googleServerClientId: const String.fromEnvironment(
         'GOOGLE_SERVER_CLIENT_ID',
         defaultValue: defaultGoogleServerClientId,
