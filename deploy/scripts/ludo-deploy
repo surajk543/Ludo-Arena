@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# ludo-deploy: builds and runs Ludo Royale releases on the production VPS.
+# Installed as /usr/local/bin/ludo-deploy by provision.sh; run as root.
+#
+#   ludo-deploy deploy [ref]      fetch <ref> (branch, tag or commit; default master)
+#                                 from GitHub, build backend + bot-play, switch to it
+#   ludo-deploy rollback [name]   switch back to the release before the active one
+#                                 (or to <name> from `ludo-deploy list`)
+#   ludo-deploy status            active release, services, health, live sockets
+#   ludo-deploy list              releases on disk, oldest first; * marks the active one
+#   ludo-deploy backup [label]    pg_dump the database now
+#
+# Releases are /opt/ludo-royale/releases/<utc>-<commit>; /opt/ludo-royale/current
+# points at the active one and the systemd units run from it. Source comes from
+# /opt/ludo-royale/src (read-only deploy key, ssh host alias github-ludo).
+#
+# The backend re-applies every backend/migrations/*.sql at startup and never
+# undoes one, so a deploy that changes migrations is preceded by a pg_dump, and
+# a rollback keeps the newer schema.
+set -euo pipefail
+
+BASE=/opt/ludo-royale
+SRC=$BASE/src
+RELEASES=$BASE/releases
+BACKUPS=/var/backups/ludo-royale
+KEEP=${KEEP:-5}
+
+die() { echo "ludo-deploy: $*" >&2; exit 1; }
+log() { printf '==> %s\n' "$*"; }
+
+active() { basename "$(readlink -f "$BASE/current" 2>/dev/null)" 2>/dev/null || true; }
+
+switch_to() {
+  ln -sfn "$RELEASES/$1" "$BASE/current.tmp"
+  mv -T "$BASE/current.tmp" "$BASE/current"
+}
+
+# Restarts the backend (every WebSocket closes with 1001; the app reconnects
+# and resyncs) and waits for /readyz, then restarts bot-play without waiting:
+# its finish_games policy lets running practice games end first (up to 5 min).
+restart() {
+  systemctl restart ludo-backend
+  for _ in $(seq 1 30); do
+    curl -fsS http://127.0.0.1:8080/readyz >/dev/null 2>&1 && break
+    sleep 1
+  done
+  if ! curl -fsS http://127.0.0.1:8080/readyz >/dev/null 2>&1; then
+    journalctl -u ludo-backend -n 25 --no-pager -o cat >&2
+    return 1
+  fi
+  systemctl restart --no-block ludo-bot-play
+}
+
+migrations_changed() { ! cmp -s "$RELEASES/$1/MIGRATIONS" "$RELEASES/$2/MIGRATIONS"; }
+
+backup() {
+  local file
+  file=$BACKUPS/ludo_royale-$(date -u +%Y%m%d%H%M%S)-${1:-manual}.dump
+  sudo -u postgres sh -c "pg_dump -Fc ludo_royale > '$file'"
+  log "database backup: $file ($(du -h "$file" | cut -f1))"
+}
+
+prune() {
+  local cur keep
+  cur=$(active)
+  keep=$(ls -1 "$RELEASES" | sort | tail -n "$KEEP")
+  for r in $(ls -1 "$RELEASES" | sort); do
+    [[ $r == "$cur" ]] && continue
+    grep -qx "$r" <<< "$keep" && continue
+    rm -rf "${RELEASES:?}/$r"
+  done
+}
+
+cmd_deploy() {
+  local ref=${1:-master} commit name dir work prev
+  git -C "$SRC" fetch --quiet --prune --tags origin
+  commit=$(git -C "$SRC" rev-parse --verify --quiet "origin/$ref^{commit}" ||
+    git -C "$SRC" rev-parse --verify --quiet "$ref^{commit}") || die "unknown ref: $ref"
+  name=$(date -u +%Y%m%d%H%M%S)-${commit:0:7}
+  dir=$RELEASES/$name
+  work=$(mktemp -d)
+  trap 'rm -rf "$work" "$RELEASES/.build-$name"' EXIT
+
+  log "building $name from $ref ($(git -C "$SRC" log -1 --format='%h %s' "$commit"))"
+  git -C "$SRC" archive "$commit" backend bot-play | tar -x -C "$work"
+  local out=$RELEASES/.build-$name
+  mkdir -p "$out/backend" "$out/bot-play/configs/environments"
+  (cd "$work/backend" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o "$out/backend/ludo-server" ./cmd/server)
+  (cd "$work/bot-play" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o "$out/bot-play/bot-play" ./cmd/bot-play)
+  cp -R "$work/backend/config" "$out/backend/config"
+  cp "$work/bot-play/configs/profiles.yaml" "$out/bot-play/configs/"
+  cp "$work/bot-play/configs/environments/production.yaml" "$out/bot-play/configs/environments/"
+  (cd "$work/backend/migrations" && sha256sum ./*.sql) > "$out/MIGRATIONS"
+  printf 'ref=%s\ncommit=%s\nbuilt=%s\n' "$ref" "$commit" "$(date -u +%FT%TZ)" > "$out/RELEASE"
+  env $(cat /etc/ludo-royale/bot-play.env) "$out/bot-play/bot-play" -validate \
+    --config "$out/bot-play/configs/environments/production.yaml" \
+    --profiles "$out/bot-play/configs/profiles.yaml" >/dev/null || die "bot-play rejects production.yaml"
+  mv "$out" "$dir"
+
+  prev=$(active)
+  if [[ -n $prev ]] && migrations_changed "$prev" "$name"; then
+    log "migrations changed since $prev: backing up the database first"
+    backup "pre-$name"
+  fi
+  log "switching to $name"
+  switch_to "$name"
+  if ! restart; then
+    if [[ -n $prev ]]; then
+      log "health check failed: rolling back to $prev"
+      switch_to "$prev"
+      restart || true
+    fi
+    die "$name failed its health check (left in $dir for inspection)"
+  fi
+  prune
+  log "live: $name"
+}
+
+cmd_rollback() {
+  local cur target
+  cur=$(active)
+  if [[ -n ${1:-} ]]; then
+    target=$1
+    [[ -d $RELEASES/$target ]] || die "no release $target (see ludo-deploy list)"
+  else
+    target=$(ls -1 "$RELEASES" | sort | awk -v c="$cur" '$0 == c { print p; exit } { p = $0 }')
+    [[ -n $target ]] || die "no release before $cur"
+  fi
+  if migrations_changed "$target" "$cur"; then
+    log "note: $cur changed migrations; its schema stays in the database and $target runs on it"
+  fi
+  switch_to "$target"
+  restart || die "$target failed its health check; inspect with: journalctl -u ludo-backend -n 100"
+  log "live: $target (was $cur)"
+}
+
+cmd_status() {
+  local cur
+  cur=$(active)
+  echo "release:     ${cur:-none}"
+  [[ -f $BASE/current/RELEASE ]] && sed 's/^/             /' "$BASE/current/RELEASE"
+  for u in ludo-backend ludo-bot-play nginx postgresql@16-main redis-server; do
+    printf '%-12s %s\n' "${u%%@*}:" "$(systemctl is-active "$u")"
+  done
+  echo "readyz:      $(curl -fsS http://127.0.0.1:8080/readyz 2>/dev/null || echo DOWN)"
+  curl -s http://127.0.0.1:9090/metrics 2>/dev/null | awk '
+    /^ws_connections_active/ { ws += $2 }
+    /^players_in_game / { game = $2 }
+    /^players_in_lobby / { lobby = $2 }
+    END { printf "websockets:  %d   players in game: %d   in lobby: %d\n", ws, game, lobby }'
+  echo "certificate: $(openssl x509 -noout -enddate -in /etc/letsencrypt/live/ludo.sungamestudio.com/fullchain.pem | cut -d= -f2)"
+  echo "disk:        $(df -h / | awk 'NR==2 {print $4 " free of " $2}')"
+  echo "backups:     $(ls -1t "$BACKUPS" 2>/dev/null | head -1) ($(ls -1 "$BACKUPS" 2>/dev/null | wc -l) kept)"
+}
+
+cmd_list() {
+  local cur
+  cur=$(active)
+  for r in $(ls -1 "$RELEASES" | sort); do
+    [[ $r == .build-* ]] && continue
+    printf '%s %s  %s\n' "$([[ $r == "$cur" ]] && echo '*' || echo ' ')" "$r" \
+      "$(sed -n 's/^ref=//p' "$RELEASES/$r/RELEASE" 2>/dev/null)"
+  done
+}
+
+[[ $EUID -eq 0 ]] || die "run as root"
+case ${1:-} in
+  deploy | rollback | backup)
+    exec 9> /run/ludo-deploy.lock
+    flock -n 9 || die "another ludo-deploy is running"
+    cmd=$1; shift
+    if [[ $cmd == backup ]]; then backup "${1:-manual}"; else "cmd_$cmd" "$@"; fi
+    ;;
+  status | list) "cmd_$1" ;;
+  *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac

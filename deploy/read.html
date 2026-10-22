@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ludo Royale Production Runbook</title>
+<meta name="description" content="How the ludo.sungamestudio.com VPS is built and how to deploy, roll back and change the server or the database.">
+<meta name="color-scheme" content="light dark">
+<!--
+  Maintainers: this page mirrors deploy/README.md. Change both together.
+  Styles follow docs/architecture.html.
+-->
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ludo-royale-docs-theme');
+    if (t === 'light' || t === 'dark') { document.documentElement.setAttribute('data-theme', t); }
+  } catch (e) { /* storage unavailable: follow the system theme */ }
+})();
+</script>
+<style>
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --header-h: 60px;
+  --sidebar-w: 280px;
+  --radius: 14px;
+
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f2f4f9;
+  --border: #e3e6ef;
+  --border-strong: #cdd2df;
+  --text: #151927;
+  --text-2: #3c4458;
+  --muted: #646d84;
+  --accent: #4f46e5;
+  --accent-soft: #eef0ff;
+  --accent-text: #3b32c4;
+  --gold: #a86b0c;
+  --ok: #13703a;
+  --ok-soft: #e6f5ec;
+  --ok-border: #a8dcbb;
+  --warn: #8f4f05;
+  --warn-soft: #fff3df;
+  --warn-border: #f0cd8f;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --danger-border: #f3b8b1;
+  --info: #1b5bb5;
+  --info-soft: #e9f1fd;
+  --info-border: #b3cdf3;
+  --violet: #6a35d0;
+  --violet-soft: #f2ecff;
+  --violet-border: #cfbdf5;
+  --code-bg: #f1f3f8;
+  --topbar-bg: rgba(255, 255, 255, 0.86);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 22px rgba(16, 24, 40, 0.06);
+  --scrim: rgba(12, 14, 22, 0.42);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0e15;
+    --surface: #141824;
+    --surface-2: #1a1f2d;
+    --border: #272d3d;
+    --border-strong: #363e53;
+    --text: #e8eaf3;
+    --text-2: #c3c8d8;
+    --muted: #949cb3;
+    --accent: #8f94ff;
+    --accent-soft: #232848;
+    --accent-text: #b4b8ff;
+    --gold: #e2b14f;
+    --ok: #6fd69a;
+    --ok-soft: #12271c;
+    --ok-border: #24553a;
+    --warn: #f2bd62;
+    --warn-soft: #2b2010;
+    --warn-border: #6a4c1b;
+    --danger: #ff8a7d;
+    --danger-soft: #2e1512;
+    --danger-border: #6e2a22;
+    --info: #8db8ff;
+    --info-soft: #132036;
+    --info-border: #284878;
+    --violet: #c4a8ff;
+    --violet-soft: #221a38;
+    --violet-border: #4a3a78;
+    --code-bg: #10141e;
+    --topbar-bg: rgba(16, 19, 29, 0.86);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 26px rgba(0, 0, 0, 0.28);
+    --scrim: rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0e15;
+  --surface: #141824;
+  --surface-2: #1a1f2d;
+  --border: #272d3d;
+  --border-strong: #363e53;
+  --text: #e8eaf3;
+  --text-2: #c3c8d8;
+  --muted: #949cb3;
+  --accent: #8f94ff;
+  --accent-soft: #232848;
+  --accent-text: #b4b8ff;
+  --gold: #e2b14f;
+  --ok: #6fd69a;
+  --ok-soft: #12271c;
+  --ok-border: #24553a;
+  --warn: #f2bd62;
+  --warn-soft: #2b2010;
+  --warn-border: #6a4c1b;
+  --danger: #ff8a7d;
+  --danger-soft: #2e1512;
+  --danger-border: #6e2a22;
+  --info: #8db8ff;
+  --info-soft: #132036;
+  --info-border: #284878;
+  --violet: #c4a8ff;
+  --violet-soft: #221a38;
+  --violet-border: #4a3a78;
+  --code-bg: #10141e;
+  --topbar-bg: rgba(16, 19, 29, 0.86);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 26px rgba(0, 0, 0, 0.28);
+  --scrim: rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + 18px); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 var(--font); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent-text); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.skip-link { position: absolute; left: -999px; top: 8px; z-index: 100; background: var(--surface); padding: 8px 12px; border-radius: 8px; }
+.skip-link:focus { left: 12px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 50; height: var(--header-h);
+  display: flex; align-items: center; gap: 12px; padding: 0 16px;
+  background: var(--topbar-bg); -webkit-backdrop-filter: saturate(160%) blur(12px); backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--text); text-decoration: none; }
+.brand-mark { flex: none; width: 30px; height: 30px; border-radius: 9px; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.brand-name { font-weight: 750; letter-spacing: -0.01em; white-space: nowrap; }
+.brand-sub { font-size: 0.74rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar-spacer { flex: 1 1 auto; }
+.icon-btn, .seg button {
+  font: inherit; color: var(--text-2); background: transparent; cursor: pointer;
+  border: 1px solid transparent; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.icon-btn { width: 40px; height: 40px; border-color: var(--border); background: var(--surface); }
+.icon-btn svg, .seg svg { width: 18px; height: 18px; }
+.menu-btn { display: none; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-2); }
+.seg button { height: 32px; padding: 0 10px; font-size: 0.82rem; font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent-text); border-color: var(--border-strong); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+.layout { display: block; }
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); }
+.sidebar-inner { padding: 18px 14px 40px; }
+.sidebar h2 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 6px 10px 10px; }
+.toc { list-style: none; margin: 0; padding: 0; }
+.toc a {
+  display: flex; align-items: baseline; gap: 10px; padding: 7px 10px; border-radius: 9px;
+  color: var(--text-2); text-decoration: none; font-size: 0.92rem; line-height: 1.35; border-left: 3px solid transparent;
+}
+.toc a:hover { background: var(--surface-2); color: var(--text); }
+.toc a[aria-current="true"] { background: var(--accent-soft); color: var(--accent-text); border-left-color: var(--accent); font-weight: 600; }
+.toc .num { flex: none; min-width: 1.6em; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+.toc a[aria-current="true"] .num { color: var(--accent-text); }
+.sidebar-foot { margin: 22px 10px 0; padding-top: 14px; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); }
+.sidebar-foot a { color: var(--muted); }
+.scrim { display: none; }
+.content { min-width: 0; padding: 28px 16px 64px; }
+.content-inner { max-width: 900px; margin: 0 auto; overflow-wrap: break-word; }
+@media (min-width: 1024px) {
+  .layout { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+  .sidebar { position: sticky; top: var(--header-h); height: calc(100vh - var(--header-h)); overflow-y: auto; }
+  .content { padding: 40px 48px 96px; }
+}
+@media (max-width: 1023px) {
+  .menu-btn { display: inline-flex; }
+  .sidebar {
+    position: fixed; z-index: 45; top: var(--header-h); left: 0; bottom: 0; width: min(86vw, 320px); overflow-y: auto;
+    transform: translateX(-104%); transition: transform 0.22s ease; box-shadow: var(--shadow);
+  }
+  body.nav-open .sidebar { transform: none; }
+  body.nav-open .scrim { display: block; position: fixed; inset: var(--header-h) 0 0 0; z-index: 44; background: var(--scrim); }
+}
+@media (max-width: 560px) {
+  .brand-sub { display: none; }
+  .seg button .lbl { display: none; }
+  .seg button { padding: 0 8px; }
+}
+
+h1, h2, h3, h4 { line-height: 1.25; letter-spacing: -0.015em; color: var(--text); }
+h1 { font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.45rem); margin: 0 0 12px; font-weight: 800; }
+h2 { font-size: clamp(1.35rem, 1.1rem + 1vw, 1.7rem); margin: 2px 0 6px; font-weight: 760; }
+h3 { font-size: 1.16rem; margin: 30px 0 8px; font-weight: 700; }
+p, ul, ol { margin: 10px 0 14px; }
+ul, ol { padding-left: 1.3em; }
+li { margin: 4px 0; }
+strong { font-weight: 680; }
+.lead { font-size: 1.08rem; color: var(--text-2); }
+code, kbd {
+  font-family: var(--mono); font-size: 0.85em; background: var(--code-bg); border: 1px solid var(--border);
+  padding: 0.08em 0.36em; border-radius: 6px; overflow-wrap: anywhere;
+}
+pre {
+  position: relative; font-family: var(--mono); font-size: 0.83rem; line-height: 1.55;
+  background: var(--code-bg); color: var(--text); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 16px; margin: 14px 0 18px; overflow: auto; tab-size: 2;
+}
+pre code { background: none; border: 0; padding: 0; font-size: inherit; overflow-wrap: normal; }
+pre .c { color: var(--muted); }
+.copy {
+  position: absolute; top: 8px; right: 8px; font: inherit; font-family: var(--font); font-size: 0.72rem; font-weight: 650;
+  padding: 3px 9px; border-radius: 7px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2);
+  opacity: 0; transition: opacity 0.15s;
+}
+pre:hover .copy, .copy:focus-visible { opacity: 1; }
+@media (hover: none) { .copy { opacity: 1; } }
+
+.doc-section { padding-top: 34px; margin-top: 34px; border-top: 1px solid var(--border); }
+.doc-section:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.section-head { display: flex; align-items: flex-start; gap: 12px; }
+.section-num {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 8px;
+  border-radius: 10px; background: var(--accent-soft); color: var(--accent-text); font-weight: 800; font-size: 0.95rem; margin-top: 1px;
+}
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 22px 0 8px; }
+.fact { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+.fact .k { font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.fact .v { margin-top: 4px; font-weight: 650; font-size: 0.98rem; }
+.fact .v code { font-size: 0.82rem; }
+
+.callout { border: 1px solid var(--border); border-left-width: 4px; border-radius: 12px; padding: 12px 16px; margin: 16px 0 18px; background: var(--surface); }
+.callout > :first-child { margin-top: 0; }
+.callout > :last-child { margin-bottom: 0; }
+.callout .callout-title { font-weight: 720; display: block; margin-bottom: 4px; }
+.callout.note { border-color: var(--info-border); border-left-color: var(--info); background: var(--info-soft); }
+.callout.pending { border-color: var(--warn-border); border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.danger { border-color: var(--danger-border); border-left-color: var(--danger); background: var(--danger-soft); }
+.callout.ok { border-color: var(--ok-border); border-left-color: var(--ok); background: var(--ok-soft); }
+.callout.measured { border-color: var(--violet-border); border-left-color: var(--violet); background: var(--violet-soft); }
+
+.table-wrap { overflow-x: auto; margin: 14px 0 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; line-height: 1.5; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+th { background: var(--surface-2); font-weight: 700; font-size: 0.82rem; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+td code { font-size: 0.8rem; }
+
+.steps { counter-reset: step; list-style: none; padding: 0; }
+.steps > li { counter-increment: step; position: relative; padding: 2px 0 2px 42px; margin: 10px 0; }
+.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 1px; width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;
+  background: var(--accent-soft); color: var(--accent-text);
+}
+.topology { font-size: 0.8rem; }
+.footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 0.84rem; color: var(--muted); }
+
+@media print {
+  .topbar, .sidebar, .scrim, .copy { display: none !important; }
+  .layout { display: block; }
+  .content { padding: 0; }
+  .table-wrap, .fact { box-shadow: none; break-inside: avoid; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="icon-btn menu-btn" type="button" id="menu-btn" aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <a class="brand" href="#overview">
+    <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true">
+      <rect width="15" height="15" fill="#e5484d"/><rect x="15" width="15" height="15" fill="#30a46c"/>
+      <rect y="15" width="15" height="15" fill="#3e63dd"/><rect x="15" y="15" width="15" height="15" fill="#f5b70a"/>
+      <polygon points="15,7 23,15 15,23 7,15" fill="#ffffff" opacity="0.95"/>
+      <circle cx="15" cy="15" r="2.6" fill="#1d2133"/>
+    </svg>
+    <span class="brand-text"><span class="brand-name">Ludo Royale</span><span class="brand-sub">Production runbook · ludo.sungamestudio.com</span></span>
+  </a>
+  <span class="topbar-spacer"></span>
+  <div class="seg" role="group" aria-label="Color theme">
+    <button type="button" data-theme-choice="system" aria-pressed="true" title="Follow the system theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span class="lbl">Auto</span>
+    </button>
+    <button type="button" data-theme-choice="light" aria-pressed="false" title="Light theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span class="lbl">Light</span>
+    </button>
+    <button type="button" data-theme-choice="dark" aria-pressed="false" title="Dark theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="lbl">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar" aria-label="Sections">
+    <div class="sidebar-inner">
+      <h2>Contents</h2>
+      <ol class="toc">
+        <li><a href="#overview"><span class="num">0</span><span>Overview</span></a></li>
+        <li><a href="#layout"><span class="num">1</span><span>What runs where</span></a></li>
+        <li><a href="#access"><span class="num">2</span><span>Get on the server</span></a></li>
+        <li><a href="#deploy"><span class="num">3</span><span>Deploy</span></a></li>
+        <li><a href="#rollback"><span class="num">4</span><span>Roll back</span></a></li>
+        <li><a href="#database"><span class="num">5</span><span>Database</span></a></li>
+        <li><a href="#config"><span class="num">6</span><span>Change server configuration</span></a></li>
+        <li><a href="#tls-dns"><span class="num">7</span><span>TLS certificate &amp; DNS</span></a></li>
+        <li><a href="#troubleshooting"><span class="num">8</span><span>Troubleshooting</span></a></li>
+        <li><a href="#capacity"><span class="num">9</span><span>WebSocket capacity</span></a></li>
+        <li><a href="#rebuild"><span class="num">10</span><span>Rebuild from scratch</span></a></li>
+        <li><a href="#files"><span class="num">11</span><span>Files in deploy/</span></a></li>
+      </ol>
+      <div class="sidebar-foot">
+        Source: <a href="README.md">deploy/README.md</a> · <a href="scripts/ludo-deploy">ludo-deploy</a> · <a href="scripts/provision.sh">provision.sh</a> · <a href="../docs/architecture.html">Architecture</a>
+      </div>
+    </div>
+  </nav>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="content" id="main">
+  <div class="content-inner">
+
+  <!-- ============================================================ 0 -->
+  <section class="doc-section" id="overview" aria-labelledby="overview-h">
+    <div class="eyebrow">Operations</div>
+    <h1 id="overview-h">Production runbook</h1>
+    <p class="lead">How the production server for <code>https://ludo.sungamestudio.com</code> is built, and how to deploy, roll back and change the server or the database. Commands run <strong>on the VPS as root</strong> unless they say otherwise.</p>
+    <div class="facts">
+      <div class="fact"><div class="k">Public URL</div><div class="v"><code>https://ludo.sungamestudio.com</code></div></div>
+      <div class="fact"><div class="k">Server</div><div class="v">Bluehost VPS, Mumbai · Ubuntu 24.04 · 8 vCPU · 16 GB</div></div>
+      <div class="fact"><div class="k">IP</div><div class="v"><code>129.121.171.63</code></div></div>
+      <div class="fact"><div class="k">DNS</div><div class="v">Cloudflare, <code>ludo</code> A record, DNS only</div></div>
+      <div class="fact"><div class="k">TLS</div><div class="v">Let's Encrypt, auto-renewed</div></div>
+      <div class="fact"><div class="k">Deploy tool</div><div class="v"><code>ludo-deploy</code></div></div>
+    </div>
+    <div class="callout note"><span class="callout-title">Everyday commands</span>
+      <code>ludo-deploy status</code> · <code>ludo-deploy deploy</code> · <code>ludo-deploy rollback</code> · <code>ludo-deploy list</code> · <code>ludo-deploy backup</code>
+    </div>
+  </section>
+
+  <!-- ============================================================ 1 -->
+  <section class="doc-section" id="layout" aria-labelledby="layout-h">
+    <div class="section-head"><span class="section-num">1</span><h2 id="layout-h">What runs where</h2></div>
+<pre class="topology"><code>app ──HTTPS/WSS──▶ nginx :443 ──▶ backend 127.0.0.1:8080 ──▶ PostgreSQL 16 127.0.0.1:5432
+                       ▲                │                 └─▶ Redis 7      127.0.0.1:6379
+bot-play ──────────────┘ (loopback)     metrics 127.0.0.1:9090 (bot-play: 127.0.0.1:9091)</code></pre>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Service</th><th>systemd unit</th><th>Runs as</th><th>Listens</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>nginx</td><td><code>nginx</code></td><td>www-data</td><td><code>:80</code> → redirect, <code>:443</code></td><td>TLS, WebSocket proxy; the only public service besides SSH</td></tr>
+        <tr><td>Backend</td><td><code>ludo-backend</code></td><td>ludo</td><td><code>127.0.0.1:8080</code>, metrics <code>:9090</code></td><td><code>APP_ENV=production</code></td></tr>
+        <tr><td>bot-play</td><td><code>ludo-bot-play</code></td><td>ludo</td><td>metrics <code>127.0.0.1:9091</code></td><td>Practice-game bots; reaches <code>https://ludo.sungamestudio.com</code> via <code>/etc/hosts</code> → 127.0.0.1</td></tr>
+        <tr><td>PostgreSQL 16</td><td><code>postgresql@16-main</code></td><td>postgres</td><td><code>127.0.0.1:5432</code></td><td>Database <code>ludo_royale</code>, role <code>ludo</code></td></tr>
+        <tr><td>Redis 7</td><td><code>redis-server</code></td><td>redis</td><td><code>127.0.0.1:6379</code></td><td>Password; AOF every second + RDB; <code>noeviction</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>The firewall (ufw) allows only ports 22, 80 and 443.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Path</th><th>What</th></tr></thead>
+      <tbody>
+        <tr><td><code>/opt/ludo-royale/src</code></td><td>Git checkout used for builds (read-only deploy key)</td></tr>
+        <tr><td><code>/opt/ludo-royale/releases/&lt;utc&gt;-&lt;commit&gt;/</code></td><td>Built releases: <code>backend/</code>, <code>bot-play/</code>, <code>RELEASE</code>, <code>MIGRATIONS</code></td></tr>
+        <tr><td><code>/opt/ludo-royale/current</code></td><td>Symlink to the live release (the units run from it)</td></tr>
+        <tr><td><code>/etc/ludo-royale/backend.env</code></td><td>Backend settings and secrets (0640 root:ludo)</td></tr>
+        <tr><td><code>/etc/ludo-royale/bot-play.env</code></td><td><code>BOT_SERVICE_KEY</code> (its SHA-256 is in <code>backend.env</code>)</td></tr>
+        <tr><td><code>/etc/ludo-royale/secrets/</code></td><td>Database password, Google Play service-account key</td></tr>
+        <tr><td><code>/etc/redis/ludo-royale-secret.conf</code></td><td>Redis password</td></tr>
+        <tr><td><code>/var/backups/ludo-royale/</code></td><td>Database dumps (nightly + before migrations)</td></tr>
+        <tr><td><code>/root/.ssh/ludo_royale_deploy</code></td><td>Deploy key (GitHub → Ludo-Royale → Settings → Deploy keys, read-only)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ============================================================ 2 -->
+  <section class="doc-section" id="access" aria-labelledby="access-h">
+    <div class="section-head"><span class="section-num">2</span><h2 id="access-h">Get on the server</h2></div>
+<pre><code>ssh root@ludo.sungamestudio.com          <span class="c"># or root@129.121.171.63</span>
+ludo-deploy status                       <span class="c"># what is live and healthy</span></code></pre>
+    <p>From a Mac without an SSH key, one password login can be reused for 12 hours:</p>
+<pre><code><span class="c"># on the Mac; asks for the root password</span>
+ssh -M -S /tmp/ludo.sock -o ControlPersist=12h -fN root@129.121.171.63
+ssh -S /tmp/ludo.sock root@129.121.171.63 ludo-deploy status</code></pre>
+    <p>The root password can be reset in Bluehost → Hosting → this VPS → Manage → Overview → Root Password.</p>
+  </section>
+
+  <!-- ============================================================ 3 -->
+  <section class="doc-section" id="deploy" aria-labelledby="deploy-h">
+    <div class="section-head"><span class="section-num">3</span><h2 id="deploy-h">Deploy</h2></div>
+    <p>Production is built from GitHub on the VPS. Merge the change into <code>master</code> first, or name a branch, tag or commit for a test deploy.</p>
+<pre><code>ludo-deploy deploy                 <span class="c"># master</span>
+ludo-deploy deploy ops/vps-deploy  <span class="c"># a branch, tag or commit</span></code></pre>
+    <h3>What it does</h3>
+    <ol class="steps">
+      <li>Fetches the repository and resolves the ref to a commit.</li>
+      <li>Builds <code>backend</code> and <code>bot-play</code> with Go 1.27.3 into <code>/opt/ludo-royale/releases/&lt;utc&gt;-&lt;commit&gt;/</code>, copies <code>backend/config/</code> and bot-play's <code>production.yaml</code> + <code>profiles.yaml</code>, and checks bot-play's configuration.</li>
+      <li>If any <code>backend/migrations/*.sql</code> file differs from the live release, takes a <strong>database backup first</strong> (<code>/var/backups/ludo-royale/*-pre-&lt;release&gt;.dump</code>).</li>
+      <li>Points <code>current</code> at the new release and restarts the backend (which applies the migrations at startup), then waits up to 30 s for <code>/readyz</code>.</li>
+      <li><strong>If the health check fails, it switches back to the previous release by itself</strong> and exits with an error. The failed build stays on disk.</li>
+      <li>Restarts bot-play in the background and deletes old releases (keeps 5).</li>
+    </ol>
+    <h3>Check the result</h3>
+<pre><code>ludo-deploy status
+curl -s https://ludo.sungamestudio.com/readyz        <span class="c"># {"status":"ready"}, from anywhere</span>
+journalctl -u ludo-backend -n 50 --no-pager</code></pre>
+    <div class="callout pending"><span class="callout-title">What players notice</span>The backend restart closes every WebSocket (code <code>1001</code>). The app reconnects within seconds and resyncs; running games continue because their state is in Redis. bot-play waits for its running practice games to finish (up to 5 minutes) before it restarts, so a practice game started in that window may wait for a bot. Deploy when traffic is low.</div>
+    <p>Only one <code>deploy</code> or <code>rollback</code> runs at a time (lock in <code>/run/ludo-deploy.lock</code>).</p>
+  </section>
+
+  <!-- ============================================================ 4 -->
+  <section class="doc-section" id="rollback" aria-labelledby="rollback-h">
+    <div class="section-head"><span class="section-num">4</span><h2 id="rollback-h">Roll back</h2></div>
+<pre><code>ludo-deploy list                                <span class="c"># releases, * = live</span>
+ludo-deploy rollback                            <span class="c"># the release before the live one</span>
+ludo-deploy rollback 20261022150102-1a2b3c4     <span class="c"># a specific one</span></code></pre>
+    <p>Rollback re-points <code>current</code> and restarts; it does not rebuild anything.</p>
+    <div class="callout danger"><span class="callout-title">The database is not rolled back</span>The backend never undoes a migration, so the older release runs on the newer schema. That works when migrations only add things (<a href="#migrations">5.2</a>). If a migration itself is the problem, fix it forward with a new migration and deploy. As a last resort, restore the backup taken before that deploy (<a href="#restore">5.4</a>); that loses every wallet, purchase and progression change made since.</div>
+    <p>If <code>ludo-deploy</code> itself is broken:</p>
+<pre><code>ls /opt/ludo-royale/releases
+ln -sfn /opt/ludo-royale/releases/&lt;name&gt; /opt/ludo-royale/current
+systemctl restart ludo-backend ludo-bot-play</code></pre>
+  </section>
+
+  <!-- ============================================================ 5 -->
+  <section class="doc-section" id="database" aria-labelledby="database-h">
+    <div class="section-head"><span class="section-num">5</span><h2 id="database-h">Database</h2></div>
+
+    <h3 id="db-what">5.1 What is stored where</h3>
+    <p>PostgreSQL (<code>ludo_royale</code>) holds accounts, wallets, progression, purchases and reports in the schemas <code>wallet</code>, <code>identity</code> and <code>progression</code>. Live games, matchmaking, sessions and timers live in <strong>Redis only</strong>. The table list is fixed by the owner (<code>CLAUDE.md</code>, enforced by <code>backend/tests/schema_guard_test.go</code>); ask before adding tables.</p>
+<pre><code>sudo -u postgres psql ludo_royale                    <span class="c"># interactive</span>
+sudo -u postgres psql ludo_royale -c '\dt wallet.*'
+sudo -u postgres psql ludo_royale -c 'SELECT count(*) FROM wallet.wallets WHERE NOT is_bot'   <span class="c"># accounts</span></code></pre>
+    <p>Be careful with writes: there is no undo except a backup restore.</p>
+
+    <h3 id="migrations">5.2 Schema changes (migrations)</h3>
+    <ol class="steps">
+      <li>Add <code>backend/migrations/NNN_short_name.sql</code> (next number). The backend runs <strong>every</strong> migration file at <strong>every</strong> startup, in name order, under an advisory lock, so each file must be idempotent (<code>CREATE TABLE IF NOT EXISTS</code>, <code>ADD COLUMN IF NOT EXISTS</code>, <code>ON CONFLICT DO NOTHING</code>, …).</li>
+      <li>Keep it backward compatible, so the previous release still works on the new schema and a rollback is safe: add nullable columns or columns with a default, add tables or indexes, never rename or drop in the same release. Drop old things in a later release, once nothing uses them.</li>
+      <li>Test it locally and in the e2e tests (<code>TEST_DATABASE_URL=… go test ./...</code>), merge, then <code>ludo-deploy deploy</code>. The deploy backs up the database first, and the backend applies the migration when it starts.</li>
+      <li>Check <code>journalctl -u ludo-backend -n 30</code> (a failed migration stops startup, and the deploy rolls back by itself), then <code>ludo-deploy status</code>.</li>
+    </ol>
+    <p>Large tables: <code>CREATE INDEX CONCURRENTLY</code> cannot run in a transaction; keep such statements in their own file and test the lock time on a copy first.</p>
+
+    <h3 id="backups">5.3 Backups</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>When</th><th>File</th><th>Kept</th></tr></thead>
+      <tbody>
+        <tr><td>Every night 21:30 UTC (03:00 IST)</td><td><code>ludo_royale-YYYY-MM-DD.dump</code></td><td>14 days</td></tr>
+        <tr><td>Before a deploy that changes migrations</td><td><code>ludo_royale-&lt;utc&gt;-pre-&lt;release&gt;.dump</code></td><td>until removed</td></tr>
+        <tr><td>By hand: <code>ludo-deploy backup [label]</code></td><td><code>ludo_royale-&lt;utc&gt;-&lt;label&gt;.dump</code></td><td>until removed</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout pending"><span class="callout-title">Backups are on the same disk</span>All dumps are in <code>/var/backups/ludo-royale/</code> on the VPS. Copy them off the server regularly, for example from a Mac:
+<pre><code>scp root@ludo.sungamestudio.com:/var/backups/ludo-royale/ludo_royale-2026-10-23.dump ~/Backups/</code></pre></div>
+
+    <h3 id="restore">5.4 Restore a backup</h3>
+    <p>This replaces the whole database with the dump.</p>
+<pre><code>ludo-deploy backup before-restore                  <span class="c"># keep what is there now</span>
+systemctl stop ludo-bot-play ludo-backend
+sudo -u postgres pg_restore --clean --if-exists --no-owner --role=ludo \
+  -d ludo_royale /var/backups/ludo-royale/&lt;file&gt;.dump
+systemctl start ludo-backend ludo-bot-play
+ludo-deploy status</code></pre>
+
+    <h3 id="redis">5.5 Redis</h3>
+<pre><code>export REDISCLI_AUTH=$(awk '{print $2}' /etc/redis/ludo-royale-secret.conf)
+redis-cli info clients | head; redis-cli dbsize</code></pre>
+    <div class="callout danger"><span class="callout-title">Never flush production Redis</span>Redis holds live games; never run <code>FLUSHALL</code> or <code>FLUSHDB</code>. Data survives restarts (AOF every second + RDB in <code>/var/lib/redis</code>). A Redis restart pauses play for a few seconds; the backend reconnects by itself.</div>
+  </section>
+
+  <!-- ============================================================ 6 -->
+  <section class="doc-section" id="config" aria-labelledby="config-h">
+    <div class="section-head"><span class="section-num">6</span><h2 id="config-h">Change server configuration</h2></div>
+    <p>The files in <code>deploy/</code> are the source of truth for the server. Change them in the repo first, then apply them on the server, so the next provisioning gives the same result.</p>
+
+    <h3>6.1 Backend settings (<code>/etc/ludo-royale/backend.env</code>)</h3>
+<pre><code>nano /etc/ludo-royale/backend.env
+systemctl restart ludo-backend          <span class="c"># sockets reconnect, like a deploy</span></code></pre>
+    <ul>
+      <li>systemd reads this file: one <code>KEY=value</code> per line, <strong>no inline comments</strong>, no quotes. Option reference: <code>backend/.env.example</code>.</li>
+      <li><code>provision.sh</code> creates it once from <code>deploy/backend.env.example</code> and never overwrites it. When a release needs a new setting, add the key to <code>backend.env.example</code> in the repo <em>and</em> to the server's file by hand.</li>
+      <li>Secrets in it: <code>JWT_SIGNING_KEY</code> (changing it signs every player out), <code>PUBLIC_ID_KEY</code> (<strong>never change it</strong>: it would orphan every device binding and change every public player id), <code>ACTIVE_USER_KEY</code>, the <code>DATABASE_URL</code> password, <code>REDIS_PASSWORD</code>, <code>BOT_SERVICE_KEY_SHA256</code>, the four <code>R2_*</code> (profile pictures and emotes) and <code>GOOGLE_PLAY_SERVICE_ACCOUNT_FILE</code>. Never commit them.</li>
+    </ul>
+
+    <h3>6.2 App policy, entry fees, catalogues, coin packs</h3>
+    <p>These are files in <code>backend/config/</code> and ship with every release: change them in the repo, merge, <code>ludo-deploy deploy</code>. The app policy (<code>app-policy.production.json</code>: minimum versions, maintenance windows, entry fees, welcome grant) is also re-read every 5 s and on <code>systemctl reload ludo-backend</code>.</p>
+    <p>Emergency maintenance without a deploy:</p>
+<pre><code>touch /etc/ludo-royale/MAINTENANCE     <span class="c"># players see the maintenance message</span>
+rm /etc/ludo-royale/MAINTENANCE        <span class="c"># back to normal</span></code></pre>
+
+    <h3>6.3 nginx</h3>
+    <p>Edit <code>deploy/nginx/</code> in the repo, copy the file to the server, then:</p>
+<pre><code>nginx -t &amp;&amp; systemctl reload nginx</code></pre>
+    <p>A reload keeps existing WebSockets on the old workers for up to 30 s (<code>worker_shutdown_timeout</code>); after that they are closed and the app reconnects.</p>
+
+    <h3>6.4 Kernel limits, PostgreSQL, Redis, units, firewall</h3>
+    <p>Edit the files in <code>deploy/</code>, then re-run provisioning. It is idempotent and keeps secrets, data and certificates.</p>
+<pre><code><span class="c"># on the Mac, from the repository root</span>
+scp -r deploy root@ludo.sungamestudio.com:/root/
+ssh root@ludo.sungamestudio.com bash /root/deploy/scripts/provision.sh</code></pre>
+    <div class="callout pending"><span class="callout-title">Brief disruption</span>Provisioning restarts Redis, PostgreSQL and nginx (a few seconds): run it when traffic is low. It does not restart the backend; run <code>systemctl restart ludo-backend</code> if a unit file changed.</div>
+
+    <h3>6.5 bot-play</h3>
+    <p>Its settings are <code>bot-play/configs/environments/production.yaml</code> in the repo, deployed with each release. <code>public_matchmaking</code> is off: bots join only practice games. To fill public lobbies, turn it on in that file, set <code>BOT_PUBLIC_FILL_ENABLED=true</code> in <code>backend.env</code>, deploy, and restart the backend.</p>
+
+    <h3>6.6 Operating system</h3>
+    <p><code>unattended-upgrades</code> installs Ubuntu security updates automatically. All services start on boot, so a reboot (<code>reboot</code>, or Bluehost → Reboot Server) only interrupts play briefly.</p>
+  </section>
+
+  <!-- ============================================================ 7 -->
+  <section class="doc-section" id="tls-dns" aria-labelledby="tls-dns-h">
+    <div class="section-head"><span class="section-num">7</span><h2 id="tls-dns-h">TLS certificate &amp; DNS</h2></div>
+    <ul>
+      <li>The certificate renews itself (<code>systemctl list-timers certbot.timer</code>); a hook reloads nginx afterwards. Test renewal with <code>certbot renew --dry-run</code>. The expiry date is in <code>ludo-deploy status</code>.</li>
+      <li>DNS is in Cloudflare → sungamestudio.com → DNS → Records, not Namecheap. Keep <code>ludo</code> on <strong>DNS only</strong>. The orange-cloud proxy would put Cloudflare's idle timeouts in front of game sockets, change the client IP the backend sees (<code>TRUSTED_PROXY_HOPS</code>, nginx <code>real_ip</code>) and break the Let's Encrypt HTTP check as configured here.</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ 8 -->
+  <section class="doc-section" id="troubleshooting" aria-labelledby="troubleshooting-h">
+    <div class="section-head"><span class="section-num">8</span><h2 id="troubleshooting-h">Troubleshooting</h2></div>
+<pre><code>ludo-deploy status
+journalctl -u ludo-backend -f              <span class="c"># also ludo-bot-play, nginx</span>
+tail -f /var/log/nginx/error.log
+curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_game|players_in_lobby) '</code></pre>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Symptom</th><th>Check</th></tr></thead>
+      <tbody>
+        <tr><td>App shows connection errors, <code>502</code> from nginx</td><td><code>systemctl status ludo-backend</code>; <code>journalctl -u ludo-backend -n 100</code>; roll back</td></tr>
+        <tr><td><code>/readyz</code> says <code>postgres unavailable</code> / <code>redis unavailable</code></td><td><code>systemctl status postgresql@16-main</code> / <code>redis-server</code></td></tr>
+        <tr><td>Practice games get no bot</td><td><code>systemctl status ludo-bot-play</code>; <code>curl -s 127.0.0.1:9091/readyz</code></td></tr>
+        <tr><td>Purchases fail with <code>iap_unavailable</code></td><td>Google Play key access in Play Console (log: <code>store credentials refused</code>); App Store needs <code>APPLE_IAP_ENABLED=true</code></td></tr>
+        <tr><td>Profile pictures missing</td><td><code>R2_*</code> in <code>backend.env</code>; startup log field <code>assetSigning</code></td></tr>
+        <tr><td>Disk filling up</td><td><code>df -h /</code>; old dumps in <code>/var/backups/ludo-royale</code>; <code>journalctl --vacuum-size=1G</code></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ============================================================ 9 -->
+  <section class="doc-section" id="capacity" aria-labelledby="capacity-h">
+    <div class="section-head"><span class="section-num">9</span><h2 id="capacity-h">WebSocket capacity</h2></div>
+    <p>Each player socket holds one client connection and one loopback connection in nginx, one file descriptor in the backend and one ephemeral port from nginx to <code>127.0.0.1:8080</code>.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Limit</th><th>Value</th><th>Allows</th></tr></thead>
+      <tbody>
+        <tr><td>nginx <code>worker_connections</code> × workers</td><td>65,536 × 8</td><td>~260k sockets</td></tr>
+        <tr><td>nginx / backend <code>LimitNOFILE</code></td><td>1,048,576</td><td>far above 20k</td></tr>
+        <tr><td><code>fs.file-max</code>, <code>fs.nr_open</code></td><td>2,097,152</td><td></td></tr>
+        <tr><td><code>ip_local_port_range</code></td><td>10240–65535</td><td>~55k nginx→backend sockets (default ~28k)</td></tr>
+        <tr><td><code>nf_conntrack_max</code></td><td>1,048,576</td><td>ufw tracks 2 entries per socket</td></tr>
+        <tr><td><code>somaxconn</code>, SYN backlog</td><td>65,535</td><td>reconnect storms after a deploy</td></tr>
+        <tr><td><code>WS_MAX_CONNECTIONS</code> (backend)</td><td>50,000</td><td></td></tr>
+        <tr><td>nginx <code>proxy_read_timeout</code> (WS)</td><td>120 s</td><td>server pings every 20 s</td></tr>
+      </tbody>
+    </table></div>
+    <!-- capacity results -->
+  </section>
+
+  <!-- ============================================================ 10 -->
+  <section class="doc-section" id="rebuild" aria-labelledby="rebuild-h">
+    <div class="section-head"><span class="section-num">10</span><h2 id="rebuild-h">Rebuild the server from scratch</h2></div>
+    <ol class="steps">
+      <li>Reinstall Ubuntu 24.04 (Bluehost → Server Image → Reimage) and point the Cloudflare <code>ludo</code> record at the new IP (DNS only).</li>
+      <li>From the repository root on a Mac: <code>scp -r deploy root@&lt;ip&gt;:/root/ &amp;&amp; ssh root@&lt;ip&gt; bash /root/deploy/scripts/provision.sh</code></li>
+      <li>The first run stops after printing a new deploy key. Add it in GitHub → Ludo-Royale → Settings → Deploy keys (read-only; delete the old one) and run <code>provision.sh</code> again.</li>
+      <li>Add the values that are not generated on the server to <code>/etc/ludo-royale/backend.env</code>: the four <code>R2_*</code>, and <code>GOOGLE_PLAY_SERVICE_ACCOUNT_FILE=/etc/ludo-royale/secrets/google-play.json</code> after copying the key there (<code>chown root:ludo</code>, <code>chmod 0640</code>).</li>
+      <li>Restore the latest database dump (<a href="#restore">5.4</a>), then <code>ludo-deploy deploy</code>.</li>
+    </ol>
+    <div class="callout note"><span class="callout-title">Keep players signed in</span>A new server generates new <code>JWT_SIGNING_KEY</code> and <code>PUBLIC_ID_KEY</code>. To keep players signed in and their device bindings, copy <code>/etc/ludo-royale/backend.env</code> from the old server instead (step 4).</div>
+  </section>
+
+  <!-- ============================================================ 11 -->
+  <section class="doc-section" id="files" aria-labelledby="files-h">
+    <div class="section-head"><span class="section-num">11</span><h2 id="files-h">Files in <code>deploy/</code></h2></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>File</th><th>Installed as</th></tr></thead>
+      <tbody>
+        <tr><td><code>scripts/provision.sh</code></td><td>run once per server (idempotent)</td></tr>
+        <tr><td><code>scripts/ludo-deploy</code></td><td><code>/usr/local/bin/ludo-deploy</code></td></tr>
+        <tr><td><code>nginx/nginx.conf</code></td><td><code>/etc/nginx/nginx.conf</code></td></tr>
+        <tr><td><code>nginx/ludo.sungamestudio.com.conf</code></td><td><code>/etc/nginx/sites-available/ludo.sungamestudio.com</code></td></tr>
+        <tr><td><code>sysctl/99-ludo-royale.conf</code></td><td><code>/etc/sysctl.d/99-ludo-royale.conf</code></td></tr>
+        <tr><td><code>systemd/ludo-backend.service</code>, <code>ludo-bot-play.service</code></td><td><code>/etc/systemd/system/</code></td></tr>
+        <tr><td><code>systemd/nginx-limits.conf</code></td><td><code>/etc/systemd/system/nginx.service.d/limits.conf</code></td></tr>
+        <tr><td><code>redis/ludo-royale.conf</code></td><td><code>/etc/redis/ludo-royale.conf</code> (included from <code>redis.conf</code>)</td></tr>
+        <tr><td><code>postgresql/ludo-royale.conf</code></td><td><code>/etc/postgresql/16/main/conf.d/ludo-royale.conf</code></td></tr>
+        <tr><td><code>backend.env.example</code></td><td>template for <code>/etc/ludo-royale/backend.env</code></td></tr>
+        <tr><td><code>README.md</code>, <code>read.html</code></td><td>this runbook</td></tr>
+      </tbody>
+    </table></div>
+    <p class="footer">Ludo Royale · production runbook · keep in sync with <a href="README.md">deploy/README.md</a></p>
+  </section>
+
+  </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var doc = document;
+  var root = doc.documentElement;
+  var THEME_KEY = 'ludo-royale-docs-theme';
+
+  /* ------------------------------------------------------------ theme */
+  function readPref() {
+    try {
+      var v = localStorage.getItem(THEME_KEY);
+      return v === 'light' || v === 'dark' ? v : 'system';
+    } catch (e) { return 'system'; }
+  }
+  function writePref(v) {
+    try {
+      if (v === 'system') { localStorage.removeItem(THEME_KEY); } else { localStorage.setItem(THEME_KEY, v); }
+    } catch (e) { /* storage unavailable: the choice lasts for this page view */ }
+  }
+  var themeButtons = [].slice.call(doc.querySelectorAll('[data-theme-choice]'));
+  function applyPref(pref) {
+    if (pref === 'system') { root.removeAttribute('data-theme'); } else { root.setAttribute('data-theme', pref); }
+    themeButtons.forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-theme-choice') === pref));
+    });
+  }
+  themeButtons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pref = b.getAttribute('data-theme-choice');
+      writePref(pref);
+      applyPref(pref);
+    });
+  });
+  applyPref(readPref());
+
+  /* ------------------------------------------------------------ copy buttons */
+  [].slice.call(doc.querySelectorAll('pre:not(.topology)')).forEach(function (pre) {
+    if (!navigator.clipboard) { return; }
+    var btn = doc.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function () {
+      // Copy the commands without the trailing "# comments".
+      var text = pre.querySelector('code').textContent.split('\n').map(function (l) {
+        return l.replace(/\s+#.*$/, '');
+      }).filter(function (l) { return l.trim() !== '' && !/^\s*#/.test(l); }).join('\n');
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 1400);
+      });
+    });
+    pre.appendChild(btn);
+  });
+
+  /* ------------------------------------------------------------ navigation */
+  var body = doc.body;
+  var menuBtn = doc.getElementById('menu-btn');
+  var scrim = doc.getElementById('scrim');
+  function setNav(open) {
+    body.classList.toggle('nav-open', open);
+    if (menuBtn) {
+      menuBtn.setAttribute('aria-expanded', String(open));
+      menuBtn.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    }
+  }
+  if (menuBtn) { menuBtn.addEventListener('click', function () { setNav(!body.classList.contains('nav-open')); }); }
+  if (scrim) { scrim.addEventListener('click', function () { setNav(false); }); }
+  doc.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && body.classList.contains('nav-open')) { setNav(false); if (menuBtn) { menuBtn.focus(); } }
+  });
+  var tocLinks = [].slice.call(doc.querySelectorAll('.toc a'));
+  tocLinks.forEach(function (a) { a.addEventListener('click', function () { setNav(false); }); });
+
+  // Scrollspy: highlight the section currently in view.
+  var sections = [].slice.call(doc.querySelectorAll('main section[id]'));
+  function setCurrent(id) {
+    tocLinks.forEach(function (a) {
+      if (a.getAttribute('href') === '#' + id) { a.setAttribute('aria-current', 'true'); } else { a.removeAttribute('aria-current'); }
+    });
+  }
+  if ('IntersectionObserver' in window && sections.length) {
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { setCurrent(e.target.id); } });
+    }, { rootMargin: '-35% 0px -60% 0px' });
+    sections.forEach(function (s) { spy.observe(s); });
+  }
+  setCurrent((window.location.hash || '#overview').slice(1) || 'overview');
+})();
+</script>
+</body>
+</html>

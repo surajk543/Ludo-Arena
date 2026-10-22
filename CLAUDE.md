@@ -19,7 +19,7 @@ part of the app or backend). See `website/README.md`; regenerate
 
 `deploy/` — production VPS for `https://ludo.sungamestudio.com` (backend,
 bot-play, PostgreSQL, Redis, nginx on one Ubuntu host; DNS on Cloudflare, not
-Namecheap). See `deploy/README.md`; release with `deploy/scripts/release.sh`.
+Namecheap). See `deploy/README.md`; deploy on the server with `ludo-deploy` (deploy/scripts/ludo-deploy).
 Production app builds default to that URL (`AppConfig.defaultApiBaseUrl`).
 
 Start with `README.md` and `docs/architecture.html`. Contracts are the source

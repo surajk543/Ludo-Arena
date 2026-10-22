@@ -5,12 +5,15 @@
 #
 #   scp -r deploy root@HOST:/root/ && ssh root@HOST bash /root/deploy/scripts/provision.sh
 #
-# Then install a release with deploy/scripts/release.sh.
+# Then deploy with `ludo-deploy deploy` on the server (deploy/README.md).
 set -euo pipefail
 
 DOMAIN=${DOMAIN:-ludo.sungamestudio.com}
+REPO=${REPO:-surajk543/Ludo-Royale}
+GO_VERSION=${GO_VERSION:-go1.27.3}   # match the go directive in backend/go.mod
 DEPLOY=$(cd "$(dirname "$0")/.." && pwd)
 ETC=/etc/ludo-royale
+SRC=/opt/ludo-royale/src
 
 log() { printf '\n==> %s\n' "$*"; }
 secret() { openssl rand -hex 32; }
@@ -18,7 +21,21 @@ secret() { openssl rand -hex 32; }
 log "packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -q
-apt-get install -y -q nginx postgresql redis-server certbot ufw openssl ca-certificates curl
+apt-get install -y -q nginx postgresql redis-server certbot ufw openssl ca-certificates curl git python3
+
+log "go toolchain $GO_VERSION (releases are built on this host)"
+if ! /usr/local/go/bin/go version 2>/dev/null | grep -q "$GO_VERSION "; then
+  tarball=$GO_VERSION.linux-amd64.tar.gz
+  sum=$(curl -fsSL 'https://go.dev/dl/?mode=json&include=all' | python3 -c '
+import json, sys
+v = sys.argv[1]
+print(next(f["sha256"] for r in json.load(sys.stdin) if r["version"] == v
+           for f in r["files"] if f["filename"] == v + ".linux-amd64.tar.gz"))' "$GO_VERSION")
+  curl -fsSLo "/tmp/$tarball" "https://go.dev/dl/$tarball"
+  echo "$sum  /tmp/$tarball" | sha256sum -c -
+  rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/$tarball" && rm -f "/tmp/$tarball"
+  ln -sf /usr/local/go/bin/go /usr/local/bin/go
+fi
 
 log "kernel limits"
 echo nf_conntrack > /etc/modules-load.d/ludo-royale.conf
@@ -137,4 +154,25 @@ ufw allow 443/tcp >/dev/null
 ufw --force enable >/dev/null
 ufw status verbose
 
-log "done; install a release with deploy/scripts/release.sh"
+log "source checkout (read-only deploy key) and ludo-deploy"
+install -m 0755 "$DEPLOY/scripts/ludo-deploy" /usr/local/bin/ludo-deploy
+key=/root/.ssh/ludo_royale_deploy
+install -d -m 0700 /root/.ssh
+[[ -f $key ]] || ssh-keygen -q -t ed25519 -N '' -C "ludo-vps-deploy (read-only)" -f "$key"
+grep -q '^Host github-ludo$' /root/.ssh/config 2>/dev/null ||
+  printf 'Host github-ludo\n  HostName github.com\n  User git\n  IdentityFile %s\n  IdentitiesOnly yes\n' "$key" >> /root/.ssh/config
+chmod 0600 /root/.ssh/config
+if ! grep -q '^github.com ssh-ed25519' /root/.ssh/known_hosts 2>/dev/null; then
+  # GitHub's published ed25519 host key fingerprint.
+  ssh-keyscan -t ed25519 github.com 2>/dev/null > /tmp/github.key
+  ssh-keygen -lf /tmp/github.key | grep -q 'SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU' ||
+    { echo "github.com host key mismatch" >&2; exit 1; }
+  cat /tmp/github.key >> /root/.ssh/known_hosts && rm -f /tmp/github.key
+fi
+if [[ ! -d $SRC/.git ]] && ! git clone -q "git@github-ludo:$REPO.git" "$SRC"; then
+  echo "Add this key to github.com/$REPO → Settings → Deploy keys (read-only), then re-run:"
+  cat "$key.pub"
+  exit 1
+fi
+
+log "done; deploy with: ludo-deploy deploy"
