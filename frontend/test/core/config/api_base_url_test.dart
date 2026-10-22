@@ -30,6 +30,26 @@ void main() {
     }
   });
 
+  test('production builds offer Sign in with Apple on Android', () {
+    const env = AppEnvironment.production;
+    expect(AppConfig.defaultAppleServiceId(env), 'com.ludoroyale.app.signin');
+    expect(
+      AppConfig.defaultAppleRedirectUri(env),
+      'https://ludo.sungamestudio.com/api/v1/auth/apple/callback',
+    );
+    final config = AppConfig(
+      apiBaseUrl: AppConfig.productionApiBaseUrl,
+      environment: env,
+      appleServiceId: AppConfig.defaultAppleServiceId(env),
+      appleRedirectUri: AppConfig.defaultAppleRedirectUri(env),
+    );
+    expect(config.appleEnabledFor('android'), isTrue);
+    expect(config.appleEnabledFor('ios'), isTrue);
+    // Elsewhere Apple on Android needs explicit dart-defines.
+    expect(AppConfig.defaultAppleServiceId(AppEnvironment.development), '');
+    expect(AppConfig.defaultAppleRedirectUri(AppEnvironment.development), '');
+  });
+
   test('without dart-defines the app targets the local backend', () {
     expect(
       AppConfig.fromEnvironment(isAndroid: true).apiBaseUrl,

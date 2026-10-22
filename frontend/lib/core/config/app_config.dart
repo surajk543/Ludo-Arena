@@ -165,14 +165,35 @@ class AppConfig {
       ? productionApiBaseUrl
       : (android ? 'http://10.0.2.2:8080' : 'http://localhost:8080');
 
-  /// Reads the `--dart-define` values; see [defaultApiBaseUrl] for the base
-  /// URL when `API_BASE_URL` is not supplied.
+  /// Sign in with Apple on Android (Apple's web flow): the Services ID and the
+  /// backend callback registered as its return URL in the Apple developer
+  /// account.
+  static const String productionAppleServiceId = 'com.ludoroyale.app.signin';
+  static const String productionAppleRedirectUri =
+      '$productionApiBaseUrl/api/v1/auth/apple/callback';
+
+  /// `APPLE_SERVICE_ID` when not supplied: production builds use
+  /// [productionAppleServiceId]; elsewhere Apple stays off on Android.
+  static String defaultAppleServiceId(AppEnvironment environment) =>
+      environment == AppEnvironment.production ? productionAppleServiceId : '';
+
+  /// `APPLE_REDIRECT_URI` when not supplied (see [defaultAppleServiceId]).
+  static String defaultAppleRedirectUri(AppEnvironment environment) =>
+      environment == AppEnvironment.production
+      ? productionAppleRedirectUri
+      : '';
+
+  /// Reads the `--dart-define` values; see [defaultApiBaseUrl],
+  /// [defaultAppleServiceId] and [defaultAppleRedirectUri] for the values
+  /// used when they are not supplied.
   factory AppConfig.fromEnvironment({bool? isAndroid}) {
     final android = isAndroid ?? (!kIsWeb && Platform.isAndroid);
     final environment = AppEnvironment.parse(_envDefine);
     final base = _apiBaseUrlDefine.isNotEmpty
         ? _apiBaseUrlDefine
         : defaultApiBaseUrl(environment, android: android);
+    const appleServiceId = String.fromEnvironment('APPLE_SERVICE_ID');
+    const appleRedirectUri = String.fromEnvironment('APPLE_REDIRECT_URI');
     return AppConfig(
       apiBaseUrl: normalizeBaseUrl(base),
       environment: environment,
@@ -184,8 +205,12 @@ class AppConfig {
         'GOOGLE_IOS_CLIENT_ID',
         defaultValue: defaultGoogleIosClientId,
       ),
-      appleServiceId: const String.fromEnvironment('APPLE_SERVICE_ID'),
-      appleRedirectUri: const String.fromEnvironment('APPLE_REDIRECT_URI'),
+      appleServiceId: appleServiceId.isNotEmpty
+          ? appleServiceId
+          : defaultAppleServiceId(environment),
+      appleRedirectUri: appleRedirectUri.isNotEmpty
+          ? appleRedirectUri
+          : defaultAppleRedirectUri(environment),
       facebookEnabled: const bool.fromEnvironment('FACEBOOK_ENABLED'),
       firebase: FirebaseAnalyticsConfig.fromEnvironment,
       legalNoticesUrlOverride: const String.fromEnvironment(
