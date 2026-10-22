@@ -667,11 +667,17 @@ abstract class AppLocalizations {
   /// **'Your purchase is safe. We\'ll add the coins as soon as we can reach the game server.'**
   String get coinsDelayed;
 
-  /// Note under the coin packs: virtual currency, no cash value, payments processed by the platform store.
+  /// Note under the coin packs on iOS: virtual currency, no cash value, payments processed by the App Store (never name other platforms on iOS).
   ///
   /// In en, this message translates to:
-  /// **'Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play or the App Store.'**
-  String get coinsNote;
+  /// **'Coins and diamonds are virtual items with no cash value. Payments are handled by the App Store.'**
+  String get coinsNoteAppStore;
+
+  /// Note under the coin packs on Android: virtual currency, no cash value, payments processed by Google Play.
+  ///
+  /// In en, this message translates to:
+  /// **'Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play.'**
+  String get coinsNoteGooglePlay;
 
   /// Error iap_unavailable, or the store / product is not available on this device yet.
   ///

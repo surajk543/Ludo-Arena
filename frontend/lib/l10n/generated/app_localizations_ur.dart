@@ -353,8 +353,12 @@ class AppLocalizationsUr extends AppLocalizations {
       'آپ کی خریداری محفوظ ہے۔ گیم سرور سے رابطہ ہوتے ہی ہم سکے شامل کر دیں گے۔';
 
   @override
-  String get coinsNote =>
-      'سکے اور ہیرے ورچوئل آئٹمز ہیں جن کی کوئی نقد قیمت نہیں۔ ادائیگی Google Play یا App Store کے ذریعے ہوتی ہے۔';
+  String get coinsNoteAppStore =>
+      'سکے اور ہیرے ورچوئل آئٹمز ہیں جن کی کوئی نقد قیمت نہیں۔ ادائیگی App Store کے ذریعے ہوتی ہے۔';
+
+  @override
+  String get coinsNoteGooglePlay =>
+      'سکے اور ہیرے ورچوئل آئٹمز ہیں جن کی کوئی نقد قیمت نہیں۔ ادائیگی Google Play کے ذریعے ہوتی ہے۔';
 
   @override
   String get coinsErrorUnavailable => 'یہ پیک ابھی دستیاب نہیں ہے۔';

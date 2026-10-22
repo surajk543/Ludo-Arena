@@ -352,8 +352,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'عملية الشراء آمنة. سنضيف العملات فور الاتصال بخادم اللعبة.';
 
   @override
-  String get coinsNote =>
-      'العملات والماسات عناصر افتراضية ليس لها قيمة نقدية. تتم معالجة المدفوعات عبر Google Play أو App Store.';
+  String get coinsNoteAppStore =>
+      'العملات والماسات عناصر افتراضية ليس لها قيمة نقدية. تتم معالجة المدفوعات عبر App Store.';
+
+  @override
+  String get coinsNoteGooglePlay =>
+      'العملات والماسات عناصر افتراضية ليس لها قيمة نقدية. تتم معالجة المدفوعات عبر Google Play.';
 
   @override
   String get coinsErrorUnavailable => 'هذه الباقة غير متاحة بعد.';

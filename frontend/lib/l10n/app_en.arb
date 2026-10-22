@@ -490,9 +490,13 @@
   "@coinsDelayed": {
     "description": "Toast when a paid coin pack could not be delivered yet (server unreachable); it is retried automatically, at the latest on the next app start."
   },
-  "coinsNote": "Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play or the App Store.",
-  "@coinsNote": {
-    "description": "Note under the coin packs: virtual currency, no cash value, payments processed by the platform store."
+  "coinsNoteAppStore": "Coins and diamonds are virtual items with no cash value. Payments are handled by the App Store.",
+  "@coinsNoteAppStore": {
+    "description": "Note under the coin packs on iOS: virtual currency, no cash value, payments processed by the App Store (never name other platforms on iOS)."
+  },
+  "coinsNoteGooglePlay": "Coins and diamonds are virtual items with no cash value. Payments are handled by Google Play.",
+  "@coinsNoteGooglePlay": {
+    "description": "Note under the coin packs on Android: virtual currency, no cash value, payments processed by Google Play."
   },
   "coinsErrorUnavailable": "This pack isn't available yet.",
   "@coinsErrorUnavailable": {

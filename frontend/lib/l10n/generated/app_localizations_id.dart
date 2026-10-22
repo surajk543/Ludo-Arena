@@ -350,8 +350,12 @@ class AppLocalizationsId extends AppLocalizations {
       'Pembelianmu aman. Koin akan kami tambahkan begitu server game dapat dihubungi.';
 
   @override
-  String get coinsNote =>
-      'Koin dan berlian adalah item virtual tanpa nilai uang. Pembayaran diproses oleh Google Play atau App Store.';
+  String get coinsNoteAppStore =>
+      'Koin dan berlian adalah item virtual tanpa nilai uang. Pembayaran diproses oleh App Store.';
+
+  @override
+  String get coinsNoteGooglePlay =>
+      'Koin dan berlian adalah item virtual tanpa nilai uang. Pembayaran diproses oleh Google Play.';
 
   @override
   String get coinsErrorUnavailable => 'Paket ini belum tersedia.';
