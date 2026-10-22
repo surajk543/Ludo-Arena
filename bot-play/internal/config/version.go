@@ -11,9 +11,13 @@ import (
 // overridable at link time:
 //
 //	go build -ldflags "-X ludoarena/botplay/internal/config.Version=1.2.0 -X ludoarena/botplay/internal/config.Build=42"
+//
+// Commit (the short commit hash) is set the same way and only reported by
+// GET /health.
 var (
 	Version = "1.0.0"
 	Build   = "1"
+	Commit  = ""
 )
 
 var versionRE = regexp.MustCompile(`^\d+(\.\d+){0,3}$`)

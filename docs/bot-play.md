@@ -52,7 +52,7 @@ snapshot (`game.request_sync`); the server's events are always what it applies.
  /ws        |       bounded queue, heartbeat) -> RoomState reducer        |
             |       -> strategy (think time, Ludo evaluator) -> commands  |
             |                                                              |
-            |  health: /healthz /readyz /metrics (127.0.0.1:9091)          |
+            |  health: /health /readyz /metrics (127.0.0.1:9091)          |
             +--------------------------------------------------------------+
 ```
 
@@ -365,7 +365,7 @@ changes it is rejected and the previous config stays active).
 | Key | Default | Notes |
 |---|---|---|
 | `enabled` | true | [R] |
-| `listen_addr` | `127.0.0.1:9091` | [R]; `/healthz`, `/readyz`, `/metrics` — keep internal |
+| `listen_addr` | `127.0.0.1:9091` | [R]; `/health`, `/readyz`, `/metrics` — keep internal |
 
 Shipped files: `bot-play/configs/config.example.yaml` (every key documented),
 `configs/environments/{development,preprod,production}.yaml`,
@@ -490,7 +490,8 @@ each connect), `resyncsByReason`, `hashMismatches` (must be 0),
 
 ## 9. Monitoring and troubleshooting
 
-Endpoints (`metrics.listen_addr`): `/healthz` (process alive), `/readyz`
+Endpoints (`metrics.listen_addr`): `/health` (process alive, with the
+`version`, `build` and `commit` set at link time), `/readyz`
 (200 when the controller token is valid, the backend was reached within
 `readiness_stale_seconds` and no maintenance back-off is active; otherwise 503
 with a reason), `/metrics`.
@@ -542,7 +543,7 @@ any attribute named `*token`, `*key`, `*authorization`, `*secret`, …).
   (static binary, distroless `nonroot`, configs under `/app/configs`).
 * Provide `BOT_SERVICE_KEY` from the secret store; mount environment configs
   if they differ from the image. Keep port 9091 cluster-internal; use
-  `/healthz` for liveness, `/readyz` for readiness.
+  `/health` for liveness, `/readyz` for readiness.
 * Set the orchestrator's termination grace period above
   `bots.shutdown.graceful_timeout_seconds` (production default 300 s) so
   bots can finish their games.

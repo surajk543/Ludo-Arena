@@ -37,7 +37,7 @@ on gated endpoints (the client should treat that as a bug, not an update).
 | Auth endpoints, `/me`, wallet, progression, collection, social, rooms | 503 `maintenance` | 426 `update_required` | allowed |
 | WebSocket upgrade (`/api/v1/ws`) | 503 | 426 | allowed |
 | Live WebSocket commands | `error maintenance`, then close `4503` | `error update_required`, then close `4426` | allowed (never disconnected for an optional update) |
-| `/healthz`, `/readyz`, `/metrics`, Apple callback | allowed | allowed | allowed |
+| `/health`, `/readyz`, `/metrics`, Apple callback | allowed | allowed | allowed |
 
 Error `details` contain the evaluated policy (same fields as
 `GET /app/config`), including `storeUrl` and `minimumSupportedVersion`.

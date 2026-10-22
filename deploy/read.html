@@ -417,11 +417,26 @@ ludo-deploy deploy ops/vps-deploy  <span class="c"># a branch, tag or commit</sp
     </ol>
     <h3>Check the result</h3>
 <pre><code>ludo-deploy status
+curl -s https://ludo.sungamestudio.com/health        <span class="c"># version, commit, build time</span>
 curl -s https://ludo.sungamestudio.com/readyz        <span class="c"># {"status":"ready"}, from anywhere</span>
 journalctl -u ludo-backend -n 50 --no-pager</code></pre>
     <div class="callout pending"><span class="callout-title">What players notice (measured)</span>A deploy takes about 45 s, but players only see the backend restart. On SIGTERM the backend closes every WebSocket (code <code>1001</code>) and drains in-flight HTTP requests, including bot-play's 20 s assignment long-poll, so the old process exits <strong>10–20 s</strong> later and only then does the new one start. During that gap REST calls answer <code>502</code> and the app keeps retrying its socket; it reconnects and resyncs once the new process is up. Running games continue because their state is in Redis. bot-play waits for its running practice games to finish (up to 5 minutes) before it restarts. Deploy when traffic is low; a rollback has the same 10–20 s gap.</div>
     <p>Only one <code>deploy</code> or <code>rollback</code> runs at a time (lock in <code>/run/ludo-deploy.lock</code>).</p>
+    <h3 id="release-tag">3.1 Release a version (tag) and check what is live</h3>
+    <p>Releases are git tags on <code>master</code> (<code>vMAJOR.MINOR.PATCH</code>). Tag, push, deploy the tag, then check <code>/health</code>, which reports the build <code>ludo-deploy</code> stamped in:</p>
+<pre><code><span class="c"># on a Mac, after the PR is merged</span>
+git switch master &amp;&amp; git pull
+git tag -a v1.0.1 -m "Ludo Arena v1.0.1" &amp;&amp; git push origin v1.0.1
+gh release create v1.0.1 --generate-notes        <span class="c"># optional release notes</span>
+
+<span class="c"># on the VPS</span>
+ludo-deploy deploy v1.0.1
+curl -s https://ludo.sungamestudio.com/health
+<span class="c"># {"builtAt":"…","commit":"1a2b3c4","status":"ok","version":"v1.0.1"}</span>
+curl -s 127.0.0.1:9091/health                    <span class="c"># bot-play: version, build, commit</span></code></pre>
+    <p><code>ludo-deploy deploy master</code> (or a branch) works too; <code>/health</code> then shows the nearest tag plus the commit, e.g. <code>v1.0.1-3-g1a2b3c4</code>. <code>ludo-deploy list</code> and <code>ludo-deploy status</code> show the version of every release.</p>
   </section>
+
 
   <!-- ============================================================ 4 -->
   <section class="doc-section" id="rollback" aria-labelledby="rollback-h">

@@ -90,6 +90,7 @@ Check the result:
 
 ```bash
 ludo-deploy status
+curl -s https://ludo.sungamestudio.com/health        # version, commit, build time
 curl -s https://ludo.sungamestudio.com/readyz        # {"status":"ready"}, from anywhere
 journalctl -u ludo-backend -n 50 --no-pager
 ```
@@ -107,6 +108,29 @@ a bot. Deploy when traffic is low. A rollback has the same 10–20 s gap.
 
 Only one `ludo-deploy deploy`/`rollback` runs at a time (lock in
 `/run/ludo-deploy.lock`).
+
+### 3.1 Release a version (tag) and check what is live
+
+Releases are git tags on `master` (`vMAJOR.MINOR.PATCH`). Tag, push, deploy
+the tag, then check `/health`, which reports the build `ludo-deploy` stamped
+in:
+
+```bash
+# on a Mac, after the PR is merged
+git switch master && git pull
+git tag -a v1.0.1 -m "Ludo Arena v1.0.1" && git push origin v1.0.1
+gh release create v1.0.1 --generate-notes        # optional release notes
+
+# on the VPS
+ludo-deploy deploy v1.0.1
+curl -s https://ludo.sungamestudio.com/health
+# {"builtAt":"…","commit":"1a2b3c4","status":"ok","version":"v1.0.1"}
+curl -s 127.0.0.1:9091/health                    # bot-play: version, build, commit
+```
+
+`ludo-deploy deploy master` (or a branch) works too; `/health` then shows
+the nearest tag plus the commit, e.g. `v1.0.1-3-g1a2b3c4`. `ludo-deploy list`
+and `ludo-deploy status` show the version of every release.
 
 ## 4. Roll back
 

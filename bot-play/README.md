@@ -29,7 +29,7 @@ WebSocket); bot-play receives the assignment, seats the bots and plays.
 | `go run ./cmd/bot-play --validate --config <file> --profiles configs/profiles.yaml` | Validate configuration and exit |
 | `go run ./cmd/bot-play --version` | Print version/build |
 | `kill -HUP <pid>` | Reload config + profiles (also automatic on file change) |
-| `curl localhost:9091/healthz` / `/readyz` / `/metrics` | Health, readiness, Prometheus |
+| `curl localhost:9091/health` / `/readyz` / `/metrics` | Health, readiness, Prometheus |
 | `go test -race ./...` | All tests (uses an in-process fake backend) |
 
 ### Load test (development / preprod only)
@@ -69,7 +69,7 @@ internal/snakes_ladders/ Snakes & Ladders geometry (roll-only; no strategy)
 internal/strategy/       think-time policy and move choice
 internal/matchmaking/    public-fill planner, load-test game/capacity mix
 internal/runner/         controller, population reconciler, bot lifecycle and game loop
-internal/health/         /healthz /readyz /metrics server
+internal/health/         /health /readyz /metrics server
 internal/metrics/        Prometheus metrics + load-test report
 configs/                 example, profiles, per-environment configs
 tests/                   integration tests + in-process fake backend

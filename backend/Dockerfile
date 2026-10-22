@@ -4,7 +4,12 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
+ARG VERSION=dev
+ARG COMMIT=
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w \
+      -X ludoarena/internal/buildinfo.Version=${VERSION} \
+      -X ludoarena/internal/buildinfo.Commit=${COMMIT}" \
+      -o /out/server ./cmd/server
 
 FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app

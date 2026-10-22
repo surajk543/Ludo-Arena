@@ -18,6 +18,7 @@ import (
 	"ludoarena/internal/apppolicy"
 	"ludoarena/internal/async"
 	"ludoarena/internal/auth"
+	"ludoarena/internal/buildinfo"
 	"ludoarena/internal/config"
 	"ludoarena/internal/gameevents"
 	"ludoarena/internal/httpapi"
@@ -182,8 +183,8 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	notices.Register(rt)
 	mux := rt.Mux()
 	mux.Handle("GET /api/v1/ws", gw)
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
-		httpapi.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+		httpapi.WriteJSON(w, http.StatusOK, buildinfo.Health())
 	})
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		cctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)

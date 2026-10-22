@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"ludoarena/internal/buildinfo"
 	"ludoarena/internal/config"
 	"ludoarena/internal/logging"
 	"ludoarena/internal/postgres"
@@ -74,7 +75,7 @@ func run() error {
 	errCh := make(chan error, 2)
 	go func() { errCh <- srv.ListenAndServe() }()
 	go func() { errCh <- metricsSrv.ListenAndServe() }()
-	log.Info("backend started", "addr", cfg.HTTPAddr, "metrics", cfg.MetricsAddr, "env", cfg.Env,
+	log.Info("backend started", "version", buildinfo.Version, "commit", buildinfo.Commit, "addr", cfg.HTTPAddr, "metrics", cfg.MetricsAddr, "env", cfg.Env,
 		"ws_compression", cfg.WS.CompressionMode, "ws_threshold", cfg.WS.CompressionThreshold)
 
 	select {
