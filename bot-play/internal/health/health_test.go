@@ -11,6 +11,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
+
+	"ludoarena/botplay/internal/config"
 )
 
 func TestEndpoints(t *testing.T) {
@@ -37,8 +39,8 @@ func TestEndpoints(t *testing.T) {
 		b, _ := io.ReadAll(resp.Body)
 		return resp.StatusCode, string(b)
 	}
-	if code, _ := get("/healthz"); code != 200 {
-		t.Fatalf("healthz %d", code)
+	if code, body := get("/health"); code != 200 || !strings.Contains(body, `"version":"`+config.Version+`"`) {
+		t.Fatalf("health %d %s", code, body)
 	}
 	if code, body := get("/readyz"); code != 503 || !strings.Contains(body, "controller token") {
 		t.Fatalf("readyz not ready: %d %s", code, body)

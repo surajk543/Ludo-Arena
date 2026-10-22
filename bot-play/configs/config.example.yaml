@@ -138,4 +138,4 @@ loadtest:                        # development / preprod ONLY (validation error 
 
 metrics:
   enabled: true                  # [restart]
-  listen_addr: 127.0.0.1:9091    # [restart] /healthz, /readyz, /metrics (keep internal)
+  listen_addr: 127.0.0.1:9091    # [restart] /health, /readyz, /metrics (keep internal)

@@ -1,4 +1,4 @@
-// Package health serves /healthz, /readyz and /metrics on
+// Package health serves /health, /readyz and /metrics on
 // metrics.listen_addr (default 127.0.0.1:9091; keep it internal).
 package health
 
@@ -13,6 +13,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"ludoarena/botplay/internal/config"
 )
 
 // ReadinessFunc returns nil when the service is ready.
@@ -21,8 +23,10 @@ type ReadinessFunc func() error
 // Handler builds the HTTP handler.
 func Handler(reg *prometheus.Registry, ready ReadinessFunc) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]string{
+			"status": "ok", "version": config.Version, "build": config.Build, "commit": config.Commit,
+		})
 	})
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, _ *http.Request) {
 		if err := ready(); err != nil {

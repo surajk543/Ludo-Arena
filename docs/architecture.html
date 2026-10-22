@@ -1364,7 +1364,7 @@ td code { font-size: 0.8rem; }
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 19">flowchart TD
   req["Incoming request or command"] --&gt; kind{"Surface"}
-  kind --&gt;|"/healthz, /readyz, /metrics,&lt;br/&gt;Apple callback, /bot/*"| free["Not version-gated"]
+  kind --&gt;|"/health, /readyz, /metrics,&lt;br/&gt;Apple callback, /bot/*"| free["Not version-gated"]
   kind --&gt;|"GET /app/config"| cfg["Always 200 with the evaluated mode&lt;br/&gt;120 per min per IP"]
   kind --&gt;|"REST: auth, /me, wallet, progression,&lt;br/&gt;collection, social, rooms, telemetry"| ev
   kind --&gt;|"WebSocket upgrade /api/v1/ws"| ev
@@ -1709,7 +1709,7 @@ td code { font-size: 0.8rem; }
     CTRL["Controller&lt;br/&gt;assignment long-poll, public fill,&lt;br/&gt;population reconciler"]
     BOTS["Bots: one goroutine each&lt;br/&gt;reducer and strategy"]
     CFG["YAML config and profiles.yaml&lt;br/&gt;hot reload"]
-    BM["/healthz /readyz /metrics&lt;br/&gt;127.0.0.1:9091"]
+    BM["/health /readyz /metrics&lt;br/&gt;127.0.0.1:9091"]
   end
   subgraph BE["Go backend: authoritative"]
     BR["/api/v1/bot/* REST&lt;br/&gt;only with BOT_SERVICE_KEY_SHA256"]

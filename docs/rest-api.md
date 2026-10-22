@@ -8,7 +8,7 @@ milliseconds unless the field name ends in `Utc` (ISO-8601 UTC string).
 
 | Header | Required on | Notes |
 |---|---|---|
-| `X-App-Platform` | every endpoint except `/healthz`, `/readyz`, `/metrics`, `/legal/open-source`, Apple callback, App Store Server Notifications | `android` \| `ios` |
+| `X-App-Platform` | every endpoint except `/health`, `/readyz`, `/metrics`, `/legal/open-source`, Apple callback, App Store Server Notifications | `android` \| `ios` |
 | `X-App-Version` | same | e.g. `1.4.0` (1–4 numeric dot-separated components) |
 | `X-App-Build` | same | positive integer build number |
 | `Authorization` | protected endpoints | `Bearer <accessToken>` |
@@ -677,5 +677,12 @@ client accepts it).
 
 ## Health & metrics
 
-`GET /healthz` (liveness), `GET /readyz` (PostgreSQL + Redis reachable),
-`GET /metrics` (Prometheus; served on `METRICS_ADDR`, internal only).
+`GET /health` (liveness and build identity), `GET /readyz` (PostgreSQL +
+Redis reachable), `GET /metrics` (Prometheus; served on `METRICS_ADDR`,
+internal only). `/health` answers 200 with the release the binary was built
+from (set at link time by `deploy/scripts/ludo-deploy`; `"dev"` for local
+builds):
+
+```json
+{"status":"ok","version":"v1.0.0","commit":"f9c4ebd","builtAt":"2026-10-22T16:00:00Z"}
+```

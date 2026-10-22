@@ -87,16 +87,33 @@ cmd_deploy() {
   WORK=$(mktemp -d) && work=$WORK
   OUT=$RELEASES/.build-$name && out=$OUT
 
-  log "building $name from $ref ($(git -C "$SRC" log -1 --format='%h %s' "$commit"))"
+  # Build identity reported by GET /health: the tag (or tag-N-gHASH between
+  # releases), the commit and the build time. bot-play's version must be
+  # numeric (it doubles as its X-App-Version), its build the commit count.
+  local version numver build short built
+  version=$(git -C "$SRC" describe --tags --always "$commit")
+  numver=$(sed -E 's/^v//; s/-.*//' <<< "$version")
+  [[ $numver =~ ^[0-9]+(\.[0-9]+){0,3}$ ]] || numver=0.0.0
+  build=$(git -C "$SRC" rev-list --count "$commit")
+  short=${commit:0:7}
+  built=$(date -u +%FT%TZ)
+
+  log "building $name from $ref = $version ($(git -C "$SRC" log -1 --format='%h %s' "$commit"))"
   git -C "$SRC" archive "$commit" backend bot-play | tar -x -C "$work"
   mkdir -p "$out/backend" "$out/bot-play/configs/environments"
-  (cd "$work/backend" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o "$out/backend/ludo-server" ./cmd/server)
-  (cd "$work/bot-play" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o "$out/bot-play/bot-play" ./cmd/bot-play)
+  (cd "$work/backend" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w \
+    -X ludoarena/internal/buildinfo.Version=$version \
+    -X ludoarena/internal/buildinfo.Commit=$short \
+    -X ludoarena/internal/buildinfo.BuiltAt=$built" -o "$out/backend/ludo-server" ./cmd/server)
+  (cd "$work/bot-play" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w \
+    -X ludoarena/botplay/internal/config.Version=$numver \
+    -X ludoarena/botplay/internal/config.Build=$build \
+    -X ludoarena/botplay/internal/config.Commit=$short" -o "$out/bot-play/bot-play" ./cmd/bot-play)
   cp -R "$work/backend/config" "$out/backend/config"
   cp "$work/bot-play/configs/profiles.yaml" "$out/bot-play/configs/"
   cp "$work/bot-play/configs/environments/production.yaml" "$out/bot-play/configs/environments/"
   (cd "$work/backend/migrations" && sha256sum ./*.sql) > "$out/MIGRATIONS"
-  printf 'ref=%s\ncommit=%s\nbuilt=%s\n' "$ref" "$commit" "$(date -u +%FT%TZ)" > "$out/RELEASE"
+  printf 'ref=%s\nversion=%s\ncommit=%s\nbuilt=%s\n' "$ref" "$version" "$commit" "$built" > "$out/RELEASE"
   env $(cat /etc/ludo-arena/bot-play.env) "$out/bot-play/bot-play" -validate \
     --config "$out/bot-play/configs/environments/production.yaml" \
     --profiles "$out/bot-play/configs/profiles.yaml" >/dev/null 2>&1 || die "bot-play rejects production.yaml"
@@ -118,7 +135,7 @@ cmd_deploy() {
     die "$name failed its health check (left in $dir for inspection)"
   fi
   prune
-  log "live: $name"
+  log "live: $name ($(curl -fsS http://127.0.0.1:8080/health))"
 }
 
 cmd_rollback() {
@@ -147,6 +164,8 @@ cmd_status() {
   for u in ludo-backend ludo-bot-play nginx postgresql@16-main redis-server; do
     printf '%-12s %s\n' "${u%%@*}:" "$(systemctl is-active "$u")"
   done
+  echo "health:      $(curl -fsS http://127.0.0.1:8080/health 2>/dev/null || echo DOWN)"
+  echo "bot-play:    $(curl -fsS http://127.0.0.1:9091/health 2>/dev/null || echo DOWN)"
   echo "readyz:      $(curl -fsS http://127.0.0.1:8080/readyz 2>/dev/null || echo DOWN)"
   curl -s http://127.0.0.1:9090/metrics 2>/dev/null | awk '
     /^ws_connections_active/ { ws += $2 }
@@ -164,7 +183,7 @@ cmd_list() {
   for r in $(ls -1 "$RELEASES" | sort); do
     [[ $r == .build-* ]] && continue
     printf '%s %s  %s\n' "$([[ $r == "$cur" ]] && echo '*' || echo ' ')" "$r" \
-      "$(sed -n 's/^ref=//p' "$RELEASES/$r/RELEASE" 2>/dev/null)"
+      "$(sed -n 's/^version=//p; s/^ref=/ref /p' "$RELEASES/$r/RELEASE" 2>/dev/null | tr '\n' ' ')"
   done
 }
 
