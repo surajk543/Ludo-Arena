@@ -1,8 +1,8 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/features/ludo/presentation/board/ludo_geometry.dart';
-import 'package:ludo_royale/shared/game_visuals/board_cell.dart';
-import 'package:ludo_royale/shared/game_visuals/seat_color.dart';
+import 'package:ludo_arena/features/ludo/presentation/board/ludo_geometry.dart';
+import 'package:ludo_arena/shared/game_visuals/board_cell.dart';
+import 'package:ludo_arena/shared/game_visuals/seat_color.dart';
 
 /// Main-track table copied verbatim from backend/docs/game-rules.md.
 const _docTrack = '''

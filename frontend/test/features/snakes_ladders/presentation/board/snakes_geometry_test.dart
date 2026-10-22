@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/features/snakes_ladders/presentation/board/snakes_geometry.dart';
-import 'package:ludo_royale/shared/game_visuals/board_cell.dart';
+import 'package:ludo_arena/features/snakes_ladders/presentation/board/snakes_geometry.dart';
+import 'package:ludo_arena/shared/game_visuals/board_cell.dart';
 
 void main() {
   group('SnakesGeometry.cellFor (boustrophedon, doc formula)', () {

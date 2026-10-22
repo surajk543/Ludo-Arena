@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/network/api_client.dart';
-import 'package:ludo_royale/core/network/token_manager.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/authentication/data/provider_credential.dart';
-import 'package:ludo_royale/features/authentication/identity/identity_provider_client.dart';
-import 'package:ludo_royale/features/profile/domain/display_name.dart';
-import 'package:ludo_royale/features/profile/progression.dart';
-import 'package:ludo_royale/features/wallet/wallet_controller.dart';
+import 'package:ludo_arena/core/network/api_client.dart';
+import 'package:ludo_arena/core/network/token_manager.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/authentication/data/provider_credential.dart';
+import 'package:ludo_arena/features/authentication/identity/identity_provider_client.dart';
+import 'package:ludo_arena/features/profile/domain/display_name.dart';
+import 'package:ludo_arena/features/profile/progression.dart';
+import 'package:ludo_arena/features/wallet/wallet_controller.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';

@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/identity"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/identity"
 )
 
 // Guest persistence (docs/authentication.md "Guest persistence"): a device

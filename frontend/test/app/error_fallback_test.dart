@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/app/error_fallback.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/app/error_fallback.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 
 class _Boom extends StatelessWidget {
   const _Boom();

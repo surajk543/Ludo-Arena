@@ -6,8 +6,8 @@ package report
 import (
 	"time"
 
-	"ludoroyale/opsbot/internal/google"
-	"ludoroyale/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/google"
+	"ludoarena/opsbot/internal/promapi"
 )
 
 // Num is a value that may be missing ("n/a").

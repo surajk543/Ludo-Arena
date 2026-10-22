@@ -1,4 +1,4 @@
-# Ludo Royale — Architecture (companion)
+# Ludo Arena — Architecture (companion)
 
 The full system documentation, with 38 diagrams, is the standalone page
 **[architecture.html](architecture.html)**. Open it directly in a browser
@@ -22,9 +22,9 @@ other docs link to by name: [Wallet settlement guarantees](#wallet-settlement-gu
 
 ## System in one paragraph
 
-A Flutter app (Android/iOS, `com.ludoroyale.app`) talks to an **authoritative
+A Flutter app (Android/iOS, `com.ludoarena.app`) talks to an **authoritative
 Go backend** over HTTPS REST (`/api/v1`) and one WebSocket
-(`GET /api/v1/ws`, protocol `ludo-royale.v1`). The backend owns dice
+(`GET /api/v1/ws`, protocol `ludo-arena.v1`). The backend owns dice
 (`crypto/rand`), rules (Ludo classic/quick and Snakes & Ladders engines), room
 state, turn timers, wallets, progression and sessions. Live state, timers,
 sessions and cross-instance pub/sub live in **Redis**; durable data lives in
@@ -49,7 +49,7 @@ bots through the same protocol with room-scoped bot tokens.
 The fourth project, [`monitoring/`](../monitoring/README.md), runs Prometheus
 (scraping every backend instance's `METRICS_ADDR`, bot-play and node_exporter
 on each host), Alertmanager and a Telegram **ops bot** (separate Go module
-`ludoroyale/opsbot`). The bot reads only the Prometheus API (plus, optionally,
+`ludoarena/opsbot`). The bot reads only the Prometheus API (plus, optionally,
 the Play Console bulk reports in Cloud Storage and the GA4 Data API) and sends:
 an hourly PDF status (real players vs bots in game and online, rooms, lobby,
 matches, new accounts, DAU, CPU / RAM / disk per host, process memory, firing
@@ -75,7 +75,7 @@ come only from the environment. Cluster-wide gauges are combined with `max`
 | 7 | [Private rooms](architecture.html#private-rooms) | 6-character codes from a 32-symbol alphabet, preview, join, host start, bots, lifecycle and expiry |
 | 8 | [Reconnection](architecture.html#reconnection) | Backoff with jitter, `connection.ready.activeRoomId`, `game.state`, version/hash reconciliation, close codes incl. `4409` |
 | 9 | [Light / dark theme](architecture.html#theme) | Selection → SharedPreferences → restore before first frame → ThemeExtensions |
-| 10 | [Deployment and configuration](architecture.html#deployment) | Target topology (pending), local dev, [monitoring and alerting](architecture.html#monitoring) (Prometheus, Alertmanager, Telegram ops bot), [environment variables by name](architecture.html#env-vars), identifiers |
+| 10 | [Deployment and configuration](architecture.html#deployment) | Production on one VPS at `ludo.sungamestudio.com` ([runbook](../deploy/read.html)), scale-out target topology, local dev, [monitoring and alerting](architecture.html#monitoring) (Prometheus, Alertmanager, Telegram ops bot), [environment variables by name](architecture.html#env-vars), identifiers |
 | 11 | [App version management](architecture.html#app-version) | Startup policy check, force/optional update, maintenance lifecycle, enforcement (426/503, 4426/4503), reload |
 | 12 | [WebSocket performance](architecture.html#websocket-performance) | permessage-deflate boundaries, deltas vs snapshots, slow-consumer handling, metrics, [measured results](architecture.html#measured-load-test-results) |
 | 13 | [Progression and engagement](architecture.html#progression) | Rematch, match records → missions/XP, levels, cosmetics, exactly-once claims, engagement principles |
@@ -303,7 +303,9 @@ sum(increase(bot_coins_minted_total[1d])) - sum(increase(bot_coins_removed_total
 Facebook app and credentials; Apple Developer configuration; release signing
 SHA-1 / Play App Signing; App Store and Play listings (store URLs are empty, so
 the app shows "not yet available in the store"); Firebase DebugView
-verification on a device; production infrastructure. The Flutter play and
+verification on a device; scale-out infrastructure (production runs on one
+VPS at `https://ludo.sungamestudio.com`, see
+[deploy/read.html](../deploy/read.html)). The Flutter play and
 meta screens are implemented (`feature_routes.dart` spreads `playRoutes` and
 `metaRoutes`; the Home, Games, Missions, Friends and Profile tabs are branches
 of one `StatefulShellRoute` in `app/shell/main_shell.dart`, and play-flow and

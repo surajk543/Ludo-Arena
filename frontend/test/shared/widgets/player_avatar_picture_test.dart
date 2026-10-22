@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
-import 'package:ludo_royale/shared/widgets/widgets.dart';
+import 'package:ludo_arena/core/assets/profile_picture_cache.dart';
+import 'package:ludo_arena/shared/widgets/widgets.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../helpers/picture_fixtures.dart';

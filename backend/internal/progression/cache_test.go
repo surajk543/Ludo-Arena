@@ -12,8 +12,8 @@ import (
 	dto "github.com/prometheus/client_model/go"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/playerinfo"
 )
 
 func lookups(cache, result string) float64 {

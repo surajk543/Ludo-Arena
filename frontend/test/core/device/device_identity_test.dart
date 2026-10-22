@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/device/device_identity.dart';
-import 'package:ludo_royale/core/storage/secure_session_store.dart';
+import 'package:ludo_arena/core/device/device_identity.dart';
+import 'package:ludo_arena/core/storage/secure_session_store.dart';
 
 class _FailingKeyValue implements SecureKeyValue {
   @override

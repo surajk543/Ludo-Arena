@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"ludoroyale/internal/identity"
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/identity"
+	"ludoarena/internal/metrics"
 )
 
 // Device binding endpoints: restore an account after an app update or

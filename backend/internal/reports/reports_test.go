@@ -12,9 +12,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/progression"
-	"ludoroyale/internal/progression/progtest"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/progression"
+	"ludoarena/internal/progression/progtest"
 )
 
 var testNow = time.Date(2026, 10, 21, 12, 0, 0, 0, time.UTC)

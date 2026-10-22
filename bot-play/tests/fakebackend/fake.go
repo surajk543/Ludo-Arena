@@ -1,6 +1,6 @@
-// Package fakebackend is an in-process fake of the Ludo Royale backend for
+// Package fakebackend is an in-process fake of the Ludo Arena backend for
 // bot-play tests. It implements the bot service REST endpoints
-// (docs/rest-api.md → "Bot service") and the `ludo-royale.v1` WebSocket
+// (docs/rest-api.md → "Bot service") and the `ludo-arena.v1` WebSocket
 // protocol (docs/websocket-protocol.md) with a tiny authoritative Ludo and
 // Snakes & Ladders engine (backend/docs/game-rules.md), written
 // independently of bot-play's own code (its own hash, legality and reducer).

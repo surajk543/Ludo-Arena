@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/app_policy/policy_signal.dart';
-import 'package:ludo_royale/core/config/app_config.dart';
-import 'package:ludo_royale/core/config/app_info.dart';
-import 'package:ludo_royale/core/network/api_client.dart';
-import 'package:ludo_royale/core/network/token_manager.dart';
-import 'package:ludo_royale/core/storage/secure_session_store.dart';
-import 'package:ludo_royale/core/time/server_clock.dart';
+import 'package:ludo_arena/core/app_policy/policy_signal.dart';
+import 'package:ludo_arena/core/config/app_config.dart';
+import 'package:ludo_arena/core/config/app_info.dart';
+import 'package:ludo_arena/core/network/api_client.dart';
+import 'package:ludo_arena/core/network/token_manager.dart';
+import 'package:ludo_arena/core/storage/secure_session_store.dart';
+import 'package:ludo_arena/core/time/server_clock.dart';
 
 import '../../helpers/fake_backend.dart';
 
@@ -313,10 +313,10 @@ void main() {
       'http://h:8080',
     );
     const https = AppConfig(
-      apiBaseUrl: 'https://api.ludoroyale.app',
+      apiBaseUrl: 'https://api.ludoarena.app',
       environment: AppEnvironment.production,
     );
-    expect(https.webSocketUri.toString(), 'wss://api.ludoroyale.app/api/v1/ws');
+    expect(https.webSocketUri.toString(), 'wss://api.ludoarena.app/api/v1/ws');
     expect(config.webSocketUri.toString(), 'ws://test.local/api/v1/ws');
     expect(config.apiV1, 'http://test.local/api/v1');
   });

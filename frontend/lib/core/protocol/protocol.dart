@@ -1,4 +1,4 @@
-/// Dart mirror of the `ludo-royale.v1` WebSocket protocol
+/// Dart mirror of the `ludo-arena.v1` WebSocket protocol
 /// (docs/websocket-protocol.md).
 library;
 

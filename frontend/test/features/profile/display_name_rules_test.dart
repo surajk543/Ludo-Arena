@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/features/profile/domain/display_name.dart';
+import 'package:ludo_arena/features/profile/domain/display_name.dart';
 
 void main() {
   group('normalize', () {
@@ -62,8 +62,12 @@ void main() {
       'Support Team': DisplayNameProblem.reserved,
       'Official Raj': DisplayNameProblem.reserved,
       'System': DisplayNameProblem.reserved,
-      'Ludo Royale': DisplayNameProblem.reserved,
+      'Ludo Arena': DisplayNameProblem.reserved,
+      'ludo.arena-fan': DisplayNameProblem.reserved,
+      'LUDOARENA': DisplayNameProblem.reserved,
+      'Ludo Royale': DisplayNameProblem.reserved, // former product name
       'ludo_royale_fan': DisplayNameProblem.reserved,
+      'Arena Raj': null, // only the full product name is reserved
       'Robot': null, // "bot" only reserved as a prefix
     };
     cases.forEach((name, expected) {

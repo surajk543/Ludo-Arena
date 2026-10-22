@@ -1,7 +1,7 @@
-/// Ludo Royale shared widget library. Import this barrel:
+/// Ludo Arena shared widget library. Import this barrel:
 ///
 /// ```dart
-/// import 'package:ludo_royale/shared/widgets/widgets.dart';
+/// import 'package:ludo_arena/shared/widgets/widgets.dart';
 /// ```
 library;
 

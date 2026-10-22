@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ludo_royale/app/routes.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/home/presentation/home_screen.dart';
-import 'package:ludo_royale/features/profile/presentation/display_name_sheet.dart';
-import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
-import 'package:ludo_royale/shared/widgets/widgets.dart';
+import 'package:ludo_arena/app/routes.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/home/presentation/home_screen.dart';
+import 'package:ludo_arena/features/profile/presentation/display_name_sheet.dart';
+import 'package:ludo_arena/features/profile/presentation/profile_screen.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/shared/widgets/widgets.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';
@@ -144,6 +144,7 @@ void main() {
       '12345': _en.errorInvalidNameCharacters,
       'Bot Raj': _en.errorInvalidNameReserved,
       'admin': _en.errorInvalidNameReserved,
+      'Ludo_Arena': _en.errorInvalidNameReserved,
       'Ludo_Royale': _en.errorInvalidNameReserved,
     };
     rejected.forEach((name, message) {

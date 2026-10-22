@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/active_room_controller.dart';
-import 'package:ludo_royale/features/game/application/match_event_sequencer.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/active_room_controller.dart';
+import 'package:ludo_arena/features/game/application/match_event_sequencer.dart';
 
 import 'support/play_test_support.dart';
 

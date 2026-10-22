@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"ludoroyale/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/promapi"
 )
 
 // Rule answers queries containing Match. Vector answers instant queries,

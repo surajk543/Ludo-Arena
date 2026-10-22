@@ -37,7 +37,7 @@ class SettingsScreen extends ConsumerWidget {
     SettingKey.quickChatMute => 'quick_chat_mute',
   };
 
-  /// Open-source notices live on a web page (sungamestudio.com/ludo-royale/
+  /// Open-source notices live on a web page (sungamestudio.com/ludo-arena/
   /// legal/ by default, `LEGAL_NOTICES_URL` to override) opened in the
   /// browser.
   static Future<void> _openLegalNotices(

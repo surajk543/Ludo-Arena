@@ -32,8 +32,8 @@ enum DisplayNameProblem {
 /// - letters of any script (+ combining marks), digits, space, `_ . -`,
 ///   with at least one letter (no emoji or symbols);
 /// - reserved: starts with "bot", or contains admin / moderator / support /
-///   official / system / ludoroyale — case-insensitive, ignoring spaces and
-///   `_ . -`.
+///   official / system / ludoarena (the product name) / ludoroyale (its
+///   former name) — case-insensitive, ignoring spaces and `_ . -`.
 abstract final class DisplayNameRules {
   static const int minLength = 3;
   static const int maxLength = 16;
@@ -45,6 +45,7 @@ abstract final class DisplayNameRules {
     'support',
     'official',
     'system',
+    'ludoarena',
     'ludoroyale',
   ];
 

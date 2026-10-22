@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/core/theme/app_theme.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/theme/app_theme.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Wraps [child] in ProviderScope + MaterialApp (themes, localizations).

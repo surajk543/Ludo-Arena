@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/protocol"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/protocol"
 )
 
 // botAllowed lists the commands bot sessions may send. Bots chat and emote

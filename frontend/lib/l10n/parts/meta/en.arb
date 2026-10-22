@@ -1007,7 +1007,7 @@
       }
     }
   },
-  "metaShareFriendCodeMessage": "Let's play Ludo Royale together! Add me as a friend with my code: {code}",
+  "metaShareFriendCodeMessage": "Let's play Ludo Arena together! Add me as a friend with my code: {code}",
   "@metaShareFriendCodeMessage": {
     "description": "Share sheet text.",
     "placeholders": {

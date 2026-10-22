@@ -11,7 +11,7 @@
   "@profileFriendCodeHint": {
     "description": "Hint under the friend code."
   },
-  "profileShareFriendCode": "Add me on Ludo Royale! My friend code is {code}",
+  "profileShareFriendCode": "Add me on Ludo Arena! My friend code is {code}",
   "@profileShareFriendCode": {
     "description": "Share-sheet text with the friend code.",
     "placeholders": {

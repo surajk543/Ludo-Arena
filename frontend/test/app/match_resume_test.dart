@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/app/app.dart';
-import 'package:ludo_royale/app/match_resume.dart';
-import 'package:ludo_royale/app/routes.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/realtime_providers.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/features/home/presentation/home_screen.dart';
-import 'package:ludo_royale/features/ludo/presentation/screens/ludo_game_screen.dart';
+import 'package:ludo_arena/app/app.dart';
+import 'package:ludo_arena/app/match_resume.dart';
+import 'package:ludo_arena/app/routes.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/realtime_providers.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/features/home/presentation/home_screen.dart';
+import 'package:ludo_arena/features/ludo/presentation/screens/ludo_game_screen.dart';
 
 import '../core/protocol/fixtures.dart';
 import '../core/realtime/fakes.dart';
@@ -41,7 +41,7 @@ Future<FakeConnector> _boot(WidgetTester tester) async {
       container: container,
       child: const MediaQuery(
         data: MediaQueryData(disableAnimations: true),
-        child: LudoRoyaleApp(),
+        child: LudoArenaApp(),
       ),
     ),
   );

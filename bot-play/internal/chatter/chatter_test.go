@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/config"
 )
 
 // fixedRand returns scripted Float64 values (cycled) and IntN from a seeded

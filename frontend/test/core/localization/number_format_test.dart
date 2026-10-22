@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:ludo_royale/core/localization/number_format.dart';
+import 'package:ludo_arena/core/localization/number_format.dart';
 
 void main() {
   setUpAll(() async => initializeDateFormatting());

@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/wallet"
 )
 
 // tempPicture inserts a catalogue row for one test (removed afterwards) and

@@ -39,10 +39,11 @@ func (e *NameError) Error() string { return "invalid display name: " + e.Reason 
 const maxMarks = 4
 
 // reservedWords may not appear anywhere in a chosen name (compared as
-// skeletons, see skeleton). "ludo royale" is covered by "ludoroyale" because
-// separators are removed. Names may also not start with "bot": bots are
+// skeletons, see skeleton). "Ludo Arena" (the product name) is covered by
+// "ludoarena" because separators are removed; "ludoroyale" (the former
+// name) stays reserved. Names may also not start with "bot": bots are
 // shown as "Bot …" and the app strips that prefix.
-var reservedWords = []string{"admin", "moderator", "support", "official", "system", "ludoroyale"}
+var reservedWords = []string{"admin", "moderator", "support", "official", "system", "ludoarena", "ludoroyale"}
 
 var botPrefix = skeleton("bot")
 

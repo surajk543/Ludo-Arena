@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"ludoroyale/opsbot/internal/charts"
-	"ludoroyale/opsbot/internal/promapi"
-	"ludoroyale/opsbot/internal/report"
+	"ludoarena/opsbot/internal/charts"
+	"ludoarena/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/report"
 )
 
 // StatusFileName is the document name of an hourly status.
 func StatusFileName(at time.Time, loc *time.Location) string {
-	return "ludo-royale-status-" + at.In(loc).Format("2006-01-02-1504-MST") + ".pdf"
+	return "ludo-arena-status-" + at.In(loc).Format("2006-01-02-1504-MST") + ".pdf"
 }
 
 // lines converts Prometheus series to chart lines named by a label.
@@ -57,7 +57,7 @@ func ident(s string) string { return s }
 func StatusPDF(s report.Status, m report.Meta, opt Options) ([]byte, error) {
 	loc := m.Loc
 	stamp := report.Stamp(s.At, loc)
-	d := newDoc("Ludo Royale — Hourly status", m.Env+" · "+stamp, "Hourly status · "+m.Env+" · "+stamp, colAccent, s.At, opt)
+	d := newDoc("Ludo Arena — Hourly status", m.Env+" · "+stamp, "Hourly status · "+m.Env+" · "+stamp, colAccent, s.At, opt)
 
 	roomsSub := ""
 	if len(s.RoomsByGame) > 0 {

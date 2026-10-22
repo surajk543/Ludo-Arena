@@ -16,13 +16,13 @@ import (
 	"sync"
 	"time"
 
-	"ludoroyale/opsbot/internal/alertmanager"
-	"ludoroyale/opsbot/internal/config"
-	"ludoroyale/opsbot/internal/opsmetrics"
-	"ludoroyale/opsbot/internal/pdfreport"
-	"ludoroyale/opsbot/internal/report"
-	"ludoroyale/opsbot/internal/schedule"
-	"ludoroyale/opsbot/internal/telegram"
+	"ludoarena/opsbot/internal/alertmanager"
+	"ludoarena/opsbot/internal/config"
+	"ludoarena/opsbot/internal/opsmetrics"
+	"ludoarena/opsbot/internal/pdfreport"
+	"ludoarena/opsbot/internal/report"
+	"ludoarena/opsbot/internal/schedule"
+	"ludoarena/opsbot/internal/telegram"
 )
 
 // Sender delivers messages and documents to one chat.
@@ -263,7 +263,7 @@ func (a *App) Jobs() []schedule.Job {
 }
 
 // HelpText is the reply to /help.
-const HelpText = "<b>Ludo Royale ops bot</b>\n/status — current status report\n/digest — yesterday's KPI report\n/help — this message"
+const HelpText = "<b>Ludo Arena ops bot</b>\n/status — current status report\n/digest — yesterday's KPI report\n/help — this message"
 
 // HandleUpdate answers one Telegram update from an allowed chat.
 func (a *App) HandleUpdate(ctx context.Context, u telegram.Update) {

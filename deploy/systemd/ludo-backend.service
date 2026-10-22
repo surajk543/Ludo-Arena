@@ -1,0 +1,33 @@
+[Unit]
+Description=Ludo Arena backend
+After=network-online.target postgresql@16-main.service redis-server.service
+Wants=network-online.target postgresql@16-main.service redis-server.service
+
+[Service]
+Type=simple
+User=ludo
+Group=ludo
+WorkingDirectory=/opt/ludo-arena/current/backend
+EnvironmentFile=/etc/ludo-arena/backend.env
+ExecStart=/opt/ludo-arena/current/backend/ludo-server
+# SIGHUP reloads the app policy and the legal notices page.
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=2
+# Graceful shutdown closes sockets with 1001 and drains HTTP for 20 s.
+TimeoutStopSec=30
+LimitNOFILE=1048576
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadOnlyPaths=/etc/ludo-arena
+
+[Install]
+WantedBy=multi-user.target

@@ -12,12 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/assets/r2test"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/assets/r2test"
 )
 
 const (
-	testBucket  = "ludo-royale"
+	testBucket  = "ludo-arena"
 	testKeyID   = "AKIDTEST0123"
 	testSecret  = "test-secret-not-real"
 	testAccount = "0123456789abcdef0123456789abcdef"

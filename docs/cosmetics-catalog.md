@@ -126,7 +126,7 @@ event or mission items). Nothing is bought or granted: no wallet, inventory
 or XP changes.
 
 **Storage and privacy** — the art lives in the Cloudflare R2 bucket
-`ludo-royale`, which is **private** (no public bucket URL, no custom domain;
+`ludo-arena`, which is **private** (no public bucket URL, no custom domain;
 an unsigned request is refused). Keys: `profile_pictures/lottie_animation/<file>.json`
 and `profile_pictures/image/<file>.png`; every object carries
 `Content-Type` (`application/json` / `image/png`) and
@@ -183,7 +183,7 @@ may own one or two Store emotes (about 1.8 of 89 on average), like players
 who bought some; bot-play sends those that fit the moment (no wallet, no
 inventory).
 
-**Storage** — the objects live in the private bucket `ludo-royale` at
+**Storage** — the objects live in the private bucket `ludo-arena` at
 `emotes/<file>.json` with `Content-Type: application/json` and
 `Cache-Control: private, max-age=31536000, immutable`, copied from the
 `source_key` objects named in the manifest. `POST /assets/sign` signs emote

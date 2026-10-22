@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ludo_royale/app/app.dart';
-import 'package:ludo_royale/app/gate/app_gate_controller.dart';
-import 'package:ludo_royale/app/offline/offline_block_controller.dart';
-import 'package:ludo_royale/app/offline/offline_blocking_host.dart';
-import 'package:ludo_royale/core/audio_haptics/reduced_motion.dart';
-import 'package:ludo_royale/core/lifecycle/app_lifecycle.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/realtime_providers.dart';
-import 'package:ludo_royale/core/state/in_match_provider.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/core/theme/app_theme.dart';
-import 'package:ludo_royale/features/ludo/presentation/screens/ludo_game_screen.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/app/app.dart';
+import 'package:ludo_arena/app/gate/app_gate_controller.dart';
+import 'package:ludo_arena/app/offline/offline_block_controller.dart';
+import 'package:ludo_arena/app/offline/offline_blocking_host.dart';
+import 'package:ludo_arena/core/audio_haptics/reduced_motion.dart';
+import 'package:ludo_arena/core/lifecycle/app_lifecycle.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/realtime_providers.dart';
+import 'package:ludo_arena/core/state/in_match_provider.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/theme/app_theme.dart';
+import 'package:ludo_arena/features/ludo/presentation/screens/ludo_game_screen.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 
 import '../core/protocol/fixtures.dart';
 import '../core/realtime/fakes.dart';
@@ -676,7 +676,7 @@ void main() {
           container: container,
           child: const MediaQuery(
             data: MediaQueryData(disableAnimations: true),
-            child: LudoRoyaleApp(),
+            child: LudoArenaApp(),
           ),
         ),
       );

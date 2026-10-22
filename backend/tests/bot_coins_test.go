@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 // Bots play for coins like people (backend/docs/game-rules.md "Coins with

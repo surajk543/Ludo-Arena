@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Build context: monitoring/ops-bot (its own Go module).
-#   docker build -t ludo-royale-ops-bot monitoring/ops-bot
+#   docker build -t ludo-arena-ops-bot monitoring/ops-bot
 FROM golang:1.27.3-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./

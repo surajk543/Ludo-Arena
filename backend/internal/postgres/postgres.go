@@ -14,7 +14,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"ludoroyale/migrations"
+	"ludoarena/migrations"
 )
 
 // migrationLockID is an arbitrary constant for pg_advisory_lock.
@@ -30,7 +30,7 @@ func Open(ctx context.Context, url string, maxConns int32) (*pgxpool.Pool, error
 		cfg.MaxConns = maxConns
 	}
 	cfg.MaxConnIdleTime = 5 * time.Minute
-	cfg.ConnConfig.RuntimeParams["application_name"] = "ludo-royale-backend"
+	cfg.ConnConfig.RuntimeParams["application_name"] = "ludo-arena-backend"
 	// Bound every statement so a stuck query cannot hold a connection forever.
 	cfg.ConnConfig.RuntimeParams["statement_timeout"] = "5000"
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)

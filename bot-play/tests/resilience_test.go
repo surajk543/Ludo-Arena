@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/tests/fakebackend"
+	"ludoarena/botplay/tests/fakebackend"
 )
 
 func isDelta(env fakebackend.Envelope) bool {

@@ -1,4 +1,4 @@
-// Command ops-bot sends Ludo Royale operations reports and alerts to
+// Command ops-bot sends Ludo Arena operations reports and alerts to
 // Telegram: an hourly status (PDF or text), a daily KPI report, and
 // Alertmanager notifications enriched with CPU, RAM and player counts.
 //
@@ -23,13 +23,13 @@ import (
 	"time"
 	_ "time/tzdata" // TZ_NAME works in minimal container images
 
-	"ludoroyale/opsbot/internal/app"
-	"ludoroyale/opsbot/internal/config"
-	"ludoroyale/opsbot/internal/google"
-	"ludoroyale/opsbot/internal/promapi"
-	"ludoroyale/opsbot/internal/report"
-	"ludoroyale/opsbot/internal/schedule"
-	"ludoroyale/opsbot/internal/telegram"
+	"ludoarena/opsbot/internal/app"
+	"ludoarena/opsbot/internal/config"
+	"ludoarena/opsbot/internal/google"
+	"ludoarena/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/report"
+	"ludoarena/opsbot/internal/schedule"
+	"ludoarena/opsbot/internal/telegram"
 )
 
 func main() {

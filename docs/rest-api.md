@@ -58,7 +58,7 @@ Public (rate limited per IP). Query: `platform`, `version`, `build`,
   "minimumSupportedBuild": 120,
   "latestVersion": "1.4.0",
   "latestBuild": 140,
-  "storeUrl": "https://play.google.com/store/apps/details?id=com.ludoroyale.app",
+  "storeUrl": "https://play.google.com/store/apps/details?id=com.ludoarena.app",
   "storeAvailable": true,
   "title": "Update available",
   "message": "New boards and smoother dice.",
@@ -145,7 +145,7 @@ part of `loadout`.
 | `POST /auth/google` | `{"idToken"}` | Google ID token; `aud` must be a configured Google client id. |
 | `POST /auth/facebook` | `{"accessToken"}` or `{"idToken","nonce"}` | Classic token (validated with Graph `debug_token`) or Limited Login OIDC token. |
 | `POST /auth/apple` | `{"identityToken","rawNonce","givenName"?,"familyName"?}` | Nonce: `sha256(rawNonce)` must equal the token's `nonce`. |
-| `POST /auth/apple/callback` | form post from Apple | Android web flow only: redirects to `intent://callback?…#Intent;package=com.ludoroyale.app;scheme=signinwithapple;end`. Not version-gated. |
+| `POST /auth/apple/callback` | form post from Apple | Android web flow only: redirects to `intent://callback?…#Intent;package=com.ludoarena.app;scheme=signinwithapple;end`. Not version-gated. |
 | `POST /auth/refresh` | `{"refreshToken"}` | Rotates (same session). Re-use of an old refresh token revokes the whole session (`refresh_reused`). 401 `session_replaced` if the session was ended by a sign-in on another device; `invalid_credential` for other dead sessions. |
 | `POST /auth/logout` | `{"refreshToken"}` | Not version-gated; rate limited per IP (shares the refresh budget). `Authorization: Bearer` is **optional**: a valid access token identifies the session; otherwise (absent, expired, invalid) the body's refresh token does, and only the session's *current* refresh token revokes (a rotated one is ignored, not treated as reuse). Always 204 for a well-formed request, whether or not a session was found; 400 malformed body; 401 when neither credential is present. Never produces `session_replaced`. |
 
@@ -251,7 +251,7 @@ Rules, checked in this order → **400 `invalid_name`** with
 | `too_short` | fewer than 3 characters (Unicode code points, after normalization) |
 | `too_long` | more than 16 characters |
 | `invalid_characters` | only Unicode letters, combining marks (Mn/Mc, e.g. Hindi matras, Arabic harakat; directly after a letter, at most 4 in a row), decimal digits, space, `_`, `.`, `-`; at least one letter. Rejected: emoji and other symbols, punctuation, control and format characters (zero-width joiner/space, bidi controls), enclosing marks (keycaps), variation selectors, invisible fillers (e.g. U+3164). |
-| `reserved` | after lower-casing, removing spaces/`_`/`.`/`-`, folding look-alikes (`0→o`, `1→i`, `4→a`, `ａ→a`, Cyrillic `а→a`, …) and accents: starts with `bot`, or contains `admin`, `moderator`, `support`, `official`, `system`, `ludoroyale` (also "Ludo Royale") |
+| `reserved` | after lower-casing, removing spaces/`_`/`.`/`-`, folding look-alikes (`0→o`, `1→i`, `4→a`, `ａ→a`, Cyrillic `а→a`, …) and accents: starts with `bot`, or contains `admin`, `moderator`, `support`, `official`, `system`, `ludoarena` (also "Ludo Arena") or the former name `ludoroyale` |
 | `inappropriate` | contains an entry of the server blocklist (same folding; a starting list in English and Hindi/Urdu, Indonesian and Arabic transliterations that operators extend: `backend/internal/profile/blocklist.txt`) |
 
 Example: `{"error":{"code":"invalid_name","message":"This name is reserved. Please choose another one.","details":{"reason":"reserved"}}}`.
@@ -658,7 +658,7 @@ no balance, and bot-play never reads or changes one.
 ## Legal notices (outside `/api/v1`)
 
 `GET /legal/open-source` (also `HEAD`) serves the static open-source notices
-page — the same file published at `https://sungamestudio.com/ludo-royale/legal/`,
+page — the same file published at `https://sungamestudio.com/ludo-arena/legal/`,
 which the app's Settings → About → "Legal notices" entry opens by default.
 This route is an optional fallback (apps built with
 `--dart-define=LEGAL_NOTICES_URL=<api>/legal/open-source`). No authentication, no `X-App-*` headers and no version gate

@@ -16,16 +16,16 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/apppolicy"
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/notify"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/ratelimit"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/apppolicy"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/config"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/notify"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/ratelimit"
+	"ludoarena/internal/wallet"
 )
 
 // Dice produces server-side die values (1..6).

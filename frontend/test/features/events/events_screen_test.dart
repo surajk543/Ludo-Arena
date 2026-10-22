@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:ludo_royale/features/events/presentation/events_screen.dart';
-import 'package:ludo_royale/features/events/presentation/widgets/event_card.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations_en.dart';
+import 'package:ludo_arena/features/events/presentation/events_screen.dart';
+import 'package:ludo_arena/features/events/presentation/widgets/event_card.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations_en.dart';
 
 import '../progression/meta_test_support.dart';
 

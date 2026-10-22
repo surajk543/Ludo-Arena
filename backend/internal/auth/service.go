@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/identity"
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/identity"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/wallet"
 )
 
 // Tokens is an issued application session.

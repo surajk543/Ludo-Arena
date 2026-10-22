@@ -13,14 +13,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/protocol/envelope.dart';
-import 'package:ludo_royale/core/protocol/events.dart';
-import 'package:ludo_royale/core/protocol/message_types.dart';
-import 'package:ludo_royale/core/protocol/room_state_reducer.dart';
-import 'package:ludo_royale/core/realtime/realtime_socket.dart';
-import 'package:ludo_royale/features/authentication/data/auth_api.dart'
+import 'package:ludo_arena/core/protocol/envelope.dart';
+import 'package:ludo_arena/core/protocol/events.dart';
+import 'package:ludo_arena/core/protocol/message_types.dart';
+import 'package:ludo_arena/core/protocol/room_state_reducer.dart';
+import 'package:ludo_arena/core/realtime/realtime_socket.dart';
+import 'package:ludo_arena/features/authentication/data/auth_api.dart'
     show deleteAccountConfirmation;
-import 'package:ludo_royale/features/profile/domain/display_name.dart';
+import 'package:ludo_arena/features/profile/domain/display_name.dart';
 
 final String? _backend = Platform.environment['BACKEND_URL'];
 

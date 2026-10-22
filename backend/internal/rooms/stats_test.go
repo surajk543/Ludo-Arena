@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"ludoroyale/internal/metrics"
+	"ludoarena/internal/metrics"
 )
 
 func players(spec string) []Player {

@@ -194,7 +194,7 @@ func TestAppleAndroidCallbackRedirect(t *testing.T) {
 	defer res.Body.Close()
 	loc := res.Header.Get("Location")
 	if res.StatusCode != http.StatusSeeOther || !strings.HasPrefix(loc, "intent://callback?") ||
-		!strings.Contains(loc, "package=com.ludoroyale.app;scheme=signinwithapple;end") || !strings.Contains(loc, "id_token=x.y.z") {
+		!strings.Contains(loc, "package=com.ludoarena.app;scheme=signinwithapple;end") || !strings.Contains(loc, "id_token=x.y.z") {
 		t.Fatalf("callback redirect: %d %s", res.StatusCode, loc)
 	}
 }

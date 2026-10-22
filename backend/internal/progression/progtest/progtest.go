@@ -4,7 +4,7 @@
 // recording Notifier. It is imported by tests only.
 //
 // Environment: TEST_DATABASE_URL (default
-// postgres://ludo@127.0.0.1:5440/ludo_royale_test?sslmode=disable),
+// postgres://ludo@127.0.0.1:5440/ludo_arena_test?sslmode=disable),
 // TEST_REDIS_ADDR (default 127.0.0.1:6390), TEST_REDIS_DB (default 14).
 // Tests are skipped when the services are unreachable.
 package progtest
@@ -29,13 +29,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/apppolicy"
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/identity"
-	"ludoroyale/internal/postgres"
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/apppolicy"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/identity"
+	"ludoarena/internal/postgres"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/ratelimit"
 )
 
 // Welcome grant used for test accounts.
@@ -88,7 +88,7 @@ func Setup(t testing.TB) *Env {
 		if os.Getenv("TEST_VERBOSE_LOG") != "" {
 			log = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 		}
-		pool, err := postgres.Open(ctx, env("TEST_DATABASE_URL", "postgres://ludo@127.0.0.1:5440/ludo_royale_test?sslmode=disable"), 40)
+		pool, err := postgres.Open(ctx, env("TEST_DATABASE_URL", "postgres://ludo@127.0.0.1:5440/ludo_arena_test?sslmode=disable"), 40)
 		if err != nil {
 			initErr = "postgres unavailable: " + err.Error()
 			return
@@ -111,7 +111,7 @@ func Setup(t testing.TB) *Env {
 		}
 		profiles := profile.New(rdb, []byte("test-public-id-key-0123456789abcdef"))
 		ids := identity.NewStore(pool, identity.Welcome{Coins: WelcomeCoins, Diamonds: WelcomeDiamonds})
-		signer := auth.NewSigner([]byte("test-jwt-signing-key-0123456789abcdef"), "ludo-royale-test")
+		signer := auth.NewSigner([]byte("test-jwt-signing-key-0123456789abcdef"), "ludo-arena-test")
 		sessions := auth.NewSessions(rdb, time.Hour)
 		a := auth.NewService(signer, sessions, ids, profiles, nil, 15*time.Minute, time.Hour)
 		shared = &Env{Pool: pool, RDB: rdb, Profiles: profiles, IDs: ids, Auth: a, Signer: signer, Sessions: sessions,

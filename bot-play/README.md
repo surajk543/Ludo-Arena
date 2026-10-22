@@ -1,6 +1,6 @@
 # bot-play
 
-Automated players for Ludo Royale (Ludo + Snakes & Ladders). bot-play is a
+Automated players for Ludo Arena (Ludo + Snakes & Ladders). bot-play is a
 separate Go service and a **pure protocol client** of the Go backend: the
 backend owns dice, legal moves, state, turns, winners and wallets. Bots only
 roll, choose among server-listed legal moves, and leave.

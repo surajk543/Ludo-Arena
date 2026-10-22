@@ -154,7 +154,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String authConflictMessage(String provider) {
-    return 'حساب $provider هذا لديه بالفعل حساب لودو رويال خاص به. لن يتم دمج أو نقل أي شيء بين الحسابين.';
+    return 'حساب $provider هذا لديه بالفعل حساب لودو أرينا خاص به. لن يتم دمج أو نقل أي شيء بين الحسابين.';
   }
 
   @override
@@ -527,7 +527,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connectionBackOnline => 'أنت متصل مجددًا';
 
   @override
-  String get appTitle => 'لودو رويال';
+  String get appTitle => 'لودو أرينا';
 
   @override
   String get languageNameNative => 'العربية';
@@ -906,7 +906,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gateForceUpdateMessage =>
-      'لم يعد هذا الإصدار من لودو رويال مدعومًا. حدّث التطبيق لمواصلة اللعب عبر الإنترنت — عملاتك وتقدّمك في أمان.';
+      'لم يعد هذا الإصدار من لودو أرينا مدعومًا. حدّث التطبيق لمواصلة اللعب عبر الإنترنت — عملاتك وتقدّمك في أمان.';
 
   @override
   String get gateInstalledVersion => 'الإصدار المثبّت';
@@ -937,7 +937,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gateMaintenanceMessage =>
-      'لودو رويال قيد الصيانة حاليًا. عملاتك وتقدّمك ومبارياتك الجارية في أمان — ستُستأنف المباريات فور عودتنا.';
+      'لودو أرينا قيد الصيانة حاليًا. عملاتك وتقدّمك ومبارياتك الجارية في أمان — ستُستأنف المباريات فور عودتنا.';
 
   @override
   String gateMaintenanceEstimatedEnd(String time) {
@@ -969,7 +969,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gateUnreachableMessage =>
-      'يحتاج لودو رويال إلى اتصال بالإنترنت للعب عبر الشبكة. تحقّق من شبكة Wi-Fi أو بيانات الجوال وحاول مرة أخرى.';
+      'يحتاج لودو أرينا إلى اتصال بالإنترنت للعب عبر الشبكة. تحقّق من شبكة Wi-Fi أو بيانات الجوال وحاول مرة أخرى.';
 
   @override
   String get gateUnreachableLastKnownMaintenance =>
@@ -984,7 +984,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gateNotFoundMessage =>
-      'هذا الجزء من لودو رويال غير متاح في هذا الإصدار بعد.';
+      'هذا الجزء من لودو أرينا غير متاح في هذا الإصدار بعد.';
 
   @override
   String get gateGoHome => 'العودة إلى الرئيسية';
@@ -1969,7 +1969,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String metaShareFriendCodeMessage(String code) {
-    return 'لنلعب لودو رويال معًا! أضفني صديقًا برمزي: $code';
+    return 'لنلعب لودو أرينا معًا! أضفني صديقًا برمزي: $code';
   }
 
   @override
@@ -2199,7 +2199,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboardingPreviewLabel => 'معاينة';
 
   @override
-  String get onboardingPreviewTitle => 'مرحبًا بك في لودو رويال!';
+  String get onboardingPreviewTitle => 'مرحبًا بك في لودو أرينا!';
 
   @override
   String get onboardingPreviewBody =>
@@ -2369,11 +2369,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String playInviteShareText(String game, String code) {
-    return 'انضم إليّ للعب $game في Ludo Royale! افتح التطبيق، واضغط على «انضم برمز» وأدخل: $code';
+    return 'انضم إليّ للعب $game في Ludo Arena! افتح التطبيق، واضغط على «انضم برمز» وأدخل: $code';
   }
 
   @override
-  String get playInviteShareSubject => 'دعوة إلى Ludo Royale';
+  String get playInviteShareSubject => 'دعوة إلى Ludo Arena';
 
   @override
   String playLobbyPlayers(int count, int capacity) {
@@ -2892,7 +2892,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String profileShareFriendCode(String code) {
-    return 'أضفني في لودو رويال! رمز صداقتي هو $code';
+    return 'أضفني في لودو أرينا! رمز صداقتي هو $code';
   }
 
   @override
@@ -3136,7 +3136,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر فتح الصفحة. يُرجى المحاولة لاحقًا.';
 
   @override
-  String get settingsConsentTitle => 'ساعدنا في تحسين لودو رويال';
+  String get settingsConsentTitle => 'ساعدنا في تحسين لودو أرينا';
 
   @override
   String get settingsConsentMessage =>

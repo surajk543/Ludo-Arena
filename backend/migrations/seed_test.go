@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"ludoroyale/internal/assets"
+	"ludoarena/internal/assets"
 )
 
 // seedSpec is one catalogue whose seed migration is generated from a

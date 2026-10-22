@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"sort"
 
-	"ludoroyale/internal/playerinfo"
+	"ludoarena/internal/playerinfo"
 )
 
 // Item kinds.

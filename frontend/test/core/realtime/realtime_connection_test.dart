@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/app_policy/policy_signal.dart';
-import 'package:ludo_royale/core/network/api_exception.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/realtime_connection.dart';
-import 'package:ludo_royale/core/realtime/realtime_status.dart';
-import 'package:ludo_royale/core/telemetry/telemetry_reporter.dart';
+import 'package:ludo_arena/core/app_policy/policy_signal.dart';
+import 'package:ludo_arena/core/network/api_exception.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/realtime_connection.dart';
+import 'package:ludo_arena/core/realtime/realtime_status.dart';
+import 'package:ludo_arena/core/telemetry/telemetry_reporter.dart';
 
 import 'fakes.dart';
 

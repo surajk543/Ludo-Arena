@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/features/private_rooms/application/lobby_rules.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/features/private_rooms/application/lobby_rules.dart';
 
 import '../game/support/play_test_support.dart';
 

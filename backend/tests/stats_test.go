@@ -16,7 +16,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 // scrape reads the app's Prometheus endpoint and returns every sample keyed

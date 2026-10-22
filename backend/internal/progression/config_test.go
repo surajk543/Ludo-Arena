@@ -11,8 +11,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/progression/progtest"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/progression/progtest"
 )
 
 func repoCatalog(t *testing.T) *Catalog {

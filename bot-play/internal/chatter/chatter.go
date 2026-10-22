@@ -13,7 +13,7 @@ import (
 	"slices"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/config"
 )
 
 // Trigger is a game moment a bot may react to.

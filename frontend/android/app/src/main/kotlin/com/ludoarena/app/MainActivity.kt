@@ -1,4 +1,4 @@
-package com.ludoroyale.app
+package com.ludoarena.app
 
 import android.annotation.SuppressLint
 import android.os.Build
@@ -37,6 +37,6 @@ class MainActivity : FlutterActivity() {
     }
 
     private companion object {
-        const val DEVICE_ID_CHANNEL = "ludo_royale/device_id"
+        const val DEVICE_ID_CHANNEL = "ludo_arena/device_id"
     }
 }

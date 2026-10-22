@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"ludoroyale/internal/httpapi"
+	"ludoarena/internal/httpapi"
 )
 
 const pageV1 = "<!doctype html><title>Open-source notices</title><pre>MIT License</pre>"

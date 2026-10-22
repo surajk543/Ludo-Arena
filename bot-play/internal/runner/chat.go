@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"ludoroyale/botplay/internal/chatter"
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/connection"
+	"ludoarena/botplay/internal/chatter"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/connection"
 )
 
 // chatStale: a reaction whose send time passed this long ago (e.g. across a

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/core/theme/app_theme.dart';
-import 'package:ludo_royale/core/theme/theme_controller.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/theme/app_theme.dart';
+import 'package:ludo_arena/core/theme/theme_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<ProviderContainer> _container(Map<String, Object> prefs) async {

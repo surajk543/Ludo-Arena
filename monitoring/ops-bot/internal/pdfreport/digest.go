@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"ludoroyale/opsbot/internal/charts"
-	"ludoroyale/opsbot/internal/google"
-	"ludoroyale/opsbot/internal/report"
+	"ludoarena/opsbot/internal/charts"
+	"ludoarena/opsbot/internal/google"
+	"ludoarena/opsbot/internal/report"
 )
 
 // DigestFileName is the document name of a daily report.
 func DigestFileName(day time.Time) string {
-	return "ludo-royale-daily-" + day.Format("2006-01-02") + ".pdf"
+	return "ludo-arena-daily-" + day.Format("2006-01-02") + ".pdf"
 }
 
 func kvRows(items []report.KV, name func(string) string) [][]string {
@@ -36,7 +36,7 @@ func kvSub(items []report.KV, name func(string) string) string {
 func DigestPDF(dg report.Digest, m report.Meta, generated time.Time, opt Options) ([]byte, error) {
 	loc := m.Loc
 	dayStr := report.Date(dg.Day) + " (" + dg.Day.Format("MST") + ")"
-	d := newDoc("Ludo Royale — Daily KPI report", m.Env+" · "+dayStr+" · generated "+report.Stamp(generated, loc),
+	d := newDoc("Ludo Arena — Daily KPI report", m.Env+" · "+dayStr+" · generated "+report.Stamp(generated, loc),
 		"Daily KPI report · "+m.Env+" · "+dayStr, colAccent, generated, opt)
 
 	blue, orange, red := colAccent, colOrange, colRed

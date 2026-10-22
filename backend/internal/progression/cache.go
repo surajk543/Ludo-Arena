@@ -34,8 +34,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/playerinfo"
 )
 
 // Cache TTLs. Correctness rests on invalidation (seat) and on the set being

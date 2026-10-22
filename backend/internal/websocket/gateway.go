@@ -24,15 +24,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/apppolicy"
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/notify"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/ratelimit"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/apppolicy"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/config"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/notify"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/ratelimit"
+	"ludoarena/internal/rooms"
 )
 
 // Custom close codes (docs/websocket-protocol.md §1).

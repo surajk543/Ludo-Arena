@@ -6,11 +6,11 @@ import (
 	"slices"
 	"time"
 
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/ratelimit"
-	"ludoroyale/internal/social"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/ratelimit"
+	"ludoarena/internal/social"
 )
 
 var (

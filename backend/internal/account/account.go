@@ -44,13 +44,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/profile"
-	"ludoroyale/internal/progression"
-	"ludoroyale/internal/ratelimit"
-	"ludoroyale/internal/social"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/profile"
+	"ludoarena/internal/progression"
+	"ludoarena/internal/ratelimit"
+	"ludoarena/internal/social"
 )
 
 // ConfirmWord is the literal the request body must carry

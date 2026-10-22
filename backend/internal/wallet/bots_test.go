@@ -13,9 +13,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/postgres"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/postgres"
+	"ludoarena/internal/wallet"
 )
 
 // rules are the owner's defaults: start 1 crore, below 1 lakh → 1 crore,

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 func TestVersionGateAndMaintenanceEnforcement(t *testing.T) {

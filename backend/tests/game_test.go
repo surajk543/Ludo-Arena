@@ -9,7 +9,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/rooms"
 )
 
 // startPublic matchmakes n fresh guests into one public room and waits for

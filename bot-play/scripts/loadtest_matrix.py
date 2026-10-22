@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reproducible WebSocket load/compression matrix for Ludo Royale.
+"""Reproducible WebSocket load/compression matrix for Ludo Arena.
 
 For each scenario this script:
   1. starts a fresh backend (compiled binary) with the scenario's WebSocket
@@ -165,7 +165,7 @@ def run_scenario(name, overrides, args, base_env):
                      "shutdown": {"graceful_timeout_seconds": 5, "policy": "leave_now"}},
             "limits": {"max_actions_per_second_per_bot": 5},
             "loadtest": {"enabled": True, "allowed_hosts": ["localhost", "127.0.0.1"],
-                         "forbidden_hosts": ["api.ludoroyale.example"], "target_connections": args.bots,
+                         "forbidden_hosts": ["api.ludoarena.example"], "target_connections": args.bots,
                          "ramp_per_second": args.ramp, "duration_seconds": ramp_s + args.warmup + args.steady + 20,
                          "game_mix": {"ludo": 50, "ludo_quick": 30, "snakes_ladders": 20},
                          "capacity_mix": {"2": 40, "3": 20, "4": 40},

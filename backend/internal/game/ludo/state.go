@@ -40,7 +40,7 @@ import (
 	"strconv"
 	"strings"
 
-	"ludoroyale/internal/game"
+	"ludoarena/internal/game"
 )
 
 // Errors returned by the engine. A failed call never changes the state.

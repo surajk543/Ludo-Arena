@@ -2,10 +2,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
-import 'package:ludo_royale/shared/game_visuals/effects/level_up_burst.dart';
-import 'package:ludo_royale/shared/game_visuals/effects/victory_overlay.dart';
-import 'package:ludo_royale/shared/game_visuals/game_palette.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/shared/game_visuals/effects/level_up_burst.dart';
+import 'package:ludo_arena/shared/game_visuals/effects/victory_overlay.dart';
+import 'package:ludo_arena/shared/game_visuals/game_palette.dart';
 
 Widget wrap(
   Widget child, {

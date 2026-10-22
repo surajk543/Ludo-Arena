@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/matchmaking"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/matchmaking"
 )
 
 // assignmentLoop long-polls GET /bot/assignments while practice or

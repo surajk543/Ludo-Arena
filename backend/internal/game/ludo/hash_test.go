@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"ludoroyale/internal/game"
+	"ludoarena/internal/game"
 )
 
 func TestHashVectors(t *testing.T) {

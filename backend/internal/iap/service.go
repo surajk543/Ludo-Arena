@@ -34,9 +34,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/wallet"
 )
 
 // Stores as stored in progression.purchases.store.
@@ -129,7 +129,7 @@ func (s *Service) Available(platform string) bool {
 // and the store returns it in the verified purchase.
 func AccountToken(key []byte, userID uuid.UUID) string {
 	m := hmac.New(sha256.New, key)
-	m.Write([]byte("ludoroyale/iap-account-token/v1:"))
+	m.Write([]byte("ludoarena/iap-account-token/v1:"))
 	m.Write(userID[:])
 	var u uuid.UUID
 	copy(u[:], m.Sum(nil)[:16])

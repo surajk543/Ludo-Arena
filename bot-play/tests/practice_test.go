@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/tests/fakebackend"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/tests/fakebackend"
 )
 
 // A practice Ludo game with one human (played by the fake) and one bot runs
@@ -159,7 +159,7 @@ func TestAuthHeadersAndSecretsNeverLogged(t *testing.T) {
 	}
 	for _, hdr := range hs {
 		if !strings.HasPrefix(hdr.Get("Authorization"), "Bearer bt_") || hdr.Get("X-App-Platform") != "bot" ||
-			!strings.Contains(hdr.Get("Sec-WebSocket-Protocol"), "ludo-royale.v1") || hdr.Get("X-App-Version") == "" ||
+			!strings.Contains(hdr.Get("Sec-WebSocket-Protocol"), "ludo-arena.v1") || hdr.Get("X-App-Version") == "" ||
 			hdr.Get("X-App-Build") == "" || !strings.Contains(hdr.Get("Sec-WebSocket-Extensions"), "permessage-deflate") {
 			t.Fatalf("bad handshake headers: %v", hdr)
 		}

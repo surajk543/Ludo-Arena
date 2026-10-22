@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
 )
 
 // FillParams are the inputs to one planning round.

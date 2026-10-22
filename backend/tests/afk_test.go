@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/config"
+	"ludoarena/internal/rooms"
 )
 
 // driveTurns plays for the active clients (one roll / move per turn and

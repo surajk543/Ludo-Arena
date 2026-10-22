@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
 
 void main() {
   test('every Sfx is a 16-bit mono PCM WAV that starts at once and matches '

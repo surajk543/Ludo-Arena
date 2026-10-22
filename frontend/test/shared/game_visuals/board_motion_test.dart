@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/shared/game_visuals/motion/board_motion.dart';
+import 'package:ludo_arena/shared/game_visuals/motion/board_motion.dart';
 
 class _Job extends MotionJob {
   _Job(this.name, this.log, {this.length = 0.2});

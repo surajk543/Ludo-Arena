@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:ludo_royale/core/analytics/analytics_service.dart';
-import 'package:ludo_royale/core/analytics/noop_analytics_service.dart';
-import 'package:ludo_royale/core/device/device_identity.dart';
-import 'package:ludo_royale/core/network/api_models.dart';
-import 'package:ludo_royale/features/app_update/application/store_launcher.dart';
-import 'package:ludo_royale/features/authentication/data/provider_credential.dart';
-import 'package:ludo_royale/features/authentication/identity/identity_provider_client.dart';
+import 'package:ludo_arena/core/analytics/analytics_service.dart';
+import 'package:ludo_arena/core/analytics/noop_analytics_service.dart';
+import 'package:ludo_arena/core/device/device_identity.dart';
+import 'package:ludo_arena/core/network/api_models.dart';
+import 'package:ludo_arena/features/app_update/application/store_launcher.dart';
+import 'package:ludo_arena/features/authentication/data/provider_credential.dart';
+import 'package:ludo_arena/features/authentication/identity/identity_provider_client.dart';
 
 /// Identity provider that returns a scripted credential (or cancels/fails).
 class FakeIdentityClient implements IdentityProviderClient {

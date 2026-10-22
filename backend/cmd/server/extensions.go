@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"ludoroyale/internal/server"
+	"ludoarena/internal/server"
 )
 
 // extensions wires optional subsystems (progression, social, analytics).

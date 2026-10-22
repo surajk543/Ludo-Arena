@@ -16,8 +16,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"ludoroyale/internal/postgres"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/postgres"
+	"ludoarena/internal/rooms"
 )
 
 // openPG opens the app's pool; with a tracer it mirrors postgres.Open's

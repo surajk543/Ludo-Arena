@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:ludo_royale/features/store/iap/iap_store.dart';
+import 'package:ludo_arena/features/store/iap/iap_store.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';

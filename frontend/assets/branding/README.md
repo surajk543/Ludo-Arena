@@ -1,4 +1,4 @@
-# Ludo Royale — brand assets
+# Ludo Arena — brand assets
 
 Master artwork for the app icon and launch screens. These files are **not**
 bundled into the app (they aren't listed in `pubspec.yaml`); they are the

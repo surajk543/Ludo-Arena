@@ -331,7 +331,7 @@ func TestSendDocument(t *testing.T) {
 		wantCtype string
 	}{
 		{
-			name: "pdf with caption", filename: "ludo-royale-status-2026-10-21-1700-IST.pdf", caption: "<b>Playing:</b> 1,234",
+			name: "pdf with caption", filename: "ludo-arena-status-2026-10-21-1700-IST.pdf", caption: "<b>Playing:</b> 1,234",
 			answers: [][2]any{{200, okBody}}, wantReqs: 1, wantCap: "<b>Playing:</b> 1,234", wantMode: "HTML", wantCtype: "application/pdf",
 		},
 		{

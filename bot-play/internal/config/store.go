@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"ludoroyale/botplay/internal/profiles"
+	"ludoarena/botplay/internal/profiles"
 )
 
 // Snapshot is one immutable, validated configuration generation. Readers

@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/connection"
-	"ludoroyale/botplay/internal/profiles"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/connection"
+	"ludoarena/botplay/internal/profiles"
 )
 
 func TestThinkDelayClampAndDeadlineCap(t *testing.T) {

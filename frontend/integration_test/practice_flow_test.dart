@@ -11,11 +11,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:ludo_royale/app/routes.dart';
-import 'package:ludo_royale/features/home/presentation/home_screen.dart';
-import 'package:ludo_royale/features/ludo/presentation/screens/ludo_game_screen.dart';
-import 'package:ludo_royale/main.dart' as app;
-import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
+import 'package:ludo_arena/app/routes.dart';
+import 'package:ludo_arena/features/home/presentation/home_screen.dart';
+import 'package:ludo_arena/features/ludo/presentation/screens/ludo_game_screen.dart';
+import 'package:ludo_arena/main.dart' as app;
+import 'package:ludo_arena/shared/game_visuals/game_visuals.dart';
 
 Future<bool> pumpUntil(
   WidgetTester tester,

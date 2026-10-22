@@ -7,7 +7,7 @@ package identity
 // is stored as provider Device with subject
 //
 //	hex(HMAC-SHA256(deviceKey, platform + ":" + lower(deviceId)))
-//	deviceKey = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-royale/device-id/v1")
+//	deviceKey = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-arena/device-id/v1")
 //
 // so the raw device id is never stored (or logged), and the same id on
 // another platform is a different binding. The table keys give one account
@@ -37,7 +37,10 @@ const (
 	DeviceIDMinLen = 16
 	DeviceIDMaxLen = 64
 
-	deviceKeyLabel = "ludo-royale/device-id/v1"
+	// deviceKeyLabel domain-separates deviceKey. Changing it re-derives the key
+	// like rotating PUBLIC_ID_KEY: every stored binding (a guest's restore
+	// credential) would stop resolving.
+	deviceKeyLabel = "ludo-arena/device-id/v1"
 	// bindLockClass namespaces the per-account advisory lock that serializes
 	// BindDevice and Link calls of one account (two-key form: never overlaps
 	// the single-key migration lock).

@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/wallet"
 )
 
 // ------------------------------------------------------------------ refunds

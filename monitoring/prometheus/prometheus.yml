@@ -1,4 +1,4 @@
-# Prometheus for Ludo Royale. Paths are relative to this file, so the same
+# Prometheus for Ludo Arena. Paths are relative to this file, so the same
 # config works in the compose stack (/etc/prometheus) and with a local
 # binary (prometheus --config.file=monitoring/prometheus/prometheus.yml).
 #
@@ -10,7 +10,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: ludo-royale
+    monitor: ludo-arena
 
 rule_files:
   - rules/*.yml

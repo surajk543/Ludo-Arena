@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/playerinfo"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/playerinfo"
 )
 
 // fakeInventory answers EmoteAsset for Store emotes (em_… ids).

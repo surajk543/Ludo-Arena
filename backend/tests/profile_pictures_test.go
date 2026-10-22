@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/assets/r2test"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/assets/r2test"
+	"ludoarena/internal/rooms"
 )
 
 // Profile-picture Store end to end (docs/rest-api.md → Store): production

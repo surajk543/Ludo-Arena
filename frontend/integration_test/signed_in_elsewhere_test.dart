@@ -18,15 +18,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:ludo_royale/core/config/app_config.dart';
-import 'package:ludo_royale/core/config/app_info.dart';
-import 'package:ludo_royale/core/device/device_identity.dart';
-import 'package:ludo_royale/core/storage/secure_session_store.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/authentication/presentation/login_screen.dart';
-import 'package:ludo_royale/features/home/presentation/home_screen.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
-import 'package:ludo_royale/main.dart' as app;
+import 'package:ludo_arena/core/config/app_config.dart';
+import 'package:ludo_arena/core/config/app_info.dart';
+import 'package:ludo_arena/core/device/device_identity.dart';
+import 'package:ludo_arena/core/storage/secure_session_store.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/authentication/presentation/login_screen.dart';
+import 'package:ludo_arena/features/home/presentation/home_screen.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/main.dart' as app;
 
 Future<bool> pumpUntil(
   WidgetTester tester,

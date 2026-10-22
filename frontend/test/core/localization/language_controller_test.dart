@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/localization/language_controller.dart';
-import 'package:ludo_royale/core/localization/supported_locales.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/wallet/wallet_controller.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/core/localization/language_controller.dart';
+import 'package:ludo_arena/core/localization/supported_locales.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/wallet/wallet_controller.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_backend.dart';

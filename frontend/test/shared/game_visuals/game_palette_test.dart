@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/shared/game_visuals/game_palette.dart';
+import 'package:ludo_arena/shared/game_visuals/game_palette.dart';
 
 void main() {
   group('SeatColor', () {

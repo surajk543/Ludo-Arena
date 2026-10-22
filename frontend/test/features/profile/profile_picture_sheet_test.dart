@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ludo_royale/app/routes.dart';
-import 'package:ludo_royale/core/audio_haptics/audio_service.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/profile/presentation/profile_picture_sheet.dart';
-import 'package:ludo_royale/features/profile/presentation/profile_screen.dart';
-import 'package:ludo_royale/shared/widgets/widgets.dart';
+import 'package:ludo_arena/app/routes.dart';
+import 'package:ludo_arena/core/audio_haptics/audio_service.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/profile/presentation/profile_picture_sheet.dart';
+import 'package:ludo_arena/features/profile/presentation/profile_screen.dart';
+import 'package:ludo_arena/shared/widgets/widgets.dart';
 
 import '../../helpers/fake_backend.dart';
 import '../../helpers/harness.dart';

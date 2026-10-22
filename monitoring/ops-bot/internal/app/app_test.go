@@ -15,13 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/opsbot/internal/alertmanager"
-	"ludoroyale/opsbot/internal/config"
-	"ludoroyale/opsbot/internal/promapi"
-	"ludoroyale/opsbot/internal/promapi/promtest"
-	"ludoroyale/opsbot/internal/report"
-	"ludoroyale/opsbot/internal/schedule"
-	"ludoroyale/opsbot/internal/telegram"
+	"ludoarena/opsbot/internal/alertmanager"
+	"ludoarena/opsbot/internal/config"
+	"ludoarena/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/promapi/promtest"
+	"ludoarena/opsbot/internal/report"
+	"ludoarena/opsbot/internal/schedule"
+	"ludoarena/opsbot/internal/telegram"
 )
 
 type sent struct {
@@ -107,13 +107,13 @@ func TestReportFormatSwitch(t *testing.T) {
 			}
 			status, digest := out[0], out[2]
 			if format == "pdf" {
-				if status.file != "ludo-royale-status-2026-10-21-1700-IST.pdf" || !bytes.HasPrefix(status.data, []byte("%PDF-")) {
+				if status.file != "ludo-arena-status-2026-10-21-1700-IST.pdf" || !bytes.HasPrefix(status.data, []byte("%PDF-")) {
 					t.Errorf("status document = %q (%d bytes)", status.file, len(status.data))
 				}
 				if status.caption != "staging · Playing: 1,234 players · 456 bots · CPU 41% · RAM 63%" {
 					t.Errorf("status caption = %q", status.caption)
 				}
-				if digest.file != "ludo-royale-daily-2026-10-20.pdf" || !bytes.HasPrefix(digest.data, []byte("%PDF-")) || !strings.HasPrefix(digest.caption, "staging · 20 Oct:") {
+				if digest.file != "ludo-arena-daily-2026-10-20.pdf" || !bytes.HasPrefix(digest.data, []byte("%PDF-")) || !strings.HasPrefix(digest.caption, "staging · 20 Oct:") {
 					t.Errorf("digest document = %q caption %q", digest.file, digest.caption)
 				}
 			} else {
@@ -176,7 +176,7 @@ func TestAlertFormatSwitchAndDedupe(t *testing.T) {
 			t.Fatal(err)
 		}
 		out := rec.all()
-		if len(out) != 2 || out[0].file != "ludo-royale-alert-HostCPUHigh-2026-10-21-1700-IST.pdf" ||
+		if len(out) != 2 || out[0].file != "ludo-arena-alert-HostCPUHigh-2026-10-21-1700-IST.pdf" ||
 			!bytes.HasPrefix(out[0].data, []byte("%PDF-")) || out[0].caption != "staging · FIRING: HostCPUHigh · 17:00 IST" {
 			t.Errorf("pdf alert = %+v", out)
 		}
@@ -335,7 +335,7 @@ func TestSendDocumentThroughFakeTelegram(t *testing.T) {
 		t.Fatalf("uploads = %+v", uploads)
 	}
 	for _, u := range uploads {
-		if u.file != "ludo-royale-status-2026-10-21-1700-IST.pdf" || u.parseMode != "HTML" || u.size < 1000 ||
+		if u.file != "ludo-arena-status-2026-10-21-1700-IST.pdf" || u.parseMode != "HTML" || u.size < 1000 ||
 			u.caption != "staging · Playing: 1,234 players · 456 bots · CPU 41% · RAM 63%" {
 			t.Errorf("upload = %+v", u)
 		}

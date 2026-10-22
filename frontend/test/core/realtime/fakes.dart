@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:ludo_royale/core/analytics/analytics_service.dart';
-import 'package:ludo_royale/core/app_policy/policy_signal.dart';
-import 'package:ludo_royale/core/lifecycle/app_lifecycle.dart';
-import 'package:ludo_royale/core/realtime/backoff.dart';
-import 'package:ludo_royale/core/realtime/realtime_connection.dart';
-import 'package:ludo_royale/core/realtime/realtime_socket.dart';
-import 'package:ludo_royale/core/realtime/realtime_status.dart';
-import 'package:ludo_royale/core/telemetry/telemetry_reporter.dart';
+import 'package:ludo_arena/core/analytics/analytics_service.dart';
+import 'package:ludo_arena/core/app_policy/policy_signal.dart';
+import 'package:ludo_arena/core/lifecycle/app_lifecycle.dart';
+import 'package:ludo_arena/core/realtime/backoff.dart';
+import 'package:ludo_arena/core/realtime/realtime_connection.dart';
+import 'package:ludo_arena/core/realtime/realtime_socket.dart';
+import 'package:ludo_arena/core/realtime/realtime_status.dart';
+import 'package:ludo_arena/core/telemetry/telemetry_reporter.dart';
 
 /// In-memory socket. Inbound frames are delivered synchronously.
 class FakeSocket implements RealtimeSocket {

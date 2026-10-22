@@ -365,7 +365,7 @@ abstract class AppLocalizations {
   /// 409 identity_conflict explanation: nothing is merged.
   ///
   /// In en, this message translates to:
-  /// **'That {provider} account already has its own Ludo Royale account. Nothing will be merged or moved between the two accounts.'**
+  /// **'That {provider} account already has its own Ludo Arena account. Nothing will be merged or moved between the two accounts.'**
   String authConflictMessage(String provider);
 
   /// Conflict option: sign in to the existing provider account.
@@ -964,7 +964,7 @@ abstract class AppLocalizations {
   /// Application name shown in the OS task switcher and splash.
   ///
   /// In en, this message translates to:
-  /// **'Ludo Royale'**
+  /// **'Ludo Arena'**
   String get appTitle;
 
   /// The language's own name, in its own script.
@@ -1654,7 +1654,7 @@ abstract class AppLocalizations {
   /// Force-update screen explanation (used when the server sends no localized message).
   ///
   /// In en, this message translates to:
-  /// **'This version of Ludo Royale is no longer supported. Update to keep playing online — your coins and progress are safe.'**
+  /// **'This version of Ludo Arena is no longer supported. Update to keep playing online — your coins and progress are safe.'**
   String get gateForceUpdateMessage;
 
   /// Label for the installed app version.
@@ -1708,7 +1708,7 @@ abstract class AppLocalizations {
   /// Maintenance explanation (used when the server sends no localized message).
   ///
   /// In en, this message translates to:
-  /// **'Ludo Royale is down for maintenance. Your coins, progress and running matches are safe — matches resume when we\'re back.'**
+  /// **'Ludo Arena is down for maintenance. Your coins, progress and running matches are safe — matches resume when we\'re back.'**
   String get gateMaintenanceMessage;
 
   /// Estimated maintenance end in local time.
@@ -1762,7 +1762,7 @@ abstract class AppLocalizations {
   /// Explains that online play needs a connection.
   ///
   /// In en, this message translates to:
-  /// **'Ludo Royale needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.'**
+  /// **'Ludo Arena needs an internet connection for online play. Check your Wi-Fi or mobile data and try again.'**
   String get gateUnreachableMessage;
 
   /// Context from the cached policy: maintenance.
@@ -1786,7 +1786,7 @@ abstract class AppLocalizations {
   /// Message for a route that is not available in this build.
   ///
   /// In en, this message translates to:
-  /// **'This part of Ludo Royale isn\'t available in this version yet.'**
+  /// **'This part of Ludo Arena isn\'t available in this version yet.'**
   String get gateNotFoundMessage;
 
   /// Button back to the home screen.
@@ -3309,7 +3309,7 @@ abstract class AppLocalizations {
   /// Share sheet text.
   ///
   /// In en, this message translates to:
-  /// **'Let\'s play Ludo Royale together! Add me as a friend with my code: {code}'**
+  /// **'Let\'s play Ludo Arena together! Add me as a friend with my code: {code}'**
   String metaShareFriendCodeMessage(String code);
 
   /// Button: add a friend.
@@ -3687,7 +3687,7 @@ abstract class AppLocalizations {
   /// Preview card headline.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Ludo Royale!'**
+  /// **'Welcome to Ludo Arena!'**
   String get onboardingPreviewTitle;
 
   /// Preview card body text.
@@ -3981,13 +3981,13 @@ abstract class AppLocalizations {
   /// Text shared to other apps. Must contain only the game name and the room code.
   ///
   /// In en, this message translates to:
-  /// **'Join me for {game} on Ludo Royale! Open the app, tap Join with Code and enter: {code}'**
+  /// **'Join me for {game} on Ludo Arena! Open the app, tap Join with Code and enter: {code}'**
   String playInviteShareText(String game, String code);
 
   /// Subject line of the shared invite.
   ///
   /// In en, this message translates to:
-  /// **'Ludo Royale invite'**
+  /// **'Ludo Arena invite'**
   String get playInviteShareSubject;
 
   /// Lobby section header with seated / total seats.
@@ -4797,7 +4797,7 @@ abstract class AppLocalizations {
   /// Share-sheet text with the friend code.
   ///
   /// In en, this message translates to:
-  /// **'Add me on Ludo Royale! My friend code is {code}'**
+  /// **'Add me on Ludo Arena! My friend code is {code}'**
   String profileShareFriendCode(String code);
 
   /// XP still needed for the next level. {xp} is formatted.
@@ -5235,7 +5235,7 @@ abstract class AppLocalizations {
   /// First-run analytics consent sheet title.
   ///
   /// In en, this message translates to:
-  /// **'Help us make Ludo Royale better'**
+  /// **'Help us make Ludo Arena better'**
   String get settingsConsentTitle;
 
   /// First-run analytics consent explanation (opt-in).

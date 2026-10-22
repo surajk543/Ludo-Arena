@@ -1,4 +1,4 @@
-// Command bot-play runs automated Ludo Royale players. Bots are pure
+// Command bot-play runs automated Ludo Arena players. Bots are pure
 // protocol clients of the authoritative Go backend: they never generate
 // dice, decide legality, touch wallets or claim outcomes.
 package main
@@ -15,11 +15,11 @@ import (
 	"syscall"
 	"time"
 
-	"ludoroyale/botplay/internal/client"
-	"ludoroyale/botplay/internal/config"
-	"ludoroyale/botplay/internal/health"
-	"ludoroyale/botplay/internal/metrics"
-	"ludoroyale/botplay/internal/runner"
+	"ludoarena/botplay/internal/client"
+	"ludoarena/botplay/internal/config"
+	"ludoarena/botplay/internal/health"
+	"ludoarena/botplay/internal/metrics"
+	"ludoarena/botplay/internal/runner"
 )
 
 // Exit codes.

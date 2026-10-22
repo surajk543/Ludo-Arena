@@ -184,7 +184,7 @@
   "@settingsLegalNoticesOpenFailed": {
     "description": "Toast when the legal notices page could not be opened in the browser."
   },
-  "settingsConsentTitle": "Help us make Ludo Royale better",
+  "settingsConsentTitle": "Help us make Ludo Arena better",
   "@settingsConsentTitle": {
     "description": "First-run analytics consent sheet title."
   },

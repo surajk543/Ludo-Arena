@@ -1,4 +1,4 @@
-# website/ — Ludo Royale pages for sungamestudio.com
+# website/ — Ludo Arena pages for sungamestudio.com
 
 Static pages for the studio site <https://sungamestudio.com> (Sun Game Studio),
 deployed by hand. This folder is not part of the app, the backend or bot-play,
@@ -16,22 +16,22 @@ inserts them.
 
 | File in `website/` | Path in the web root | URL |
 |---|---|---|
-| `ludo-royale.html` | `ludo-royale.html` | `/ludo-royale` |
-| `ludo-royale-logo.png` (app icon, 256 px) | `ludo-royale-logo.png` | `/ludo-royale-logo.png` |
-| `ludo-royale-shots/` (screenshots, 1280×720 banner) | `ludo-royale-shots/` | `/ludo-royale-shots/…` |
-| `ludo-royale/privacy/index.html` | `ludo-royale/privacy/index.html` | `/ludo-royale/privacy/` |
-| `ludo-royale/delete-account/index.html` | `ludo-royale/delete-account/index.html` | `/ludo-royale/delete-account/` |
-| `ludo-royale/legal/index.html` (generated) | `ludo-royale/legal/index.html` | `/ludo-royale/legal/` |
+| `ludo-arena.html` | `ludo-arena.html` | `/ludo-arena` |
+| `ludo-arena-logo.png` (app icon, 256 px) | `ludo-arena-logo.png` | `/ludo-arena-logo.png` |
+| `ludo-arena-shots/` (screenshots, 1280×720 banner) | `ludo-arena-shots/` | `/ludo-arena-shots/…` |
+| `ludo-arena/privacy/index.html` | `ludo-arena/privacy/index.html` | `/ludo-arena/privacy/` |
+| `ludo-arena/delete-account/index.html` | `ludo-arena/delete-account/index.html` | `/ludo-arena/delete-account/` |
+| `ludo-arena/legal/index.html` (generated) | `ludo-arena/legal/index.html` | `/ludo-arena/legal/` |
 | `snippets/index-games-card.html` | inserted into `index.html` | homepage Games section |
 | `snippets/footer-games-link.html` | inserted into every page footer | footer "Games" list |
 | `snippets/footer-legal-link.html` | inserted into every page footer | footer "Legal" list |
 | `snippets/sitemap-entries.xml` | inserted into `sitemap.xml` | |
 | `apply_snippets.py` | not deployed | inserts the snippets into copies of the site's pages |
-| `build_legal_page.py` | not deployed | builds `ludo-royale/legal/index.html` from the app's notices |
+| `build_legal_page.py` | not deployed | builds `ludo-arena/legal/index.html` from the app's notices |
 
-The app opens `https://sungamestudio.com/ludo-royale/legal/` for its open-source
+The app opens `https://sungamestudio.com/ludo-arena/legal/` for its open-source
 notices when it is built with
-`--dart-define=LEGAL_NOTICES_URL=https://sungamestudio.com/ludo-royale/legal/`
+`--dart-define=LEGAL_NOTICES_URL=https://sungamestudio.com/ludo-arena/legal/`
 (default without it: the backend's `GET /legal/open-source`). Keep that path.
 
 ## Design
@@ -60,7 +60,7 @@ e-mail links are plain `mailto:`.
 Images: screenshots are real iPhone-simulator captures of the app (status bar
 cropped, friend codes blurred), cut to the site's 9:16 phone frame and saved as
 WebP at 540×960 (thumbnails) and 720×1280 (lightbox), 20–70 KB each. The banner
-(`ludo-royale-banner.jpg`, 1280×720, also the `og:image`) combines the crown logo
+(`ludo-arena-banner.jpg`, 1280×720, also the `og:image`) combines the crown logo
 (`frontend/assets/branding/launch_logo_1024.png`) and the Ludo board. The logo is
 `frontend/assets/branding/app_icon_1024.png` at 256×256 (44 KB).
 
@@ -70,8 +70,8 @@ WebP at 540×960 (thumbnails) and 720×1280 (lightbox), 20–70 KB each. The ban
    copies of the live site: `index.html`, `sitemap.xml`, `style.css`, `site.js`,
    `fonts/`, `logo-mark.png`, `favicon.png`, the other game pages you want to
    check, and their images (or leave images out; only they will be missing).
-2. Copy this folder's deployable files into it: `ludo-royale.html`,
-   `ludo-royale-logo.png`, `ludo-royale-shots/`, `ludo-royale/`.
+2. Copy this folder's deployable files into it: `ludo-arena.html`,
+   `ludo-arena-logo.png`, `ludo-arena-shots/`, `ludo-arena/`.
 3. Insert the snippets into the copies:
 
    ```bash
@@ -80,10 +80,10 @@ WebP at 540×960 (thumbnails) and 720×1280 (lightbox), 20–70 KB each. The ban
    ```
 
 4. Serve it: `cd /tmp/site && python3 -m http.server 8099`, then open
-   <http://localhost:8099/>, <http://localhost:8099/ludo-royale.html>,
-   <http://localhost:8099/ludo-royale/privacy/> and
-   <http://localhost:8099/ludo-royale/legal/>. `http.server` has no
-   `try_files`, so extensionless links such as `/ludo-royale` only work on the
+   <http://localhost:8099/>, <http://localhost:8099/ludo-arena.html>,
+   <http://localhost:8099/ludo-arena/privacy/> and
+   <http://localhost:8099/ludo-arena/legal/>. `http.server` has no
+   `try_files`, so extensionless links such as `/ludo-arena` only work on the
    real site; open the `.html` URL instead. The fonts must be in the same
    folder: the live site does not allow them to be loaded from another origin.
 
@@ -99,7 +99,7 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
 1. **Review first.** Publishing the privacy policy was approved; still work
    through "Privacy policy: points to confirm" below, check its effective date,
    and make sure the in-app Settings → Delete account has shipped (the policy
-   and `/ludo-royale/delete-account/` describe it).
+   and `/ludo-arena/delete-account/` describe it).
 2. **Back up the web root.**
 
    ```bash
@@ -116,7 +116,7 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
    ```
 
 4. **Insert the snippets** (dry run first; the script refuses, and writes
-   nothing, if an anchor is missing or the page already has Ludo Royale):
+   nothing, if an anchor is missing or the page already has Ludo Arena):
 
    ```bash
    python3 website/apply_snippets.py work/index.html work/sitemap.xml \
@@ -142,29 +142,29 @@ server, `ROOT=/var/www/gameplay/sungamestudio.com`.
    of the existing files (the web root's files belong to the `write` user):
 
    ```bash
-   rsync -av website/ludo-royale.html website/ludo-royale-logo.png HOST:$ROOT/
-   rsync -av website/ludo-royale-shots website/ludo-royale HOST:$ROOT/
+   rsync -av website/ludo-arena.html website/ludo-arena-logo.png HOST:$ROOT/
+   rsync -av website/ludo-arena-shots website/ludo-arena HOST:$ROOT/
    rsync -av work/ HOST:$ROOT/
    ```
 
 6. **nginx needs no change**: `try_files $uri $uri.html $uri/ =404` serves
-   `/ludo-royale` from `ludo-royale.html` and `/ludo-royale/privacy/` and
-   `/ludo-royale/legal/` from their `index.html`, exactly like Brain Train.
+   `/ludo-arena` from `ludo-arena.html` and `/ludo-arena/privacy/` and
+   `/ludo-arena/legal/` from their `index.html`, exactly like Brain Train.
 7. **Cloudflare:** HTML and `sitemap.xml` are not cached (`cf-cache-status:
    DYNAMIC`), so no purge is needed for them; purge an image only when
    replacing one under the same name.
 8. **Verify:**
 
    ```bash
-   for u in /ludo-royale /ludo-royale/privacy/ /ludo-royale/legal/ /ludo-royale/delete-account/ /ludo-royale-logo.png \
-            /ludo-royale-shots/ludo-royale-banner.jpg /ludo-royale-shots/01-classic-board-540.webp; do
+   for u in /ludo-arena /ludo-arena/privacy/ /ludo-arena/legal/ /ludo-arena/delete-account/ /ludo-arena-logo.png \
+            /ludo-arena-shots/ludo-arena-banner.jpg /ludo-arena-shots/01-classic-board-540.webp; do
      curl -s -o /dev/null -w "%{http_code} %{content_type} $u\n" "https://sungamestudio.com$u"
    done   # expect 200 and text/html, image/png, image/jpeg, image/webp
-   curl -s https://sungamestudio.com/ | grep -c '/ludo-royale'      # > 0
-   curl -s https://sungamestudio.com/sitemap.xml | grep ludo-royale
+   curl -s https://sungamestudio.com/ | grep -c '/ludo-arena'      # > 0
+   curl -s https://sungamestudio.com/sitemap.xml | grep ludo-arena
    ```
 
-   Then open the homepage and `/ludo-royale` on a phone and a desktop browser.
+   Then open the homepage and `/ludo-arena` on a phone and a desktop browser.
 9. **Roll back** if needed by restoring the tarball from step 2.
 
 ## Open-source notices: regenerate before each app release
@@ -176,25 +176,25 @@ cd frontend
 flutter build bundle --release              # writes build/flutter_assets/NOTICES.Z
 dart run tool/export_oss_notices.dart       # → backend/config/legal/open-source-notices.html
 cd ..
-python3 website/build_legal_page.py         # → website/ludo-royale/legal/index.html
+python3 website/build_legal_page.py         # → website/ludo-arena/legal/index.html
 python3 website/build_legal_page.py --check # exit 1 if the page is stale
 ```
 
 `build_legal_page.py` copies the generated component index and every notice
 byte for byte into the site's page shell, and refuses if any licence text in the
 output differs from the source. Commit both generated files, then upload
-`website/ludo-royale/legal/index.html` to `$ROOT/ludo-royale/legal/index.html`
+`website/ludo-arena/legal/index.html` to `$ROOT/ludo-arena/legal/index.html`
 (steps 2, 5, 7 and 8 above).
 
 ## Privacy policy: points to confirm
 
-`ludo-royale/privacy/index.html` describes the app as the code and docs in this
+`ludo-arena/privacy/index.html` describes the app as the code and docs in this
 repository show it (docs/authentication.md, docs/progression.md,
 docs/rest-api.md, backend/migrations, frontend/lib/core/analytics,
 frontend/lib/core/device). These statements could not be verified from the
 repository and must be confirmed or changed before publishing:
 
-- **Account deletion.** The policy and `/ludo-royale/delete-account/` describe
+- **Account deletion.** The policy and `/ludo-arena/delete-account/` describe
   the in-app **Settings → Delete account** (immediate; deletes the account,
   wallet, progress, friends, reports, device link and sessions) that is being
   built; it was not in the repository when these pages were written. Check the
@@ -202,8 +202,8 @@ repository and must be confirmed or changed before publishing:
   listed as deleted because `progression.player_reports` cascades on both
   accounts. E-mailed requests (friend code + display name, within 30 days) need
   someone who can actually carry them out. `/delete-account` covers King Teen
-  Patti only; the Ludo Royale pages' "Delete Account" links go to
-  `/ludo-royale/delete-account/`. Use that URL for the store listings' account
+  Patti only; the Ludo Arena pages' "Delete Account" links go to
+  `/ludo-arena/delete-account/`. Use that URL for the store listings' account
   deletion field.
 - **Rating 3+.** Decided by the user (like Ludo King). The real rating comes
   from the store questionnaires (IARC); the answers must give 3+. The app has

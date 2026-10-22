@@ -11,13 +11,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/iap/iaptest"
+	"ludoarena/internal/iap/iaptest"
 )
 
 // Coin packs (docs/in-app-purchases.md) against fake stores: Google Play's
 // Android Publisher API and StoreKit 2 signing with a test certificate chain.
 
-const appBundle = "com.ludoroyale.app"
+const appBundle = "com.ludoarena.app"
 
 var iosHeaders = []string{"X-App-Platform", "ios"}
 

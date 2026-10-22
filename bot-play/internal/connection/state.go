@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"hash/fnv"
 
-	"ludoroyale/botplay/internal/ludo"
-	"ludoroyale/botplay/internal/snakes_ladders"
+	"ludoarena/botplay/internal/ludo"
+	"ludoarena/botplay/internal/snakes_ladders"
 )
 
 // Outcome is the result of applying a message to the local room state.

@@ -1,4 +1,4 @@
-# Ludo Royale monitoring stack: Prometheus, Alertmanager, node_exporter and
+# Ludo Arena monitoring stack: Prometheus, Alertmanager, node_exporter and
 # the Telegram ops bot. Works locally against the dev backend on the Docker
 # host and is the template for production (see monitoring/README.md).
 #
@@ -8,7 +8,7 @@
 #
 # Every port is bound to 127.0.0.1: metrics, Prometheus and Alertmanager must
 # never be reachable from the internet.
-name: ludo-royale-monitoring
+name: ludo-arena-monitoring
 
 services:
   prometheus:

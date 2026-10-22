@@ -1,8 +1,8 @@
 # bot-play — automated players
 
-`bot-play/` is a standalone Go service (its own module, `ludoroyale/botplay`)
-that runs automated players for Ludo Royale. Bots are **pure protocol
-clients** of the Go backend: they use the same `ludo-royale.v1` WebSocket
+`bot-play/` is a standalone Go service (its own module, `ludoarena/botplay`)
+that runs automated players for Ludo Arena. Bots are **pure protocol
+clients** of the Go backend: they use the same `ludo-arena.v1` WebSocket
 protocol as the Flutter app, with server-issued bot session tokens.
 
 **No Firebase or analytics.** bot-play contains no Firebase, Crashlytics,
@@ -92,7 +92,7 @@ WebSocket (`connection.backend_ws_url`, e.g. `ws://localhost:8080/api/v1/ws`):
 
 ```
 Authorization: Bearer <bot accessToken>
-Sec-WebSocket-Protocol: ludo-royale.v1
+Sec-WebSocket-Protocol: ludo-arena.v1
 Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_no_context_takeover
 X-App-Platform: bot
 X-App-Version: <bot-play version, e.g. 1.0.0>      X-App-Build: <build>

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/ratelimit"
 )
 
 // RegisterRoutes adds the player-facing room REST endpoints.

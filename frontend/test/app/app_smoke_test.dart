@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/app/app.dart';
-import 'package:ludo_royale/app/gate/app_gate_controller.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/features/app_update/presentation/force_update_screen.dart';
-import 'package:ludo_royale/features/app_update/presentation/splash_screen.dart';
-import 'package:ludo_royale/features/authentication/presentation/language_onboarding_screen.dart';
-import 'package:ludo_royale/features/authentication/presentation/login_screen.dart';
-import 'package:ludo_royale/features/home/presentation/home_screen.dart';
+import 'package:ludo_arena/app/app.dart';
+import 'package:ludo_arena/app/gate/app_gate_controller.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/features/app_update/presentation/force_update_screen.dart';
+import 'package:ludo_arena/features/app_update/presentation/splash_screen.dart';
+import 'package:ludo_arena/features/authentication/presentation/language_onboarding_screen.dart';
+import 'package:ludo_arena/features/authentication/presentation/login_screen.dart';
+import 'package:ludo_arena/features/home/presentation/home_screen.dart';
 
 import '../helpers/fake_backend.dart';
 import '../helpers/harness.dart';
@@ -24,7 +24,7 @@ Future<ProviderContainer> _boot(WidgetTester tester, TestEnv env) async {
       container: container,
       child: const MediaQuery(
         data: MediaQueryData(disableAnimations: true),
-        child: LudoRoyaleApp(),
+        child: LudoArenaApp(),
       ),
     ),
   );

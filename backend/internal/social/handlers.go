@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/ratelimit"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/ratelimit"
 )
 
 // ReadPerUser limits social reads per account.

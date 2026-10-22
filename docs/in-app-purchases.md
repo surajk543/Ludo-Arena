@@ -142,11 +142,11 @@ lists the packs (the app says "This pack isn't available yet").
 |---|---|---|
 | `COIN_PACKS_FILE` | `config/coin_packs.json` | Pack list (reloaded on change) |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_FILE` | – (off) | Service account JSON key; enables Google Play |
-| `GOOGLE_PLAY_PACKAGE_NAME` | `com.ludoroyale.app` | Android package verified |
+| `GOOGLE_PLAY_PACKAGE_NAME` | `com.ludoarena.app` | Android package verified |
 | `GOOGLE_PLAY_VOIDED_POLL_INTERVAL` | `1h` | Voided purchases poll (0 = off, ≥ 1m in production) |
 | `GOOGLE_PLAY_VOIDED_LOOKBACK` | `168h` | How far back each poll looks (1h–720h) |
 | `APPLE_IAP_ENABLED` | `false` | Enables App Store verification (signed transactions) |
-| `APPLE_BUNDLE_ID` | `com.ludoroyale.app` | iOS bundle id verified |
+| `APPLE_BUNDLE_ID` | `com.ludoarena.app` | iOS bundle id verified |
 | `APPLE_IAP_ALLOW_SANDBOX` | `true` | Accept sandbox purchases (App Review, TestFlight, sandbox testers) |
 | `APPLE_IAP_KEY_ID`, `APPLE_IAP_ISSUER_ID`, `APPLE_IAP_KEY_FILE` | – | Optional App Store Server API key (all three or none; also enables Apple) |
 
@@ -177,9 +177,9 @@ refused in production.
    - IAM → Service accounts → create one (e.g. `play-iap-verifier`), no
      project roles needed → Keys → add a **JSON** key. Store the file outside
      the repository on the server and set `GOOGLE_PLAY_SERVICE_ACCOUNT_FILE`
-     to its path (`GOOGLE_PLAY_PACKAGE_NAME=com.ludoroyale.app`);
+     to its path (`GOOGLE_PLAY_PACKAGE_NAME=com.ludoarena.app`);
    - Play Console → **Users and permissions** → Invite new users → the service
-     account's e-mail → App permissions for Ludo Royale: **View financial
+     account's e-mail → App permissions for Ludo Arena: **View financial
      data, orders, and cancellation survey responses** and **Manage orders
      and subscriptions**. New permissions can take up to 24–36 h to work
      (until then the server logs `store verification credentials refused`
@@ -211,7 +211,7 @@ refused in production.
    Server URL the same path on the backend that serves TestFlight builds;
    **Version 2**. "Request a Test Notification" (or the App Store Server
    API) sends a `TEST` notification, answered `{"result":"ignored"}`.
-5. **Backend**: `APPLE_IAP_ENABLED=true`, `APPLE_BUNDLE_ID=com.ludoroyale.app`.
+5. **Backend**: `APPLE_IAP_ENABLED=true`, `APPLE_BUNDLE_ID=com.ludoarena.app`.
    Optional App Store Server API key: Users and Access → Integrations →
    **In-App Purchase** → generate a key → download the `.p8` (only once),
    note the Key ID and the Issuer ID → `APPLE_IAP_KEY_FILE` (path outside the

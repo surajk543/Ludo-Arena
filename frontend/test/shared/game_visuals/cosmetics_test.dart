@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/features/ludo/presentation/board/mini_ludo_board.dart';
-import 'package:ludo_royale/features/snakes_ladders/presentation/board/mini_snakes_board.dart';
-import 'package:ludo_royale/shared/game_visuals/game_visuals.dart';
+import 'package:ludo_arena/features/ludo/presentation/board/mini_ludo_board.dart';
+import 'package:ludo_arena/features/snakes_ladders/presentation/board/mini_snakes_board.dart';
+import 'package:ludo_arena/shared/game_visuals/game_visuals.dart';
 
 /// Every renderable id from docs/cosmetics-catalog.md.
 const _catalog = {

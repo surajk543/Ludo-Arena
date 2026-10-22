@@ -18,7 +18,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/config"
 )
 
 // Assignment kinds.

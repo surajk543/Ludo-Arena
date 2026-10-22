@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/httpapi"
-	"ludoroyale/internal/ratelimit"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/httpapi"
+	"ludoarena/internal/ratelimit"
+	"ludoarena/internal/wallet"
 )
 
 // Per-account rate limits (in addition to the router's global protections).

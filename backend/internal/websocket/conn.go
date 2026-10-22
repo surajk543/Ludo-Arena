@@ -10,11 +10,11 @@ import (
 
 	ws "github.com/coder/websocket"
 
-	"ludoroyale/internal/apppolicy"
-	"ludoroyale/internal/auth"
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/protocol"
-	"ludoroyale/internal/rooms"
+	"ludoarena/internal/apppolicy"
+	"ludoarena/internal/auth"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/protocol"
+	"ludoarena/internal/rooms"
 )
 
 type conn struct {

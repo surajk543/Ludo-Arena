@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"ludoroyale/opsbot/internal/alertmanager"
-	"ludoroyale/opsbot/internal/charts"
-	"ludoroyale/opsbot/internal/report"
+	"ludoarena/opsbot/internal/alertmanager"
+	"ludoarena/opsbot/internal/charts"
+	"ludoarena/opsbot/internal/report"
 )
 
 // AlertFileName is the document name of a PDF alert.
@@ -15,7 +15,7 @@ func AlertFileName(alerts []alertmanager.Alert, at time.Time, loc *time.Location
 	if len(alerts) > 0 {
 		name = safeName(alerts[0].Name())
 	}
-	return "ludo-royale-alert-" + name + "-" + at.In(loc).Format("2006-01-02-1504-MST") + ".pdf"
+	return "ludo-arena-alert-" + name + "-" + at.In(loc).Format("2006-01-02-1504-MST") + ".pdf"
 }
 
 func safeName(s string) string {
@@ -47,7 +47,7 @@ func AlertPDF(alerts []alertmanager.Alert, snap report.Snapshot, ch report.Chart
 			}
 		}
 	}
-	title := "Ludo Royale — Alert " + state
+	title := "Ludo Arena — Alert " + state
 	if len(alerts) > 0 {
 		title += ": " + alerts[0].Name()
 		if len(alerts) > 1 {

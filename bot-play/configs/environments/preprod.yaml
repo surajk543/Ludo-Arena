@@ -5,8 +5,8 @@ app:
   log_format: json
 
 connection:
-  backend_http_url: https://preprod-api.ludoroyale.example/api/v1
-  backend_ws_url: wss://preprod-api.ludoroyale.example/api/v1/ws
+  backend_http_url: https://preprod-api.ludoarena.example/api/v1
+  backend_ws_url: wss://preprod-api.ludoarena.example/api/v1/ws
 
 bots:
   enabled: true
@@ -32,8 +32,8 @@ loadtest:
   # Preprod load tests: copy this file, set modes: [loadtest] and
   # loadtest.enabled: true, and run with --i-understand-this-is-a-load-test.
   enabled: false
-  allowed_hosts: [preprod-api.ludoroyale.example]
-  forbidden_hosts: [api.ludoroyale.example, "*.prod.ludoroyale.example"]
+  allowed_hosts: [preprod-api.ludoarena.example]
+  forbidden_hosts: [api.ludoarena.example, "*.prod.ludoarena.example", ludo.sungamestudio.com]
   report_path: /tmp/bot-play-loadtest-report.json
 
 metrics:

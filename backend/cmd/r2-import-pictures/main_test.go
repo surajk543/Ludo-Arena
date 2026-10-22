@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/assets/r2test"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/assets/r2test"
 )
 
 const (
@@ -72,14 +72,14 @@ func TestMain(m *testing.M) {
 
 func setup(t *testing.T, manifest string) (options, *r2test.Server, *source) {
 	t.Helper()
-	r2 := r2test.New(t, "ludo-royale", keyID, secret)
+	r2 := r2test.New(t, "ludo-arena", keyID, secret)
 	src := newSource(t)
 	path := filepath.Join(t.TempDir(), "profile_pictures.tsv")
 	if err := os.WriteFile(path, []byte(manifest), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return options{Manifest: path, Source: src.URL, Concurrency: 2,
-		R2: assets.Config{AccountID: "0123456789abcdef0123456789abcdef", Bucket: "ludo-royale",
+		R2: assets.Config{AccountID: "0123456789abcdef0123456789abcdef", Bucket: "ludo-arena",
 			AccessKeyID: keyID, SecretAccessKey: secret, Endpoint: r2.URL}}, r2, src
 }
 

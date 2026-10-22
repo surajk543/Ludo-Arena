@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/network/api_client.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/missions/application/missions_controller.dart';
-import 'package:ludo_royale/features/missions/domain/mission_models.dart';
-import 'package:ludo_royale/features/progression/application/level_up_controller.dart';
-import 'package:ludo_royale/features/progression/application/meta_support.dart';
-import 'package:ludo_royale/features/wallet/wallet_controller.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations_en.dart';
+import 'package:ludo_arena/core/network/api_client.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/missions/application/missions_controller.dart';
+import 'package:ludo_arena/features/missions/domain/mission_models.dart';
+import 'package:ludo_arena/features/progression/application/level_up_controller.dart';
+import 'package:ludo_arena/features/progression/application/meta_support.dart';
+import 'package:ludo_arena/features/wallet/wallet_controller.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations_en.dart';
 
 import '../progression/meta_test_support.dart';
 

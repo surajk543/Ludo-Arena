@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"ludoroyale/opsbot/internal/google"
-	"ludoroyale/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/google"
+	"ludoarena/opsbot/internal/promapi"
 )
 
 // Source is the Prometheus API (implemented by *promapi.Client).

@@ -12,9 +12,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/progression"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/progression"
 )
 
 // Friend requests to bots.

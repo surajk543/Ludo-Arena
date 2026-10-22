@@ -1,8 +1,8 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/realtime_connection.dart';
-import 'package:ludo_royale/core/realtime/realtime_status.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/realtime_connection.dart';
+import 'package:ludo_arena/core/realtime/realtime_status.dart';
 
 import 'fakes.dart';
 

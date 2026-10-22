@@ -1,4 +1,4 @@
-// Command server runs the Ludo Royale backend: REST API, WebSocket gateway,
+// Command server runs the Ludo Arena backend: REST API, WebSocket gateway,
 // room engine and schedulers.
 package main
 
@@ -12,11 +12,11 @@ import (
 	"syscall"
 	"time"
 
-	"ludoroyale/internal/config"
-	"ludoroyale/internal/logging"
-	"ludoroyale/internal/postgres"
-	"ludoroyale/internal/redisstore"
-	"ludoroyale/internal/server"
+	"ludoarena/internal/config"
+	"ludoarena/internal/logging"
+	"ludoarena/internal/postgres"
+	"ludoarena/internal/redisstore"
+	"ludoarena/internal/server"
 )
 
 func main() {

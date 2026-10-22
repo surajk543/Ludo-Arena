@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"ludoroyale/internal/gameevents"
+	"ludoarena/internal/gameevents"
 )
 
 // Mission metrics.

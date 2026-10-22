@@ -1,4 +1,4 @@
-# Ludo Royale — Flutter app
+# Ludo Arena — Flutter app
 
 Online Ludo and Snakes & Ladders for Android and iOS. The **Go backend is
 authoritative** for identity, sessions, dice, moves, winners, balances and
@@ -50,7 +50,7 @@ network security config (`10.0.2.2`, `localhost`, `127.0.0.1`); iOS via
 | `APPLE_REDIRECT_URI` | empty | Redirect URI of that Services ID (the backend's `/api/v1/auth/apple/callback`). Both Apple values are needed to show Apple on Android; iOS always uses the native flow. |
 | `FACEBOOK_ENABLED` | `false` | Shows "Continue with Facebook". Also requires the native app id (below). |
 | `FIREBASE_*` | see *Firebase Analytics* | Read from `config/firebase.json` via `--dart-define-from-file`. |
-| `LEGAL_NOTICES_URL` | `https://sungamestudio.com/ludo-royale/legal/` | Page opened in the browser by Settings → About → Legal notices (the backend's `${API_BASE_URL}/legal/open-source` is an optional fallback). |
+| `LEGAL_NOTICES_URL` | `https://sungamestudio.com/ludo-arena/legal/` | Page opened in the browser by Settings → About → Legal notices (the backend's `${API_BASE_URL}/legal/open-source` is an optional fallback). |
 
 Provider client ids are public identifiers; **no secret is ever compiled
 into the app**.
@@ -62,7 +62,7 @@ into the app**.
   **`ios/Flutter/AppConfig.xcconfig`** (`GOOGLE_IOS_CLIENT_ID`,
   `GOOGLE_REVERSED_CLIENT_ID` URL scheme, `GOOGLE_SERVER_CLIENT_ID`). Android
   needs no id in code: its OAuth client is registered for
-  `com.ludoroyale.app` + the signing SHA-1 in Google Cloud.
+  `com.ludoarena.app` + the signing SHA-1 in Google Cloud.
 - **Facebook** (not configured yet): Android reads `FACEBOOK_APP_ID` /
   `FACEBOOK_CLIENT_TOKEN` from a Gradle property (`-P…` or
   `~/.gradle/gradle.properties`) or the environment; iOS from
@@ -99,7 +99,7 @@ into the app**.
 
 ```bash
 # Android
-adb shell setprop debug.firebase.analytics.app com.ludoroyale.app
+adb shell setprop debug.firebase.analytics.app com.ludoarena.app
 adb shell setprop debug.firebase.analytics.app .none.   # turn off
 # iOS: add -FIRDebugEnabled to the Run scheme's launch arguments in Xcode
 ```
@@ -110,7 +110,7 @@ adb shell setprop debug.firebase.analytics.app .none.   # turn off
 lib/
   main.dart                 → app/bootstrap.dart (pre-first-frame setup)
   app/
-    app.dart                LudoRoyaleApp: MaterialApp.router, theme, locale
+    app.dart                LudoArenaApp: MaterialApp.router, theme, locale
     bootstrap.dart          prefs, AppInfo, date symbols, release error fallback, analytics init
     gate/app_gate_controller.dart   startup/access state machine
     router.dart             GoRouter + gateRedirect (pure, tested)
@@ -124,7 +124,7 @@ lib/
     device/                 DeviceIdentity (ANDROID_ID / iOS keychain UUID) for restore after reinstall
     network/                ApiClient (Dio), TokenManager (single-flight refresh), ApiException, DTOs
     app_policy/             AppPolicy model, repository, cache, PolicySignalBus
-    protocol/               ludo-royale.v1 envelope, models, events, state hash, RoomStateReducer
+    protocol/               ludo-arena.v1 envelope, models, events, state hash, RoomStateReducer
     realtime/               RealtimeConnection, backoff, ActiveRoomController, status
     errors/                 localizedErrorMessage(l10n, code) for every REST/WS/client code
     analytics/              AnalyticsService + gated Firebase implementation + consent
@@ -172,7 +172,7 @@ guest" on the device is a new guest.
 
 The device id (`lib/core/device/device_identity.dart`) is
 `Settings.Secure.ANDROID_ID` on Android 8+ (scoped to the signing key,
-survives reinstalls; read through the `ludo_royale/device_id` channel in
+survives reinstalls; read through the `ludo_arena/device_id` channel in
 `MainActivity.kt`) and a random UUID kept in the iOS keychain
 (`session.device_id`, this device only). Android 7 has no device id and
 keeps the guest-secret behaviour. The id is sent only in those request
@@ -258,10 +258,10 @@ page.
   hand-written; see `docs/deployment.md` → "Brand assets".
 - **Open-source notices** are not shown inside the app. Settings → About →
   "Legal notices" opens `LEGAL_NOTICES_URL` (default
-  `https://sungamestudio.com/ludo-royale/legal/`, the studio website) in the
+  `https://sungamestudio.com/ludo-arena/legal/`, the studio website) in the
   browser. Regenerate the page before each release (`flutter build bundle
   --release && dart run tool/export_oss_notices.dart`) and publish it to
-  sungamestudio.com/ludo-royale/legal/; the backend also serves it at
+  sungamestudio.com/ludo-arena/legal/; the backend also serves it at
   `${API_BASE_URL}/legal/open-source` as an optional fallback.
 - **Release error fallback**: in release/profile builds a widget whose build
   fails renders a small branded "Something went wrong" (`lib/app/error_fallback.dart`).
@@ -315,4 +315,4 @@ renders every core screen in all languages, light/dark, at 320×640 (plus
 - First iOS build runs `pod install` (several minutes); afterwards
   `flutter run -d "iPhone 17 Pro"` works as usual.
 - `Runner.entitlements` enables Sign in with Apple; enable the capability
-  for `com.ludoroyale.app` in the Apple Developer portal before shipping.
+  for `com.ludoarena.app` in the Apple Developer portal before shipping.

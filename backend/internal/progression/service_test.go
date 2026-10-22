@@ -12,10 +12,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"ludoroyale/internal/gameevents"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/progression/progtest"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/gameevents"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/progression/progtest"
+	"ludoarena/internal/wallet"
 )
 
 var testNow = time.Date(2026, 10, 21, 12, 0, 0, 0, time.UTC) // Wednesday, inside autumn_cup

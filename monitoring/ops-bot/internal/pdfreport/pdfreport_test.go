@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/opsbot/internal/alertmanager"
-	"ludoroyale/opsbot/internal/google"
-	"ludoroyale/opsbot/internal/promapi"
-	"ludoroyale/opsbot/internal/report"
+	"ludoarena/opsbot/internal/alertmanager"
+	"ludoarena/opsbot/internal/google"
+	"ludoarena/opsbot/internal/promapi"
+	"ludoarena/opsbot/internal/report"
 )
 
 var (
@@ -269,7 +269,7 @@ func TestStatusPDF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkPDF(t, pdf, 1, 2, "Ludo Royale", "Hourly status", "production", "Real players playing", "1,234", "456",
+	checkPDF(t, pdf, 1, 2, "Ludo Arena", "Hourly status", "production", "Real players playing", "1,234", "456",
 		"Rooms in game", "419", "HostCPUHigh", "app-1:9100", "312 MiB", "Page 1/2")
 	if n := countImages(pdf); n != 4 {
 		t.Errorf("embedded charts = %d, want 4", n)
@@ -338,16 +338,16 @@ func TestAlertPDF(t *testing.T) {
 	if n := countImages(pdf); n != 2 {
 		t.Errorf("embedded charts = %d, want 2", n)
 	}
-	if got := AlertFileName(sampleAlerts(), now, ist); got != "ludo-royale-alert-HostCPUHigh-2026-10-21-1700-IST.pdf" {
+	if got := AlertFileName(sampleAlerts(), now, ist); got != "ludo-arena-alert-HostCPUHigh-2026-10-21-1700-IST.pdf" {
 		t.Errorf("AlertFileName = %q", got)
 	}
 }
 
 func TestFileNames(t *testing.T) {
-	if got := StatusFileName(now, ist); got != "ludo-royale-status-2026-10-21-1700-IST.pdf" {
+	if got := StatusFileName(now, ist); got != "ludo-arena-status-2026-10-21-1700-IST.pdf" {
 		t.Errorf("StatusFileName = %q", got)
 	}
-	if got := DigestFileName(time.Date(2026, 10, 20, 0, 0, 0, 0, ist)); got != "ludo-royale-daily-2026-10-20.pdf" {
+	if got := DigestFileName(time.Date(2026, 10, 20, 0, 0, 0, 0, ist)); got != "ludo-arena-daily-2026-10-20.pdf" {
 		t.Errorf("DigestFileName = %q", got)
 	}
 }

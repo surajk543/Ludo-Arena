@@ -10,7 +10,7 @@ import (
 // exempt from the app version policy; the headers are informational) and are
 // overridable at link time:
 //
-//	go build -ldflags "-X ludoroyale/botplay/internal/config.Version=1.2.0 -X ludoroyale/botplay/internal/config.Build=42"
+//	go build -ldflags "-X ludoarena/botplay/internal/config.Version=1.2.0 -X ludoarena/botplay/internal/config.Build=42"
 var (
 	Version = "1.0.0"
 	Build   = "1"

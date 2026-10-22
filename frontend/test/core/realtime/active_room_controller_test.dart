@@ -1,13 +1,13 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/analytics/analytics_providers.dart';
-import 'package:ludo_royale/core/protocol/protocol.dart';
-import 'package:ludo_royale/core/realtime/realtime_providers.dart';
-import 'package:ludo_royale/core/settings/app_settings.dart';
-import 'package:ludo_royale/core/storage/preferences_store.dart';
-import 'package:ludo_royale/core/telemetry/telemetry_reporter.dart';
-import 'package:ludo_royale/core/time/server_clock.dart';
+import 'package:ludo_arena/core/analytics/analytics_providers.dart';
+import 'package:ludo_arena/core/protocol/protocol.dart';
+import 'package:ludo_arena/core/realtime/realtime_providers.dart';
+import 'package:ludo_arena/core/settings/app_settings.dart';
+import 'package:ludo_arena/core/storage/preferences_store.dart';
+import 'package:ludo_arena/core/telemetry/telemetry_reporter.dart';
+import 'package:ludo_arena/core/time/server_clock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../protocol/fixtures.dart';

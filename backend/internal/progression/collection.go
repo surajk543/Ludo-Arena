@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"ludoroyale/internal/metrics"
-	"ludoroyale/internal/playerinfo"
-	"ludoroyale/internal/wallet"
+	"ludoarena/internal/metrics"
+	"ludoarena/internal/playerinfo"
+	"ludoarena/internal/wallet"
 )
 
 // AcquisitionView is the API acquisition object.

@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/internal/assets"
-	"ludoroyale/internal/assets/r2test"
+	"ludoarena/internal/assets"
+	"ludoarena/internal/assets/r2test"
 )
 
 // Store emotes end to end (docs/rest-api.md → Store, docs/websocket-protocol.md

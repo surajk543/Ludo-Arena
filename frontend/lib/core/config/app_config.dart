@@ -61,9 +61,9 @@ class FirebaseAnalyticsConfig {
   static const String defaultProjectId = 'ludo-royale-63887';
   static const String defaultMessagingSenderId = '124893613050';
   static const String defaultAndroidAppId =
-      '1:124893613050:android:3ebc79fe014a64a9827243';
+      '1:124893613050:android:872c7caa8077bf3a827243';
   static const String defaultIosAppId =
-      '1:124893613050:ios:5d7bc30967c66409827243';
+      '1:124893613050:ios:cc3be63d4c1725dd827243';
 
   static const FirebaseAnalyticsConfig fromEnvironment =
       FirebaseAnalyticsConfig(
@@ -133,7 +133,7 @@ class AppConfig {
 
   /// The published open-source notices page on the studio website.
   static const String defaultLegalNoticesUrl =
-      'https://sungamestudio.com/ludo-royale/legal/';
+      'https://sungamestudio.com/ludo-arena/legal/';
 
   /// Public OAuth client ids (Google Cloud project `ludo-royale-63887`).
   /// The web ("server") client id is the ID-token audience the backend
@@ -152,16 +152,51 @@ class AppConfig {
     defaultValue: 'development',
   );
 
-  /// Reads the `--dart-define` values. [isAndroid] picks the emulator-friendly
-  /// default host (`10.0.2.2`) when `API_BASE_URL` is not supplied.
+  /// The production backend (nginx + TLS on the game VPS, `deploy/`).
+  static const String productionApiBaseUrl = 'https://ludo.sungamestudio.com';
+
+  /// Base URL when `API_BASE_URL` is not supplied: production builds use
+  /// [productionApiBaseUrl], every other environment the local backend
+  /// (the Android emulator reaches the host at `10.0.2.2`).
+  static String defaultApiBaseUrl(
+    AppEnvironment environment, {
+    required bool android,
+  }) => environment == AppEnvironment.production
+      ? productionApiBaseUrl
+      : (android ? 'http://10.0.2.2:8080' : 'http://localhost:8080');
+
+  /// Sign in with Apple on Android (Apple's web flow): the Services ID and the
+  /// backend callback registered as its return URL in the Apple developer
+  /// account.
+  static const String productionAppleServiceId = 'com.ludoarena.app.signin';
+  static const String productionAppleRedirectUri =
+      '$productionApiBaseUrl/api/v1/auth/apple/callback';
+
+  /// `APPLE_SERVICE_ID` when not supplied: production builds use
+  /// [productionAppleServiceId]; elsewhere Apple stays off on Android.
+  static String defaultAppleServiceId(AppEnvironment environment) =>
+      environment == AppEnvironment.production ? productionAppleServiceId : '';
+
+  /// `APPLE_REDIRECT_URI` when not supplied (see [defaultAppleServiceId]).
+  static String defaultAppleRedirectUri(AppEnvironment environment) =>
+      environment == AppEnvironment.production
+      ? productionAppleRedirectUri
+      : '';
+
+  /// Reads the `--dart-define` values; see [defaultApiBaseUrl],
+  /// [defaultAppleServiceId] and [defaultAppleRedirectUri] for the values
+  /// used when they are not supplied.
   factory AppConfig.fromEnvironment({bool? isAndroid}) {
     final android = isAndroid ?? (!kIsWeb && Platform.isAndroid);
+    final environment = AppEnvironment.parse(_envDefine);
     final base = _apiBaseUrlDefine.isNotEmpty
         ? _apiBaseUrlDefine
-        : (android ? 'http://10.0.2.2:8080' : 'http://localhost:8080');
+        : defaultApiBaseUrl(environment, android: android);
+    const appleServiceId = String.fromEnvironment('APPLE_SERVICE_ID');
+    const appleRedirectUri = String.fromEnvironment('APPLE_REDIRECT_URI');
     return AppConfig(
       apiBaseUrl: normalizeBaseUrl(base),
-      environment: AppEnvironment.parse(_envDefine),
+      environment: environment,
       googleServerClientId: const String.fromEnvironment(
         'GOOGLE_SERVER_CLIENT_ID',
         defaultValue: defaultGoogleServerClientId,
@@ -170,8 +205,12 @@ class AppConfig {
         'GOOGLE_IOS_CLIENT_ID',
         defaultValue: defaultGoogleIosClientId,
       ),
-      appleServiceId: const String.fromEnvironment('APPLE_SERVICE_ID'),
-      appleRedirectUri: const String.fromEnvironment('APPLE_REDIRECT_URI'),
+      appleServiceId: appleServiceId.isNotEmpty
+          ? appleServiceId
+          : defaultAppleServiceId(environment),
+      appleRedirectUri: appleRedirectUri.isNotEmpty
+          ? appleRedirectUri
+          : defaultAppleRedirectUri(environment),
       facebookEnabled: const bool.fromEnvironment('FACEBOOK_ENABLED'),
       firebase: FirebaseAnalyticsConfig.fromEnvironment,
       legalNoticesUrlOverride: const String.fromEnvironment(

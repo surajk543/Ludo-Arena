@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/app/shell/main_shell.dart';
-import 'package:ludo_royale/features/authentication/application/session_controller.dart';
-import 'package:ludo_royale/features/home/presentation/games_screen.dart';
-import 'package:ludo_royale/features/home/presentation/home_screen.dart';
-import 'package:ludo_royale/features/home/presentation/widgets/no_ads_ribbon.dart';
-import 'package:ludo_royale/features/home/presentation/widgets/quick_play_card.dart';
+import 'package:ludo_arena/app/shell/main_shell.dart';
+import 'package:ludo_arena/features/authentication/application/session_controller.dart';
+import 'package:ludo_arena/features/home/presentation/games_screen.dart';
+import 'package:ludo_arena/features/home/presentation/home_screen.dart';
+import 'package:ludo_arena/features/home/presentation/widgets/no_ads_ribbon.dart';
+import 'package:ludo_arena/features/home/presentation/widgets/quick_play_card.dart';
 
 import '../../helpers/harness.dart';
 import '../../helpers/screen_harness.dart';

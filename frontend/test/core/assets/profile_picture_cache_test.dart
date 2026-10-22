@@ -3,10 +3,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/assets/assets_api.dart';
-import 'package:ludo_royale/core/assets/profile_picture_cache.dart';
-import 'package:ludo_royale/core/network/api_exception.dart';
-import 'package:ludo_royale/core/protocol/models.dart'
+import 'package:ludo_arena/core/assets/assets_api.dart';
+import 'package:ludo_arena/core/assets/profile_picture_cache.dart';
+import 'package:ludo_arena/core/network/api_exception.dart';
+import 'package:ludo_arena/core/protocol/models.dart'
     show EmoteAsset, PlayerPicture;
 
 import '../../helpers/picture_fixtures.dart';

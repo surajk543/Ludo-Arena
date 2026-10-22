@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/core/analytics/analytics_consent.dart';
-import 'package:ludo_royale/core/analytics/firebase_bootstrap.dart';
-import 'package:ludo_royale/core/config/app_config.dart';
-import 'package:ludo_royale/core/config/app_info.dart';
+import 'package:ludo_arena/core/analytics/analytics_consent.dart';
+import 'package:ludo_arena/core/analytics/firebase_bootstrap.dart';
+import 'package:ludo_arena/core/config/app_config.dart';
+import 'package:ludo_arena/core/config/app_info.dart';
 
 void main() {
   const info = AppInfo(platform: 'android', version: '1.0.0', build: 1);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ludo_royale/l10n/generated/app_localizations.dart';
-import 'package:ludo_royale/shared/widgets/cosmetic_names.dart';
+import 'package:ludo_arena/l10n/generated/app_localizations.dart';
+import 'package:ludo_arena/shared/widgets/cosmetic_names.dart';
 
 void main() {
   // Every id from docs/cosmetics-catalog.md.

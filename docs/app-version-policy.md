@@ -82,7 +82,7 @@ Maintenance **pauses** matches; it does not end them:
     "android": {
       "minimumSupportedVersion": "1.0.0", "minimumSupportedBuild": 1,
       "latestVersion": "1.0.0", "latestBuild": 1,
-      "storeUrl": "https://play.google.com/store/apps/details?id=com.ludoroyale.app",
+      "storeUrl": "https://play.google.com/store/apps/details?id=com.ludoarena.app",
       "forceUpdateTitle": "Update required",
       "forceUpdateMessage": "This version is no longer supported. Update to keep playing.",
       "optionalUpdateTitle": "A new version is available",
@@ -171,7 +171,7 @@ of the file; rejected reloads are logged with the validation error.
 ### Operator procedures
 
 - **Enable maintenance (emergency, fastest):** create the flag file
-  `APP_MAINTENANCE_FLAG_FILE` (e.g. `touch /etc/ludo-royale/MAINTENANCE`).
+  `APP_MAINTENANCE_FLAG_FILE` (e.g. `touch /etc/ludo-arena/MAINTENANCE`).
   Its first line (optional) is used as the message. Remove the file to end
   maintenance. Takes effect within the poll interval on every instance.
 - **Enable maintenance (planned):** add a window to `maintenance.windows` or set

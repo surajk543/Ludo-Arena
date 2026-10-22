@@ -1,9 +1,9 @@
-# Ludo Royale alert rules. Numbers come from thresholds.yml; durations
+# Ludo Arena alert rules. Numbers come from thresholds.yml; durations
 # ("for:") are set here. Every alert has a severity (critical | warning),
 # a one-line summary and a description; the ops bot adds the current CPU,
 # RAM and player counts when it posts the alert to Telegram.
 groups:
-  - name: ludo-royale-availability
+  - name: ludo-arena-availability
     rules:
       - alert: BackendInstanceDown
         expr: up{job="backend"} == 0
@@ -32,7 +32,7 @@ groups:
           summary: "Host metrics missing for {{ $labels.instance }}"
           description: "node_exporter is not answering, so CPU, RAM and disk alerts for this host are blind."
 
-  - name: ludo-royale-hosts
+  - name: ludo-arena-hosts
     rules:
       - alert: HostCPUHigh
         expr: |
@@ -74,7 +74,7 @@ groups:
           summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.instance }} is {{ printf "%.0f" $value }}% full'
           description: "PostgreSQL, Redis (AOF/RDB) and logs need free space. Clean up or grow the volume."
 
-  - name: ludo-royale-backend
+  - name: ludo-arena-backend
     rules:
       - alert: ProcessMemoryHigh
         expr: process_resident_memory_bytes{job=~"backend|bot-play"} > scalar(threshold:process_rss_bytes)

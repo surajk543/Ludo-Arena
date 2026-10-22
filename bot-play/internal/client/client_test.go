@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"ludoroyale/botplay/internal/config"
+	"ludoarena/botplay/internal/config"
 )
 
 func TestBackoffBounds(t *testing.T) {

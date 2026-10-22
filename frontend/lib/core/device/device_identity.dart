@@ -36,7 +36,7 @@ class PlatformDeviceIdentity implements DeviceIdentity {
   }) : _platform = platform ?? _currentPlatform(),
        _newId = newId ?? (() => const Uuid().v4());
 
-  static const channelName = 'ludo_royale/device_id';
+  static const channelName = 'ludo_arena/device_id';
 
   final SecureSessionStore _store;
   final String _platform;

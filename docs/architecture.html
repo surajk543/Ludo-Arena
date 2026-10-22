@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ludo Royale Architecture</title>
-<meta name="description" content="System architecture and flow diagrams for Ludo Royale: Flutter app, authoritative Go backend (REST + WebSocket, PostgreSQL, Redis) and the bot-play service.">
+<title>Ludo Arena Architecture</title>
+<meta name="description" content="System architecture and flow diagrams for Ludo Arena: Flutter app, authoritative Go backend (REST + WebSocket, PostgreSQL, Redis) and the bot-play service.">
 <meta name="color-scheme" content="light dark">
 <!--
   Maintainers: this page is self-contained. Each diagram's Mermaid source lives
@@ -19,7 +19,7 @@
   var d = document.documentElement;
   d.className = d.className.replace('no-js', 'js');
   try {
-    var t = localStorage.getItem('ludo-royale-docs-theme');
+    var t = localStorage.getItem('ludo-arena-docs-theme');
     if (t === 'light' || t === 'dark') { d.setAttribute('data-theme', t); }
   } catch (e) { /* storage unavailable: follow the system theme */ }
 })();
@@ -380,7 +380,7 @@ td code { font-size: 0.8rem; }
       <polygon points="15,7 23,15 15,23 7,15" fill="#ffffff" opacity="0.95"/>
       <circle cx="15" cy="15" r="2.6" fill="#1d2133"/>
     </svg>
-    <span class="brand-text"><span class="brand-name">Ludo Royale</span><span class="brand-sub">System architecture &amp; flows</span></span>
+    <span class="brand-text"><span class="brand-name">Ludo Arena</span><span class="brand-sub">System architecture &amp; flows</span></span>
   </a>
   <span class="topbar-spacer"></span>
   <div class="seg" role="group" aria-label="Color theme">
@@ -439,16 +439,16 @@ td code { font-size: 0.8rem; }
   <!-- ============================================================ 0 -->
   <section class="doc-section hero" id="overview" aria-labelledby="overview-h">
     <div class="eyebrow">System documentation · repository state 2026-10-21</div>
-    <h1 id="overview-h">Ludo Royale — System Architecture &amp; Flows</h1>
-    <p class="lead">Ludo Royale is a multiplayer <strong>Ludo</strong> (classic and Quick) and <strong>Snakes &amp; Ladders</strong> game: a Flutter app for Android and iOS, an authoritative Go backend (REST + WebSocket) backed by PostgreSQL and Redis, and a separate Go <strong>bot-play</strong> service whose players are marked as bots by the server (the app shows no bot labels). This page documents what is implemented in the repository today, verified against the code. Anything not implemented or not yet configured is labelled <span class="badge b-pending">Pending</span>.</p>
+    <h1 id="overview-h">Ludo Arena — System Architecture &amp; Flows</h1>
+    <p class="lead">Ludo Arena is a multiplayer <strong>Ludo</strong> (classic and Quick) and <strong>Snakes &amp; Ladders</strong> game: a Flutter app for Android and iOS, an authoritative Go backend (REST + WebSocket) backed by PostgreSQL and Redis, and a separate Go <strong>bot-play</strong> service whose players are marked as bots by the server (the app shows no bot labels). This page documents what is implemented in the repository today, verified against the code. Anything not implemented or not yet configured is labelled <span class="badge b-pending">Pending</span>.</p>
 
     <div class="facts">
       <div class="fact"><div class="k">Projects</div><div class="v"><code>frontend/</code> · <code>backend/</code> · <code>bot-play/</code></div></div>
       <div class="fact"><div class="k">Stacks</div><div class="v">Flutter 3.44 / Dart 3.12 · Go 1.27 (two modules)</div></div>
-      <div class="fact"><div class="k">Realtime protocol</div><div class="v"><code>ludo-royale.v1</code> on <code>GET /api/v1/ws</code></div></div>
+      <div class="fact"><div class="k">Realtime protocol</div><div class="v"><code>ludo-arena.v1</code> on <code>GET /api/v1/ws</code></div></div>
       <div class="fact"><div class="k">Authority</div><div class="v">Go backend: dice, rules, state, timers, wallets</div></div>
       <div class="fact"><div class="k">Data</div><div class="v">PostgreSQL 16 (3 schemas) · Redis 7</div></div>
-      <div class="fact"><div class="k">App id</div><div class="v"><code>com.ludoroyale.app</code> (Android &amp; iOS)</div></div>
+      <div class="fact"><div class="k">App id</div><div class="v"><code>com.ludoarena.app</code> (Android &amp; iOS)</div></div>
     </div>
 
     <div class="legend" aria-label="Status legend">
@@ -468,7 +468,7 @@ td code { font-size: 0.8rem; }
           <tr><td><code>backend/internal/</code></td><td><code>server</code> (wiring), <code>httpapi</code>, <code>websocket</code>, <code>auth</code>, <code>identity</code>, <code>wallet</code>, <code>rooms</code>, <code>game/ludo</code>, <code>game/snakes_ladders</code>, <code>apppolicy</code>, <code>progression</code>, <code>social</code>, <code>analytics</code>, <code>profile</code>, <code>notify</code>, <code>ratelimit</code>, <code>metrics</code>, <code>protocol</code></td></tr>
           <tr><td><code>backend/migrations/</code></td><td><code>001_wallet.sql</code>, <code>002_identity.sql</code>, <code>003_progression.sql</code>, <code>004_device_identity.sql</code>, <code>006_player_reports.sql</code> (embedded, idempotent, applied at startup)</td></tr>
           <tr><td><code>backend/config/</code></td><td><code>app-policy.{development,preproduction,production}.json</code>, <code>catalog.json</code>, <code>missions.json</code></td></tr>
-          <tr><td><code>bot-play/</code></td><td>Separate module <code>ludoroyale/botplay</code>: <code>cmd/bot-play</code>, <code>internal/{config,client,connection,runner,strategy,ludo,matchmaking,...}</code>, <code>configs/</code>, <code>tests/</code></td></tr>
+          <tr><td><code>bot-play/</code></td><td>Separate module <code>ludoarena/botplay</code>: <code>cmd/bot-play</code>, <code>internal/{config,client,connection,runner,strategy,ludo,matchmaking,...}</code>, <code>configs/</code>, <code>tests/</code></td></tr>
           <tr><td><code>docs/</code></td><td>Contracts and operations docs (this page, <a href="websocket-protocol.md">websocket-protocol.md</a>, <a href="rest-api.md">rest-api.md</a>, <a href="authentication.md">authentication.md</a>, <a href="app-version-policy.md">app-version-policy.md</a>, <a href="progression.md">progression.md</a>, <a href="bot-play.md">bot-play.md</a>, <a href="deployment.md">deployment.md</a>, <a href="performance.md">performance.md</a>, <a href="cosmetics-catalog.md">cosmetics-catalog.md</a>)</td></tr>
         </tbody>
       </table>
@@ -488,7 +488,7 @@ td code { font-size: 0.8rem; }
   <div class="diagram-canvas" role="img" aria-label="Figure 1: System context"><span class="diagram-loading">Rendering diagram…</span></div>
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 1">flowchart TB
-  App["Flutter app, Android and iOS&lt;br/&gt;com.ludoroyale.app"]
+  App["Flutter app, Android and iOS&lt;br/&gt;com.ludoarena.app"]
   Bots["bot-play&lt;br/&gt;separate Go service, server-marked bots"]
   subgraph IdP["Identity providers: prove identity only"]
     Google["Google Sign-In&lt;br/&gt;project ludo-royale-63887&lt;br/&gt;ID token verified by Go via JWKS"]
@@ -758,12 +758,12 @@ td code { font-size: 0.8rem; }
         <tbody>
           <tr><td>Web application (server client id)</td><td><code>serverClientId</code> in the app (<code>GOOGLE_SERVER_CLIENT_ID</code> dart-define default) and the only <code>aud</code> the backend accepts (<code>GOOGLE_CLIENT_IDS</code>)</td><td><code>124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.googleusercontent.com</code></td></tr>
           <tr><td>iOS</td><td>iOS sign-in (<code>GIDClientID</code>, reversed id as URL scheme; <code>GOOGLE_IOS_CLIENT_ID</code>)</td><td><code>124893613050-etb8okpenf0il17tmb33pr3cet8s9jba.apps.googleusercontent.com</code></td></tr>
-          <tr><td>Android (debug)</td><td>Package <code>com.ludoroyale.app</code> + the <strong>debug</strong> keystore SHA-1</td><td><code>124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com</code></td></tr>
+          <tr><td>Android (debug)</td><td>Package <code>com.ludoarena.app</code> + the <strong>debug</strong> keystore SHA-1</td><td><code>124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com</code></td></tr>
         </tbody>
       </table>
     </div>
     <div class="callout pending"><span class="callout-title">Pending for production</span>An Android OAuth client for the <strong>release / Play App Signing SHA-1</strong> (release builds currently use the debug key), moving the consent screen out of Testing (verification), and more test users as needed.</div>
-    <p>Other providers use the same backend flow: <strong>Apple</strong> (identity token + raw nonce, <code>nonce == sha256(rawNonce)</code>, audiences <code>APPLE_AUDIENCES</code>; Android web flow via <code>POST /api/v1/auth/apple/callback</code>) and <strong>Facebook</strong> (Limited Login OIDC token + nonce, or classic token via Graph <code>debug_token</code>). Both are implemented in code but <span class="badge b-pending">Pending</span> configuration: Apple needs an Apple Developer account (Sign in with Apple for <code>com.ludoroyale.app</code>, a Services ID for Android); Facebook needs a Meta app (<code>FACEBOOK_APP_ID</code>, <code>FACEBOOK_APP_SECRET</code>). Until then the app hides the Facebook button (<code>FACEBOOK_ENABLED=false</code>) and the backend answers <code>503 provider_unavailable</code>.</p>
+    <p>Other providers use the same backend flow: <strong>Apple</strong> (identity token + raw nonce, <code>nonce == sha256(rawNonce)</code>, audiences <code>APPLE_AUDIENCES</code>; Android web flow via <code>POST /api/v1/auth/apple/callback</code>) and <strong>Facebook</strong> (Limited Login OIDC token + nonce, or classic token via Graph <code>debug_token</code>). Both are implemented in code but <span class="badge b-pending">Pending</span> configuration: Apple needs an Apple Developer account (Sign in with Apple for <code>com.ludoarena.app</code>, a Services ID for Android); Facebook needs a Meta app (<code>FACEBOOK_APP_ID</code>, <code>FACEBOOK_APP_SECRET</code>). Until then the app hides the Facebook button (<code>FACEBOOK_ENABLED=false</code>) and the backend answers <code>503 provider_unavailable</code>.</p>
   </section>
 
   <!-- ============================================================ 3 -->
@@ -812,7 +812,7 @@ td code { font-size: 0.8rem; }
     <p class="small">Linking is rate limited to 10 per minute per account. After linking, signing in with that provider on any device resolves to the same account id and wallet.</p>
     <p><strong>Guest persistence.</strong> A guest stays the same account (id, coins, diamonds, XP, collection, friends) after a sign-out, an app update or a reinstall — “Play as guest” or the launch restore brings it back — until it is linked to Google/Facebook/Apple or deleted. A link conflict (<code>identity_conflict</code>) changes nothing, so the guest stays on the device. See <a href="authentication.md#guest-persistence">authentication.md → Guest persistence</a>.</p>
     <h3 id="device-binding">Restore after update or reinstall (device binding)<a class="heading-anchor" href="#device-binding" aria-label="Link to this heading">#</a></h3>
-    <p>Secure storage does not reliably survive an uninstall, so the guest account is also bound to a platform device id (only guests are bound): Android 8+ sends <code>Settings.Secure.ANDROID_ID</code> (per app-signing key; survives updates and reinstalls, changes on factory reset or a different signing key; Android &lt; 8 sends nothing), iOS sends a random UUID kept in the keychain (survives updates and reinstalls on the same device). The server stores only <code>hex(HMAC-SHA256(k, platform:deviceId))</code> with <code>k = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-royale/device-id/v1")</code> as an <code>identity.auth_identities</code> row with the internal provider <code>device</code>: one account per device, one device per account. The identifier is used only for this restore.</p>
+    <p>Secure storage does not reliably survive an uninstall, so the guest account is also bound to a platform device id (only guests are bound): Android 8+ sends <code>Settings.Secure.ANDROID_ID</code> (per app-signing key; survives updates and reinstalls, changes on factory reset or a different signing key; Android &lt; 8 sends nothing), iOS sends a random UUID kept in the keychain (survives updates and reinstalls on the same device). The server stores only <code>hex(HMAC-SHA256(k, platform:deviceId))</code> with <code>k = HMAC-SHA256(PUBLIC_ID_KEY, "ludo-arena/device-id/v1")</code> as an <code>identity.auth_identities</code> row with the internal provider <code>device</code>: one account per device, one device per account. The identifier is used only for this restore.</p>
     <div class="table-wrap compact">
       <table>
         <thead><tr><th>Request</th><th>Outcome</th></tr></thead>
@@ -1200,7 +1200,7 @@ td code { font-size: 0.8rem; }
   <section class="doc-section" id="deployment" aria-labelledby="deployment-h">
     <div class="section-head"><span class="section-num">10</span><h2 id="deployment-h">Deployment and configuration<a class="heading-anchor" href="#deployment" aria-label="Link to this section">#</a></h2></div>
     <p class="section-meta">Code: <code>backend/Dockerfile</code>, <code>backend/docker-compose.yml</code>, <code>backend/.env.example</code>, <code>backend/internal/config/config.go</code>, <code>bot-play/Dockerfile</code>, <code>bot-play/configs/</code>, <code>frontend/lib/core/config/app_config.dart</code> · Docs: <a href="deployment.md">deployment.md</a></p>
-    <div class="callout pending"><span class="callout-title">Production infrastructure is Pending</span>The topology below is the documented target (<a href="deployment.md">deployment.md</a>). No production environment is provisioned yet; <code>bot-play/configs/environments/production.yaml</code> still points at the placeholder host <code>api.ludoroyale.example</code>.</div>
+    <div class="callout ok"><span class="callout-title">Production runs on one VPS</span>Production runs on a single VPS at <code>https://ludo.sungamestudio.com</code>: nginx (TLS and the WebSocket proxy) in front of one backend instance, with bot-play, PostgreSQL 16 and Redis 7 on the same host and reachable only on loopback. <code>bot-play/configs/environments/production.yaml</code> points at <code>https://ludo.sungamestudio.com</code>. Building, deploying, rolling back and backups are in the <a href="../deploy/read.html">production runbook</a>. The topology below is the scale-out target (<a href="deployment.md">deployment.md</a>) for when one server is no longer enough.</div>
 
 <figure class="diagram" id="fig-deploy-topology">
   <div class="diagram-head"><span class="diagram-num">Figure 16</span><span class="diagram-title">Target deployment topology</span><span class="diagram-tools"><button type="button" class="tool" data-act="size" aria-pressed="false">Actual size</button><button type="button" class="tool" data-act="src" aria-pressed="false">Source</button></span></div>
@@ -1237,7 +1237,7 @@ td code { font-size: 0.8rem; }
 </pre>
 </figure>
     <ul>
-      <li>Four independent projects with their own dependencies: <code>frontend/</code> (Flutter), <code>backend/</code> (Go module <code>ludoroyale</code>), <code>bot-play/</code> (Go module <code>ludoroyale/botplay</code>), <code>monitoring/</code> (Prometheus, Alertmanager, node_exporter and the Telegram ops bot, Go module <code>ludoroyale/opsbot</code>; see <a href="#monitoring">Monitoring and alerting</a>).</li>
+      <li>Four independent projects with their own dependencies: <code>frontend/</code> (Flutter), <code>backend/</code> (Go module <code>ludoarena</code>), <code>bot-play/</code> (Go module <code>ludoarena/botplay</code>), <code>monitoring/</code> (Prometheus, Alertmanager, node_exporter and the Telegram ops bot, Go module <code>ludoarena/opsbot</code>; see <a href="#monitoring">Monitoring and alerting</a>).</li>
       <li>TLS terminates at the load balancer; set <code>TRUSTED_PROXY_HOPS</code> to the number of proxies and <code>PUBLIC_URL</code> to the https URL. Expose <code>METRICS_ADDR</code> only to the monitoring network. Run ≥ 2 backend instances; rolling deploys close sockets with <code>1001</code> and clients resync. Graceful shutdown: SIGTERM → stop accepting, close sockets, drain HTTP (20 s).</li>
       <li>Docker images: <code>backend/Dockerfile</code> (golang:1.27-alpine build → <code>gcr.io/distroless/static-debian12:nonroot</code>, exposes 8080/9090, ships <code>config/</code>) and <code>bot-play/Dockerfile</code> (static binary, distroless <code>nonroot</code>, configs under <code>/app/configs</code>). <code>backend/docker-compose.yml</code> is for local dependencies only (PostgreSQL 16, Redis 7.4 on 127.0.0.1).</li>
     </ul>
@@ -1310,7 +1310,7 @@ td code { font-size: 0.8rem; }
       <table>
         <thead><tr><th>Identifier</th><th>Value</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td>Android package / iOS bundle id</td><td><code>com.ludoroyale.app</code></td><td><span class="badge b-impl">Configured</span></td></tr>
+          <tr><td>Android package / iOS bundle id</td><td><code>com.ludoarena.app</code></td><td><span class="badge b-impl">Configured</span></td></tr>
           <tr><td>Google Cloud project</td><td><code>ludo-royale-63887</code> (OAuth clients in <a href="#google-oauth-clients">§2</a>)</td><td><span class="badge b-impl">Configured</span> (Testing mode)</td></tr>
           <tr><td>Apple Sign in return URL (Android)</td><td><code>{PUBLIC_URL}/api/v1/auth/apple/callback</code></td><td><span class="badge b-pending">Pending</span> Apple Developer</td></tr>
           <tr><td>Release signing SHA-1 / Play App Signing</td><td>—</td><td><span class="badge b-pending">Pending</span></td></tr>
@@ -1696,7 +1696,7 @@ td code { font-size: 0.8rem; }
   <section class="doc-section" id="bot-play" aria-labelledby="bot-play-h">
     <div class="section-head"><span class="section-num">14</span><h2 id="bot-play-h">bot-play<a class="heading-anchor" href="#bot-play" aria-label="Link to this section">#</a></h2></div>
     <p class="section-meta">Code: <code>bot-play/internal/{runner,client,connection,config,strategy,ludo,matchmaking}</code>, <code>backend/internal/auth/bots.go</code>, <code>backend/internal/rooms/bots.go</code> · Docs: <a href="bot-play.md">bot-play.md</a>, <a href="../bot-play/README.md">bot-play/README.md</a> · Status: <span class="badge b-impl">Implemented</span> (public fill disabled by default in production config)</p>
-    <p>bot-play is a separate Go service and a <strong>pure protocol client</strong>: it uses the same <code>ludo-royale.v1</code> protocol as the app with server-issued bot tokens. The backend owns dice, legal moves, state, turns, winners and wallets; bots only roll, choose among <em>server-listed</em> legal moves, and leave. bot-play contains no Firebase or analytics SDK.</p>
+    <p>bot-play is a separate Go service and a <strong>pure protocol client</strong>: it uses the same <code>ludo-arena.v1</code> protocol as the app with server-issued bot tokens. The backend owns dice, legal moves, state, turns, winners and wallets; bots only roll, choose among <em>server-listed</em> legal moves, and leave. bot-play contains no Firebase or analytics SDK.</p>
 
     <h3 id="bot-relationship">(a) Relationship between Flutter, the backend, Redis and bot-play<a class="heading-anchor" href="#bot-relationship" aria-label="Link to this heading">#</a></h3>
 <figure class="diagram" id="fig-bot-relationship-fig">
@@ -1705,7 +1705,7 @@ td code { font-size: 0.8rem; }
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 28">flowchart TB
   H["Flutter app: human players"]
-  subgraph BotPlay["bot-play: module ludoroyale/botplay"]
+  subgraph BotPlay["bot-play: module ludoarena/botplay"]
     CTRL["Controller&lt;br/&gt;assignment long-poll, public fill,&lt;br/&gt;population reconciler"]
     BOTS["Bots: one goroutine each&lt;br/&gt;reducer and strategy"]
     CFG["YAML config and profiles.yaml&lt;br/&gt;hot reload"]
@@ -1713,7 +1713,7 @@ td code { font-size: 0.8rem; }
   end
   subgraph BE["Go backend: authoritative"]
     BR["/api/v1/bot/* REST&lt;br/&gt;only with BOT_SERVICE_KEY_SHA256"]
-    WS["/api/v1/ws&lt;br/&gt;same ludo-royale.v1 protocol"]
+    WS["/api/v1/ws&lt;br/&gt;same ludo-arena.v1 protocol"]
     RM["rooms: assignments, seats,&lt;br/&gt;rules, dice"]
   end
   R[("Redis&lt;br/&gt;bot:assignments, botasg:{id},&lt;br/&gt;botsess:{uid}, botpersona:*, botprof:{uid},&lt;br/&gt;mm:open:loadtest:*")]
@@ -2031,7 +2031,7 @@ td code { font-size: 0.8rem; }
   subgraph Pend["Pending"]
     P2["Facebook app and credentials,&lt;br/&gt;Apple Developer configuration"]
     P3["Release signing SHA-1, Play App Signing,&lt;br/&gt;App Store and Play listings, store URLs"]
-    P4["Firebase DebugView check on a device,&lt;br/&gt;production infrastructure"]
+    P4["Firebase DebugView check on a device,&lt;br/&gt;scale-out infrastructure"]
     P2 ~~~ P3
     P3 ~~~ P4
   end
@@ -2039,8 +2039,10 @@ td code { font-size: 0.8rem; }
     D1["Go backend: auth, guest, linking, wallet,&lt;br/&gt;rooms, both engines, scheduler, policy gate,&lt;br/&gt;progression, social, analytics, metrics"]
     D2["bot-play: practice and private bots,&lt;br/&gt;public fill, hot reload,&lt;br/&gt;load-test mode with guards"]
     D3["Flutter app: gate and policy screens, login,&lt;br/&gt;linking, home, play, private rooms, match,&lt;br/&gt;missions, collection, friends, leaderboard,&lt;br/&gt;theme, five languages, analytics gate"]
+    D4["Production: one VPS at&lt;br/&gt;ludo.sungamestudio.com"]
     D1 ~~~ D2
     D2 ~~~ D3
+    D3 ~~~ D4
   end
   classDef pending stroke-dasharray:6 4
   class P2,P3,P4 pending
@@ -2064,7 +2066,8 @@ td code { font-size: 0.8rem; }
           <tr><td>Release signing SHA-1 / Play App Signing OAuth client</td><td><span class="badge b-pending">Pending</span></td><td>Release builds currently use the debug key</td></tr>
           <tr><td>App Store / Google Play listings</td><td><span class="badge b-pending">Pending</span></td><td><code>storeUrl</code> empty in every policy file → “not yet available in the store”</td></tr>
           <tr><td>Firebase Analytics DebugView verification on a device</td><td><span class="badge b-pending">Pending</span></td><td>Gate and catalog are unit-tested; live delivery not yet verified</td></tr>
-          <tr><td>Production infrastructure (load balancer, managed PostgreSQL/Redis, secrets, monitoring)</td><td><span class="badge b-pending">Pending</span></td><td>Target design in <a href="deployment.md">deployment.md</a></td></tr>
+          <tr><td>Production server (one VPS at <code>ludo.sungamestudio.com</code>: nginx, backend, bot-play, PostgreSQL, Redis)</td><td><span class="badge b-impl">Configured</span></td><td><a href="../deploy/read.html">Production runbook</a></td></tr>
+          <tr><td>Scale-out infrastructure (load balancer, several backend instances, managed PostgreSQL/Redis)</td><td><span class="badge b-pending">Pending</span></td><td>Target design in <a href="deployment.md">deployment.md</a></td></tr>
           <tr><td>Redis sharding beyond one Redis</td><td><span class="badge b-pending">Not implemented</span></td><td>Redis is the measured bottleneck (<a href="#measured-load-test-results">§12</a>)</td></tr>
         </tbody>
       </table>
@@ -2072,7 +2075,7 @@ td code { font-size: 0.8rem; }
 
     <footer class="footer">
       <a class="back-top" href="#overview">Back to top ↑</a>
-      Ludo Royale system documentation. Sources of truth: the code, <a href="websocket-protocol.md">websocket-protocol.md</a>, <a href="rest-api.md">rest-api.md</a>, <a href="../backend/docs/game-rules.md">game-rules.md</a> and <a href="../backend/docs/redis-keys.md">redis-keys.md</a>. Diagrams: Mermaid 12.2.0 (MIT, <a href="assets/MERMAID-LICENSE.txt">license</a>).
+      Ludo Arena system documentation. Sources of truth: the code, <a href="websocket-protocol.md">websocket-protocol.md</a>, <a href="rest-api.md">rest-api.md</a>, <a href="../backend/docs/game-rules.md">game-rules.md</a> and <a href="../backend/docs/redis-keys.md">redis-keys.md</a>. Diagrams: Mermaid 12.2.0 (MIT, <a href="assets/MERMAID-LICENSE.txt">license</a>).
     </footer>
   </section>
 
@@ -2085,7 +2088,7 @@ td code { font-size: 0.8rem; }
   'use strict';
   var doc = document;
   var root = doc.documentElement;
-  var THEME_KEY = 'ludo-royale-docs-theme';
+  var THEME_KEY = 'ludo-arena-docs-theme';
   var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   var FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 

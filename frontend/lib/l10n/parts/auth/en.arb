@@ -181,7 +181,7 @@
       }
     }
   },
-  "authConflictMessage": "That {provider} account already has its own Ludo Royale account. Nothing will be merged or moved between the two accounts.",
+  "authConflictMessage": "That {provider} account already has its own Ludo Arena account. Nothing will be merged or moved between the two accounts.",
   "@authConflictMessage": {
     "description": "409 identity_conflict explanation: nothing is merged.",
     "placeholders": {

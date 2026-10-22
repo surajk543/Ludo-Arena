@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"ludoroyale/botplay/internal/client"
+	"ludoarena/botplay/internal/client"
 )
 
 // loadtestLoop ramps the load-test population to loadtest.target_connections

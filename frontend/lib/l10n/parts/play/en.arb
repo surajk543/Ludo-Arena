@@ -234,7 +234,7 @@
   "@playShareInvite": {
     "description": "Button: share an invite with the room code."
   },
-  "playInviteShareText": "Join me for {game} on Ludo Royale! Open the app, tap Join with Code and enter: {code}",
+  "playInviteShareText": "Join me for {game} on Ludo Arena! Open the app, tap Join with Code and enter: {code}",
   "@playInviteShareText": {
     "description": "Text shared to other apps. Must contain only the game name and the room code.",
     "placeholders": {
@@ -246,7 +246,7 @@
       }
     }
   },
-  "playInviteShareSubject": "Ludo Royale invite",
+  "playInviteShareSubject": "Ludo Arena invite",
   "@playInviteShareSubject": {
     "description": "Subject line of the shared invite."
   },

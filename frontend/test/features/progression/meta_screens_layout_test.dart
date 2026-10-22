@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:ludo_royale/features/collection/presentation/collection_screen.dart';
-import 'package:ludo_royale/features/events/presentation/events_screen.dart';
-import 'package:ludo_royale/features/leaderboard/presentation/leaderboard_screen.dart';
-import 'package:ludo_royale/features/missions/presentation/missions_screen.dart';
-import 'package:ludo_royale/features/progression/presentation/progression_screen.dart';
-import 'package:ludo_royale/features/social/presentation/friends_screen.dart';
+import 'package:ludo_arena/features/collection/presentation/collection_screen.dart';
+import 'package:ludo_arena/features/events/presentation/events_screen.dart';
+import 'package:ludo_arena/features/leaderboard/presentation/leaderboard_screen.dart';
+import 'package:ludo_arena/features/missions/presentation/missions_screen.dart';
+import 'package:ludo_arena/features/progression/presentation/progression_screen.dart';
+import 'package:ludo_arena/features/social/presentation/friends_screen.dart';
 
 import 'meta_test_support.dart';
 
