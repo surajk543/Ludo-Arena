@@ -60,7 +60,7 @@ echo "==> building $REL"
 cp -R "$ROOT/backend/config" "$OUT/$REL/backend/config"
 cp "$ROOT/bot-play/configs/profiles.yaml" "$OUT/$REL/bot-play/configs/"
 cp "$ROOT/bot-play/configs/environments/production.yaml" "$OUT/$REL/bot-play/configs/environments/"
-COPYFILE_DISABLE=1 tar -C "$OUT" -czf "$OUT/release.tgz" "$REL"
+COPYFILE_DISABLE=1 tar --no-xattrs -C "$OUT" -czf "$OUT/release.tgz" "$REL"
 
 echo "==> uploading to $TARGET"
 "${SCP[@]}" -q "$OUT/release.tgz" "$TARGET:/tmp/ludo-release.tgz"
