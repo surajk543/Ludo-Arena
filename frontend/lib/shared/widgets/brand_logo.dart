@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 
-/// Painted royal crest: a gold crown over a violet shield carrying a die.
+/// Painted brand emblem: a Ludo board in a gold arena ring with a die.
 /// Optional wordmark (`appTitle`) in a gold gradient below.
 class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key, this.size = 96, this.showWordmark = false});
@@ -62,13 +62,16 @@ class BrandLogo extends StatelessWidget {
   }
 }
 
-/// Crest artwork (also used by splash/gate illustrations and, through
+/// Emblem artwork (also used by splash/gate illustrations and, through
 /// `tool/generate_brand_assets.dart`, the native app icons and launch
-/// screens).
+/// screens): a Ludo board (four seat-colored homes and the cross track) in a
+/// gold arena ring, with a die in the middle. The box is `width x width *
+/// 1.08` (the launch screens are laid out for it); the round emblem is
+/// centered in it.
 ///
-/// [monochrome] paints a single-color silhouette (crown, shield rim, die
-/// with pip cut-outs) in [monochromeColor]; it is the source of the Android
-/// 13+ themed icon. [shadow] false omits the shield's drop shadow (for
+/// [monochrome] paints a single-color silhouette (ring, cross track and the
+/// die with pip cut-outs) in [monochromeColor]; it is the source of the
+/// Android 13+ themed icon. [shadow] false omits the drop shadows (for
 /// artwork the system clips to a circle, like the Android 12+ splash icon).
 class BrandCrestPainter extends CustomPainter {
   const BrandCrestPainter({
@@ -83,6 +86,14 @@ class BrandCrestPainter extends CustomPainter {
   final Color monochromeColor;
   final bool shadow;
 
+  /// Seat colors of the four homes, clockwise from the top-left.
+  static const List<Color> seatColors = [
+    Color(0xFFE5484D),
+    Color(0xFF30A46C),
+    Color(0xFFF5B800),
+    Color(0xFF3E63DD),
+  ];
+
   @override
   void paint(Canvas canvas, Size size) {
     if (monochrome) {
@@ -90,113 +101,123 @@ class BrandCrestPainter extends CustomPainter {
       return;
     }
     final w = size.width;
-    final h = size.height;
+    final c = _center(size);
+    final rb = _boardRadius(size);
+    final board = Rect.fromCircle(center: c, radius: rb);
+    final rr = _ringRadius(size);
+    final rw = _ringWidth(size);
 
-    // Shield.
-    final shieldRect = _shieldRect(size);
-    final shield = _shieldPath(size);
-
-    if (shadow) canvas.drawShadow(shield, Colors.black, w * 0.05, false);
-    // Gold border.
-    canvas.drawPath(
-      shield,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [BrandPalette.gold300, BrandPalette.gold600],
-        ).createShader(shieldRect),
-    );
-    // Inner violet field.
-    final inner = _scalePath(shield, shieldRect.center, 0.86);
-    canvas.drawPath(
-      inner,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            BrandPalette.royal400,
-            BrandPalette.royal600,
-            BrandPalette.royal800,
-          ],
-        ).createShader(shieldRect),
-    );
-    // Sheen.
-    canvas.save();
-    canvas.clipPath(inner);
-    canvas.drawRect(
-      Rect.fromLTWH(
-        shieldRect.left,
-        shieldRect.top,
-        shieldRect.width,
-        shieldRect.height * 0.4,
-      ),
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white.withValues(alpha: 0.22),
-            Colors.white.withValues(alpha: 0),
-          ],
-        ).createShader(shieldRect),
-    );
-    canvas.restore();
-
-    // Die.
-    final dieSize = _dieSize(size);
-    canvas.save();
-    canvas.translate(_dieCenter(size).dx, _dieCenter(size).dy);
-    canvas.rotate(_dieRotation);
-    final dieRect = _dieRect(size);
-    canvas.drawRRect(
-      dieRect.shift(Offset(0, dieSize * 0.06)),
-      Paint()..color = BrandPalette.royal950.withValues(alpha: 0.45),
-    );
-    canvas.drawRRect(
-      dieRect,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, Color(0xFFE9E3FF)],
-        ).createShader(dieRect.outerRect),
-    );
-    final pip = Paint()..color = BrandPalette.royal700;
-    for (final d in _pipOffsets(size)) {
-      canvas.drawCircle(d, _pipRadius(size), pip);
-    }
-    canvas.restore();
-
-    // Seat-colored gems along the bottom of the shield.
-    const gems = [
-      Color(0xFFE5484D),
-      Color(0xFF30A46C),
-      Color(0xFFF5B800),
-      Color(0xFF3E63DD),
-    ];
-    final gemCenters = _gemCenters(size);
-    for (var i = 0; i < 4; i++) {
-      final g = gemCenters[i];
-      canvas.drawCircle(g, w * 0.032, Paint()..color = gems[i]);
-      canvas.drawCircle(
-        Offset(g.dx - w * 0.01, g.dy - w * 0.01),
-        w * 0.011,
-        Paint()..color = Colors.white.withValues(alpha: 0.7),
+    if (shadow) {
+      canvas.drawShadow(
+        Path()..addOval(Rect.fromCircle(center: c, radius: _outerRadius(size))),
+        Colors.black,
+        w * 0.05,
+        false,
       );
     }
 
-    // Crown.
-    final crownRect = _crownRect(size);
-    final crown = _crownPath(size);
-    canvas.drawPath(
-      crown.shift(Offset(0, h * 0.015)),
-      Paint()..color = BrandPalette.gold800.withValues(alpha: 0.6),
-    );
-    canvas.drawPath(
-      crown,
+    // Board: the four homes, lit from the center.
+    canvas.save();
+    canvas.clipPath(Path()..addOval(board));
+    for (var i = 0; i < 4; i++) {
+      canvas.drawArc(
+        board,
+        math.pi + i * math.pi / 2,
+        math.pi / 2,
+        true,
+        Paint()..color = seatColors[i],
+      );
+    }
+    canvas.drawRect(
+      board,
       Paint()
+        ..shader = RadialGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.18),
+            Colors.black.withValues(alpha: 0.18),
+          ],
+        ).createShader(board),
+    );
+
+    // Cross track, three cells wide.
+    final arm = _armWidth(size);
+    final cell = arm / 3;
+    final track = Paint()..color = BrandPalette.royal50;
+    canvas.drawRect(
+      Rect.fromCenter(center: c, width: arm, height: rb * 2),
+      track,
+    );
+    canvas.drawRect(
+      Rect.fromCenter(center: c, width: rb * 2, height: arm),
+      track,
+    );
+    final line = Paint()
+      ..color = BrandPalette.royal200
+      ..strokeWidth = w * 0.007;
+    for (final k in const [-0.5, 0.5]) {
+      canvas.drawLine(
+        c.translate(k * cell, -rb),
+        c.translate(k * cell, rb),
+        line,
+      );
+      canvas.drawLine(
+        c.translate(-rb, k * cell),
+        c.translate(rb, k * cell),
+        line,
+      );
+    }
+    for (var t = arm / 2 + cell; t < rb; t += cell) {
+      for (final sgn in const [-1.0, 1.0]) {
+        canvas.drawLine(
+          c.translate(-arm / 2, sgn * t),
+          c.translate(arm / 2, sgn * t),
+          line,
+        );
+        canvas.drawLine(
+          c.translate(sgn * t, -arm / 2),
+          c.translate(sgn * t, arm / 2),
+          line,
+        );
+      }
+    }
+    // Home columns: each seat's three cells leading to the center.
+    const homeColumns = [
+      (Offset(-1, 0), 0),
+      (Offset(0, -1), 1),
+      (Offset(1, 0), 2),
+      (Offset(0, 1), 3),
+    ];
+    for (final (dir, seat) in homeColumns) {
+      for (var n = 1; n <= 3; n++) {
+        canvas.drawRect(
+          Rect.fromCenter(
+            center: c + dir * (arm / 2 + cell * (n - 0.5)),
+            width: cell * 0.86,
+            height: cell * 0.86,
+          ),
+          Paint()..color = seatColors[seat],
+        );
+      }
+    }
+    canvas.restore();
+
+    // Gold arena ring.
+    if (shadow) {
+      canvas.drawCircle(
+        c.translate(0, rw * 0.35),
+        rr,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = rw
+          ..color = BrandPalette.royal950.withValues(alpha: 0.45),
+      );
+    }
+    canvas.drawCircle(
+      c,
+      rr,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = rw
         ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -205,55 +226,88 @@ class BrandCrestPainter extends CustomPainter {
             BrandPalette.gold500,
             BrandPalette.gold600,
           ],
-        ).createShader(crownRect),
+        ).createShader(Rect.fromCircle(center: c, radius: rr + rw / 2)),
     );
-    // Crown band.
-    canvas.drawRRect(_crownBand(size), Paint()..color = BrandPalette.gold700);
-    // Crown tips.
-    for (final t in _crownTips(size)) {
-      canvas.drawCircle(t, w * 0.035, Paint()..color = BrandPalette.gold300);
-    }
     canvas.drawCircle(
-      _crownJewel(size),
-      w * 0.03,
-      Paint()..color = const Color(0xFFE5484D),
+      c,
+      rr - rw * 0.28,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = rw * 0.12
+        ..color = BrandPalette.gold100.withValues(alpha: 0.55),
     );
+
+    // Die.
+    final d = _dieSize(size);
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(_dieRotation);
+    final die = _dieRect(size);
+    canvas.drawRRect(
+      die.shift(Offset(0, d * 0.07)),
+      Paint()..color = BrandPalette.royal950.withValues(alpha: 0.5),
+    );
+    canvas.drawRRect(
+      die,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFE9E3FF)],
+        ).createShader(die.outerRect),
+    );
+    final pip = Paint()..color = BrandPalette.royal700;
+    for (final o in _pipOffsets(size)) {
+      canvas.drawCircle(o, _pipRadius(size), pip);
+    }
+    canvas.restore();
   }
 
-  /// Single-color silhouette: crown with a jewel cut-out, the shield rim,
-  /// the die with pip cut-outs and the four gems. No shadows or gradients.
+  /// Single-color silhouette: the ring, the cross track and the die (set off
+  /// from the track by a cut-out outline) with pip cut-outs. No shadows or
+  /// gradients.
   void _paintMonochrome(Canvas canvas, Size size) {
     final w = size.width;
+    final c = _center(size);
+    final rb = _boardRadius(size);
     final fill = Paint()..color = monochromeColor;
     final clear = Paint()..blendMode = BlendMode.clear;
     canvas.saveLayer(Offset.zero & size, Paint());
 
-    // Shield rim (the field inside is cut out).
-    final shield = _shieldPath(size);
-    canvas.drawPath(shield, fill);
-    canvas.drawPath(_scalePath(shield, _shieldRect(size).center, 0.86), clear);
+    canvas.drawCircle(
+      c,
+      _ringRadius(size),
+      Paint()
+        ..color = monochromeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _ringWidth(size),
+    );
 
-    // Die with pip holes.
     canvas.save();
-    canvas.translate(_dieCenter(size).dx, _dieCenter(size).dy);
-    canvas.rotate(_dieRotation);
-    canvas.drawRRect(_dieRect(size), fill);
-    for (final d in _pipOffsets(size)) {
-      canvas.drawCircle(d, _pipRadius(size), clear);
-    }
+    canvas.clipPath(
+      Path()..addOval(Rect.fromCircle(center: c, radius: rb)),
+    );
+    final arm = _armWidth(size);
+    canvas.drawRect(
+      Rect.fromCenter(center: c, width: arm, height: rb * 2),
+      fill,
+    );
+    canvas.drawRect(
+      Rect.fromCenter(center: c, width: rb * 2, height: arm),
+      fill,
+    );
     canvas.restore();
 
-    for (final g in _gemCenters(size)) {
-      canvas.drawCircle(g, w * 0.032, fill);
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(_dieRotation);
+    final die = _dieRect(size);
+    canvas.drawRRect(die.inflate(w * 0.03), clear);
+    canvas.drawRRect(die, fill);
+    for (final o in _pipOffsets(size)) {
+      canvas.drawCircle(o, _pipRadius(size), clear);
     }
-
-    // Crown, band and tips, with the center jewel cut out.
-    canvas.drawPath(_crownPath(size), fill);
-    canvas.drawRRect(_crownBand(size), fill);
-    for (final t in _crownTips(size)) {
-      canvas.drawCircle(t, w * 0.035, fill);
-    }
-    canvas.drawCircle(_crownJewel(size), w * 0.03, clear);
+    canvas.restore();
     canvas.restore();
   }
 
@@ -261,39 +315,22 @@ class BrandCrestPainter extends CustomPainter {
 
   static const double _dieRotation = -0.16;
 
-  static Rect _shieldRect(Size s) => Rect.fromLTWH(
-    s.width * 0.12,
-    s.height * 0.30,
-    s.width * 0.76,
-    s.height * 0.68,
-  );
+  static Offset _center(Size s) => s.center(Offset.zero);
 
-  static Path _shieldPath(Size s) {
-    final w = s.width;
-    final cx = w / 2;
-    final r = _shieldRect(s);
-    return Path()
-      ..moveTo(r.left, r.top + w * 0.08)
-      ..quadraticBezierTo(r.left, r.top, r.left + w * 0.08, r.top)
-      ..lineTo(r.right - w * 0.08, r.top)
-      ..quadraticBezierTo(r.right, r.top, r.right, r.top + w * 0.08)
-      ..lineTo(r.right, r.top + r.height * 0.5)
-      ..quadraticBezierTo(r.right, r.bottom - r.height * 0.12, cx, r.bottom)
-      ..quadraticBezierTo(
-        r.left,
-        r.bottom - r.height * 0.12,
-        r.left,
-        r.top + r.height * 0.5,
-      )
-      ..close();
-  }
+  /// Outer edge of the ring; the margin to the box leaves room for the
+  /// drop shadow.
+  static double _outerRadius(Size s) => s.width * 0.48;
 
-  static double _dieSize(Size s) => s.width * 0.36;
+  static double _ringWidth(Size s) => _outerRadius(s) * 0.124;
 
-  static Offset _dieCenter(Size s) {
-    final r = _shieldRect(s);
-    return Offset(s.width / 2, r.top + r.height * 0.46);
-  }
+  static double _ringRadius(Size s) => _outerRadius(s) - _ringWidth(s) / 2;
+
+  /// Slightly larger than the ring's inner edge, so no gap shows.
+  static double _boardRadius(Size s) => _outerRadius(s) * 0.883;
+
+  static double _armWidth(Size s) => _outerRadius(s) * 0.423;
+
+  static double _dieSize(Size s) => _outerRadius(s) * 0.6;
 
   /// Die body, centered on the origin (callers translate and rotate).
   static RRect _dieRect(Size s) {
@@ -315,74 +352,6 @@ class BrandCrestPainter extends CustomPainter {
       Offset(-o, o),
       Offset(o, o),
     ];
-  }
-
-  static List<Offset> _gemCenters(Size s) {
-    final r = _shieldRect(s);
-    final gy = r.top + r.height * 0.78;
-    return [
-      for (var i = 0; i < 4; i++)
-        Offset(s.width / 2 + (i - 1.5) * s.width * 0.1, gy),
-    ];
-  }
-
-  static Rect _crownRect(Size s) {
-    final cw = s.width * 0.62;
-    return Rect.fromLTWH(
-      s.width / 2 - cw / 2,
-      s.height * 0.04,
-      cw,
-      s.height * 0.28,
-    );
-  }
-
-  static Path _crownPath(Size s) {
-    final c = _crownRect(s);
-    final (left, top, cw, ch) = (c.left, c.top, c.width, c.height);
-    return Path()
-      ..moveTo(left + cw * 0.06, top + ch)
-      ..lineTo(left, top + ch * 0.28)
-      ..lineTo(left + cw * 0.28, top + ch * 0.58)
-      ..lineTo(left + cw * 0.5, top)
-      ..lineTo(left + cw * 0.72, top + ch * 0.58)
-      ..lineTo(left + cw, top + ch * 0.28)
-      ..lineTo(left + cw * 0.94, top + ch)
-      ..close();
-  }
-
-  static RRect _crownBand(Size s) {
-    final c = _crownRect(s);
-    return RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        c.left + c.width * 0.05,
-        c.top + c.height * 0.8,
-        c.width * 0.9,
-        c.height * 0.22,
-      ),
-      Radius.circular(c.height * 0.08),
-    );
-  }
-
-  static List<Offset> _crownTips(Size s) {
-    final c = _crownRect(s);
-    return [
-      Offset(c.left, c.top + c.height * 0.28),
-      Offset(c.left + c.width * 0.5, c.top),
-      Offset(c.right, c.top + c.height * 0.28),
-    ];
-  }
-
-  static Offset _crownJewel(Size s) {
-    final c = _crownRect(s);
-    return Offset(s.width / 2, c.top + c.height * 0.9);
-  }
-
-  static Path _scalePath(Path p, Offset center, double factor) {
-    final m = Matrix4.identity()
-      ..translateByDouble(center.dx, center.dy, 0, 1)
-      ..scaleByDouble(factor, factor, 1, 1)
-      ..translateByDouble(-center.dx, -center.dy, 0, 1);
-    return p.transform(m.storage);
   }
 
   @override

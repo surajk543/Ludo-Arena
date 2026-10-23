@@ -1,5 +1,5 @@
 // Renders the app icons and native launch-screen artwork from the in-app
-// crest (`BrandCrestPainter` in lib/shared/widgets/brand_logo.dart), so the
+// emblem (`BrandCrestPainter` in lib/shared/widgets/brand_logo.dart), so the
 // launcher, the system splash and the first app frame share one artwork.
 //
 // It needs the Flutter engine (dart:ui) to paint, so run it with
@@ -238,25 +238,22 @@ void paintCrest(
   canvas.restore();
 }
 
-/// Crest width as a fraction of the icon: a little larger on tiny icons
-/// (Settings/Spotlight/notifications) so the crown and die stay legible.
-double _crestFraction(double side) => side <= 64 ? 0.76 : 0.70;
+/// Emblem box width as a fraction of the icon (the ring spans 96% of it): a
+/// little larger on tiny icons (Settings/Spotlight/notifications) so the
+/// board and die stay legible.
+double _crestFraction(double side) => side <= 64 ? 0.88 : 0.84;
 
 /// Full-bleed square icon (iOS masks it; the Play listing masks it too).
 void paintIcon(Canvas canvas, Size size) {
   final rect = Offset.zero & size;
   paintTileBackground(canvas, rect);
-  paintCrest(
-    canvas,
-    rect.center.translate(0, size.height * 0.01),
-    size.width * _crestFraction(size.width),
-  );
+  paintCrest(canvas, rect.center, size.width * _crestFraction(size.width));
 }
 
 /// Adaptive-icon layers use a 108-unit canvas whose central 66-unit circle
-/// is always visible; the crest (52% of the canvas wide) stays inside it with
-/// margin.
-const double adaptiveCrestFraction = 0.52;
+/// is always visible; the ring (96% of a box 60% of the canvas wide) stays
+/// inside it with margin.
+const double adaptiveCrestFraction = 0.60;
 
 void paintAdaptiveForeground(Canvas canvas, Size size) {
   paintCrest(
@@ -288,11 +285,7 @@ void paintLegacySquare(Canvas canvas, Size size) {
   );
   paintTileBackground(canvas, rect);
   canvas.restore();
-  paintCrest(
-    canvas,
-    rect.center.translate(0, rect.height * 0.01),
-    rect.width * _crestFraction(size.width),
-  );
+  paintCrest(canvas, rect.center, rect.width * _crestFraction(size.width));
 }
 
 /// Legacy round launcher icon.
@@ -303,11 +296,7 @@ void paintLegacyRound(Canvas canvas, Size size) {
   canvas.clipPath(Path()..addOval(rect));
   paintTileBackground(canvas, rect);
   canvas.restore();
-  paintCrest(
-    canvas,
-    rect.center.translate(0, rect.height * 0.01),
-    rect.width * 0.62,
-  );
+  paintCrest(canvas, rect.center, rect.width * 0.84);
 }
 
 /// Android 12+ system splash icon: a 288dp canvas of which the system shows
