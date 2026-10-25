@@ -1,0 +1,6 @@
+version: 1.0.0+3
+target: appbundle
+commit: 43835160b10da7a7fd1a9707a00bd788249d0d93
+built: 2026-10-25T18:46:12Z
+flutter: Flutter 3.44.7 • channel stable • https://github.com/flutter/flutter.git
+artifact: app-release.aab sha256=d1ce619b927f474af171c1e19b02ce0a3fb88e12efde384a017df5a5331414bb
