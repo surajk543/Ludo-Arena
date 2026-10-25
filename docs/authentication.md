@@ -387,24 +387,26 @@ bind/unbind 10/min/account · WebSocket connects 30/min/account · room codes 10
 ### Google (configured)
 
 Google Cloud project `ludo-royale-63887` (Google Auth Platform: External,
-Testing mode, test user added). OAuth clients:
+**In production** since 2026-10-26: basic scopes only and no logo, so no
+Google verification; branding home page `https://sungamestudio.com/ludo-arena`,
+privacy policy `/ludo-arena/privacy/`, authorized domain `sungamestudio.com`).
+OAuth clients:
 
 | Client | Purpose | Identifier |
 |---|---|---|
 | Web application "Ludo Arena Backend (server client ID)" | `serverClientId` in the app; the `aud` the backend accepts (`GOOGLE_CLIENT_IDS`) | `124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.googleusercontent.com` |
 | iOS "Ludo Arena iOS" | iOS sign-in (`GIDClientID`, reversed id as URL scheme) | `124893613050-etb8okpenf0il17tmb33pr3cet8s9jba.apps.googleusercontent.com` |
 | Android "Ludo Arena Android (debug)" | package `com.sungamestudio.ludoarena` + **debug** SHA-1 `7D:A8:67:75:85:7F:BA:77:64:E4:5C:C3:70:A2:68:DE:10:56:82:20` | `124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com` |
-| Android (release, Play) | package `com.sungamestudio.ludoarena` + upload key + Play app signing key (see Play Console › App integrity) | TBD |
+| Android "Ludo Arena Android (Play app signing)" | package `com.sungamestudio.ludoarena` + **Play app signing** SHA-1 `B5:48:E8:65:81:D7:A2:9D:00:B8:50:A9:E9:4C:3A:32:82:5A:06:9B` (installs from Google Play) | `124893613050-0tco9t36svsvu2c3g7deps61t4mmk2ei.apps.googleusercontent.com` |
+| Android "Ludo Arena Android (upload key)" | package `com.sungamestudio.ludoarena` + **upload key** SHA-1 `6A:6E:F5:50:C9:CD:EF:D5:2F:3D:0E:11:07:AB:A1:D4:3A:A9:96:CA` (release APKs installed outside Play) | `124893613050-k3jfeen9m0dndl845nghno6jh6nk8aaa.apps.googleusercontent.com` |
 
 The Android package (`com.sungamestudio.ludoarena`, Google Play) differs from
 the iOS bundle id (`com.ludoarena.app`). Client ids are public identifiers.
 The web client's secret is not used (ID token verification needs none) and is
 not stored anywhere in this repository.
 
-**Still required for production:** register the upload-key and Play App
-Signing SHA-1s on the Android release client above; move the consent screen
-out of Testing (verification) before public launch; add more test users as
-needed.
+Adding a logo or a sensitive scope to the consent screen would require
+Google's verification; keep it to basic scopes.
 
 ### Apple (not yet configured — needs an Apple Developer account)
 
