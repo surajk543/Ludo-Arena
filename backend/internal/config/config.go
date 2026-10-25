@@ -94,7 +94,7 @@ type IAPConfig struct {
 	// GooglePlayServiceAccountFile is the service account JSON key
 	// (GOOGLE_PLAY_SERVICE_ACCOUNT_FILE); empty disables Google Play.
 	GooglePlayServiceAccountFile string
-	// GooglePlayPackage is the app package (GOOGLE_PLAY_PACKAGE_NAME).
+	// GooglePlayPackage is the Android package (GOOGLE_PLAY_PACKAGE_NAME).
 	GooglePlayPackage string
 	// GooglePlayAPIURL overrides the Android Publisher host (test hook,
 	// GOOGLE_PLAY_API_URL; refused in production).
@@ -109,7 +109,7 @@ type IAPConfig struct {
 	// AppleEnabled turns on App Store verification (APPLE_IAP_ENABLED); it is
 	// also on when the App Store Server API key is configured.
 	AppleEnabled bool
-	// AppleBundleID is the app bundle id (APPLE_BUNDLE_ID).
+	// AppleBundleID is the iOS bundle id (APPLE_BUNDLE_ID).
 	AppleBundleID string
 	// AppleAllowSandbox accepts sandbox transactions (APPLE_IAP_ALLOW_SANDBOX,
 	// default true: App Review and TestFlight buy in the sandbox).
@@ -128,9 +128,15 @@ func (c IAPConfig) GoogleEnabled() bool { return c.GooglePlayServiceAccountFile 
 // AppleOn reports whether App Store purchases can be verified.
 func (c IAPConfig) AppleOn() bool { return c.AppleEnabled || c.AppleKeyFile != "" }
 
+// App ids: the Android package (Google Play, the Sign in with Apple Android
+// intent redirect) and the iOS bundle id (App Store) differ.
+const (
+	DefaultAndroidPackage = "com.sungamestudio.ludoarena"
+	DefaultAppleBundleID  = "com.ludoarena.app"
+)
+
 // Defaults for IAPConfig.
 const (
-	DefaultAppPackage           = "com.ludoarena.app"
 	DefaultGoogleVoidedInterval = time.Hour
 	DefaultGoogleVoidedLookback = 7 * 24 * time.Hour
 )
@@ -407,7 +413,7 @@ func Load() (*Config, error) {
 		PublicIDKey:       []byte(publicIDKey),
 		GoogleClientIDs:   getList("GOOGLE_CLIENT_IDS"),
 		AppleAudiences:    getList("APPLE_AUDIENCES"),
-		AppleAndroidPkg:   get("APPLE_ANDROID_PACKAGE", "com.ludoarena.app"),
+		AppleAndroidPkg:   get("APPLE_ANDROID_PACKAGE", DefaultAndroidPackage),
 		FacebookAppID:     get("FACEBOOK_APP_ID", ""),
 		FacebookAppSecret: get("FACEBOOK_APP_SECRET", ""),
 		GoogleJWKSURL:     get("GOOGLE_JWKS_URL", "https://www.googleapis.com/oauth2/v3/certs"),
@@ -592,12 +598,12 @@ func Load() (*Config, error) {
 	c.IAP = IAPConfig{
 		CoinPacksFile:                get("COIN_PACKS_FILE", "config/coin_packs.json"),
 		GooglePlayServiceAccountFile: get("GOOGLE_PLAY_SERVICE_ACCOUNT_FILE", ""),
-		GooglePlayPackage:            get("GOOGLE_PLAY_PACKAGE_NAME", DefaultAppPackage),
+		GooglePlayPackage:            get("GOOGLE_PLAY_PACKAGE_NAME", DefaultAndroidPackage),
 		GooglePlayAPIURL:             get("GOOGLE_PLAY_API_URL", ""),
 		GoogleVoidedInterval:         getDur("GOOGLE_PLAY_VOIDED_POLL_INTERVAL", DefaultGoogleVoidedInterval),
 		GoogleVoidedLookback:         getDur("GOOGLE_PLAY_VOIDED_LOOKBACK", DefaultGoogleVoidedLookback),
 		AppleEnabled:                 getBool("APPLE_IAP_ENABLED", false),
-		AppleBundleID:                get("APPLE_BUNDLE_ID", DefaultAppPackage),
+		AppleBundleID:                get("APPLE_BUNDLE_ID", DefaultAppleBundleID),
 		AppleAllowSandbox:            getBool("APPLE_IAP_ALLOW_SANDBOX", true),
 		AppleKeyID:                   get("APPLE_IAP_KEY_ID", ""),
 		AppleIssuerID:                get("APPLE_IAP_ISSUER_ID", ""),

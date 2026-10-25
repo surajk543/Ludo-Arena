@@ -17,7 +17,11 @@ import (
 // Coin packs (docs/in-app-purchases.md) against fake stores: Google Play's
 // Android Publisher API and StoreKit 2 signing with a test certificate chain.
 
-const appBundle = "com.ludoarena.app"
+// appPackage is the Android (Google Play) package, appBundle the iOS bundle id.
+const (
+	appPackage = "com.sungamestudio.ludoarena"
+	appBundle  = "com.ludoarena.app"
+)
 
 var iosHeaders = []string{"X-App-Platform", "ios"}
 
@@ -152,7 +156,7 @@ func TestCoinPacksUnconfigured(t *testing.T) {
 }
 
 func TestGooglePlayPurchase(t *testing.T) {
-	g := iaptest.NewGoogle(t, appBundle)
+	g := iaptest.NewGoogle(t, appPackage)
 	e := newEnv(t, envOpts{google: g, proxyHops: 1})
 	a := e.guestFromFreshIP()
 	ca := e.mustDial("A", a)
@@ -302,7 +306,7 @@ func TestGooglePlayPurchase(t *testing.T) {
 
 // Google voided purchases take the grant back (clamped at zero) exactly once.
 func TestGooglePlayRefunds(t *testing.T) {
-	g := iaptest.NewGoogle(t, appBundle)
+	g := iaptest.NewGoogle(t, appPackage)
 	e := newEnv(t, envOpts{google: g, proxyHops: 1, voidedPoll: "1s"})
 	a, b := e.guestFromFreshIP(), e.guestFromFreshIP()
 	ca := e.mustDial("A", a)

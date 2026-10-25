@@ -142,7 +142,7 @@ lists the packs (the app says "This pack isn't available yet").
 |---|---|---|
 | `COIN_PACKS_FILE` | `config/coin_packs.json` | Pack list (reloaded on change) |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_FILE` | – (off) | Service account JSON key; enables Google Play |
-| `GOOGLE_PLAY_PACKAGE_NAME` | `com.ludoarena.app` | Android package verified |
+| `GOOGLE_PLAY_PACKAGE_NAME` | `com.sungamestudio.ludoarena` | Android (Play) package verified |
 | `GOOGLE_PLAY_VOIDED_POLL_INTERVAL` | `1h` | Voided purchases poll (0 = off, ≥ 1m in production) |
 | `GOOGLE_PLAY_VOIDED_LOOKBACK` | `168h` | How far back each poll looks (1h–720h) |
 | `APPLE_IAP_ENABLED` | `false` | Enables App Store verification (signed transactions) |
@@ -177,7 +177,7 @@ refused in production.
    - IAM → Service accounts → create one (e.g. `play-iap-verifier`), no
      project roles needed → Keys → add a **JSON** key. Store the file outside
      the repository on the server and set `GOOGLE_PLAY_SERVICE_ACCOUNT_FILE`
-     to its path (`GOOGLE_PLAY_PACKAGE_NAME=com.ludoarena.app`);
+     to its path (`GOOGLE_PLAY_PACKAGE_NAME=com.sungamestudio.ludoarena`);
    - Play Console → **Users and permissions** → Invite new users → the service
      account's e-mail → App permissions for Ludo Arena: **View financial
      data, orders, and cancellation survey responses** and **Manage orders

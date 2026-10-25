@@ -61,8 +61,10 @@ into the app**.
   (`defaultGoogleServerClientId`, `defaultGoogleIosClientId`) and, for iOS,
   **`ios/Flutter/AppConfig.xcconfig`** (`GOOGLE_IOS_CLIENT_ID`,
   `GOOGLE_REVERSED_CLIENT_ID` URL scheme, `GOOGLE_SERVER_CLIENT_ID`). Android
-  needs no id in code: its OAuth client is registered for
-  `com.ludoarena.app` + the signing SHA-1 in Google Cloud.
+  needs no id in code: its OAuth clients are registered for the Android
+  package `com.sungamestudio.ludoarena` + each signing SHA-1 (debug, upload
+  key, Play app signing key) in Google Cloud. The iOS bundle id stays
+  `com.ludoarena.app`.
 - **Facebook** (not configured yet): Android reads `FACEBOOK_APP_ID` /
   `FACEBOOK_CLIENT_TOKEN` from a Gradle property (`-P…` or
   `~/.gradle/gradle.properties`) or the environment; iOS from
@@ -99,7 +101,7 @@ into the app**.
 
 ```bash
 # Android
-adb shell setprop debug.firebase.analytics.app com.ludoarena.app
+adb shell setprop debug.firebase.analytics.app com.sungamestudio.ludoarena
 adb shell setprop debug.firebase.analytics.app .none.   # turn off
 # iOS: add -FIRDebugEnabled to the Run scheme's launch arguments in Xcode
 ```

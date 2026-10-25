@@ -22,8 +22,8 @@ other docs link to by name: [Wallet settlement guarantees](#wallet-settlement-gu
 
 ## System in one paragraph
 
-A Flutter app (Android/iOS, `com.ludoarena.app`) talks to an **authoritative
-Go backend** over HTTPS REST (`/api/v1`) and one WebSocket
+A Flutter app (Android `com.sungamestudio.ludoarena`, iOS `com.ludoarena.app`)
+talks to an **authoritative Go backend** over HTTPS REST (`/api/v1`) and one WebSocket
 (`GET /api/v1/ws`, protocol `ludo-arena.v1`). The backend owns dice
 (`crypto/rand`), rules (Ludo classic/quick and Snakes & Ladders engines), room
 state, turn timers, wallets, progression and sessions. Live state, timers,

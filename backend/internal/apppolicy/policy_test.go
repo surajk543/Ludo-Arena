@@ -30,7 +30,7 @@ func basePolicy() map[string]any {
 		"environment":   "production",
 		"maintenance":   map[string]any{"enabled": false, "message": map[string]string{"en": "Down for maintenance", "ar": "صيانة"}, "windows": []any{}},
 		"platforms": map[string]any{
-			"android": plat("1.2.0", 120, "1.4.0", 140, "https://play.google.com/store/apps/details?id=com.ludoarena.app"),
+			"android": plat("1.2.0", 120, "1.4.0", 140, "https://play.google.com/store/apps/details?id=com.sungamestudio.ludoarena"),
 			"ios":     plat("1.1.0", 0, "1.1.0", 0, "https://apps.apple.com/app/id1"),
 		},
 	}

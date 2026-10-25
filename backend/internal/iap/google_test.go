@@ -12,6 +12,10 @@ import (
 	"ludoarena/internal/iap/iaptest"
 )
 
+// testPackage is the Android (Google Play) package; the iOS bundle id is
+// testBundle (apple_test.go).
+const testPackage = "com.sungamestudio.ludoarena"
+
 func newTestGoogle(t *testing.T, fake *iaptest.Google, pkg string) *GooglePlay {
 	t.Helper()
 	g, err := NewGooglePlay(GoogleConfig{ServiceAccountFile: fake.KeyFile, PackageName: pkg, APIURL: fake.URL})
@@ -23,12 +27,12 @@ func newTestGoogle(t *testing.T, fake *iaptest.Google, pkg string) *GooglePlay {
 
 func TestGoogleProduct(t *testing.T) {
 	ctx := context.Background()
-	fake := iaptest.NewGoogle(t, testBundle)
+	fake := iaptest.NewGoogle(t, testPackage)
 	fake.Add("coins_starter", "tok-purchased", iaptest.GooglePurchase{State: GooglePurchased,
 		AccountToken: "acct", OrderID: "GPA.3300-0000-0000-00001"})
 	fake.Add("coins_starter", "tok-pending", iaptest.GooglePurchase{State: GooglePending, AccountToken: "acct"})
 	fake.Add("coins_starter", "tok-sparse", iaptest.GooglePurchase{AccountToken: "acct", OmitZero: true})
-	g := newTestGoogle(t, fake, testBundle)
+	g := newTestGoogle(t, fake, testPackage)
 
 	p, err := g.Product(ctx, "coins_starter", "tok-purchased")
 	if err != nil {
@@ -77,10 +81,10 @@ func TestGoogleProduct(t *testing.T) {
 
 // One OAuth token serves many calls until it nearly expires.
 func TestGoogleTokenCache(t *testing.T) {
-	fake := iaptest.NewGoogle(t, testBundle)
+	fake := iaptest.NewGoogle(t, testPackage)
 	fake.Add("coins_starter", "t1", iaptest.GooglePurchase{})
 	now := time.Now()
-	g, err := NewGooglePlay(GoogleConfig{ServiceAccountFile: fake.KeyFile, PackageName: testBundle,
+	g, err := NewGooglePlay(GoogleConfig{ServiceAccountFile: fake.KeyFile, PackageName: testPackage,
 		APIURL: fake.URL, Now: func() time.Time { return now }})
 	if err != nil {
 		t.Fatal(err)
@@ -104,11 +108,11 @@ func TestGoogleTokenCache(t *testing.T) {
 }
 
 func TestGoogleVoidedPages(t *testing.T) {
-	fake := iaptest.NewGoogle(t, testBundle)
+	fake := iaptest.NewGoogle(t, testPackage)
 	for _, tok := range []string{"v1", "v2", "v3", "v4", "v5"} {
 		fake.Void(tok, "GPA."+tok)
 	}
-	g := newTestGoogle(t, fake, testBundle)
+	g := newTestGoogle(t, fake, testPackage)
 	var got []string
 	page := ""
 	for {
@@ -139,11 +143,11 @@ func TestNewGooglePlayRejectsBadKeys(t *testing.T) {
 	if err := os.WriteFile(notKey, []byte(`{"type":"service_account","client_email":"x","private_key":"not pem"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	fake := iaptest.NewGoogle(t, testBundle)
+	fake := iaptest.NewGoogle(t, testPackage)
 	for _, tc := range []struct{ name, file, pkg string }{
-		{"missing file", filepath.Join(dir, "missing.json"), testBundle},
-		{"not a service account", bad, testBundle},
-		{"unparsable key", notKey, testBundle},
+		{"missing file", filepath.Join(dir, "missing.json"), testPackage},
+		{"not a service account", bad, testPackage},
+		{"unparsable key", notKey, testPackage},
 		{"bad package", fake.KeyFile, "not a package"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

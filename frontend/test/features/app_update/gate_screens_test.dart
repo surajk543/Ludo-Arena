@@ -52,7 +52,7 @@ void main() {
     await tester.tap(find.text('Update now'));
     await tester.pump();
     expect(env.store.opened, [
-      'https://play.google.com/store/apps/details?id=com.ludoarena.app',
+      'https://play.google.com/store/apps/details?id=com.sungamestudio.ludoarena',
     ]);
   });
 

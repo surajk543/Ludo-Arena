@@ -373,13 +373,13 @@ func TestIAPConfig(t *testing.T) {
 	}{
 		{"defaults: both stores off", nil, func(t *testing.T, c IAPConfig) {
 			if c.GoogleEnabled() || c.AppleOn() || c.CoinPacksFile != "config/coin_packs.json" ||
-				c.GooglePlayPackage != "com.ludoarena.app" || c.AppleBundleID != "com.ludoarena.app" ||
+				c.GooglePlayPackage != "com.sungamestudio.ludoarena" || c.AppleBundleID != "com.ludoarena.app" ||
 				!c.AppleAllowSandbox || c.GoogleVoidedInterval != time.Hour || c.GoogleVoidedLookback != 7*24*time.Hour {
 				t.Fatalf("%+v", c)
 			}
 		}, ""},
 		{"google on", map[string]string{"GOOGLE_PLAY_SERVICE_ACCOUNT_FILE": "/secrets/sa.json",
-			"GOOGLE_PLAY_PACKAGE_NAME": "com.ludoarena.app", "GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "0"},
+			"GOOGLE_PLAY_PACKAGE_NAME": "com.sungamestudio.ludoarena", "GOOGLE_PLAY_VOIDED_POLL_INTERVAL": "0"},
 			func(t *testing.T, c IAPConfig) {
 				if !c.GoogleEnabled() || c.GoogleVoidedInterval != 0 {
 					t.Fatalf("%+v", c)
@@ -425,6 +425,25 @@ func TestIAPConfig(t *testing.T) {
 			}
 			c.check(t, cfg.IAP)
 		})
+	}
+}
+
+// The Android package (Play, Sign in with Apple's Android intent redirect)
+// differs from the iOS bundle id.
+func TestAppleAndroidPackage(t *testing.T) {
+	for _, c := range []struct{ env, want string }{
+		{"", "com.sungamestudio.ludoarena"},
+		{"com.example.other", "com.example.other"},
+	} {
+		minimalEnv(t)
+		t.Setenv("APPLE_ANDROID_PACKAGE", c.env)
+		cfg, err := Load()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if cfg.Auth.AppleAndroidPkg != c.want {
+			t.Fatalf("APPLE_ANDROID_PACKAGE=%q: got %q, want %q", c.env, cfg.Auth.AppleAndroidPkg, c.want)
+		}
 	}
 }
 

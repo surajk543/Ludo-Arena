@@ -18,6 +18,10 @@
 #   app.android-*.symbols.gz    Dart symbols per ABI (`flutter symbolize`)
 #   BUILD_INFO, SHA256SUMS      what was built, from which commit
 # The dart-defines are not recorded (keep config files out of git).
+# An appbundle (the Play upload) needs the upload key: android/key.properties
+# (storeFile relative to android/, storePassword, keyAlias, keyPassword) and
+# the keystore next to it, both gitignored. Without it this script refuses;
+# an apk falls back to the debug key (local testing only).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -26,7 +30,7 @@ target="${1:-}"
 case "$target" in
   apk | appbundle) shift ;;
   *)
-    sed -n '2,20p' "$0" >&2
+    sed -n '2,24p' "$0" >&2
     exit 2
     ;;
 esac
@@ -38,6 +42,12 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+if [[ "$target" == appbundle && ! -f android/key.properties ]]; then
+  echo "error: android/key.properties not found: a Play upload must be signed" >&2
+  echo "with the upload key (see docs/deployment.md, \"Release signing\")." >&2
+  exit 1
+fi
 
 version="$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | tr -d '[:space:]')"
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]; then

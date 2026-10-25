@@ -393,26 +393,33 @@ Testing mode, test user added). OAuth clients:
 |---|---|---|
 | Web application "Ludo Arena Backend (server client ID)" | `serverClientId` in the app; the `aud` the backend accepts (`GOOGLE_CLIENT_IDS`) | `124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.googleusercontent.com` |
 | iOS "Ludo Arena iOS" | iOS sign-in (`GIDClientID`, reversed id as URL scheme) | `124893613050-etb8okpenf0il17tmb33pr3cet8s9jba.apps.googleusercontent.com` |
-| Android "Ludo Arena Android (debug)" | package `com.ludoarena.app` + **debug** SHA-1 `7D:A8:67:75:85:7F:BA:77:64:E4:5C:C3:70:A2:68:DE:10:56:82:20` | `124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com` |
+| Android "Ludo Arena Android (debug)" | package `com.sungamestudio.ludoarena` + **debug** SHA-1 `7D:A8:67:75:85:7F:BA:77:64:E4:5C:C3:70:A2:68:DE:10:56:82:20` | `124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com` |
+| Android (release, Play) | package `com.sungamestudio.ludoarena` + upload key + Play app signing key (see Play Console › App integrity) | TBD |
 
-Client ids are public identifiers. The web client's secret is not used (ID
-token verification needs none) and is not stored anywhere in this repository.
+The Android package (`com.sungamestudio.ludoarena`, Google Play) differs from
+the iOS bundle id (`com.ludoarena.app`). Client ids are public identifiers.
+The web client's secret is not used (ID token verification needs none) and is
+not stored anywhere in this repository.
 
-**Still required for production:** add the release keystore / Play App
-Signing SHA-1 as another Android client; move the consent screen out of
-Testing (verification) before public launch; add more test users as needed.
+**Still required for production:** register the upload-key and Play App
+Signing SHA-1s on the Android release client above; move the consent screen
+out of Testing (verification) before public launch; add more test users as
+needed.
 
 ### Apple (not yet configured — needs an Apple Developer account)
 
-Enable *Sign in with Apple* for App ID `com.ludoarena.app`; for Android create
-a Services ID and register the return URL
+Enable *Sign in with Apple* for App ID `com.ludoarena.app` (the iOS bundle
+id); for Android create a Services ID and register the return URL
 `{PUBLIC_URL}/api/v1/auth/apple/callback`; set `APPLE_AUDIENCES` to the bundle
-id and Services ID. The callback endpoint is documented in `rest-api.md`.
+id and Services ID. The callback redirects to the Android package
+`APPLE_ANDROID_PACKAGE` (default `com.sungamestudio.ludoarena`); it is
+documented in `rest-api.md`.
 
 ### Facebook (not yet configured — needs a Meta app)
 
 Create a Meta app with Facebook Login (Android key hashes for package
-`com.ludoarena.app`, iOS bundle id), set `FACEBOOK_APP_ID` (public) and
+`com.sungamestudio.ludoarena`, iOS bundle id `com.ludoarena.app`), set
+`FACEBOOK_APP_ID` (public) and
 `FACEBOOK_APP_SECRET` (server secret, env/secret manager only). Until then the
 app hides the Facebook button (`FACEBOOK_ENABLED=false`) and the backend
 answers `503 provider_unavailable`.

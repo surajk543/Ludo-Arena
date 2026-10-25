@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -18,6 +20,19 @@ fun configValue(name: String): String =
 
 val facebookAppId = configValue("FACEBOOK_APP_ID")
 val facebookClientToken = configValue("FACEBOOK_CLIENT_TOKEN")
+
+/**
+ * Play upload key, from android/key.properties (gitignored, never committed;
+ * the upload keystore sits next to it in android/ and is gitignored too).
+ * Keys: storeFile (relative to android/), storePassword, keyAlias, keyPassword.
+ * Google Play App Signing holds the app signing key (docs/deployment.md).
+ */
+val uploadKey = Properties().apply {
+    val file = rootProject.file("key.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
 
 /**
  * Release builds are always obfuscated (owner's rule, 22 Oct 2026): Dart with
@@ -53,7 +68,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ludoarena.app"
+        // Google Play package. The namespace (R class, MainActivity's Kotlin
+        // package) stays com.ludoarena.app; the iOS bundle id is unchanged.
+        applicationId = "com.sungamestudio.ludoarena"
         // Flutter's default (24) satisfies Firebase, Google Sign-In, Sign in
         // with Apple and flutter_secure_storage.
         minSdk = maxOf(flutter.minSdkVersion, 24)
@@ -69,11 +86,32 @@ android {
             if (facebookAppId.isEmpty()) "fbnotconfigured" else "fb$facebookAppId"
     }
 
+    signingConfigs {
+        if (!uploadKey.isEmpty()) {
+            create("upload") {
+                storeFile = rootProject.file(uploadKey.getProperty("storeFile"))
+                storePassword = uploadKey.getProperty("storePassword")
+                keyAlias = uploadKey.getProperty("keyAlias")
+                keyPassword = uploadKey.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO(release): add a real signing config. Debug keys keep
-            // `flutter run --release` working locally.
-            signingConfig = signingConfigs.getByName("debug")
+            // Without key.properties, release builds fall back to the debug
+            // key so `flutter run --release` keeps working locally. Such a
+            // build cannot go to Play: tool/build_android_release.sh refuses
+            // an app bundle without key.properties.
+            signingConfig = if (uploadKey.isEmpty()) {
+                logger.warn(
+                    "android/key.properties not found: release builds are " +
+                        "signed with the debug key (not for Play)."
+                )
+                signingConfigs.getByName("debug")
+            } else {
+                signingConfigs.getByName("upload")
+            }
             // R8: shrink, optimize and obfuscate Java/Kotlin (the Flutter
             // plugin adds its keep rules; mapping.txt goes with the release PR).
             isMinifyEnabled = true

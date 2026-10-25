@@ -92,7 +92,7 @@ var Defaults = map[string]string{
 	"REPORT_FORMAT":       "pdf",
 	"ALERT_FORMAT":        "text",
 	"ALERT_DEDUPE_WINDOW": "30m",
-	"PLAY_PACKAGE_NAME":   "com.ludoarena.app",
+	"PLAY_PACKAGE_NAME":   "com.sungamestudio.ludoarena",
 }
 
 // Load reads the configuration through getenv (os.Getenv in production).

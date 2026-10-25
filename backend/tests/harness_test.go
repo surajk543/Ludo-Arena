@@ -173,6 +173,8 @@ func newEnv(t *testing.T, o envOpts) *env {
 		"GOOGLE_PLAY_VOIDED_LOOKBACK": "", "APPLE_IAP_ENABLED": "", "APPLE_BUNDLE_ID": "",
 		"APPLE_IAP_ALLOW_SANDBOX": "", "APPLE_IAP_KEY_ID": "", "APPLE_IAP_ISSUER_ID": "", "APPLE_IAP_KEY_FILE": "",
 		"APPLE_ROOT_CA_FILE": "", "APPLE_IAP_API_URL": "",
+		// The Sign in with Apple redirect test expects the default package.
+		"APPLE_ANDROID_PACKAGE": "",
 	}
 	if o.google != nil {
 		envVars["GOOGLE_PLAY_SERVICE_ACCOUNT_FILE"] = o.google.KeyFile
