@@ -8,7 +8,7 @@ var (
 	MissionsCompleted = counter("missions_completed_total", "Missions that reached their target.", "period")
 	// MissionRewardsClaimed counts successful reward claims by period kind.
 	MissionRewardsClaimed = counter("mission_rewards_claimed_total", "Mission rewards claimed.", "period")
-	// XPAwarded sums XP granted, by source: match | mission.
+	// XPAwarded sums XP granted, by source: match | mission | playtime.
 	XPAwarded = counter("xp_awarded_total", "XP awarded to human players.", "source")
 	// LevelUps counts level increases (one per level gained).
 	LevelUps = counter("level_ups_total", "Levels gained by human players.")
@@ -29,6 +29,17 @@ var (
 	// report_limit | cannot_report_self | not_in_room | not_found |
 	// room_not_found | bad_request | error.
 	PlayerReports = counter("player_reports_total", "Player reports by reason and result.", "reason", "result")
+	// PlaytimeCredited sums the seconds of qualifying active play credited
+	// to people (daily playtime).
+	PlaytimeCredited = counter0("playtime_credited_seconds_total", "Seconds of qualifying active play credited to people.")
+	// PlaytimeMilestones counts daily playtime rewards granted, by milestone
+	// threshold in minutes (configured values: a handful).
+	PlaytimeMilestones = counter("playtime_milestones_granted_total", "Daily playtime milestone rewards granted.", "minutes")
+	// PlaytimeErrors counts failed playtime work, by stage: accrue | seed |
+	// flush | grant. Credits that fail are lost (bounded by
+	// PLAYTIME_CHECKPOINT); a failed grant is retried by the next credit or
+	// read of the player's playtime.
+	PlaytimeErrors = counter("playtime_errors_total", "Failed daily playtime operations.", "stage")
 	// ReturningUsers is the approximate number of humans active yesterday who
 	// are also active today (HyperLogLog inclusion-exclusion).
 	ReturningUsers = gauge("returning_users_estimate", "Approximate humans active in the previous window who are active again.", "window")

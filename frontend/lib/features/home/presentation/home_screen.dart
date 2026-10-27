@@ -7,6 +7,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../authentication/application/session_controller.dart';
+import '../../daily_journey/application/playtime_controller.dart';
+import '../../daily_journey/presentation/daily_journey_card.dart';
 import '../application/play_options.dart';
 import 'widgets/game_card.dart';
 import 'widgets/home_header.dart';
@@ -15,8 +17,9 @@ import 'widgets/quick_play_card.dart';
 import 'widgets/shop_bar.dart';
 
 /// The lobby (Home tab): the Shop button pinned on top, then one vertical
-/// scroll with the compact profile header, Quick Play, private room
-/// actions, the game cards and the More to Explore grid. Everything shown
+/// scroll with the compact profile header, Quick Play, the Daily Play
+/// Journey, private room actions, the game cards and the More to Explore
+/// grid. Everything shown
 /// comes from state that is already loaded (no network in build).
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -37,7 +40,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _refresh() async {
     try {
-      await ref.read(sessionControllerProvider.notifier).refreshMe();
+      await Future.wait([
+        ref.read(sessionControllerProvider.notifier).refreshMe(),
+        ref.read(playtimeControllerProvider.notifier).refresh(),
+      ]);
     } catch (_) {
       // Pull-to-refresh is best effort; balances stay server-confirmed.
     }
@@ -126,6 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   const SizedBox(height: AppSpacing.lg),
                                   const QuickPlayCard(),
                                   const SizedBox(height: AppSpacing.lg),
+                                  const _JourneySlot(),
                                   const RoomActions(),
                                   const SizedBox(height: AppSpacing.lg),
                                   SectionHeader(title: l10n.homeGamesHeader),
@@ -163,6 +170,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The Daily Play Journey card plus its gap (nothing at all while daily
+/// playtime is disabled).
+class _JourneySlot extends ConsumerWidget {
+  const _JourneySlot();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final disabled = ref.watch(
+      playtimeControllerProvider.select((s) => s.disabled),
+    );
+    if (disabled) return const SizedBox.shrink();
+    return const Padding(
+      padding: EdgeInsets.only(bottom: AppSpacing.lg),
+      child: DailyJourneyCard(),
     );
   }
 }

@@ -36,6 +36,7 @@ func (s *Service) Register(rt *httpapi.Router) {
 	read, write, equip := ReadPerUser, ratelimit.WalletOpPerUser, LoadoutPerUser
 	rt.Handle("GET /api/v1/progression", route(read), s.handleProgression)
 	rt.Handle("GET /api/v1/missions", route(read), s.handleMissions)
+	rt.Handle("GET /api/v1/playtime", route(read), s.handlePlaytime)
 	rt.Handle("POST /api/v1/missions/{periodKey}/{missionId}/claim", route(write), s.handleClaim)
 	rt.Handle("GET /api/v1/collection", route(read), s.handleCollection)
 	rt.Handle("PUT /api/v1/collection/loadout", route(equip), s.handleLoadout)
@@ -80,6 +81,22 @@ func (s *Service) handleMissions(w http.ResponseWriter, r *http.Request) error {
 	v, err := s.Missions(r.Context(), uid)
 	if err != nil {
 		return err
+	}
+	httpapi.WriteJSON(w, http.StatusOK, v)
+	return nil
+}
+
+func (s *Service) handlePlaytime(w http.ResponseWriter, r *http.Request) error {
+	uid, err := caller(r)
+	if err != nil {
+		return err
+	}
+	v, err := s.Playtime(r.Context(), uid)
+	if err != nil {
+		return mapErr(err)
+	}
+	if v == nil {
+		return httpapi.Errf(http.StatusNotFound, "not_found", "Daily playtime is not available.")
 	}
 	httpapi.WriteJSON(w, http.StatusOK, v)
 	return nil

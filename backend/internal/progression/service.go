@@ -79,6 +79,10 @@ type Options struct {
 	// PictureReload is how often Run reloads the profile-picture catalogue
 	// (default PictureReload).
 	PictureReload time.Duration
+	// PlaytimeFlush is how much unsaved daily playtime Redis may hold before
+	// it is written to PostgreSQL (PLAYTIME_FLUSH_INTERVAL; default
+	// DefaultPlaytimeFlush).
+	PlaytimeFlush time.Duration
 }
 
 // MatchObserver is called after a finished match was recorded (social uses
@@ -104,6 +108,9 @@ type Service struct {
 	emos      pictures      // Store emote catalogue snapshot (emotes.go)
 	picReload time.Duration // catalogue reload interval
 	signer    AssetSigner   // nil: asset signing unavailable
+
+	ptFlush time.Duration  // daily playtime flush interval (playtime.go)
+	ptWG    sync.WaitGroup // background playtime work (waited for by Run)
 
 	mu        sync.RWMutex
 	observers []MatchObserver
@@ -134,6 +141,9 @@ func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, notif
 	if opts.PictureReload <= 0 {
 		opts.PictureReload = PictureReload
 	}
+	if opts.PlaytimeFlush <= 0 {
+		opts.PlaytimeFlush = DefaultPlaytimeFlush
+	}
 	if log == nil {
 		log = slog.Default()
 	}
@@ -146,14 +156,15 @@ func New(pool *pgxpool.Pool, rdb *redis.Client, profiles *profile.Service, notif
 		return nil, err
 	}
 	log.Info("progression config loaded", "catalogVersion", cat.Version, "items", len(cat.Items()),
-		"missionsVersion", ms.Version, "dailyPool", len(ms.Daily), "events", len(ms.Events))
+		"missionsVersion", ms.Version, "dailyPool", len(ms.Daily), "events", len(ms.Events),
+		"playtime", ms.Playtime != nil && ms.Playtime.Enabled)
 	minMatch := MinMatchDuration
 	if opts.MinMatchDuration != nil {
 		minMatch = *opts.MinMatchDuration
 	}
 	s := &Service{pool: pool, rdb: rdb, profiles: profiles, notifier: notifier, log: log, now: opts.Now,
 		catalog: cat, missions: ms, purgeInt: opts.PurgeInterval, minMatch: minMatch,
-		picReload: opts.PictureReload, signer: opts.Assets}
+		picReload: opts.PictureReload, signer: opts.Assets, ptFlush: opts.PlaytimeFlush}
 	// The profile-picture catalogue is loaded once here (migrations have
 	// seeded it) and reloaded by Run.
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -642,6 +653,17 @@ func (s *Service) Purge(ctx context.Context) (PurgeResult, error) {
 	return res, nil
 }
 
+// waitPlaytime waits for background playtime work, at most d.
+func (s *Service) waitPlaytime(d time.Duration) {
+	done := make(chan struct{})
+	go func() { s.ptWG.Wait(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(d):
+		s.log.Warn("shutdown: playtime work still running; its intervals may be lost")
+	}
+}
+
 func (s *Service) purgeBatches(ctx context.Context, sql string, args ...any) (int64, error) {
 	var total int64
 	for {
@@ -660,8 +682,8 @@ func (s *Service) purgeBatches(ctx context.Context, sql string, args ...any) (in
 }
 
 // Run executes the periodic retention purge (and the profile-picture
-// catalogue reload) until ctx is cancelled. Running it on several instances
-// is harmless.
+// catalogue reload) until ctx is cancelled, then waits (up to 5 s) for
+// background playtime work. Running it on several instances is harmless.
 func (s *Service) Run(ctx context.Context) {
 	go s.runCatalogueReload(ctx)
 	t := time.NewTimer(time.Minute)
@@ -669,6 +691,7 @@ func (s *Service) Run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			s.waitPlaytime(5 * time.Second)
 			return
 		case <-t.C:
 		}

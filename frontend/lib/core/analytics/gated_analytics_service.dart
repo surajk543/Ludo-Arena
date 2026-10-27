@@ -232,6 +232,37 @@ class GatedAnalyticsService implements AnalyticsService {
   void appUpdatePromptShown(String mode) =>
       _log('app_update_prompt_shown', {'mode': mode}, mode);
 
+  // Daily Play Journey --------------------------------------------------------
+
+  @override
+  void playtimeProgressViewed(String surface) =>
+      _log('playtime_progress_viewed', {'surface': surface});
+
+  @override
+  void playtimeMilestoneCompleted(int minutes) =>
+      _log('playtime_milestone_completed', {'minutes': minutes}, 'm$minutes');
+
+  @override
+  void playtimeRewardGranted({
+    required int minutes,
+    required int xp,
+    required int coins,
+  }) => _log('playtime_reward_granted', {
+    'minutes': minutes,
+    'xp': xp,
+    'coins': coins,
+  });
+
+  @override
+  void playtimeToastDismissed(String method) =>
+      _log('playtime_toast_dismissed', {'method': method});
+
+  @override
+  void nextGoalShown(String kind) => _log('next_goal_shown', {'kind': kind});
+
+  @override
+  void nextGoalTapped(String kind) => _log('next_goal_tapped', {'kind': kind});
+
   // Social --------------------------------------------------------------------
 
   @override

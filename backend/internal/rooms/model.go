@@ -54,6 +54,12 @@ type Player struct {
 	JoinedAt    int64               `json:"joinedAt"`
 	MatchmakeAt int64               `json:"matchmakeAt,omitempty"`
 	FeePaid     int64               `json:"feePaid,omitempty"`
+	// Away: the person's app is in the background (app.focus). Internal
+	// only, like PlayFrom: neither is part of a client view or the hash.
+	Away bool `json:"away,omitempty"`
+	// PlayFrom is when the seat's current uncredited stretch of daily
+	// playtime began (Unix ms; 0 = not accruing). See playtime.go.
+	PlayFrom int64 `json:"playFrom,omitempty"`
 }
 
 // Result of a finished round.

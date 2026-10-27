@@ -485,6 +485,63 @@ void main() {
       });
     });
 
+    test('backgrounding sends app.focus false; resume sends true', () {
+      fakeAsync((async) {
+        final h = Harness();
+        final s = connect(h, async);
+        expect(s.sentOfType('app.focus'), isEmpty); // connect = foreground
+        h.lifecycle.emit(AppLifecycleState.paused);
+        async.flushMicrotasks();
+        expect(s.sentOfType('app.focus').single['p'], {'foreground': false});
+        h.lifecycle.emit(AppLifecycleState.resumed);
+        async.flushMicrotasks();
+        final sent = s.sentOfType('app.focus');
+        expect(sent, hasLength(2));
+        expect(sent.last['p'], {'foreground': true});
+        // Ids are unique (server de-duplication).
+        expect(sent.first['id'], isNot(sent.last['id']));
+        // Unanswered: the fire-and-forget command times out silently (an
+        // unhandled error would fail this zone).
+        async.elapse(const Duration(seconds: 11));
+        expect(s.sentOfType('app.focus'), hasLength(2));
+      });
+    });
+
+    test(
+      'no app.focus without a ready socket; a reconnect counts as foreground',
+      () {
+        fakeAsync((async) {
+          final h = Harness();
+          final s = connect(h, async);
+          h.lifecycle.emit(AppLifecycleState.paused);
+          async.flushMicrotasks();
+          s.serverClose(1006);
+          async.flushMicrotasks();
+          h.lifecycle.emit(AppLifecycleState.resumed);
+          async.flushMicrotasks();
+          final fresh = h.connector.last;
+          expect(identical(fresh, s), isFalse);
+          fresh.ready();
+          async.flushMicrotasks();
+          expect(fresh.sentOfType('app.focus'), isEmpty);
+          expect(s.sentOfType('app.focus'), hasLength(1)); // only the pause
+        });
+      },
+    );
+
+    test('an error reply to app.focus never throws', () {
+      fakeAsync((async) {
+        final h = Harness();
+        final s = connect(h, async);
+        h.lifecycle.emit(AppLifecycleState.hidden);
+        async.flushMicrotasks();
+        final id = s.sentOfType('app.focus').single['id'] as String;
+        s.serverSend('error', {'code': 'bad_request', 'message': 'x'}, id);
+        async.flushMicrotasks();
+        expect(h.status, RealtimeStatus.connected);
+      });
+    });
+
     test('start while backgrounded waits for resume', () {
       fakeAsync((async) {
         final h = Harness();

@@ -183,6 +183,32 @@ abstract interface class AnalyticsService {
   /// [mode]: `optional_update` | `force_update`.
   void appUpdatePromptShown(String mode);
 
+  // Daily Play Journey (server data only; never ids)
+
+  /// Today's playtime was shown with server data. [surface]: `home` |
+  /// `missions`. Once per visit.
+  void playtimeProgressViewed(String surface);
+
+  /// A playtime milestone was seen completed (once per day and milestone on
+  /// this device). [minutes] is its threshold.
+  void playtimeMilestoneCompleted(int minutes);
+
+  /// The server confirmed a playtime reward grant (`playtime.updated`
+  /// `granted`).
+  void playtimeRewardGranted({
+    required int minutes,
+    required int xp,
+    required int coins,
+  });
+
+  /// The milestone toast closed. [method]: `auto` | `close` | `action`.
+  void playtimeToastDismissed(String method);
+
+  /// The match results showed a next goal. [kind]: `playtime` | `mission` |
+  /// `claim` | `level`.
+  void nextGoalShown(String kind);
+  void nextGoalTapped(String kind);
+
   // Social (after server confirmation only; never ids or names)
 
   /// [reason]: `cheating` | `offensive_name` | `abusive_behavior` |

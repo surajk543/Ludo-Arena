@@ -12,6 +12,7 @@ import '../../../../core/time/server_clock.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../shared/game_visuals/game_visuals.dart';
 import '../../../../shared/widgets/widgets.dart';
+import '../../../daily_journey/presentation/next_goal_row.dart';
 import '../../application/match_result_view.dart';
 import '../../application/rematch_view.dart';
 import '../play_text.dart';
@@ -30,6 +31,7 @@ class ResultsPanel extends ConsumerStatefulWidget {
     required this.onPlayAgain,
     required this.onHome,
     this.onPlayerTap,
+    this.onNextGoal,
   });
 
   /// The finished room (server snapshot).
@@ -44,6 +46,10 @@ class ResultsPanel extends ConsumerStatefulWidget {
 
   /// Opens an opponent's options from the finishing order.
   final ValueChanged<RoomPlayer>? onPlayerTap;
+
+  /// Leaves the room and opens a location for the next-goal row (null: no
+  /// next goal is shown).
+  final ValueChanged<String>? onNextGoal;
 
   @override
   ConsumerState<ResultsPanel> createState() => _ResultsPanelState();
@@ -155,6 +161,11 @@ class _ResultsPanelState extends ConsumerState<ResultsPanel> {
                     _Placements(view: view, onPlayerTap: widget.onPlayerTap),
                     const SizedBox(height: AppSpacing.md),
                     _Rewards(view: view, rewards: widget.rewards, room: room),
+                    if (widget.onNextGoal case final open?)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        child: NextGoalRow(onOpen: open),
+                      ),
                     const SizedBox(height: AppSpacing.md),
                     _RematchCard(
                       view: rematch,

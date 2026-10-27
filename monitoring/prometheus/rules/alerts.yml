@@ -115,6 +115,22 @@ groups:
           summary: "Wallet settlement failures ({{ $labels.op }})"
           description: "Entry-fee, refund or payout operations failed in the last 15 minutes. Check backend logs for the affected rooms; coins may need reconciliation."
 
+      - alert: PlaytimeRewardGrantFailures
+        # Daily playtime milestone rewards could not be granted (PostgreSQL).
+        # Nothing is lost: the next credit or read of the player's playtime
+        # retries the grant, but players see the milestone reached and not
+        # yet rewarded until then. Same new-series handling as above.
+        expr: |
+          sum(increase(playtime_errors_total{job="backend",stage="grant"}[15m])) > 0
+          or
+          (sum(playtime_errors_total{job="backend",stage="grant"})
+            unless sum(playtime_errors_total{job="backend",stage="grant"} offset 15m))
+        labels:
+          severity: warning
+        annotations:
+          summary: "Daily playtime rewards failed to grant"
+          description: "Playtime milestone grants failed in the last 15 minutes and will be retried automatically. Check backend logs and PostgreSQL."
+
       - alert: WebSocketSlowConsumers
         expr: sum(rate(ws_slow_client_events_total{job="backend"}[5m])) * 60 > scalar(threshold:ws_slow_events_per_minute)
         for: 5m

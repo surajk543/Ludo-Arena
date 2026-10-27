@@ -196,6 +196,12 @@ class RealtimeConnection {
       .where((e) => e is ProgressionUpdatedEvent)
       .cast<ProgressionUpdatedEvent>();
 
+  /// `playtime.updated` events.
+  Stream<PlaytimeUpdatedEvent> get playtimeUpdates => _events.stream
+      .map((m) => m.event)
+      .where((e) => e is PlaytimeUpdatedEvent)
+      .cast<PlaytimeUpdatedEvent>();
+
   /// `wallet.updated` + `progression.updated`.
   Stream<ServerEvent> get accountEvents => _events.stream
       .map((m) => m.event)
@@ -309,6 +315,9 @@ class RealtimeConnection {
   void _onBackground() {
     _paused = true;
     _cancelReconnect();
+    // Pauses daily playtime in a running match (a dead socket pauses it
+    // anyway). Best effort: the OS may suspend the app before it is sent.
+    _sendFocus(foreground: false);
     if (_socket == null && _wanted && _halt == null) {
       _setStatus(RealtimeStatus.offline);
     }
@@ -319,12 +328,26 @@ class RealtimeConnection {
     if (!_wanted || _halt != null || _disposed) return;
     if (_socket != null) {
       // The OS may have silently killed the socket: probe it now.
-      if (_ready) _sendPing();
+      if (_ready) {
+        _sendPing();
+        // A fresh connection counts as foreground; an old one is told.
+        _sendFocus(foreground: true);
+      }
       return;
     }
     if (_connecting) return;
     _backoff.reset();
     unawaited(_connect());
+  }
+
+  /// `app.focus` (fire-and-forget; never throws).
+  void _sendFocus({required bool foreground}) {
+    if (_socket == null || !_ready) return;
+    unawaited(
+      send(ClientMessageTypes.appFocus, {
+        'foreground': foreground,
+      }).then<void>((_) {}, onError: (Object _) {}),
+    );
   }
 
   // --------------------------------------------------------- connecting

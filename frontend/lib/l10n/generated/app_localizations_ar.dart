@@ -1223,6 +1223,169 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeNoAdsRibbon => 'بلا إعلانات';
 
   @override
+  String get journeyCardTitle => 'رحلة اللعب اليومية';
+
+  @override
+  String get journeyTodayPlaytime => 'وقت اللعب اليوم';
+
+  @override
+  String journeyMinutesOfGoal(String minutes, String goal) {
+    return '$minutes / $goal د';
+  }
+
+  @override
+  String journeyMinutes(String minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String get journeyMinutesUnit => 'دقيقة';
+
+  @override
+  String journeyNextReward(int count, String minutes, String reward) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$minutes دقيقة أخرى لفتح $reward',
+      many: '$minutes دقيقة أخرى لفتح $reward',
+      few: '$minutes دقائق أخرى لفتح $reward',
+      two: 'دقيقتان أخريان لفتح $reward',
+      one: 'دقيقة واحدة أخرى لفتح $reward',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyRewardXp(String amount) {
+    return '$amount XP';
+  }
+
+  @override
+  String journeyRewardCoins(String amount) {
+    return '$amount عملة';
+  }
+
+  @override
+  String journeyRewardDiamonds(String amount) {
+    return '$amount ماسة';
+  }
+
+  @override
+  String journeyRewardJoin(String first, String second) {
+    return '$first + $second';
+  }
+
+  @override
+  String get journeyUnlocking => 'جارٍ فتح مكافأتك…';
+
+  @override
+  String get journeyAllDone =>
+      'حصلت على كل مكافآت وقت اللعب لهذا اليوم. لعب رائع!';
+
+  @override
+  String journeyMissionsCount(String done, String total) {
+    return 'المهام اليومية: $done / $total مكتملة';
+  }
+
+  @override
+  String get journeyStatusCompleted => 'تم استلام المكافأة';
+
+  @override
+  String journeyStatusNext(String minutes) {
+    return 'متبقٍ $minutes د';
+  }
+
+  @override
+  String journeyStatusLocked(String minutes) {
+    return 'مقفل · متبقٍ $minutes د';
+  }
+
+  @override
+  String get journeyRulesNote =>
+      'يُحتسب فقط وقت اللعب النشط داخل المباراة — وليس الردهة أو البحث عن مباراة أو وقت وجود التطبيق في الخلفية.';
+
+  @override
+  String get journeyStale => 'قد لا يكون التقدّم محدّثًا';
+
+  @override
+  String get journeyLoadFailed =>
+      'تعذّر تحميل وقت اللعب اليوم. اضغط لإعادة المحاولة.';
+
+  @override
+  String journeySemantics(String minutes, String goal) {
+    return 'وقت اللعب اليوم: $minutes من $goal دقيقة.';
+  }
+
+  @override
+  String journeyMilestoneSemantics(
+    String minutes,
+    String status,
+    String reward,
+  ) {
+    return 'مرحلة $minutes دقيقة، $status. المكافأة: $reward.';
+  }
+
+  @override
+  String journeyToastTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اكتملت مراحل يومية!',
+      one: 'اكتملت مرحلة يومية!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyToastBody(int count, String minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لعبت $minutes دقيقة اليوم.',
+      many: 'لعبت $minutes دقيقة اليوم.',
+      few: 'لعبت $minutes دقائق اليوم.',
+      two: 'لعبت دقيقتين اليوم.',
+      one: 'لعبت دقيقة واحدة اليوم.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyToastView => 'عرض التقدّم';
+
+  @override
+  String get journeyNextGoalTitle => 'الهدف التالي';
+
+  @override
+  String journeyGoalPlaytime(int count, String minutes, String reward) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'العب $minutes دقيقة أخرى لفتح $reward.',
+      many: 'العب $minutes دقيقة أخرى لفتح $reward.',
+      few: 'العب $minutes دقائق أخرى لفتح $reward.',
+      two: 'العب دقيقتين أخريين لفتح $reward.',
+      one: 'العب دقيقة واحدة أخرى لفتح $reward.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyGoalMission(String amount, String title) {
+    return '$amount أخرى لإكمال «$title».';
+  }
+
+  @override
+  String journeyGoalClaim(String title) {
+    return 'اكتملت «$title» — مكافأتك جاهزة للاستلام.';
+  }
+
+  @override
+  String journeyGoalLevel(String xp, String level) {
+    return 'اكسب $xp XP أخرى للوصول إلى المستوى $level.';
+  }
+
+  @override
   String get metaMissionsTitle => 'المهام';
 
   @override

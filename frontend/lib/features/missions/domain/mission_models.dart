@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/network/api_models.dart';
 import '../../../core/protocol/json_read.dart';
-import '../../../core/protocol/protocol.dart' show MissionProgress;
+import '../../../core/protocol/protocol.dart' show MissionProgress, Playtime;
 import '../../progression/domain/progression_models.dart';
 
 /// Mission period kinds; [param] is the analytics `period` value.
@@ -212,19 +212,32 @@ class MissionsBoard {
     required this.daily,
     required this.weekly,
     this.events = const [],
+    this.playtime,
   });
 
-  factory MissionsBoard.fromJson(Map<String, dynamic> j) => MissionsBoard(
-    daily: MissionSet.fromJson(readMap(j['daily'])),
-    weekly: MissionSet.fromJson(readMap(j['weekly'])),
-    events: List.unmodifiable(
-      readList(j['events']).map((e) => EventSet.fromJson(readMap(e))),
-    ),
-  );
+  factory MissionsBoard.fromJson(Map<String, dynamic> j) {
+    final playtime = readMapOrNull(j['playtime']);
+    return MissionsBoard(
+      daily: MissionSet.fromJson(readMap(j['daily'])),
+      weekly: MissionSet.fromJson(readMap(j['weekly'])),
+      events: List.unmodifiable(
+        readList(j['events']).map((e) => EventSet.fromJson(readMap(e))),
+      ),
+      playtime: playtime == null ? null : Playtime.fromJson(playtime),
+    );
+  }
 
   final MissionSet daily;
   final MissionSet weekly;
   final List<EventSet> events;
+
+  /// Today's playtime when the server sent it (null: daily playtime is
+  /// disabled). The live value is `playtimeControllerProvider`'s.
+  final Playtime? playtime;
+
+  /// Daily missions completed (claimable or claimed).
+  int get dailyCompletedCount =>
+      daily.missions.where((m) => m.status != MissionStatus.inProgress).length;
 
   /// Every (periodKey, mission) pair.
   Iterable<(String, Mission)> get all sync* {
@@ -265,6 +278,7 @@ class MissionsBoard {
           for (final e in events)
             e.withMissions([for (final m in e.missions) f(e.periodKey, m)]),
         ]),
+        playtime: playtime,
       );
 
   /// Replaces the mission [updated] of [periodKey].

@@ -139,6 +139,15 @@ abstract final class AnalyticsValues {
   /// Where a friend request was sent from.
   static const friendRequestSources = {'match', 'recent', 'code'};
 
+  /// Where today's playtime was viewed.
+  static const playtimeSurfaces = {'home', 'missions'};
+
+  /// How the playtime milestone toast closed.
+  static const toastDismissMethods = {'auto', 'close', 'action'};
+
+  /// The next goal shown after a match.
+  static const nextGoalKinds = {'playtime', 'mission', 'claim', 'level'};
+
   /// Protocol + REST + client error codes that may be reported as
   /// `error_code` (anything else is bucketed to `other`).
   static const errorCodes = {
@@ -258,6 +267,21 @@ abstract final class AnalyticsCatalog {
     },
     'cosmetic_equipped': {'item_kind': EnumRule(AnalyticsValues.itemKinds)},
     'collection_viewed': {},
+    // Daily Play Journey: thresholds and configured reward amounts only.
+    'playtime_progress_viewed': {
+      'surface': EnumRule(AnalyticsValues.playtimeSurfaces),
+    },
+    'playtime_milestone_completed': {'minutes': IntRangeRule(1, 1440)},
+    'playtime_reward_granted': {
+      'minutes': IntRangeRule(1, 1440),
+      'xp': IntRangeRule(0, 10000),
+      'coins': IntRangeRule(0, 1000000),
+    },
+    'playtime_toast_dismissed': {
+      'method': EnumRule(AnalyticsValues.toastDismissMethods),
+    },
+    'next_goal_shown': {'kind': EnumRule(AnalyticsValues.nextGoalKinds)},
+    'next_goal_tapped': {'kind': EnumRule(AnalyticsValues.nextGoalKinds)},
     'app_update_prompt_shown': {'mode': EnumRule(AnalyticsValues.updateModes)},
     'player_reported': {'reason': EnumRule(AnalyticsValues.reportReasons)},
     'friend_request_sent': {

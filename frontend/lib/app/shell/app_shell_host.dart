@@ -165,9 +165,12 @@ class _AppShellHostState extends ConsumerState<AppShellHost> {
 
   void _onWallet(WalletUpdatedEvent e) {
     // A coin pack ("purchase" with coins added) has its own celebration
-    // (CoinPurchaseHost); a refund ("refund", negative) only updates the
-    // balance chips.
-    if (e.deltaCoins <= 0 || e.reason == 'purchase') return;
+    // (CoinPurchaseHost), and so does a daily playtime milestone
+    // ("playtime": PlaytimeToastHost shows its coins and XP); a refund
+    // ("refund", negative) only updates the balance chips.
+    if (e.deltaCoins <= 0 || e.reason == 'purchase' || e.reason == 'playtime') {
+      return;
+    }
     if (ref.read(inMatchProvider)) return;
     final ctx = _navContext;
     if (ctx == null) return;

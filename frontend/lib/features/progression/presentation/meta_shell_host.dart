@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../daily_journey/presentation/playtime_toast_host.dart';
 import '../../social/presentation/friend_request_banner.dart';
 import 'level_up_celebration_host.dart';
 
@@ -15,6 +16,7 @@ import 'level_up_celebration_host.dart';
 /// - Level-up celebrations (burst + unlocked items), deferred while
 ///   `inMatchProvider` is true and shown after the match screen closes.
 /// - The `social.friend_request` in-app banner.
+/// - Daily playtime milestone toasts (after level-ups, never in a match).
 class MetaShellHost extends StatelessWidget {
   const MetaShellHost({
     super.key,
@@ -28,6 +30,9 @@ class MetaShellHost extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LevelUpCelebrationHost(
     navigatorKey: navigatorKey,
-    child: FriendRequestBannerHost(navigatorKey: navigatorKey, child: child),
+    child: FriendRequestBannerHost(
+      navigatorKey: navigatorKey,
+      child: PlaytimeToastHost(navigatorKey: navigatorKey, child: child),
+    ),
   );
 }

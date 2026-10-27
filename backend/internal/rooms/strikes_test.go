@@ -1,6 +1,7 @@
 package rooms
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,6 +22,8 @@ type strikeHarness struct {
 	s   *Service
 	r   *Room
 	now time.Time
+	// runAfter runs each mutation's post-commit callbacks (playtime tests).
+	runAfter bool
 }
 
 type sentEvent struct {
@@ -56,6 +59,11 @@ func (h *strikeHarness) do(f func(m *mutation) error) []sentEvent {
 	m := &mutation{s: h.s, r: h.r}
 	if err := f(m); err != nil && !errors.Is(err, errNoop) {
 		h.t.Fatalf("mutation: %v", err)
+	}
+	if h.runAfter {
+		for _, fn := range m.after {
+			fn(context.Background())
+		}
 	}
 	out := make([]sentEvent, 0, len(m.msgs))
 	for _, raw := range m.msgs {

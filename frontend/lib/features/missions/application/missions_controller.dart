@@ -11,6 +11,7 @@ import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/storage/preferences_store.dart';
 import '../../authentication/application/session_controller.dart';
 import '../../collection/application/collection_controller.dart';
+import '../../daily_journey/application/playtime_controller.dart';
 import '../../progression/application/level_up_controller.dart';
 import '../../progression/application/meta_support.dart';
 import '../../progression/application/progression_controller.dart';
@@ -71,7 +72,14 @@ class MissionsController extends AsyncNotifier<MissionsBoard> {
     );
     final board = await _api.fetch();
     _trackCompleted(board);
+    _sharePlaytime(board);
     return board;
+  }
+
+  /// `GET /missions` embeds today's playtime: keep the live value current.
+  void _sharePlaytime(MissionsBoard board) {
+    final p = board.playtime;
+    if (p != null) ref.read(playtimeControllerProvider.notifier).applyServer(p);
   }
 
   /// True while a claim for this mission is in flight.
@@ -102,6 +110,7 @@ class MissionsController extends AsyncNotifier<MissionsBoard> {
       if (!ref.mounted) return;
       state = AsyncData(board);
       _trackCompleted(board);
+      _sharePlaytime(board);
     } catch (e, s) {
       if (ref.mounted && !state.hasValue) state = AsyncError(e, s);
       rethrow;

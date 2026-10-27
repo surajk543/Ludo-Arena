@@ -230,6 +230,8 @@ func (s *Service) purge(ctx context.Context, userID uuid.UUID, sessionID string)
 		social.RecentKey(userID), social.PresenceKey(userID), social.BotRequestsKey(userID),
 		"profile:" + uid, profile.NameChangesKey(userID),
 		progression.SeatKey(userID), progression.SeatKey(userID) + ":lease", progression.EmotesKey(userID),
+		progression.PlaytimeKey(userID, progression.DayKey(now)),
+		progression.PlaytimeKey(userID, progression.DayKey(now.AddDate(0, 0, -1))),
 	}
 	if s.d.Profiles != nil {
 		keys = append(keys, "pubid:"+s.d.Profiles.PublicID(userID))

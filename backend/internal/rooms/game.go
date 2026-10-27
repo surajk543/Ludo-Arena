@@ -227,6 +227,7 @@ func (s *Service) beginRound(m *mutation, fee int64) error {
 		p := &r.Players[i]
 		p.Strikes, p.Actions, p.Forfeited, p.ForfeitWhy = 0, 0, false, ""
 		p.FeePaid = fee
+		p.PlayFrom = 0 // never carry a stale stretch (e.g. lobby time) into the round
 		if !p.Bot {
 			if p.MatchmakeAt > 0 {
 				metrics.MatchmakingWait.WithLabelValues(r.Game).Observe(float64(now-p.MatchmakeAt) / 1000)
@@ -241,6 +242,7 @@ func (s *Service) beginRound(m *mutation, fee int64) error {
 	seat, seq, _, _, _, _ := r.turnInfo()
 	r.Deadline = now + s.turnTimeout(r, seat).Milliseconds()
 	m.schedule("turn", strconv.Itoa(seq), r.Deadline)
+	s.playSyncAll(m, false)
 	m.emitSnapshot(protocol.TGameStarted, "")
 	metrics.MatchesStarted.WithLabelValues(r.Game, r.Mode, mixOf(r)).Inc()
 	return nil
@@ -353,6 +355,7 @@ func (s *Service) roll(m *mutation, userID string, turnSeq int) error {
 	p := &m.r.Players[seat]
 	p.Strikes = 0
 	p.Actions++
+	s.playSync(m, seat, false) // acting again ends an idle pause
 	return s.applyRoll(m, seat, false)
 }
 
@@ -374,6 +377,7 @@ func (s *Service) move(m *mutation, userID string, turnSeq, token int) error {
 	p := &m.r.Players[seat]
 	p.Strikes = 0
 	p.Actions++
+	s.playSync(m, seat, false)
 	return s.applyMove(m, seat, token, false)
 }
 
@@ -482,6 +486,7 @@ func (s *Service) afterTurnChange(m *mutation) {
 	seat, seq, phase, _, _, six := r.turnInfo()
 	r.Deadline = s.nowMs() + s.turnTimeout(r, seat).Milliseconds()
 	m.schedule("turn", strconv.Itoa(seq), r.Deadline)
+	s.playSyncAll(m, true) // playtime checkpoint
 	m.emitV(protocol.TTurnChanged, func(v int64) any {
 		return turnChangedP{RoomID: r.ID, V: v, H: r.hash(), Seat: seat, TurnSeq: seq, Phase: phase,
 			Deadline: r.Deadline, SixStreak: six, Room: m.fullSnap()}
@@ -520,6 +525,7 @@ func (s *Service) turnTimedOut(m *mutation, seq int) error {
 	}
 	p := &r.Players[seat]
 	p.Strikes++
+	s.playSync(m, seat, false) // a missed own turn pauses playtime (idle)
 	if p.Strikes >= s.Game.MaxStrikes {
 		// MAX_STRIKES consecutive missed turns: removed from the game
 		// (the app tells the player why and leaves the match).
@@ -555,6 +561,7 @@ func (s *Service) forfeit(m *mutation, seat int, reason string) error {
 		return nil
 	}
 	p.Forfeited, p.ForfeitWhy = true, reason
+	s.playSync(m, seat, false)
 	if !p.Bot {
 		metrics.PlayersAbandoned.WithLabelValues(r.Game, reason).Inc()
 	}
@@ -599,6 +606,7 @@ func (s *Service) finishGame(m *mutation, reason string) error {
 	now := s.nowMs()
 	r.Status = StatusFinished
 	r.Deadline = 0
+	s.playSyncAll(m, false) // credits and closes every open stretch
 	r.Result = &Result{WinnerSeat: winner, Reason: reason, Placements: placements, Payout: payout}
 	r.Rematch = &Rematch{Open: true, Deadline: now + s.Game.RematchWindow.Milliseconds(), Accepted: []int{}, Declined: []int{}}
 	round := strconv.Itoa(r.Round)

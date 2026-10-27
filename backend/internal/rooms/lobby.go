@@ -676,49 +676,57 @@ func (s *Service) Presence(ctx context.Context, userID string, connected bool, e
 	if roomID == "" {
 		return
 	}
-	_, err := s.mutate(ctx, roomID, func(m *mutation) error {
-		r := m.r
-		seat := r.SeatOf(userID)
-		if seat < 0 || r.Status == StatusClosed {
-			return errNoop
-		}
-		p := &r.Players[seat]
-		if !connected && p.ConnEpoch != epoch {
-			return errNoop // a newer connection already replaced this one
-		}
-		if connected && epoch < p.ConnEpoch {
-			return errNoop
-		}
-		if p.Connected == connected && p.ConnEpoch == epoch {
-			return errNoop
-		}
-		p.Connected, p.ConnEpoch = connected, epoch
-		t := protocol.TPlayerConnected
-		if !connected {
-			t = protocol.TPlayerDisconn
-		}
-		m.emitV(t, func(v int64) any { return seatP{RoomID: r.ID, V: v, Seat: seat} })
-		if !connected {
-			switch r.Status {
-			case StatusLobby:
-				m.schedule("lobbykick", userID+":"+strconv.FormatInt(epoch, 10),
-					s.nowMs()+s.Game.LobbyDisconnectGrace.Milliseconds())
-			case StatusPlaying:
-				// Shorten the disconnected player's current turn.
-				if turnSeat, seq, _, _, _, _ := r.turnInfo(); turnSeat == seat {
-					short := s.nowMs() + s.Game.TurnTimeoutDisconnected.Milliseconds()
-					if short < r.Deadline {
-						r.Deadline = short
-						m.schedule("turn", strconv.Itoa(seq), short)
-					}
-				}
-			}
-		}
-		return nil
-	})
+	_, err := s.mutate(ctx, roomID, func(m *mutation) error { return s.presence(m, userID, connected, epoch) })
 	if err != nil && !errors.Is(err, protocol.ErrRoomNotFound) {
 		s.Log.Warn("presence update failed", "error", err.Error())
 	}
+}
+
+// presence applies a connection change of userID (epoch: the connection's
+// start) to the room.
+func (s *Service) presence(m *mutation, userID string, connected bool, epoch int64) error {
+	r := m.r
+	seat := r.SeatOf(userID)
+	if seat < 0 || r.Status == StatusClosed {
+		return errNoop
+	}
+	p := &r.Players[seat]
+	if !connected && p.ConnEpoch != epoch {
+		return errNoop // a newer connection already replaced this one
+	}
+	if connected && epoch < p.ConnEpoch {
+		return errNoop
+	}
+	if p.Connected == connected && p.ConnEpoch == epoch {
+		return errNoop
+	}
+	p.Connected, p.ConnEpoch = connected, epoch
+	if connected {
+		p.Away = false // apps connect only in the foreground
+	}
+	s.playSync(m, seat, false)
+	t := protocol.TPlayerConnected
+	if !connected {
+		t = protocol.TPlayerDisconn
+	}
+	m.emitV(t, func(v int64) any { return seatP{RoomID: r.ID, V: v, Seat: seat} })
+	if !connected {
+		switch r.Status {
+		case StatusLobby:
+			m.schedule("lobbykick", userID+":"+strconv.FormatInt(epoch, 10),
+				s.nowMs()+s.Game.LobbyDisconnectGrace.Milliseconds())
+		case StatusPlaying:
+			// Shorten the disconnected player's current turn.
+			if turnSeat, seq, _, _, _, _ := r.turnInfo(); turnSeat == seat {
+				short := s.nowMs() + s.Game.TurnTimeoutDisconnected.Milliseconds()
+				if short < r.Deadline {
+					r.Deadline = short
+					m.schedule("turn", strconv.Itoa(seq), short)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // handleLobbyKick removes a lobby player who stayed disconnected.
