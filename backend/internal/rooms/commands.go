@@ -292,6 +292,18 @@ func (s *Service) dispatch(ctx context.Context, c Caller, in protocol.Inbound) (
 		}
 		return ack(in.ID), nil
 
+	case protocol.TAppFocus:
+		var p struct {
+			Foreground *bool `json:"foreground"`
+		}
+		if err := decode(in.P, &p); err != nil || p.Foreground == nil {
+			return nil, protocol.ErrBadRequest
+		}
+		if err := s.SetFocus(ctx, c.UserID, *p.Foreground); err != nil {
+			return nil, err
+		}
+		return ack(in.ID), nil
+
 	case protocol.TChatQuick, protocol.TChatEmote:
 		var p struct {
 			RoomID string `json:"roomId"`

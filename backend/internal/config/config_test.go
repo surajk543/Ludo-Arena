@@ -481,3 +481,47 @@ func TestBotCoinRules(t *testing.T) {
 		})
 	}
 }
+
+func TestPlaytimeConfig(t *testing.T) {
+	cases := []struct {
+		name                      string
+		env                       map[string]string
+		wantIdle                  int
+		wantCheckpoint, wantFlush time.Duration
+		wantErr                   string
+	}{
+		{"defaults", nil, 1, time.Minute, 2 * time.Minute, ""},
+		{"custom", map[string]string{"PLAYTIME_IDLE_STRIKES": "2", "PLAYTIME_CHECKPOINT": "30s", "PLAYTIME_FLUSH_INTERVAL": "5m"},
+			2, 30 * time.Second, 5 * time.Minute, ""},
+		{"idle strikes zero", map[string]string{"PLAYTIME_IDLE_STRIKES": "0"}, 0, 0, 0, "PLAYTIME_IDLE_STRIKES must be between 1 and MAX_STRIKES"},
+		{"idle strikes above max strikes", map[string]string{"MAX_STRIKES": "3", "PLAYTIME_IDLE_STRIKES": "4"}, 0, 0, 0,
+			"PLAYTIME_IDLE_STRIKES must be between 1 and MAX_STRIKES"},
+		{"checkpoint too short", map[string]string{"PLAYTIME_CHECKPOINT": "5s"}, 0, 0, 0, "PLAYTIME_CHECKPOINT must be between 15s and 5m"},
+		{"checkpoint too long", map[string]string{"PLAYTIME_CHECKPOINT": "6m"}, 0, 0, 0, "PLAYTIME_CHECKPOINT must be between 15s and 5m"},
+		{"flush too short", map[string]string{"PLAYTIME_FLUSH_INTERVAL": "10s"}, 0, 0, 0, "PLAYTIME_FLUSH_INTERVAL must be between 30s and 15m"},
+		{"flush too long", map[string]string{"PLAYTIME_FLUSH_INTERVAL": "1h"}, 0, 0, 0, "PLAYTIME_FLUSH_INTERVAL must be between 30s and 15m"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			minimalEnv(t)
+			for k, v := range c.env {
+				t.Setenv(k, v)
+			}
+			cfg, err := Load()
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+					t.Fatalf("err = %v, want %q", err, c.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Game.PlaytimeIdleStrikes != c.wantIdle || cfg.Game.PlaytimeCheckpoint != c.wantCheckpoint ||
+				cfg.PlaytimeFlush != c.wantFlush {
+				t.Fatalf("playtime = %d / %s / %s, want %d / %s / %s", cfg.Game.PlaytimeIdleStrikes,
+					cfg.Game.PlaytimeCheckpoint, cfg.PlaytimeFlush, c.wantIdle, c.wantCheckpoint, c.wantFlush)
+			}
+		})
+	}
+}

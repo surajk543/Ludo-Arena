@@ -74,8 +74,10 @@ type Deps struct {
 	// Pictures picks profile pictures for bot personas (nil: bots wear none).
 	Pictures playerinfo.PictureSource
 	// Catalog lists the cosmetics bot personas may show (nil: starter look).
-	Catalog   playerinfo.CatalogSource
-	Recorder  gameevents.Recorder
+	Catalog  playerinfo.CatalogSource
+	Recorder gameevents.Recorder
+	// Playtime receives qualifying active play of people (nil: not tracked).
+	Playtime  gameevents.Playtime
 	Inviter   gameevents.Inviter
 	Inventory gameevents.Inventory
 	Policy    *apppolicy.Store

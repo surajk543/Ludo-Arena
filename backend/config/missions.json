@@ -37,5 +37,13 @@
         "metric": "complete", "filter": {"game": "ludo", "variant": "quick"}, "target": 3,
         "reward": {"coins": 1000, "xp": 30, "items": ["dice_autumn"]}}
      ]}
-  ]
+  ],
+  "playtime": {
+    "enabled": true,
+    "milestones": [
+      {"id": "playtime_10m", "minutes": 10, "reward": {"coins": 5000, "xp": 25}},
+      {"id": "playtime_30m", "minutes": 30, "reward": {"coins": 10000, "xp": 40}},
+      {"id": "playtime_60m", "minutes": 60, "reward": {"coins": 20000, "xp": 60}}
+    ]
+  }
 }

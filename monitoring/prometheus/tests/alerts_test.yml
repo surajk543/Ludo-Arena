@@ -84,6 +84,25 @@ tests:
               summary: "Wallet settlement failures (payout)"
               description: "Entry-fee, refund or payout operations failed in the last 15 minutes. Check backend logs for the affected rooms; coins may need reconciliation."
 
+  - name: playtime grant failures fire, other playtime errors do not
+    interval: 1m
+    input_series:
+      - series: 'playtime_errors_total{job="backend",instance="b1:9090",stage="flush"}'
+        values: '0 1 2 3 4 5 6'
+      - series: 'playtime_errors_total{job="backend",instance="b1:9090",stage="grant"}'
+        values: '_ _ _ _ 1 1 1'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: PlaytimeRewardGrantFailures
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: PlaytimeRewardGrantFailures
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "Daily playtime rewards failed to grant"
+              description: "Playtime milestone grants failed in the last 15 minutes and will be retried automatically. Check backend logs and PostgreSQL."
+
   - name: game stats stale only while the backend is up
     interval: 1m
     input_series:

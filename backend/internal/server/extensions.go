@@ -25,6 +25,7 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 	minMatch := core.Cfg.MinMatchDuration
 	opts := progression.Options{
 		CatalogPath: core.Cfg.CatalogFile, MissionsPath: core.Cfg.MissionsFile, MinMatchDuration: &minMatch,
+		PlaytimeFlush: core.Cfg.PlaytimeFlush,
 	}
 	// Profile pictures live in a private R2 bucket; without R2 the Store still
 	// works and POST /assets/sign answers 503 assets_unavailable.
@@ -54,7 +55,7 @@ func DefaultExtensions(_ context.Context, core *Core) (Extensions, error) {
 	}
 	packsPoll := func(ctx context.Context) { purchases.Catalog().Run(ctx, core.Cfg.Policy.PollInterval) }
 	return Extensions{
-		Progression: prog, Pictures: prog, Catalog: prog, Recorder: prog, Inviter: soc, Inventory: prog,
+		Progression: prog, Pictures: prog, Catalog: prog, Recorder: prog, Playtime: prog, Inviter: soc, Inventory: prog,
 		Routes: []func(rt *httpapi.Router){prog.Register, soc.Register, rep.Register, tracker.Register,
 			purchases.Register},
 		OnNewAccount: func(ctx context.Context, id uuid.UUID) {

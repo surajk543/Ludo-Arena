@@ -61,6 +61,17 @@ type Notifier interface {
 	NotifyUser(ctx context.Context, userID uuid.UUID, msgType string, payload any)
 }
 
+// Playtime receives intervals of qualifying active play of people
+// (implemented by progression: daily playtime milestones). The room engine
+// decides what qualifies and reports each interval exactly once, after the
+// room commit that closed or checkpointed it; final marks the end of a
+// continuous stretch (the player stopped qualifying). Delivery is best
+// effort: an interval lost to a crash is never re-sent, so a failure loses at
+// most one checkpoint of playtime and never counts any time twice.
+type Playtime interface {
+	AddPlaytime(ctx context.Context, userID uuid.UUID, from, to time.Time, final bool)
+}
+
 // Multi fans a record out to several recorders, returning the first error.
 type Multi []Recorder
 

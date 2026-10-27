@@ -56,6 +56,8 @@ type MissionsView struct {
 	Daily  MissionSet `json:"daily"`
 	Weekly MissionSet `json:"weekly"`
 	Events []EventSet `json:"events"`
+	// Playtime is today's playtime (null while daily playtime is disabled).
+	Playtime *PlaytimeView `json:"playtime"`
 }
 
 func utc(t time.Time) string { return t.UTC().Format(time.RFC3339) }
@@ -131,6 +133,9 @@ func (s *Service) Missions(ctx context.Context, userID uuid.UUID) (MissionsView,
 			out.Events = append(out.Events, EventSet{ID: p.Event.ID, Title: p.Event.Title, Description: p.Event.Description,
 				PeriodKey: p.Key, StartsAtUTC: utc(p.StartsAt), EndsAtUTC: utc(p.ResetsAt), Missions: ms})
 		}
+	}
+	if out.Playtime, err = s.Playtime(ctx, userID); err != nil {
+		return MissionsView{}, err
 	}
 	return out, nil
 }

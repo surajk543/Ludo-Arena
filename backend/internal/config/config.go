@@ -62,12 +62,16 @@ type Config struct {
 	// MinMatchDuration is the anti-farming minimum length of a match that
 	// earns XP and mission progress (>= 10 s in production).
 	MinMatchDuration time.Duration
-	WS               WSConfig
-	Game             GameConfig
-	Bots             BotConfig
-	Wallet           WalletConfig
-	Telemetry        TelemetryConfig
-	Social           SocialConfig
+	// PlaytimeFlush is how much unsaved daily playtime may build up in Redis
+	// before it is written to PostgreSQL (PLAYTIME_FLUSH_INTERVAL, 30s..15m).
+	// It bounds the playtime a Redis data loss can erase.
+	PlaytimeFlush time.Duration
+	WS            WSConfig
+	Game          GameConfig
+	Bots          BotConfig
+	Wallet        WalletConfig
+	Telemetry     TelemetryConfig
+	Social        SocialConfig
 	// Assets is the private R2 bucket holding the profile pictures.
 	Assets AssetsConfig
 
@@ -192,6 +196,15 @@ type GameConfig struct {
 	// overrides them live; read the effective fee via rooms.Service.EntryFee.
 	EntryFeeLudo   int64
 	EntryFeeSnakes int64
+	// PlaytimeIdleStrikes is the inactivity policy of daily playtime
+	// (PLAYTIME_IDLE_STRIKES, 1..MAX_STRIKES): after this many consecutive
+	// missed own turns a player's playtime pauses until they act again.
+	// Waiting for other players never counts as idle.
+	PlaytimeIdleStrikes int
+	// PlaytimeCheckpoint is how often a running match credits the open
+	// playtime of its players (PLAYTIME_CHECKPOINT, 15s..5m). It bounds the
+	// playtime a crash can lose per player.
+	PlaytimeCheckpoint time.Duration
 }
 
 // Built-in entry fee defaults in coins, used when neither the app-policy file
@@ -204,6 +217,13 @@ const (
 // DefaultMaxStrikes is the default MAX_STRIKES: consecutive missed turns
 // (turn timeouts) after which a player is removed from the running game.
 const DefaultMaxStrikes = 5
+
+// Daily playtime defaults (docs/progression.md → Daily playtime).
+const (
+	DefaultPlaytimeIdleStrikes = 1
+	DefaultPlaytimeCheckpoint  = time.Minute
+	DefaultPlaytimeFlush       = 2 * time.Minute
+)
 
 // DefaultNameChangesPerDay is the default NAME_CHANGES_PER_DAY.
 const DefaultNameChangesPerDay = 3
@@ -430,6 +450,10 @@ func Load() (*Config, error) {
 	if c.MinMatchDuration < 0 || (c.Env == EnvProduction && c.MinMatchDuration < 10*time.Second) {
 		errs = append(errs, errors.New("PROGRESSION_MIN_MATCH_DURATION must be >= 10s in production and never negative"))
 	}
+	c.PlaytimeFlush = getDur("PLAYTIME_FLUSH_INTERVAL", DefaultPlaytimeFlush)
+	if c.PlaytimeFlush < 30*time.Second || c.PlaytimeFlush > 15*time.Minute {
+		errs = append(errs, errors.New("PLAYTIME_FLUSH_INTERVAL must be between 30s and 15m"))
+	}
 	c.NameChangesPerDay = getInt("NAME_CHANGES_PER_DAY", DefaultNameChangesPerDay)
 	if c.NameChangesPerDay < 1 {
 		errs = append(errs, errors.New("NAME_CHANGES_PER_DAY must be >= 1"))
@@ -474,6 +498,8 @@ func Load() (*Config, error) {
 		PracticeBotWait:         getDur("PRACTICE_BOT_WAIT_SECONDS", 20*time.Second),
 		EntryFeeLudo:            int64(getInt("ENTRY_FEE_LUDO", int(DefaultEntryFeeLudo))),
 		EntryFeeSnakes:          int64(getInt("ENTRY_FEE_SNAKES", int(DefaultEntryFeeSnakes))),
+		PlaytimeIdleStrikes:     getInt("PLAYTIME_IDLE_STRIKES", DefaultPlaytimeIdleStrikes),
+		PlaytimeCheckpoint:      getDur("PLAYTIME_CHECKPOINT", DefaultPlaytimeCheckpoint),
 	}
 	for _, f := range []struct {
 		key string
@@ -485,6 +511,12 @@ func Load() (*Config, error) {
 	}
 	if c.Game.MaxStrikes < 1 {
 		errs = append(errs, errors.New("MAX_STRIKES must be >= 1"))
+	}
+	if c.Game.PlaytimeIdleStrikes < 1 || c.Game.PlaytimeIdleStrikes > max(c.Game.MaxStrikes, 1) {
+		errs = append(errs, errors.New("PLAYTIME_IDLE_STRIKES must be between 1 and MAX_STRIKES"))
+	}
+	if c.Game.PlaytimeCheckpoint < 15*time.Second || c.Game.PlaytimeCheckpoint > 5*time.Minute {
+		errs = append(errs, errors.New("PLAYTIME_CHECKPOINT must be between 15s and 5m"))
 	}
 
 	var botKey []byte

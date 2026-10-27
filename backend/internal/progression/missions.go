@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"ludoarena/internal/gameevents"
@@ -96,6 +97,9 @@ type MissionConfig struct {
 	Daily      []*MissionDef `json:"daily"`
 	Weekly     []*MissionDef `json:"weekly"`
 	Events     []*EventDef   `json:"events"`
+	// Playtime configures daily playtime milestones (playtime.go); nil or
+	// disabled turns them off.
+	Playtime *PlaytimeConfig `json:"playtime"`
 }
 
 // LoadMissions reads and validates a missions file against the catalog.
@@ -128,6 +132,9 @@ func ParseMissions(raw []byte, cat *Catalog) (*MissionConfig, error) {
 		}
 		if seen[m.ID] {
 			bad("%s: duplicate mission id %q", where, m.ID)
+		}
+		if strings.HasPrefix(m.ID, PlaytimeMissionID) {
+			bad("%s: mission id %q uses the reserved prefix %q", where, m.ID, PlaytimeMissionID)
 		}
 		seen[m.ID] = true
 		if m.Title == "" || m.Description == "" {
@@ -205,6 +212,9 @@ func ParseMissions(raw []byte, cat *Catalog) (*MissionConfig, error) {
 		for j, m := range e.Missions {
 			check(fmt.Sprintf("event %s missions[%d]", e.ID, j), m, e.ID)
 		}
+	}
+	if c.Playtime != nil {
+		errs = append(errs, validatePlaytime(c.Playtime, seen)...)
 	}
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)

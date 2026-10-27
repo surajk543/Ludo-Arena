@@ -12,7 +12,9 @@ import (
 // Subprotocol is the only supported WebSocket subprotocol.
 const Subprotocol = "ludo-arena.v1"
 
-// Client -> server message types used by bots.
+// Client -> server message types used by bots. Bots never send app.focus
+// (people only; the server rejects it from bots) and never receive
+// playtime.updated: daily playtime is never counted for bots.
 const (
 	TPing              = "ping"
 	TMatchmakingJoin   = "matchmaking.join"

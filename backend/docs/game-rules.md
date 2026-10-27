@@ -28,6 +28,10 @@ Rules version: `1` (exposed as `rulesVersion` in `GET /api/v1/app/config`).
   auto-move below) and increments that player's strike count; the timeout that
   reaches `MAX_STRIKES` forfeits the player instead of acting. Any own roll or
   move resets their strikes to 0, so only consecutive missed turns count.
+- Daily playtime (`docs/progression.md` §5.1) is counted by the engine for
+  people only, while they are seated in a running round, connected, in the
+  foreground (`app.focus`) and below `PLAYTIME_IDLE_STRIKES` (default 1)
+  strikes; it never changes turns, timers, dice or results.
 - While **maintenance mode** is active, turn deadlines are paused (pushed
   forward); no auto-moves, forfeits or settlements happen. See
   `docs/app-version-policy.md`.

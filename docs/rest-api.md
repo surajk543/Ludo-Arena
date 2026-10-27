@@ -287,7 +287,8 @@ player joined with (room snapshots are not rewritten).
 
 XP and levels: `nextLevelXp(level) = 100 + 50 × (level − 1)` XP from `level` to
 `level + 1`; max level 50. XP sources (server-side only): completed eligible
-match 20, win bonus 15, match with a friend 5, mission rewards.
+match 20, win bonus 15, match with a friend 5, mission rewards, daily playtime
+milestones.
 
 Field meaning (here and in `User`): `levelXp` = total XP at which the current
 level started (`100(L−1) + 25(L−1)(L−2)`), `nextLevelXp` = XP needed to go
@@ -307,7 +308,8 @@ account: reads 120/min, claims and purchases 30/min, loadout 60/min.
 | Method & path | Body | Response |
 |---|---|---|
 | `GET /progression` | – | `{"level","xp","levelXp","nextLevelXp","maxLevel":50,"title","milestones":[{"level","rewards":[ItemRef],"reached"}]}` |
-| `GET /missions` | – | `{"daily": MissionSet, "weekly": MissionSet, "events": [EventSet]}` |
+| `GET /missions` | – | `{"daily": MissionSet, "weekly": MissionSet, "events": [EventSet], "playtime": Playtime \| null}` (`playtime` is null while daily playtime is disabled) |
+| `GET /playtime` | – | `Playtime`; 404 `not_found` while daily playtime is disabled |
 | `POST /missions/{periodKey}/{missionId}/claim` | – (`Idempotency-Key`) | `{"mission": Mission, "wallet": Wallet, "progression": {"level","xp","levelXp","nextLevelXp","xpGained","levelUp"}, "granted": [ItemRef]}`; 404 `not_found` (not a mission of a current period), 409 `already_claimed`, 422 `not_completed` |
 
 **ItemRef**: `{"id":"frame_bronze","kind":"frame","name":"Bronze Ring","rarity":"common"}`
@@ -317,6 +319,20 @@ account: reads 120/min, claims and purchases 30/min, loadout 60/min.
 **EventSet**: `{"id":"autumn_cup","title","description","periodKey":"e-autumn_cup","startsAtUtc","endsAtUtc","missions":[Mission]}` (only running events are listed)
 
 **Mission**: `{"id","title","description","game":"any|ludo|snakes_ladders","progress","target","reward":{"coins","diamonds","xp","items":[ItemRef]},"completed","claimed"}`
+
+**Playtime** (today's qualifying play, server-counted):
+`{"periodKey":"d2026-10-27","resetsAtUtc":"2026-10-28T00:00:00Z","seconds":1083,"milestones":[PlaytimeMilestone]}`
+
+**PlaytimeMilestone**: `{"id":"playtime_10m","minutes":10,"reward":{"coins":5000,"diamonds":0,"xp":25,"items":[]},"status":"completed|in_progress|locked"}`
+— in threshold order. `completed`: the reward was granted (wallet and XP
+already credited). `in_progress`: the first milestone not completed yet.
+`locked`: every later one. A milestone is granted automatically, exactly once
+per account and day, when `seconds` reaches `minutes × 60` (no claim call);
+remaining time = `minutes × 60 − seconds`. Grants credit coins and XP like a
+mission claim (same transaction rules, `wallet.updated` with
+`reason: "playtime"`, `progression.updated`), so a level-up is celebrated the
+usual way. Playtime resets with the daily missions (00:00 UTC). Rewards and
+thresholds come from `config/missions.json` → `playtime`.
 
 Period keys: daily `dYYYY-MM-DD`, weekly `wYYYY-Www` (ISO week), event
 `e-{eventId}`. Daily missions (3, the same for everyone that day) reset at

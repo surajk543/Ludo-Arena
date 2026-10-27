@@ -34,6 +34,7 @@ const (
 	TGameRematch       = "game.rematch"
 	TChatQuick         = "chat.quick"
 	TChatEmote         = "chat.emote"
+	TAppFocus          = "app.focus"
 )
 
 // Server → client message types.
@@ -58,6 +59,7 @@ const (
 	TProgression       = "progression.updated"
 	TSocialInvite      = "social.invite"
 	TSocialFriendReq   = "social.friend_request"
+	TPlaytimeUpdated   = "playtime.updated"
 )
 
 // KnownClientTypes bounds metric label cardinality.
@@ -65,7 +67,7 @@ var KnownClientTypes = map[string]bool{
 	TPing: true, TMatchmakingJoin: true, TMatchmakingCancel: true, TRoomCreate: true, TRoomJoin: true,
 	TRoomLeave: true, TRoomInvite: true, TRoomAllowBots: true, TRoomAddBot: true, TRoomRemoveBot: true,
 	TPracticeStart: true, TGameStart: true, TGameRoll: true, TGameMove: true, TGameSync: true,
-	TGameRematch: true, TChatQuick: true, TChatEmote: true,
+	TGameRematch: true, TChatQuick: true, TChatEmote: true, TAppFocus: true,
 }
 
 // Inbound is a decoded client envelope.

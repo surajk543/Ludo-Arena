@@ -85,6 +85,7 @@ unique index.)
 | Mission claim | claim insert + progress check + `wallet.AdjustTx` credit + XP + items | `mission_claims` PK. A failed check (`not_completed`) rolls the claim row back. |
 | Purchase | inventory insert + `wallet.AdjustTx` debit | `inventory` PK (`already_owned` → rollback). An insufficient balance (`wallet.ErrInsufficientFunds`; balances never go negative) rolls the inventory row back. |
 | Level milestones | inside the XP update | `inventory` PK; every milestone up to the new level is (re)offered, so a newly added milestone is caught up on the next level-up. |
+| Daily playtime milestone | day's seconds (`GREATEST`) + one claim insert per reached milestone + `wallet.AdjustTx` credit + XP | `mission_claims` PK `(user, dYYYY-MM-DD, playtime_…)`; granted automatically (no claim call). See §5.1. |
 
 The wallet change always commits atomically with the row that proves it
 happened. `Idempotency-Key` (claims, purchases) is a response cache on top:
@@ -170,6 +171,90 @@ overlapping ids, invalid windows). Changing the daily pool mid-day can change
 that day's selection (progress for missions that left the set is simply not
 shown). **Never reuse an event id** for a different run: claims are keyed by
 `e-{eventId}` and are purged 60 days after the claim.
+
+### 5.1 Daily playtime milestones
+
+A daily goal next to the missions: the server counts the minutes a person
+**actively plays** today and grants each milestone's reward automatically,
+once per account and UTC day. Configured in `missions.json` → `playtime`
+(`enabled`, `milestones[{id, minutes, reward}]`, validated at startup: ids
+`playtime_…` that no mission uses, increasing minutes 1–1440, coins/diamonds/XP
+in the mission ranges, no items; mission ids may not start with `playtime`).
+`enabled: false` (or no section) is the feature switch: nothing is counted,
+`GET /missions` has `playtime: null`, `GET /playtime` answers 404.
+
+| Milestone | Reward (shipped) |
+|---|---|
+| `playtime_10m` — 10 min | 5,000 coins + 25 XP |
+| `playtime_30m` — 30 min | 10,000 coins + 40 XP |
+| `playtime_60m` — 60 min | 20,000 coins + 60 XP |
+
+**Why these values.** Coins: a full day is 35,000 coins, a third of one
+Ludo entry fee (100,000) and 3.5 % of the welcome grant, so it helps a player
+who is short without inflating balances; mission rewards (500–2,000) stay
+the "do something specific" reward. XP: the proposed 100/200/300 XP (600 a
+day) would be 3–5 times what an hour of play earns today (≈ 5 matches × 20–35
+XP + 3 daily missions × 30 XP) and would make levels trivial; 125 XP a day is
+about one daily mission set plus a match, so an hour-long player progresses
+≈ 40 % faster and a 10-minute player still gets a visible bump.
+`TestRepoPlaytimeConfig` guards the totals (< 100,000 coins, ≤ 150 XP a day).
+
+**What counts** (decided by the room engine, `rooms/playtime.go`, inside the
+same commits that change the seat): a person (never a bot) seated in a
+running round (`status = playing`) of a public, private or practice room
+(load-test rooms never), **connected**, app in the **foreground**
+(`app.focus`, a new connection counts as foreground), **not forfeited** and
+**not idle**. Idle = `PLAYTIME_IDLE_STRIKES` (default 1) consecutive missed own
+turns; the next own roll/move resumes counting. Waiting for other players is
+never idle. Lobby, matchmaking, the rematch window, spectating (not
+offered) and app-open time never count. The client never reports time:
+`app.focus` only pauses/resumes, and the server timestamps everything.
+
+**How it is counted.** While a seat qualifies, `Player.PlayFrom` holds the
+start of its open stretch (room state in Redis, never in a client view or
+hash). The stretch is credited to progression after the commit that ends it
+(disconnect, background, idle, forfeit/leave, finish) and at checkpoints
+(turn changes ≥ `PLAYTIME_CHECKPOINT`, default 60 s, after the last credit),
+then moved forward by that same compare-and-set commit. So an interval is
+reported once: retries re-run on fresh state, duplicate WebSocket messages
+are de-duplicated or no-ops, a person sits in one room at a time and has one
+live connection, and a reconnect only opens a new stretch from the reconnect
+time (the offline gap is never counted). Intervals crossing 00:00 UTC are
+split between the two days.
+
+**Storage and durability** (no new table):
+
+| Where | What |
+|---|---|
+| Redis `pt:{userId}:{dayKey}` (hash, 48 h) | `ms` the day's milliseconds (`HINCRBY`), `fs` seconds last written to PostgreSQL, `g:{id}` granted (hint). Seeded from PostgreSQL when missing. |
+| `mission_progress (user, dYYYY-MM-DD, "playtime")` | the day's seconds, only raised (`GREATEST`); written when ≥ `PLAYTIME_FLUSH_INTERVAL` (default 2 min) of play is unsaved, when a stretch ends, when its day ends, and in every grant |
+| `mission_claims (user, dYYYY-MM-DD, playtime_…)` | one row per granted milestone (the exactly-once proof) |
+
+PostgreSQL writes per active player: about one every 2 minutes plus one per
+stretch end; never per heartbeat. A milestone is granted in one transaction
+(lock progress row → raise seconds → insert each reached milestone's claim →
+credit wallet → add XP and level milestones → commit), then pushed:
+`wallet.updated` (`reason: "playtime"`), `progression.updated` (XP, level-up)
+and `playtime.updated` with `granted`. Concurrent grants (several instances
+or connections) serialize on the progress row lock and the claim PK.
+`GET /playtime` / `GET /missions` read PostgreSQL for completed milestones and
+grant any reached milestone whose grant failed earlier (crash, PostgreSQL
+outage), so a reward is never lost once its time is saved.
+
+**Bounded loss** (never a double count or double reward):
+
+- backend crash: the open stretch of each seat since its last credit — at
+  most `PLAYTIME_CHECKPOINT` (60 s) per player — plus credits still in flight
+  (shutdown waits up to 5 s for them);
+- Redis data loss: the unsaved part of the day — less than
+  `PLAYTIME_FLUSH_INTERVAL` (2 min) per player (live games are lost too);
+- an idle player is credited at most until their own turn times out
+  (`TURN_SECONDS`) before the pause; an app that is killed in the background
+  without sending `app.focus` is credited until the server notices the dead
+  socket (`WS_PING_INTERVAL` + `WS_PONG_TIMEOUT`, 30 s by default).
+
+Retention: the rows follow mission retention (§10). Account deletion removes
+them with the account and purges today's and yesterday's `pt:` keys.
 
 ## 6. Collection Room
 
@@ -278,10 +363,11 @@ currency for `purchase` items). Level milestones are derived from the
 | `au:d:{yyyymmdd}`, `au:w:{yyyy-Www}` | HyperLogLog | 40 days | pseudonymous active-user sketches |
 | `seat:{userId}` (+ `…:lease`, 5 s) | string | 1 h | seat summary cache (level, non-starter loadout, equipped profile-picture id) for room joins; deleted after level-ups, equips and profile-picture applies ([architecture.md → PostgreSQL on the hot path](architecture.md#postgresql-on-the-hot-path)) |
 | `emotes:{userId}` | set | 1 h | owned non-starter emotes (catalogue and Store `em_…` emotes) for `chat.emote`; grants add to it, misses are confirmed in PostgreSQL |
+| `pt:{userId}:{dayKey}` | hash | 48 h | today's playtime: `ms`, `fs` (seconds saved in PostgreSQL), `g:{milestoneId}` hints (§5.1); seeded from PostgreSQL when missing |
 | `rl:invite_user:…`, `rl:friend_request_user:…`, `rl:report_user:…`, `rl:report_read_user:…`, `rl:admin_ip:…` | counter | window | rate limits |
 | read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}`, `user:{userId}:room`, `botsess:{uid}`, `botprof:{uid}` | | | set by the gateway / profile service / room engine (reports verify seats; friend requests and recent players find bots) |
 
-Account deletion purges the account's `seat:`, `emotes:`, `recent:`, `botfr:` keys,
+Account deletion purges the account's `seat:`, `emotes:`, `recent:`, `botfr:` keys, today's and yesterday's `pt:` keys,
 its member in other players' `recent:` sets and in the weekly `lb:xp:` sets,
 and its rate-limit counters. A match recorded after the deletion never
 re-adds the deleted account to anyone's recent players (`recent` ignores ids
@@ -292,8 +378,10 @@ reset, pending invites and friend requests to bots disappear (the sender can
 re-invite), idempotency
 replays are unavailable for the past 24 h (a retried claim/purchase gets the
 normal `409 already_claimed` / `already_owned` instead of a replay), and the
-day/week active-user estimates restart, and the seat/emote caches refill from
-PostgreSQL on the next join or emote. Nothing durable is lost: XP, levels,
+day/week active-user estimates restart, the seat/emote caches refill from
+PostgreSQL on the next join or emote, and daily playtime restarts from the
+seconds last saved in PostgreSQL (at most `PLAYTIME_FLUSH_INTERVAL` of play
+per player is lost; granted milestones are never granted again). Nothing durable is lost: XP, levels,
 missions, claims, inventory, loadouts, friendships, chosen display names and
 wallets live in PostgreSQL, and friend codes resolve from
 `player_progress.public_id`. (The rolling name-change counter
@@ -344,7 +432,11 @@ its keys are rebuilt as players play (see §8).
 ## 12. Metrics
 
 `missions_completed_total{period}`, `mission_rewards_claimed_total{period}`
-(`daily|weekly|event`), `xp_awarded_total{source}` (`match|mission`),
+(`daily|weekly|event`), `xp_awarded_total{source}` (`match|mission|playtime`),
+`playtime_credited_seconds_total`, `playtime_milestones_granted_total{minutes}`
+(one label value per configured milestone), `playtime_errors_total{stage}`
+(`accrue|seed|flush|grant`; a failed grant is logged at error level and
+retried by the next credit or read),
 `level_ups_total`, `cosmetic_unlocks_total{source}`
 (`level|mission|event|purchase|first_win`), `cosmetic_equips_total{slot}`,
 `cosmetic_purchases_total{currency}`, `friend_requests_total{event}`
