@@ -44,6 +44,13 @@ type Line struct {
 	Points []Point
 }
 
+// Mark highlights one value (such as the peak) with a dot and a label.
+type Mark struct {
+	T     time.Time
+	V     float64
+	Label string
+}
+
 // TimeSpec describes a time-series line chart.
 type TimeSpec struct {
 	Title, YLabel     string
@@ -52,6 +59,8 @@ type TimeSpec struct {
 	Start, End        time.Time     // x range (zero: from the data)
 	Step              time.Duration // sample spacing; gaps > 2.5 steps break the line
 	Percent           bool          // y axis 0–100 %
+	Area              bool          // shade the area under the first line
+	Marks             []Mark
 	WidthMM, HeightMM float64
 }
 
@@ -106,8 +115,10 @@ var (
 )
 
 func init() {
-	// Sans-serif text everywhere (gonum's default is Liberation Serif).
+	// Sans-serif text everywhere (gonum's default is Liberation Serif;
+	// plotter labels have a default of their own).
 	plot.DefaultFont = pfont.Font{Typeface: "Liberation", Variant: "Sans"}
+	plotter.DefaultFont = plot.DefaultFont
 }
 
 func newPlot(title, ylabel string) *plot.Plot {
@@ -134,6 +145,7 @@ func newPlot(title, ylabel string) *plot.Plot {
 	p.Legend.XOffs = vg.Points(6)
 	p.Legend.YOffs = vg.Points(-2)
 	p.Legend.ThumbnailWidth = vg.Points(14)
+	p.Legend.Padding = vg.Points(1.2)
 	g := plotter.NewGrid()
 	g.Vertical.Width = 0
 	g.Horizontal.Color = gridCol
@@ -177,6 +189,9 @@ func TimeChart(s TimeSpec) ([]byte, error) {
 			}
 			ln.Color = c
 			ln.Width = vg.Points(1.4)
+			if s.Area && i == 0 {
+				ln.FillColor = color.NRGBA{c.R, c.G, c.B, 0x2E} // not premultiplied
+			}
 			p.Add(ln)
 			if len(seg) == 1 { // a lone sample is invisible as a line
 				sc, _ := plotter.NewScatter(xys)
@@ -204,6 +219,9 @@ func TimeChart(s TimeSpec) ([]byte, error) {
 	}
 	p.X.Min, p.X.Max = float64(tmin.Unix()), float64(tmax.Unix())
 	p.X.Tick.Marker = timeTicker{loc: loc, span: tmax.Sub(tmin)}
+	if err := addMarks(p, s.Marks); err != nil {
+		return nil, err
+	}
 	p.Y.Min = 0
 	if s.Percent {
 		p.Y.Max = 100 * 1.22
@@ -213,6 +231,49 @@ func TimeChart(s TimeSpec) ([]byte, error) {
 		p.Y.Tick.Marker = numTicker{max: p.Y.Max / 1.22}
 	}
 	return render(p, s.WidthMM, s.HeightMM)
+}
+
+// addMarks draws each mark as a dot with its label above it, right-aligned
+// when the mark is in the right third so the label stays inside the chart.
+func addMarks(p *plot.Plot, marks []Mark) error {
+	for _, m := range marks {
+		if math.IsNaN(m.V) || math.IsInf(m.V, 0) {
+			continue
+		}
+		xy := plotter.XYs{{X: float64(m.T.Unix()), Y: m.V}}
+		sc, err := plotter.NewScatter(xy)
+		if err != nil {
+			return fmt.Errorf("charts: %w", err)
+		}
+		sc.Color = ink
+		sc.Shape = draw.CircleGlyph{}
+		sc.Radius = vg.Points(2.2)
+		p.Add(sc)
+		if m.Label == "" {
+			continue
+		}
+		lb, err := plotter.NewLabels(plotter.XYLabels{XYs: xy, Labels: []string{m.Label}})
+		if err != nil {
+			return fmt.Errorf("charts: %w", err)
+		}
+		ts := &lb.TextStyle[0]
+		ts.Font.Size = vg.Points(7.5)
+		ts.Font.Weight = xfont.WeightBold
+		ts.Color = ink
+		ts.YAlign = draw.YBottom
+		ts.XAlign = draw.XCenter
+		if span := p.X.Max - p.X.Min; span > 0 {
+			switch frac := (xy[0].X - p.X.Min) / span; {
+			case frac > 0.67:
+				ts.XAlign = draw.XRight
+			case frac < 0.1:
+				ts.XAlign = draw.XLeft
+			}
+		}
+		lb.Offset = vg.Point{Y: vg.Points(3.5)}
+		p.Add(lb)
+	}
+	return nil
 }
 
 // BarChart renders grouped or stacked bars over categories.

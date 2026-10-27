@@ -60,6 +60,10 @@ services:
       - ${GOOGLE_CREDENTIALS_DIR:-./secrets}:/secrets:ro
     ports:
       - "127.0.0.1:9097:9097"
+    # BACKEND_API_URL=http://host.docker.internal:8080 reaches the backend on
+    # the Docker host (operator API for /live and /playtime).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - prometheus
     restart: unless-stopped

@@ -71,6 +71,44 @@ func (q Queries) Online() string {
 	return fmt.Sprintf(`sum by (actor) (ws_connections_active%s)`, q.sel(q.Backend))
 }
 
+// OnlineHumans is the real players' open WebSocket connections (summed over
+// instances; one connection per player).
+func (q Queries) OnlineHumans() string {
+	return fmt.Sprintf(`sum(ws_connections_active%s)`, q.sel(q.Backend, `actor="human"`))
+}
+
+// PlayingHumans is real players seated in running games.
+func (q Queries) PlayingHumans() string {
+	return fmt.Sprintf(`max(players_in_game%s)`, q.sel(q.Backend, `actor="human"`))
+}
+
+// LobbyHumans is real players waiting in room lobbies.
+func (q Queries) LobbyHumans() string {
+	return fmt.Sprintf(`max(players_in_lobby%s)`, q.sel(q.Backend, `actor="human"`))
+}
+
+// PGPool is the backend PostgreSQL pool connections by state (acquired,
+// idle, constructing), summed over instances.
+func (q Queries) PGPool() string {
+	return fmt.Sprintf(`sum by (state) (postgres_pool_connections%s)`, q.sel(q.Backend))
+}
+
+// PGPoolMax is the summed pool limit (MaxConns) of every backend instance.
+func (q Queries) PGPoolMax() string {
+	return fmt.Sprintf(`sum(postgres_pool_max_connections%s)`, q.sel(q.Backend))
+}
+
+// HostCores is the number of CPUs per host.
+func (q Queries) HostCores() string {
+	return fmt.Sprintf(`count by (instance) (node_cpu_seconds_total%s)`, q.sel(q.Node, `mode="idle"`))
+}
+
+// HostMemTotal is the installed memory per host (Linux, with the macOS name).
+func (q Queries) HostMemTotal() string {
+	n := q.sel(q.Node)
+	return fmt.Sprintf(`max by (instance) (node_memory_MemTotal_bytes%[1]s or node_memory_total_bytes%[1]s)`, n)
+}
+
 // RoomsByGame is rooms with a running game by game.
 func (q Queries) RoomsByGame() string {
 	return fmt.Sprintf(`sum by (game) (max by (game, mode) (rooms_in_game%s))`, q.sel(q.Backend))

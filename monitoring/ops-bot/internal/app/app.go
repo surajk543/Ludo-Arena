@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -45,6 +46,8 @@ type Metrics struct {
 	QueryErrors  *opsmetrics.Vec
 	LastSuccess  *opsmetrics.Vec // kind
 	QueueFull    *opsmetrics.Vec
+	Commands     *opsmetrics.Vec // command, result
+	Generation   *opsmetrics.Vec // command
 }
 
 // NewMetrics registers the metrics.
@@ -58,6 +61,9 @@ func NewMetrics() *Metrics {
 		QueryErrors:  r.Counter("opsbot_prometheus_query_errors_total", "Failed Prometheus API queries."),
 		LastSuccess:  r.Gauge("opsbot_last_success_timestamp_seconds", "Unix time of the last successful delivery by kind.", "kind"),
 		QueueFull:    r.Counter("opsbot_alert_queue_full_total", "Webhook calls rejected because the alert queue was full."),
+		Commands: r.Counter("opsbot_command_reports_total", "Report commands by command and result "+
+			"(accepted, duplicate, busy, sent, failed, timeout).", "command", "result"),
+		Generation: r.Gauge("opsbot_command_report_generation_seconds", "Generation time of the last report per command.", "command"),
 	}
 }
 
@@ -72,13 +78,20 @@ type App struct {
 	Clock     schedule.Clock
 	Dedupe    *alertmanager.Deduper
 
-	once   sync.Once
-	alerts chan alertmanager.Payload
+	once    sync.Once
+	alerts  chan alertmanager.Payload
+	jobs    chan reportJob       // accepted report commands
+	genLock chan struct{}        // one report generation at a time
+	mu      sync.Mutex           // guards recent
+	recent  map[string]time.Time // chat+command → when it was last accepted
 }
 
 func (a *App) init() {
 	a.once.Do(func() {
 		a.alerts = make(chan alertmanager.Payload, 64)
+		a.jobs = make(chan reportJob, queueCap)
+		a.genLock = make(chan struct{}, 1)
+		a.recent = map[string]time.Time{}
 		if a.Clock == nil {
 			a.Clock = schedule.Real{}
 		}
@@ -106,46 +119,25 @@ func (a *App) deliver(ctx context.Context, kind string, chats []string, send fun
 	return errors.Join(errs...)
 }
 
-// SendStatus collects and sends the status report to chats.
+// SendStatus collects and sends the status report to chats (scheduled and
+// one-shot runs; commands go through the report worker).
 func (a *App) SendStatus(ctx context.Context, kind string, chats []string) error {
 	a.init()
-	pdf := a.Cfg.ReportFormat == config.FormatPDF
-	st := a.Collector.Status(ctx, pdf)
-	m := a.meta()
-	if !pdf {
-		text := report.StatusText(st, m)
-		return a.deliver(ctx, kind, chats, func(chat string) error { return a.Sender.SendMessage(ctx, chat, text) })
-	}
-	doc, err := pdfreport.StatusPDF(st, m, pdfreport.Options{})
+	r, err := a.generate(ctx, a.buildStatus)
 	if err != nil {
-		a.Log.Error("status pdf failed; sending text", "err", err)
-		text := report.StatusText(st, m)
-		return a.deliver(ctx, kind, chats, func(chat string) error { return a.Sender.SendMessage(ctx, chat, text) })
+		return err
 	}
-	name := pdfreport.StatusFileName(st.At, m.Loc)
-	caption := report.StatusCaption(st, m)
-	return a.deliver(ctx, kind, chats, func(chat string) error { return a.Sender.SendDocument(ctx, chat, name, doc, caption) })
+	return a.send(ctx, kind, chats, r)
 }
 
 // SendDigest collects and sends the daily report for the local day containing day.
 func (a *App) SendDigest(ctx context.Context, kind string, day time.Time, chats []string) error {
 	a.init()
-	pdf := a.Cfg.ReportFormat == config.FormatPDF
-	dg := a.Collector.Digest(ctx, day, pdf)
-	m := a.meta()
-	if !pdf {
-		text := report.DigestText(dg, m)
-		return a.deliver(ctx, kind, chats, func(chat string) error { return a.Sender.SendMessage(ctx, chat, text) })
-	}
-	doc, err := pdfreport.DigestPDF(dg, m, a.Clock.Now(), pdfreport.Options{})
+	r, err := a.generate(ctx, func(ctx context.Context) (rendered, error) { return a.buildDigest(ctx, day) })
 	if err != nil {
-		a.Log.Error("digest pdf failed; sending text", "err", err)
-		text := report.DigestText(dg, m)
-		return a.deliver(ctx, kind, chats, func(chat string) error { return a.Sender.SendMessage(ctx, chat, text) })
+		return err
 	}
-	name := pdfreport.DigestFileName(dg.Day)
-	caption := report.DigestCaption(dg, m)
-	return a.deliver(ctx, kind, chats, func(chat string) error { return a.Sender.SendDocument(ctx, chat, name, doc, caption) })
+	return a.send(ctx, kind, chats, r)
 }
 
 // Enqueue queues an Alertmanager notification (false when the queue is full).
@@ -262,40 +254,48 @@ func (a *App) Jobs() []schedule.Job {
 	return jobs
 }
 
-// HelpText is the reply to /help.
-const HelpText = "<b>Ludo Arena ops bot</b>\n/status — current status report\n/digest — yesterday's KPI report\n/help — this message"
-
-// HandleUpdate answers one Telegram update from an allowed chat.
+// HandleUpdate answers one Telegram update (a message or a channel post)
+// from an allowed chat. Report commands are queued for the report worker
+// (see commands.go); it returns without waiting for them.
 func (a *App) HandleUpdate(ctx context.Context, u telegram.Update) {
-	if u.Message == nil {
+	a.init()
+	msg := u.Msg()
+	if msg == nil {
 		return
 	}
-	chat := strconv.FormatInt(u.Message.Chat.ID, 10)
-	if !slices.Contains(a.Cfg.TelegramChatIDs, chat) {
+	chat := strconv.FormatInt(msg.Chat.ID, 10)
+	if !a.allowedChat(msg.Chat) {
 		a.Log.Debug("ignoring message from a chat that is not configured")
 		return
 	}
-	cmd, _ := telegram.ParseCommand(u.Message.Text)
-	var err error
-	switch cmd {
-	case "":
+	cmd, _ := telegram.ParseCommand(msg.Text)
+	if cmd == "" {
 		return
-	case "status":
-		err = a.SendStatus(ctx, "command", []string{chat})
-	case "digest", "daily":
-		err = a.SendDigest(ctx, "command", report.Yesterday(a.Clock.Now(), a.Cfg.Location), []string{chat})
-	default:
-		err = a.deliver(ctx, "command", []string{chat}, func(c string) error { return a.Sender.SendMessage(ctx, c, HelpText) })
 	}
-	if err != nil {
-		a.Log.Error("command failed", "command", cmd, "err", err)
+	if name, build := a.builder(cmd); build != nil {
+		a.submit(ctx, name, chat, build)
+		return
 	}
+	a.reply(ctx, chat, HelpText)
+}
+
+// allowedChat reports whether TELEGRAM_CHAT_IDS lists the chat, by id or
+// (for a channel configured as @name) by its public username.
+func (a *App) allowedChat(c telegram.Chat) bool {
+	if slices.Contains(a.Cfg.TelegramChatIDs, strconv.FormatInt(c.ID, 10)) {
+		return true
+	}
+	if c.Username == "" {
+		return false
+	}
+	return slices.ContainsFunc(a.Cfg.TelegramChatIDs, func(id string) bool { return strings.EqualFold(id, "@"+c.Username) })
 }
 
 func (a *App) commandLoop(ctx context.Context) {
 	if a.Updates == nil {
 		return
 	}
+	a.publishCommands(ctx)
 	// Skip commands sent while the bot was down.
 	var offset int64
 	if ups, err := a.Updates.GetUpdates(ctx, 0, 0); err == nil {
@@ -327,9 +327,7 @@ func (a *App) commandLoop(ctx context.Context) {
 		backoff = 5 * time.Second
 		for _, u := range ups {
 			offset = max(offset, u.UpdateID+1)
-			rctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-			a.HandleUpdate(rctx, u)
-			cancel()
+			a.HandleUpdate(ctx, u)
 		}
 	}
 }
@@ -349,6 +347,7 @@ func (a *App) Run(ctx context.Context) error {
 		}
 	})
 	wg.Go(func() { a.alertWorker(ctx) })
+	wg.Go(func() { a.RunReports(ctx) })
 	wg.Go(func() { a.commandLoop(ctx) })
 	for _, j := range a.Jobs() {
 		wg.Go(func() { schedule.Run(ctx, a.Clock, j) })

@@ -37,6 +37,9 @@ func TestDefaults(t *testing.T) {
 		{"dedupe", c.AlertDedupeWindow, 30 * time.Minute},
 		{"trend days", c.TrendDays, 30},
 		{"commands", c.TelegramCommands, true},
+		{"command timeout", c.CommandTimeout, 30 * time.Second},
+		{"command dedupe", c.CommandDedupe, 30 * time.Second},
+		{"backend api", c.BackendAPIURL, ""},
 	}
 	for _, ch := range checks {
 		if ch.got != ch.want {
@@ -79,6 +82,9 @@ func TestInvalid(t *testing.T) {
 		{"bad format", map[string]string{"TELEGRAM_DRY_RUN": "1", "REPORT_FORMAT": "docx"}, "REPORT_FORMAT"},
 		{"bad prom url", map[string]string{"TELEGRAM_DRY_RUN": "1", "PROM_URL": "prometheus:9090"}, "PROM_URL"},
 		{"bad trend days", map[string]string{"TELEGRAM_DRY_RUN": "1", "TREND_DAYS": "365"}, "TREND_DAYS"},
+		{"backend without key", map[string]string{"TELEGRAM_DRY_RUN": "1", "BACKEND_API_URL": "http://127.0.0.1:8080"}, "BACKEND_ADMIN_KEY is required"},
+		{"bad backend url", map[string]string{"TELEGRAM_DRY_RUN": "1", "BACKEND_API_URL": "127.0.0.1:8080", "BACKEND_ADMIN_KEY": "secretvalue"}, "BACKEND_API_URL"},
+		{"bad command timeout", map[string]string{"TELEGRAM_DRY_RUN": "1", "COMMAND_REPORT_TIMEOUT": "1s"}, "COMMAND_REPORT_TIMEOUT: must be at least 5s"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -90,6 +96,20 @@ func TestInvalid(t *testing.T) {
 				t.Errorf("error leaks the token: %v", err)
 			}
 		})
+	}
+}
+
+func TestBackendAPI(t *testing.T) {
+	c, err := Load(env(map[string]string{"TELEGRAM_DRY_RUN": "true", "BACKEND_API_URL": "http://127.0.0.1:8080/",
+		"BACKEND_ADMIN_KEY": "op-key-secretvalue", "COMMAND_REPORT_TIMEOUT": "45s", "COMMAND_DEDUPE_WINDOW": "0"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.BackendAPIURL != "http://127.0.0.1:8080" || c.BackendAdminKey != "op-key-secretvalue" || c.CommandTimeout != 45*time.Second || c.CommandDedupe != 0 {
+		t.Errorf("backend settings = %q %s %s", c.BackendAPIURL, c.CommandTimeout, c.CommandDedupe)
+	}
+	if s := c.String(); strings.Contains(s, "secretvalue") || !strings.Contains(s, "admin_key=set") || !strings.Contains(s, "backend_api=http://127.0.0.1:8080") {
+		t.Errorf("String() = %s", s)
 	}
 }
 

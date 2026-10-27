@@ -483,15 +483,19 @@ func TestMinGapPerChat(t *testing.T) {
 func TestGetUpdates(t *testing.T) {
 	c, api, _ := newTest(t, [2]any{200, `{"ok":true,"result":[
 		{"update_id":5,"message":{"message_id":9,"chat":{"id":-100123,"type":"supergroup"},"text":"/status"}},
-		{"update_id":6}
+		{"update_id":6},
+		{"update_id":7,"channel_post":{"message_id":3,"chat":{"id":-100777,"type":"channel"},"text":"/live"}}
 	]}`})
 	ups, err := c.GetUpdates(context.Background(), 5, 50*time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(ups) != 2 || ups[0].UpdateID != 5 || ups[0].Message == nil || ups[0].Message.Chat.ID != -100123 ||
-		ups[0].Message.Text != "/status" || ups[0].Message.Chat.Type != "supergroup" || ups[1].Message != nil {
+	if len(ups) != 3 || ups[0].UpdateID != 5 || ups[0].Message == nil || ups[0].Message.Chat.ID != -100123 ||
+		ups[0].Message.Text != "/status" || ups[0].Message.Chat.Type != "supergroup" || ups[1].Msg() != nil {
 		t.Fatalf("updates = %+v", ups)
+	}
+	if m := ups[2].Msg(); m == nil || m.Chat.ID != -100777 || m.Chat.Type != "channel" || m.Text != "/live" || ups[0].Msg() != ups[0].Message {
+		t.Fatalf("channel post = %+v", ups[2])
 	}
 	reqs := api.requests()
 	if reqs[0].Path != "/bot"+testToken+"/getUpdates" {
@@ -501,7 +505,7 @@ func TestGetUpdates(t *testing.T) {
 	if m["offset"] != json.Number("5") || m["timeout"] != json.Number("50") {
 		t.Errorf("body = %v", m)
 	}
-	if au, _ := m["allowed_updates"].([]any); len(au) != 1 || au[0] != "message" {
+	if au, _ := m["allowed_updates"].([]any); len(au) != 2 || au[0] != "message" || au[1] != "channel_post" {
 		t.Errorf("allowed_updates = %v", m["allowed_updates"])
 	}
 }
@@ -515,5 +519,31 @@ func TestGetUpdatesAPIError(t *testing.T) {
 	}
 	if len(api.requests()) != 1 || len(sl.all()) != 0 {
 		t.Errorf("getUpdates must not retry")
+	}
+}
+
+func TestSendChatActionAndCommands(t *testing.T) {
+	c, api, sl := newTest(t, [2]any{500, `{"ok":false,"error_code":500,"description":"Internal"}`},
+		[2]any{200, `{"ok":true,"result":true}`})
+	// A chat action is best effort: one attempt, no retry, no min-gap slot.
+	if err := c.SendChatAction(context.Background(), "-100777", ActionUploadDocument); err == nil {
+		t.Fatal("want the 500 back")
+	}
+	if err := c.SetMyCommands(context.Background(), []BotCommand{{Command: "live", Description: "Online players"}}); err != nil {
+		t.Fatal(err)
+	}
+	reqs := api.requests()
+	if len(reqs) != 2 || reqs[0].Path != "/bot"+testToken+"/sendChatAction" || reqs[1].Path != "/bot"+testToken+"/setMyCommands" {
+		t.Fatalf("requests = %+v", reqs)
+	}
+	if m := decodeJSON(t, reqs[0].Body); m["chat_id"] != json.Number("-100777") || m["action"] != "upload_document" {
+		t.Errorf("chat action body = %v", m)
+	}
+	cmds, _ := decodeJSON(t, reqs[1].Body)["commands"].([]any)
+	if first, _ := cmds[0].(map[string]any); len(cmds) != 1 || first["command"] != "live" || first["description"] != "Online players" {
+		t.Errorf("commands = %v", cmds)
+	}
+	if len(sl.all()) != 0 {
+		t.Errorf("sleeps = %v, want none", sl.all())
 	}
 }

@@ -6,6 +6,7 @@ require (
 	codeberg.org/go-pdf/fpdf v0.12.0
 	golang.org/x/image v0.46.0
 	golang.org/x/oauth2 v0.37.0
+	golang.org/x/text v0.42.0
 	gonum.org/v1/plot v0.17.0
 )
 
@@ -17,5 +18,4 @@ require (
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
 )

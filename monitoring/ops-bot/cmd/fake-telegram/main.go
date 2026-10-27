@@ -1,10 +1,13 @@
 // Command fake-telegram is a minimal fake Telegram Bot API for local
 // end-to-end tests of the ops bot. It accepts any token, records
-// sendMessage / sendDocument calls (documents are saved to --out), answers
-// getUpdates with no updates, and lists the records at GET /messages.
+// sendMessage / sendDocument / sendChatAction / setMyCommands calls
+// (documents are saved to --out), lists the records at GET /messages, and
+// answers getUpdates with the commands queued by POST /inject.
 //
 //	go run ./cmd/fake-telegram --addr 127.0.0.1:9098 --out /tmp/fake-telegram
 //	TELEGRAM_API_URL=http://127.0.0.1:9098 TELEGRAM_BOT_TOKEN=1:fake ... ops-bot
+//	curl -X POST '127.0.0.1:9098/inject?chat=-1001234567890&text=/live'           # a group message
+//	curl -X POST '127.0.0.1:9098/inject?chat=-1001234567890&text=/live&channel=1' # a channel post
 //
 // It is a test tool only: it never contacts Telegram and never logs tokens.
 package main
@@ -45,6 +48,8 @@ type server struct {
 	files   atomic.Int64
 	mu      sync.Mutex
 	records []record
+	updates []map[string]any // queued by POST /inject, update_id ascending
+	nextUID int64
 }
 
 func main() {
@@ -70,6 +75,10 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, recs)
 		return
 	}
+	if r.URL.Path == "/inject" && r.Method == http.MethodPost {
+		s.inject(w, r)
+		return
+	}
 	rest, ok := strings.CutPrefix(r.URL.Path, "/bot")
 	_, method, ok2 := strings.Cut(rest, "/")
 	if !ok || !ok2 || method == "" {
@@ -91,13 +100,28 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		s.store(rec)
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "result": map[string]int64{"message_id": s.ids.Add(1)}})
-	case "getUpdates":
-		wait := min(pollTimeout(r), 2*time.Second)
-		select {
-		case <-time.After(wait):
-		case <-r.Context().Done():
+	case "sendChatAction", "setMyCommands":
+		rec, err := s.parse(method, r)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "error_code": 400, "description": "Bad Request: " + err.Error()})
+			return
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "result": []any{}})
+		s.store(rec)
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "result": true})
+	case "getUpdates":
+		offset, timeout := pollParams(r)
+		deadline := time.Now().Add(min(timeout, 2*time.Second))
+		for {
+			if ups := s.pending(offset); len(ups) > 0 || !time.Now().Before(deadline) {
+				writeJSON(w, http.StatusOK, map[string]any{"ok": true, "result": ups})
+				return
+			}
+			select {
+			case <-time.After(50 * time.Millisecond):
+			case <-r.Context().Done():
+				return
+			}
+		}
 	case "getMe":
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "result": map[string]any{"id": 1, "is_bot": true, "username": "fake_ops_bot"}})
 	default:
@@ -120,6 +144,9 @@ func (s *server) parse(method string, r *http.Request) (record, error) {
 		rec.ChatID = fmt.Sprint(body["chat_id"])
 		rec.ParseMode, _ = body["parse_mode"].(string)
 		rec.Text, _ = body["text"].(string)
+		if action, ok := body["action"].(string); ok {
+			rec.Text = action // sendChatAction
+		}
 		rec.Caption, _ = body["caption"].(string)
 		return rec, nil
 	case "multipart/form-data":
@@ -168,21 +195,65 @@ func (s *server) store(rec record) {
 	fmt.Println(string(line))
 }
 
-// pollTimeout reads getUpdates' timeout (seconds) from JSON, query or form.
-func pollTimeout(r *http.Request) time.Duration {
-	v := r.URL.Query().Get("timeout")
+// inject queues a command as the next update: ?chat=<id>&text=/live
+// [&channel=1 for a channel post].
+func (s *server) inject(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	chat, err := strconv.ParseInt(q.Get("chat"), 10, 64)
+	if err != nil || q.Get("text") == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "description": "want ?chat=<numeric id>&text=<text>"})
+		return
+	}
+	kind, chatType := "message", "supergroup"
+	if q.Get("channel") != "" {
+		kind, chatType = "channel_post", "channel"
+	}
+	s.mu.Lock()
+	s.nextUID++
+	id := s.nextUID
+	s.updates = append(s.updates, map[string]any{"update_id": id,
+		kind: map[string]any{"message_id": id, "chat": map[string]any{"id": chat, "type": chatType}, "text": q.Get("text")}})
+	s.mu.Unlock()
+	log.Printf("queued update %d: %s in %d", id, kind, chat)
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "update_id": id})
+}
+
+// pending returns the queued updates with update_id >= offset.
+func (s *server) pending(offset int64) []map[string]any {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := []map[string]any{}
+	for _, u := range s.updates {
+		if u["update_id"].(int64) >= offset {
+			out = append(out, u)
+		}
+	}
+	return out
+}
+
+// pollParams reads getUpdates' offset and timeout (seconds) from JSON, query or form.
+func pollParams(r *http.Request) (offset int64, timeout time.Duration) {
+	q := r.URL.Query()
+	ov, tv := q.Get("offset"), q.Get("timeout")
 	if ctype, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type")); ctype == "application/json" {
 		var body struct {
-			Timeout int `json:"timeout"`
+			Offset  int64 `json:"offset"`
+			Timeout int   `json:"timeout"`
 		}
 		if json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body) == nil {
-			return time.Duration(body.Timeout) * time.Second
+			return body.Offset, time.Duration(body.Timeout) * time.Second
 		}
-	} else if fv := r.FormValue("timeout"); fv != "" {
-		v = fv
+	} else {
+		if fv := r.FormValue("offset"); fv != "" {
+			ov = fv
+		}
+		if fv := r.FormValue("timeout"); fv != "" {
+			tv = fv
+		}
 	}
-	n, _ := strconv.Atoi(v)
-	return time.Duration(n) * time.Second
+	o, _ := strconv.ParseInt(ov, 10, 64)
+	n, _ := strconv.Atoi(tv)
+	return o, time.Duration(n) * time.Second
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

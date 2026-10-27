@@ -3,6 +3,7 @@ package pdfreport
 import (
 	"bytes"
 	"compress/zlib"
+	"context"
 	"io"
 	"math"
 	"os"
@@ -230,7 +231,11 @@ func cp1252(s string) string {
 		case 0xB7:
 			b.WriteString("·")
 		default:
-			b.WriteByte(c)
+			if c >= 0xA0 { // cp1252 is Latin-1 here
+				b.WriteRune(rune(c))
+			} else {
+				b.WriteByte(c)
+			}
 		}
 	}
 	return b.String()
@@ -362,7 +367,11 @@ func TestWriteSamples(t *testing.T) {
 	st, _ := StatusPDF(SampleStatus(), meta, Options{})
 	dg, _ := DigestPDF(SampleDigest(true), meta, now, Options{})
 	al, _ := AlertPDF(sampleAlerts(), SampleStatus().Snapshot, alertCharts(), meta, now, Options{})
-	for name, b := range map[string][]byte{"fixture-status.pdf": st, "fixture-daily.pdf": dg, "fixture-alert.pdf": al} {
+	lv, _ := LivePDF(context.Background(), SampleLive(), meta, Options{})
+	pt, _ := PlaytimePDF(context.Background(), SamplePlaytime(), meta, Options{})
+	rs, _ := ResourcesPDF(context.Background(), SampleResources(), meta, Options{})
+	for name, b := range map[string][]byte{"fixture-status.pdf": st, "fixture-daily.pdf": dg, "fixture-alert.pdf": al,
+		"fixture-live.pdf": lv, "fixture-playtime.pdf": pt, "fixture-metrics.pdf": rs} {
 		if err := os.WriteFile(filepath.Join(dir, name), b, 0o644); err != nil {
 			t.Fatal(err)
 		}
