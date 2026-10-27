@@ -626,10 +626,12 @@ not stored and do not count. The reported player is not notified.
 Not for the app. **Not version gated**, no user token: header
 `X-Admin-Key: <key>` is compared in constant time with
 `ADMIN_API_KEY_SHA256` (hex sha256 of the key). When that variable is unset
-both routes answer **404** `not_found`; a missing or wrong key answers
-**401** `unauthorized`. Rate limited 60/min per client IP (checked before the
-key). Expose `/api/v1/admin/*` only on the private network (block it at the
-public proxy).
+every operator route (`/admin/reports`, `/admin/ops/*`) answers **404**
+`not_found`; a missing or wrong key answers **401** `unauthorized`. Rate
+limited 60/min per client IP, one budget for all operator routes (checked
+before the key). Expose `/api/v1/admin/*` only on the private network (block
+it at the public proxy). The ops statistics are under
+[Operator statistics](#operator-statistics-ops-bot).
 
 | Method & path | Body | Response |
 |---|---|---|
@@ -640,6 +642,80 @@ public proxy).
 — `reportedStats` counts every report against the reported player (`open` =
 `submitted` + `reviewing`; `reporters` = distinct reporters). Account ids are
 never returned.
+
+### Operator statistics (ops bot)
+
+Same rules as the [Operator API](#operator-api-private-network-only)
+(`X-Admin-Key`, 404 while `ADMIN_API_KEY_SHA256` is unset, 401 for a wrong
+key, 60/min per IP, not version gated, private network only). Read by the
+Telegram ops bot (`/live`, `/playtime`); implemented in
+`backend/internal/opsstats`, Redis only (keys in
+[redis-keys.md](../backend/docs/redis-keys.md#operator-statistics)). They
+cover **people only**: bots never enter the online set and never accrue
+playtime. Unlike the rest of the API they return **account ids**
+(`userId`) next to public ids, for operators. Times are RFC 3339 UTC with
+whole seconds. Query parameters out of range answer **400** `bad_request`.
+
+| Method & path | Response |
+|---|---|
+| `GET /admin/ops/online?limit=100` | Online people (`limit` 1–500, default 100), below |
+| `GET /admin/ops/playtime?hours=24&limit=100` | Minutes played per game in the last `hours` (1–24, default 24) with each game's top `limit` (1–500, default 100) players, below |
+
+`GET /admin/ops/online`:
+
+```json
+{"at":"2026-10-27T15:04:05Z","total":42,
+ "counts":{"ludo":10,"snakes_ladders":5,"waiting":3,"lobby":24},
+ "users":[{"uid":"u_ABCDEFGHIJKL","userId":"<uuid>","name":"Suraj","createdAt":"2026-10-01T10:00:00Z",
+           "onlineSince":"2026-10-27T14:00:00Z","activity":"ludo","game":"ludo","mode":"public"}]}
+```
+
+- Online = a WebSocket connection is open (`presence:{userId}` exists).
+  `onlineSince` = when the current connection opened (a reconnect restarts
+  it). `total` and `counts` cover every online person; `users` lists the
+  first `limit` (`[]` when nobody is online).
+- `activity`: `ludo` / `snakes_ladders` = seated, not forfeited, in a room
+  that is playing; `waiting` = seated in a room still in its lobby (public
+  matchmaking, a private room before the host starts, a practice room
+  waiting for its bots); `lobby` = online and in no live room (menus, the
+  rematch window, or forfeited by missed turns while the game goes on).
+  `game` (`ludo`, `snakes_ladders`) and `mode` (`public`, `private`,
+  `practice`) are set for the first three, `null` for `lobby`.
+- Order: `ludo`, `snakes_ladders`, `waiting`, `lobby`; within each,
+  `onlineSince` oldest first, then `uid`.
+- `name` is the display name; `createdAt` is when the account was created
+  (its first sign-in identity), `null` if unknown.
+
+`GET /admin/ops/playtime`:
+
+```json
+{"from":"2026-10-26T15:04:05Z","to":"2026-10-27T15:04:05Z","hours":24,
+ "games":[{"game":"ludo","seconds":123456,"players":87,
+           "hourly":[{"hour":"2026-10-26T15:00:00Z","seconds":1200}],
+           "top":[{"uid":"u_…","userId":"<uuid>","name":"…","createdAt":"…","seconds":5400}]},
+          {"game":"snakes_ladders","seconds":0,"players":0,"hourly":[…],"top":[]}]}
+```
+
+- Playtime is the **active play** the daily playtime milestones count
+  ([progression.md §5.1](progression.md#51-daily-playtime-milestones): a
+  person seated in a running round, connected, app in the foreground, not
+  forfeited, not idle), recorded whether or not the milestones are enabled.
+  It is stored per UTC hour; an interval is recorded when the room engine
+  credits it (when the stretch ends, or at the first turn change
+  `PLAYTIME_CHECKPOINT`, default 60 s, after the last credit), so play in
+  progress shows up about a checkpoint late.
+- Window: `[to − hours, to]`, `to` = now. Each hour bucket overlapping it
+  counts; the oldest, partly outside, is pro-rated by the fraction inside
+  the window (hour resolution: play early in that hour still counts with
+  that weight). `seconds` and every player's seconds are rounded after
+  weighting.
+- Both games are always present, `ludo` first. `seconds` = everyone's play
+  in the window; `players` = people with play in the window; `hourly` = one
+  entry per UTC hour overlapping the window, oldest first, with that hour's
+  raw (not pro-rated) total; `top` = seconds desc, then `uid`, at most
+  `limit` (`[]` when nobody played).
+- A deleted account disappears from `top` and `players`; hour totals are
+  aggregates and keep its play.
 
 ## Telemetry (privacy-conscious, aggregate only)
 

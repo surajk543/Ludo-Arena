@@ -27,6 +27,7 @@ import (
 	"ludoarena/internal/legal"
 	"ludoarena/internal/metrics"
 	"ludoarena/internal/notify"
+	"ludoarena/internal/opsstats"
 	"ludoarena/internal/playerinfo"
 	"ludoarena/internal/profile"
 	"ludoarena/internal/progression"
@@ -137,9 +138,13 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 		log.Warn("RATE LIMITS DISABLED (load-test configuration)")
 	}
 
+	// Operator statistics (who is online, minutes played per game) for the
+	// ops bot: Redis only, people only.
+	ops := opsstats.New(core.RDB, core.PG, core.Profiles, log, opsstats.Options{AdminKeySHA256: cfg.AdminKeySHA256})
 	roomSvc := rooms.New(rooms.Deps{
 		RDB: core.RDB, Wallets: core.Wallets, Profiles: core.Profiles, Progression: ext.Progression,
-		Pictures: ext.Pictures, Catalog: ext.Catalog, Recorder: ext.Recorder, Playtime: ext.Playtime, Inviter: ext.Inviter, Inventory: ext.Inventory, Policy: policy,
+		Pictures: ext.Pictures, Catalog: ext.Catalog, Recorder: ext.Recorder, Playtime: ext.Playtime, PlayStats: ops,
+		Inviter: ext.Inviter, Inventory: ext.Inventory, Policy: policy,
 		BotAuth: botAuth, Limiter: limiter, Notifier: core.Notifier, Log: log, Game: cfg.Game,
 		Bots: cfg.Bots, Env: cfg.Env, FullSnaps: cfg.WS.FullSnapshots, Dice: dice,
 		StatsInterval: cfg.GameStatsInterval,
@@ -174,6 +179,7 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	acct.Register(rt)
 	httpapi.RegisterAppleCallback(rt, cfg.Auth.AppleAndroidPkg)
 	roomSvc.RegisterRoutes(rt)
+	ops.Register(rt)
 	if botAuth.Enabled() {
 		roomSvc.RegisterBotRoutes(rt, cfg.Env)
 	}
@@ -182,6 +188,15 @@ func New(ctx context.Context, core *Core, ext Extensions, dice rooms.Dice) (*App
 	}
 	notices := legal.New(cfg.LegalNoticesFile, log)
 	notices.Register(rt)
+	// postgres_pool_* gauges follow the pool of the latest App (one per
+	// process in production; tests build many).
+	if pg := core.PG; pg != nil {
+		metrics.SetPostgresPool(func() metrics.PoolStats {
+			st := pg.Stat()
+			return metrics.PoolStats{Acquired: st.AcquiredConns(), Idle: st.IdleConns(),
+				Constructing: st.ConstructingConns(), Max: st.MaxConns()}
+		})
+	}
 	mux := rt.Mux()
 	mux.Handle("GET /api/v1/ws", gw)
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {

@@ -30,6 +30,7 @@ import (
 	"ludoarena/internal/httpapi"
 	"ludoarena/internal/metrics"
 	"ludoarena/internal/notify"
+	"ludoarena/internal/opsstats"
 	"ludoarena/internal/protocol"
 	"ludoarena/internal/ratelimit"
 	"ludoarena/internal/rooms"
@@ -270,8 +271,15 @@ func (g *Gateway) register(c *conn) {
 	// keeps "ctl" as the first key, which route() relies on to tell control
 	// messages apart from client envelopes.
 	ctl, _ := json.Marshal(controlMsg{Ctl: "kick", Conn: c.id})
-	g.rdb.Publish(ctx, notify.UserChannel(c.userID), ctl)
-	g.rdb.Set(ctx, "presence:"+c.userID, c.id, presenceTTL)
+	// One round trip. People also join the operator online set
+	// (opsstats.OnlineKey) after presence is set; bots never do.
+	pipe := g.rdb.Pipeline()
+	pipe.Publish(ctx, notify.UserChannel(c.userID), ctl)
+	pipe.Set(ctx, "presence:"+c.userID, c.id, presenceTTL)
+	if !c.principal.IsBot() {
+		pipe.ZAdd(ctx, opsstats.OnlineKey, redis.Z{Score: float64(time.Now().UnixMilli()), Member: c.userID})
+	}
+	_, _ = pipe.Exec(ctx)
 }
 
 // controlMsg is an instance-to-instance message on a user channel; it is
@@ -319,16 +327,28 @@ func (g *Gateway) CloseAccount(ctx context.Context, userID string) {
 	}
 }
 
+// unregisterScript ends a connection's presence (KEYS[1] presence:{userId})
+// only while it still names this connection (ARGV[1]); a newer connection
+// may have replaced it. For a person (ARGV[2] = account id, "" for bots) it
+// also removes the member from the online set (KEYS[2]) in the same step.
+var unregisterScript = redis.NewScript(`
+if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end
+redis.call('DEL', KEYS[1])
+if ARGV[2] ~= '' then redis.call('ZREM', KEYS[2], ARGV[2]) end
+return 1`)
+
 func (g *Gateway) unregister(c *conn) {
 	g.mu.Lock()
 	if g.conns[c.userID] == c {
 		delete(g.conns, c.userID)
 	}
 	g.mu.Unlock()
-	ctx := context.Background()
-	if cur, _ := g.rdb.Get(ctx, "presence:"+c.userID).Result(); cur == c.id {
-		g.rdb.Del(ctx, "presence:"+c.userID)
+	member := c.userID
+	if c.principal.IsBot() {
+		member = ""
 	}
+	_ = unregisterScript.Run(context.Background(), g.rdb, []string{"presence:" + c.userID, opsstats.OnlineKey},
+		c.id, member).Err()
 }
 
 func (g *Gateway) local(userID string) *conn {

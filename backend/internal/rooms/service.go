@@ -77,7 +77,10 @@ type Deps struct {
 	Catalog  playerinfo.CatalogSource
 	Recorder gameevents.Recorder
 	// Playtime receives qualifying active play of people (nil: not tracked).
-	Playtime  gameevents.Playtime
+	Playtime gameevents.Playtime
+	// PlayStats receives the same intervals with the game (operator
+	// statistics; nil: not recorded). Either sink enables the accounting.
+	PlayStats gameevents.PlayStats
 	Inviter   gameevents.Inviter
 	Inventory gameevents.Inventory
 	Policy    *apppolicy.Store

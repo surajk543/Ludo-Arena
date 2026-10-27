@@ -72,6 +72,14 @@ type Playtime interface {
 	AddPlaytime(ctx context.Context, userID uuid.UUID, from, to time.Time, final bool)
 }
 
+// PlayStats receives the same intervals as Playtime, with the game played
+// (ludo | snakes_ladders), for operator statistics (implemented by opsstats:
+// minutes played per game and hour). It is independent of the daily
+// playtime feature switch; same delivery guarantees as Playtime.
+type PlayStats interface {
+	RecordPlay(ctx context.Context, userID uuid.UUID, game string, from, to time.Time)
+}
+
 // Multi fans a record out to several recorders, returning the first error.
 type Multi []Recorder
 

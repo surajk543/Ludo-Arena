@@ -5,6 +5,7 @@ package metrics
 
 import (
 	"net/http"
+	"sync/atomic"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -141,8 +142,58 @@ var (
 	BotCoinsRemoved    = counter("bot_coins_removed_total", "Coins removed from bot wallets by reason (reset).", "reason")
 )
 
+// PoolStats is a snapshot of a connection pool.
+type PoolStats struct {
+	Acquired, Idle, Constructing, Max int32
+}
+
+// pgPool exports the PostgreSQL connection pool of this instance (sum across
+// instances), read at scrape time: postgres_pool_connections{state} and
+// postgres_pool_max_connections. It is registered once per process; the
+// server wiring points it at the current pool (tests build many servers in
+// one process).
+var pgPool = &poolCollector{
+	conns: prometheus.NewDesc("postgres_pool_connections",
+		"PostgreSQL connections of this instance's pool by state (acquired = in use, idle, constructing = being opened); sum across instances.",
+		[]string{"state"}, nil),
+	max: prometheus.NewDesc("postgres_pool_max_connections",
+		"Maximum size of this instance's PostgreSQL pool (DB_MAX_CONNS); sum across instances.", nil, nil),
+}
+
+type poolCollector struct {
+	src        atomic.Pointer[func() PoolStats]
+	conns, max *prometheus.Desc
+}
+
+// SetPostgresPool sets the source of the postgres_pool_* gauges (nil: not
+// exported).
+func SetPostgresPool(stats func() PoolStats) {
+	if stats == nil {
+		pgPool.src.Store(nil)
+		return
+	}
+	pgPool.src.Store(&stats)
+}
+
+func (c *poolCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- c.conns
+	ch <- c.max
+}
+
+func (c *poolCollector) Collect(ch chan<- prometheus.Metric) {
+	src := c.src.Load()
+	if src == nil {
+		return
+	}
+	st := (*src)()
+	ch <- prometheus.MustNewConstMetric(c.conns, prometheus.GaugeValue, float64(st.Acquired), "acquired")
+	ch <- prometheus.MustNewConstMetric(c.conns, prometheus.GaugeValue, float64(st.Idle), "idle")
+	ch <- prometheus.MustNewConstMetric(c.conns, prometheus.GaugeValue, float64(st.Constructing), "constructing")
+	ch <- prometheus.MustNewConstMetric(c.max, prometheus.GaugeValue, float64(st.Max))
+}
+
 func init() {
-	Registry.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	Registry.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}), pgPool)
 	// Export the bot coin series from the start (0 until the first event).
 	BotCoinsMinted.WithLabelValues("start")
 	BotCoinsMinted.WithLabelValues("recharge")

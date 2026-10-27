@@ -287,7 +287,9 @@ nothing was deleted. Implementation: `backend/internal/account`.
    `emotes:{userId}`, `presence:{userId}`, `botfr:{userId}` (pending friend
    requests to bots), `recent:{userId}` **and** the
    account's entry in every recent opponent's `recent:{otherId}`, its member
-   in the last five weekly leaderboards `lb:xp:{week}`, and its per-account
+   in the last five weekly leaderboards `lb:xp:{week}`, its member in the
+   operator statistics (`online:humans`, the hourly play per game
+   `ptg:{game}:{hour}`), and its per-account
    rate-limit counters (`rl:{rule}:{userId}:{window}`, incl. the report
    limiters) are deleted. Match records that finish later never re-add a
    deleted account to anyone's recent players, and a payout owed to a

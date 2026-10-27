@@ -1,8 +1,6 @@
 package reports
 
 import (
-	"crypto/sha256"
-	"crypto/subtle"
 	"errors"
 	"net/http"
 	"strconv"
@@ -22,24 +20,18 @@ var (
 	WritePerUser = ratelimit.Rule{Name: "report_user", Limit: 20, Window: time.Minute}
 	// ReadPerUser limits GET /reports.
 	ReadPerUser = ratelimit.Rule{Name: "report_read_user", Limit: 120, Window: time.Minute}
-	// AdminPerIP limits the operator API per client IP (checked before the key).
-	AdminPerIP = ratelimit.Rule{Name: "admin_ip", Limit: 60, Window: time.Minute}
 )
 
-// AdminKeyHeader carries the operator key.
-const AdminKeyHeader = "X-Admin-Key"
-
 // Register adds the player routes (human token, version gated) and the
-// operator routes (X-Admin-Key, not version gated, rate limited per IP; they
-// answer 404 when ADMIN_API_KEY_SHA256 is unset and must only be reachable on
-// the private network).
+// operator routes (httpapi.HandleAdmin: X-Admin-Key, not version gated, rate
+// limited per IP; they answer 404 when ADMIN_API_KEY_SHA256 is unset and
+// must only be reachable on the private network).
 func (s *Service) Register(rt *httpapi.Router) {
-	write, read, admin := WritePerUser, ReadPerUser, AdminPerIP
+	write, read := WritePerUser, ReadPerUser
 	rt.Handle("POST /api/v1/reports", httpapi.Route{Auth: httpapi.AuthHuman, Gate: true, UserRule: &write}, s.handleCreate)
 	rt.Handle("GET /api/v1/reports", httpapi.Route{Auth: httpapi.AuthHuman, Gate: true, UserRule: &read}, s.handleMine)
-	adminRoute := httpapi.Route{IPRule: &admin}
-	rt.Handle("GET /api/v1/admin/reports", adminRoute, s.admin(s.handleAdminList))
-	rt.Handle("PATCH /api/v1/admin/reports/{id}", adminRoute, s.admin(s.handleAdminUpdate))
+	rt.HandleAdmin("GET /api/v1/admin/reports", s.opts.AdminKeySHA256, s.handleAdminList)
+	rt.HandleAdmin("PATCH /api/v1/admin/reports/{id}", s.opts.AdminKeySHA256, s.handleAdminUpdate)
 }
 
 func caller(r *http.Request) (uuid.UUID, error) {
@@ -104,30 +96,6 @@ func (s *Service) handleMine(w http.ResponseWriter, r *http.Request) error {
 	}
 	httpapi.WriteJSON(w, http.StatusOK, map[string]any{"reports": list, "limit": lim})
 	return nil
-}
-
-// adminAuthorized compares sha256(key) with the configured hash in constant
-// time.
-func adminAuthorized(want []byte, key string) bool {
-	if len(want) != sha256.Size || key == "" {
-		return false
-	}
-	sum := sha256.Sum256([]byte(key))
-	return subtle.ConstantTimeCompare(sum[:], want) == 1
-}
-
-// admin guards an operator handler: 404 when the admin API is not configured,
-// 401 unauthorized for a missing or wrong X-Admin-Key.
-func (s *Service) admin(h httpapi.HandlerFunc) httpapi.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		if !s.AdminEnabled() {
-			return httpapi.ErrNotFound
-		}
-		if !adminAuthorized(s.opts.AdminKeySHA256, r.Header.Get(AdminKeyHeader)) {
-			return httpapi.Errf(http.StatusUnauthorized, "unauthorized", "A valid X-Admin-Key is required.")
-		}
-		return h(w, r)
-	}
 }
 
 // parseAdminQuery validates ?status= and ?limit=.

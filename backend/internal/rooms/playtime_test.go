@@ -355,3 +355,66 @@ func TestPlaytimeFieldsStayInternal(t *testing.T) {
 		}
 	}
 }
+
+// fakePlayStats records the intervals reported to the operator statistics.
+type fakePlayStats struct {
+	mu    sync.Mutex
+	calls []psCall
+}
+
+type psCall struct {
+	user     uuid.UUID
+	game     string
+	from, to time.Time
+}
+
+func (f *fakePlayStats) RecordPlay(_ context.Context, userID uuid.UUID, game string, from, to time.Time) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls = append(f.calls, psCall{user: userID, game: game, from: from, to: to})
+}
+
+// The operator statistics receive exactly the intervals daily playtime
+// receives, with the room's game, and they are recorded without the daily
+// playtime sink too (its feature switch does not apply to them).
+func TestPlayStatsGetTheSameIntervals(t *testing.T) {
+	h, sink := newPlayHarness(t, true)
+	stats := &fakePlayStats{}
+	h.s.PlayStats = stats
+	h.start()
+	h.advance(70 * time.Second)
+	h.untilSeatChanges()
+	h.advance(20 * time.Second)
+	h.do(func(m *mutation) error { return h.s.setFocus(m, h.uid(0), false) })
+	if len(sink.calls) != 2 || len(stats.calls) != len(sink.calls) {
+		t.Fatalf("playtime %+v, stats %+v", sink.calls, stats.calls)
+	}
+	for i, c := range sink.calls {
+		s := stats.calls[i]
+		if s.user != c.user || s.game != GameLudo || !s.from.Equal(c.from) || !s.to.Equal(c.to) {
+			t.Fatalf("stats[%d] = %+v, playtime %+v", i, s, c)
+		}
+	}
+
+	only, _ := newPlayHarness(t, false)
+	only.s.Playtime = nil
+	onlyStats := &fakePlayStats{}
+	only.s.PlayStats = onlyStats
+	only.r.Game = GameSnakes // the label only: the harness board is Ludo
+	only.start()
+	if only.r.Players[0].PlayFrom == 0 {
+		t.Fatal("no stretch opened with only the operator statistics sink")
+	}
+	only.advance(90 * time.Second)
+	only.do(func(m *mutation) error { return only.s.setFocus(m, only.uid(0), false) })
+	if len(onlyStats.calls) == 0 || onlyStats.calls[len(onlyStats.calls)-1].game != GameSnakes {
+		t.Fatalf("stats = %+v", onlyStats.calls)
+	}
+
+	none, _ := newPlayHarness(t, false)
+	none.s.Playtime = nil
+	none.start()
+	if none.r.Players[0].PlayFrom != 0 {
+		t.Fatal("a stretch opened without any sink")
+	}
+}

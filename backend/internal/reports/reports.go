@@ -545,9 +545,6 @@ type AdminReport struct {
 	ReportedStats ReportedStats `json:"reportedStats"`
 }
 
-// AdminEnabled reports whether the admin API is configured.
-func (s *Service) AdminEnabled() bool { return len(s.opts.AdminKeySHA256) == 32 }
-
 const adminSelect = `
 	SELECT p.id, p.reporter_id, p.reported_id, p.reason, p.game, p.room_id, p.status, p.note,
 	       p.created_at, p.updated_at, st.total, st.open, st.reporters

@@ -180,8 +180,10 @@ once per account and UTC day. Configured in `missions.json` → `playtime`
 (`enabled`, `milestones[{id, minutes, reward}]`, validated at startup: ids
 `playtime_…` that no mission uses, increasing minutes 1–1440, coins/diamonds/XP
 in the mission ranges, no items; mission ids may not start with `playtime`).
-`enabled: false` (or no section) is the feature switch: nothing is counted,
-`GET /missions` has `playtime: null`, `GET /playtime` answers 404.
+`enabled: false` (or no section) is the feature switch: nothing is counted
+toward milestones, `GET /missions` has `playtime: null`, `GET /playtime`
+answers 404 (the room engine still measures active play for the operator
+statistics, see below).
 
 | Milestone | Reward (shipped) |
 |---|---|
@@ -220,7 +222,12 @@ reported once: retries re-run on fresh state, duplicate WebSocket messages
 are de-duplicated or no-ops, a person sits in one room at a time and has one
 live connection, and a reconnect only opens a new stretch from the reconnect
 time (the offline gap is never counted). Intervals crossing 00:00 UTC are
-split between the two days.
+split between the two days. The same intervals, with the room's game, are
+also reported from the same post-commit callback to the operator statistics
+(`gameevents.PlayStats`, package `opsstats`: Redis `ptg:{game}:{hour}`
+per UTC hour, 26 h; read by the ops bot through
+`GET /api/v1/admin/ops/playtime`, see [rest-api.md](rest-api.md#operator-statistics-ops-bot)),
+whatever the feature switch says; they never affect rewards.
 
 **Storage and durability** (no new table):
 
@@ -368,8 +375,9 @@ currency for `purchase` items). Level milestones are derived from the
 | read only: `presence:{userId}`, `profile:{userId}`, `pubid:{uid}`, `room:{roomId}`, `user:{userId}:room`, `botsess:{uid}`, `botprof:{uid}` | | | set by the gateway / profile service / room engine (reports verify seats; friend requests and recent players find bots) |
 
 Account deletion purges the account's `seat:`, `emotes:`, `recent:`, `botfr:` keys, today's and yesterday's `pt:` keys,
-its member in other players' `recent:` sets and in the weekly `lb:xp:` sets,
-and its rate-limit counters. A match recorded after the deletion never
+its member in other players' `recent:` sets, in the weekly `lb:xp:` sets and
+in the operator statistics (`online:humans`, `ptg:{game}:{hour}`), and its
+rate-limit counters. A match recorded after the deletion never
 re-adds the deleted account to anyone's recent players (`recent` ignores ids
 without an account), and `GET /social/recent` drops such ids.
 
