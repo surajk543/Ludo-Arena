@@ -41,8 +41,8 @@ func PlaytimePDF(ctx context.Context, p report.PlayReport, m report.Meta, opt Op
 	purple, cyan, green := colPurple, colCyan, colGreen
 	d.section("Summary")
 	d.tiles([]tile{
-		{Label: "Ludo minutes", Value: report.Minutes(ludo.Seconds), Sub: report.Int(float64(ludo.Players)) + " players", Accent: &purple},
-		{Label: "Snakes & Ladders minutes", Value: report.Minutes(snakes.Seconds), Sub: report.Int(float64(snakes.Players)) + " players", Accent: &cyan},
+		{Label: "Ludo minutes", Value: report.Minutes(ludo.Seconds), Sub: report.Count(ludo.Players, "player"), Accent: &purple},
+		{Label: "Snakes & Ladders minutes", Value: report.Minutes(snakes.Seconds), Sub: report.Count(snakes.Players, "player"), Accent: &cyan},
 		{Label: "Total minutes played", Value: report.Minutes(p.TotalSeconds()), Sub: "both games", Accent: &green},
 		{Label: "Total play time", Value: report.HoursMinutes(p.TotalSeconds()), Sub: "hours of active play"},
 		{Label: "Per Ludo player", Value: report.PerPlayer(ludo), Sub: "average"},

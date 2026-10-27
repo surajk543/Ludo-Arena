@@ -68,8 +68,8 @@ func PlaytimeCaption(p PlayReport, m Meta) string {
 		return Esc(m.Env) + " · playtime, last 24 h · player data unavailable"
 	}
 	l, s := p.Game(backendapi.ActivityLudo), p.Game(backendapi.ActivitySnakes)
-	return fmt.Sprintf("%s · last 24 h · Ludo %s min (%s players) · S&amp;L %s min (%s players)",
-		Esc(m.Env), Minutes(l.Seconds), Int(float64(l.Players)), Minutes(s.Seconds), Int(float64(s.Players)))
+	return fmt.Sprintf("%s · last 24 h · Ludo %s min (%s) · S&amp;L %s min (%s)",
+		Esc(m.Env), Minutes(l.Seconds), Count(l.Players, "player"), Minutes(s.Seconds), Count(s.Players, "player"))
 }
 
 // playtimeTextRows is the number of players per game in the text fallback.
@@ -89,8 +89,8 @@ func PlaytimeText(p PlayReport, m Meta) string {
 	}
 	for _, game := range Games {
 		g := p.Game(game)
-		fmt.Fprintf(&b, "\n<b>%s</b> — %s min · %s players · %s per player\n",
-			Esc(GameName(game)), Minutes(g.Seconds), Int(float64(g.Players)), PerPlayer(g))
+		fmt.Fprintf(&b, "\n<b>%s</b> — %s min · %s · %s per player\n",
+			Esc(GameName(game)), Minutes(g.Seconds), Count(g.Players, "player"), PerPlayer(g))
 		if len(g.Top) == 0 {
 			b.WriteString("No play in the last 24 hours.\n")
 		}

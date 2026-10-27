@@ -91,7 +91,7 @@ func TestOnDemandReports(t *testing.T) {
 	}
 	want := []struct{ chat, file, caption string }{
 		{"111", "ludo-arena-live-2026-10-21-1700-IST.pdf", "staging · 3 online · Ludo 1 · S&amp;L 1 · lobby 1 · peak n/a"},
-		{"111", "ludo-arena-playtime-2026-10-21-1700-IST.pdf", "staging · last 24 h · Ludo 120 min (2 players) · S&amp;L 10 min (1 players)"},
+		{"111", "ludo-arena-playtime-2026-10-21-1700-IST.pdf", "staging · last 24 h · Ludo 120 min (2 players) · S&amp;L 10 min (1 player)"},
 		{"222", "ludo-arena-metrics-2026-10-21-1700-IST.pdf", "staging · PostgreSQL n/a"},
 	}
 	for i, w := range want {

@@ -112,6 +112,14 @@ func twoDigits(n int64) string {
 	return Int(float64(n))
 }
 
+// Count formats a count with its noun: "1 player", "1,204 players".
+func Count(n int, noun string) string {
+	if n == 1 {
+		return "1 " + noun
+	}
+	return Int(float64(n)) + " " + noun + "s"
+}
+
 // JoinedDate formats an account creation time ("2 Oct 2026"), "n/a" when unknown.
 func JoinedDate(t *time.Time, loc *time.Location) string {
 	if t == nil || t.IsZero() {
