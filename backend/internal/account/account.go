@@ -22,7 +22,8 @@
 //     instance holds it, and the account's caches and counters are removed
 //     (profile, public-id mapping, name-change window, seat/emote caches,
 //     presence, recent players on both sides, pending friend requests to
-//     bots, weekly leaderboard entries, per-account rate-limit counters). This step is best effort and
+//     bots, weekly leaderboard entries, the operator online set and hourly
+//     play per game, per-account rate-limit counters). This step is best effort and
 //     idempotent: a failure is logged and the next DELETE with a still-live
 //     session repeats it (and answers 401, the account being gone).
 //
@@ -47,6 +48,7 @@ import (
 	"ludoarena/internal/auth"
 	"ludoarena/internal/httpapi"
 	"ludoarena/internal/metrics"
+	"ludoarena/internal/opsstats"
 	"ludoarena/internal/profile"
 	"ludoarena/internal/progression"
 	"ludoarena/internal/ratelimit"
@@ -225,6 +227,10 @@ func (s *Service) purge(ctx context.Context, userID uuid.UUID, sessionID string)
 	now := s.d.Now()
 	for w := 0; w < leaderboardWeeks; w++ {
 		pipe.ZRem(ctx, progression.LeaderboardKey(progression.WeekKey(now.AddDate(0, 0, -7*w))), uid)
+	}
+	// Operator statistics: the online set and the hourly play per game.
+	for _, k := range opsstats.AccountKeys(now) {
+		pipe.ZRem(ctx, k, uid)
 	}
 	keys := []string{
 		social.RecentKey(userID), social.PresenceKey(userID), social.BotRequestsKey(userID),

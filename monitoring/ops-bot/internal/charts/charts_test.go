@@ -52,6 +52,16 @@ func TestTimeChart(t *testing.T) {
 	if _, err := TimeChart(TimeSpec{Lines: []Line{{Name: "x"}}}); !errors.Is(err, ErrNoData) {
 		t.Errorf("empty series err = %v, want ErrNoData", err)
 	}
+	// Area fill and peak marks (left, middle and right of the range).
+	marked, err := TimeChart(TimeSpec{Title: "Online", Lines: []Line{{Name: "Online", Points: a}}, Step: 5 * time.Minute, Area: true,
+		Marks: []Mark{{T: a[0].T, V: a[0].V, Label: "start"}, {T: a[150].T, V: a[150].V, Label: "peak 1,400 · 05:30"},
+			{T: a[288].T, V: a[288].V, Label: "now"}, {T: start, V: math.NaN()}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decode(t, marked); bytes.Equal(marked, img) {
+		t.Error("marks and area did not change the image")
+	}
 	if img, err := TimeChart(TimeSpec{Percent: true, Lines: []Line{{Name: "cpu", Points: []Point{{T: start, V: 40}}}}}); err != nil {
 		t.Errorf("single point: %v", err)
 	} else {

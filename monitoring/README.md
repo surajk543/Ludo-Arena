@@ -2,7 +2,8 @@
 
 The fourth independent project of the repository (next to `frontend/`,
 `backend/` and `bot-play/`). It never shares code or dependencies with them;
-it only reads their Prometheus metrics.
+it reads their Prometheus metrics and, for the per-player lists of `/live`
+and `/playtime`, the backend's operator API.
 
 - **Prometheus** scrapes every backend instance, bot-play, node_exporter
   (host CPU / RAM / disk) and the ops bot, and evaluates the alert rules.
@@ -13,7 +14,10 @@ it only reads their Prometheus metrics.
     including Google Play installs/uninstalls and Firebase Analytics,
   - **alerts** (firing and resolved) enriched with the current CPU %, RAM %
     and players playing (real players vs bots),
-  - answers to `/status`, `/digest` and `/help` from the configured chats.
+  - on-demand PDF reports from the configured chats and channels: `/live`
+    (real players online now, 24 h chart and peak), `/playtime` (top players
+    by minutes per game, 24 h), `/metrics` (CPU, RAM, PostgreSQL connections,
+    24 h), plus `/status`, `/digest` and `/help`.
 
 ```
                          private network only (never public)
@@ -71,7 +75,10 @@ VM; to see the Mac, run `node_exporter` natively and use
 - `go run ./cmd/fake-telegram --out ./fake-telegram-out` (in `ops-bot/`) is a
   fake Bot API that records every message and saves every document; point the
   bot at it with `TELEGRAM_API_URL=http://127.0.0.1:9098` and any token of the
-  form `123:abc…` (`--fail-first-429` exercises the retry path).
+  form `123:abc…` (`--fail-first-429` exercises the retry path). Queue a
+  command for the bot with
+  `curl -X POST '127.0.0.1:9098/inject?chat=<chat id>&text=/live'` (add
+  `&channel=1` for a channel post); the PDF lands in the output directory.
 - The Prometheus, Alertmanager and node_exporter release binaries work the
   same way as the containers (`prometheus --config.file=prometheus/prometheus.yml`).
 
@@ -88,10 +95,13 @@ VM; to see the Mac, run `node_exporter` natively and use
      read `message.chat.id` (a positive number).
    - Group: add the bot to the group, send `/help@<your_bot>` in the group,
      and read the (negative) `chat.id` from the same `getUpdates` page.
-   - Channel: add the bot as an administrator and use `@channelname`.
+   - Channel: add the bot as an administrator with **Post messages** and use
+     `@channelname` (or the numeric `-100…` id). Commands typed in the
+     channel arrive as channel posts and are answered in the channel.
 3. Set `TELEGRAM_CHAT_IDS` (comma-separated for several chats). Only these
-   chats receive reports and may use `/status` and `/digest`; messages from
-   other chats are ignored.
+   chats receive reports and may use the commands; messages from other chats
+   are ignored. At start the bot publishes its command menu (`setMyCommands`),
+   so typing `/` in a private chat or group lists the commands.
 4. Use one bot per environment (or `TELEGRAM_COMMANDS=false` on all but one):
    two processes polling the same token get HTTP 409 from Telegram.
 
@@ -143,13 +153,61 @@ dropped; still-firing alerts repeat every `repeat_interval` (1 h). Telegram
 rate limits are respected (`TELEGRAM_MIN_GAP` per chat; HTTP 429 waits for
 `retry_after`).
 
+## Commands (on demand)
+
+| Command | Report |
+|---|---|
+| `/live` | **Live players** PDF (`ludo-arena-live-2026-10-27-1504-IST.pdf`): real players online now, how many play Ludo, Snakes & Ladders, wait for a match or sit in the lobby; peak and average online over the last 24 hours with a 1-minute chart (online, in a game, waiting) marking the peak; the first 100 online players with user id (`u_…`), name, account creation date ("new" when under a day old), what they play (game · mode) and how long they have been online. Players in a match come first, then the longest online |
+| `/playtime` | **Playtime** PDF: minutes of active play per game over the last 24 hours (totals, players, average per player, top player, share), minutes per hour stacked by game, and the top 100 players of Ludo and of Snakes & Ladders with user id, name, joined date, minutes and share |
+| `/metrics` | **Server metrics** PDF: CPU % and RAM % per host and the backend's PostgreSQL pool connections (open, in use, pool limit) over the last 24 hours, with now / average / peak (and when) |
+| `/status`, `/digest` | The hourly status and yesterday's daily report, on demand |
+| `/help` | The command list (also the answer to unknown commands) |
+
+Bots and load tests are never listed or counted. The player lists and
+playtime come from the backend's operator API
+(`GET /api/v1/admin/ops/online` and `/ops/playtime`, `docs/rest-api.md`):
+set `BACKEND_API_URL` and `BACKEND_ADMIN_KEY` in the ops bot and
+`ADMIN_API_KEY_SHA256` (the hex sha256 of that key) on the backend. Without
+them `/live` still shows the Prometheus counts and chart and says the list
+is off. Playtime counts what the daily playtime rules count
+(`docs/progression.md`): seated in a running match, app in the foreground,
+not idle. CPU, RAM and online counts come from Prometheus; PostgreSQL from the
+backend's `postgres_pool_connections{state}` and
+`postgres_pool_max_connections` (per instance, summed). Names in scripts the
+PDF font cannot draw (Devanagari, Arabic, …) are labelled, e.g.
+`[Devanagari script]`; the user id next to them is exact.
+
+How commands run:
+
+- **Asynchronous**: the bot accepts a command and keeps polling; one worker
+  generates and sends the reports, and Telegram shows "sending a file…"
+  meanwhile. Up to 4 commands wait; more are refused with a short reply.
+- **One report at a time**: commands and the scheduled reports share one
+  generation slot.
+- **Repeats are dropped**: the same command from the same chat within
+  `COMMAND_DEDUPE_WINDOW` (30 s) of an accepted one is ignored (aliases count:
+  `/daily` = `/digest`).
+- **Deadline**: a report that is not generated within `COMMAND_REPORT_TIMEOUT`
+  (30 s) is cancelled: its Prometheus and backend requests are aborted, the
+  PDF renderer stops at its next section, the late result is discarded and
+  the chat gets "⏱ /live was cancelled …". (Go cannot kill a goroutine; the
+  next report starts only after the cancelled one has returned, so two never
+  overlap.) Sending the document is not part of the 30 s.
+- Results are counted in `opsbot_command_reports_total{command,result}`
+  (`accepted`, `duplicate`, `busy`, `sent`, `failed`, `timeout`) and
+  `opsbot_command_report_generation_seconds{command}`.
+
 ## Configuration (environment variables)
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `TELEGRAM_BOT_TOKEN` | — (**secret**, required) | Bot token from @BotFather; never logged (redacted from errors) |
 | `TELEGRAM_CHAT_IDS` | — (required) | Comma-separated chat ids / `@channel` |
-| `TELEGRAM_COMMANDS` | `true` | Answer `/status`, `/digest`, `/help` (long polling) |
+| `TELEGRAM_COMMANDS` | `true` | Answer the commands (long polling) |
+| `COMMAND_REPORT_TIMEOUT` | `30s` | A command's report is cancelled when not generated within this (minimum `5s`) |
+| `COMMAND_DEDUPE_WINDOW` | `30s` | Drop the same command from the same chat within this; `0` disables |
+| `BACKEND_API_URL` | empty | Backend REST base for the operator API, e.g. `http://127.0.0.1:8080` (`http://host.docker.internal:8080` from compose); empty turns the `/live` list and `/playtime` off |
+| `BACKEND_ADMIN_KEY` | empty (**secret**; required with `BACKEND_API_URL`) | Sent as `X-Admin-Key`; the backend's `ADMIN_API_KEY_SHA256` is its sha256. Never logged |
 | `TELEGRAM_MIN_GAP` | `3s` | Minimum gap between messages to one chat (`0` = none) |
 | `TELEGRAM_DRY_RUN` / `DRY_RUN_DIR` | `false` / empty | Log instead of sending; write PDFs to the directory |
 | `TELEGRAM_API_URL` | `https://api.telegram.org` | Only for tests (fake Bot API) |
@@ -254,6 +312,13 @@ processing a day.
 - Set `WEBHOOK_BEARER_TOKEN` and the matching `credentials_file` in
   `alertmanager.yml` when Alertmanager and the bot are not on an isolated
   network. Keep `.env` and `secrets/` out of Git.
+- `/live` and `/playtime` call the backend's operator API over the private
+  network (nginx answers 404 for `/api/v1/admin/` publicly). Generate a key
+  (`openssl rand -hex 32`), put it in `BACKEND_ADMIN_KEY` here and its sha256
+  (`printf %s "$KEY" | sha256sum`) in the backend's `ADMIN_API_KEY_SHA256`.
+  From the compose stack on Linux the backend must listen where the container
+  can reach it (see "Quick start"); `host.docker.internal` is mapped for the
+  ops bot.
 - The backend's cluster gauges (`players_in_game`, `rooms_in_game`,
   `players_in_lobby`, `game_stats_refreshed_timestamp_seconds`) are reported
   identically by every instance, so the bot combines them with `max`;

@@ -37,6 +37,7 @@ type Collector struct {
 	Now       func() time.Time
 	Play      PlaySource
 	GA4       GA4Source
+	Backend   BackendSource // per-player lists for /live and /playtime (nil: not configured)
 	TrendDays int
 }
 

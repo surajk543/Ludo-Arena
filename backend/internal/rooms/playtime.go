@@ -9,7 +9,8 @@ package rooms
 // consecutive missed own turns; waiting for other players never counts as
 // idle). While it is, Player.PlayFrom holds the start of the open stretch.
 //
-// The open stretch is credited to Deps.Playtime after the commit that closes
+// The open stretch is credited to Deps.Playtime (and, with the room's game,
+// to Deps.PlayStats: operator minutes per game) after the commit that closes
 // it (the seat stopped qualifying, or the round finished) and at checkpoints
 // (every PLAYTIME_CHECKPOINT, on turn changes). Because the stretch lives in
 // the room state and is moved forward by the same compare-and-set commit
@@ -26,10 +27,12 @@ import (
 	"ludoarena/internal/protocol"
 )
 
-// playEligible reports whether seat p of r accrues playtime right now.
+// playEligible reports whether seat p of r accrues playtime right now. Either
+// sink enables the accounting, so the operator statistics do not depend on
+// the daily playtime feature switch.
 func (s *Service) playEligible(r *Room, p *Player) bool {
-	return s.Playtime != nil && r.Status == StatusPlaying && !r.LoadTest && !p.Bot && p.Connected && !p.Away &&
-		!p.Forfeited && p.Strikes < s.idleStrikes()
+	return (s.Playtime != nil || s.PlayStats != nil) && r.Status == StatusPlaying && !r.LoadTest && !p.Bot &&
+		p.Connected && !p.Away && !p.Forfeited && p.Strikes < s.idleStrikes()
 }
 
 func (s *Service) idleStrikes() int {
@@ -80,15 +83,23 @@ func (s *Service) playSyncAll(m *mutation, checkpoint bool) {
 	}
 }
 
-// creditPlay reports [from, to) of a person's play after the commit.
+// creditPlay reports [from, to) of a person's play after the commit, to both
+// sinks from the same callback (so both see exactly the same intervals).
 func (m *mutation) creditPlay(userID string, from, to int64, final bool) {
-	sink := m.s.Playtime
-	if sink == nil || to <= from {
+	pt, stats := m.s.Playtime, m.s.PlayStats
+	if (pt == nil && stats == nil) || to <= from {
 		return
 	}
-	id := parseUUID(userID)
+	id, game := parseUUID(userID), m.r.Game
 	m.then(func(ctx context.Context) {
-		sink.AddPlaytime(context.WithoutCancel(ctx), id, time.UnixMilli(from), time.UnixMilli(to), final)
+		ctx = context.WithoutCancel(ctx)
+		start, end := time.UnixMilli(from), time.UnixMilli(to)
+		if stats != nil {
+			stats.RecordPlay(ctx, id, game, start, end)
+		}
+		if pt != nil {
+			pt.AddPlaytime(ctx, id, start, end, final)
+		}
 	})
 }
 

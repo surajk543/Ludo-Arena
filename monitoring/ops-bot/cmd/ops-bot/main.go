@@ -1,6 +1,7 @@
 // Command ops-bot sends Ludo Arena operations reports and alerts to
-// Telegram: an hourly status (PDF or text), a daily KPI report, and
-// Alertmanager notifications enriched with CPU, RAM and player counts.
+// Telegram: an hourly status (PDF or text), a daily KPI report, Alertmanager
+// notifications enriched with CPU, RAM and player counts, and on-demand PDF
+// reports for the /live, /playtime and /metrics commands.
 //
 // Configuration comes from environment variables (see
 // monitoring/.env.example and monitoring/README.md). One-shot modes:
@@ -24,6 +25,7 @@ import (
 	_ "time/tzdata" // TZ_NAME works in minimal container images
 
 	"ludoarena/opsbot/internal/app"
+	"ludoarena/opsbot/internal/backendapi"
 	"ludoarena/opsbot/internal/config"
 	"ludoarena/opsbot/internal/google"
 	"ludoarena/opsbot/internal/promapi"
@@ -72,6 +74,10 @@ func run() error {
 		TrendDays: cfg.TrendDays,
 	}
 	setupGoogle(ctx, cfg, collector, log)
+	if cfg.BackendAPIURL != "" {
+		// Per-player lists for /live and /playtime (operator API, private network).
+		collector.Backend = backendapi.New(cfg.BackendAPIURL, cfg.BackendAdminKey)
+	}
 
 	var sender app.Sender
 	var updater app.Updater

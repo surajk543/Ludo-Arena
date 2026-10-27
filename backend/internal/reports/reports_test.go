@@ -2,7 +2,6 @@ package reports
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
 	"net/http"
 	"strings"
@@ -127,20 +126,7 @@ func TestLimitWindow(t *testing.T) {
 	}
 }
 
-func TestAdminAuthorization(t *testing.T) {
-	sum := sha256.Sum256([]byte("operator-key"))
-	if !adminAuthorized(sum[:], "operator-key") {
-		t.Fatal("right key refused")
-	}
-	for _, k := range []string{"", "operator-key ", "Operator-key", "x"} {
-		if adminAuthorized(sum[:], k) {
-			t.Fatalf("key %q accepted", k)
-		}
-	}
-	if adminAuthorized(nil, "operator-key") || adminAuthorized(sum[:4], "operator-key") {
-		t.Fatal("unconfigured hash accepted")
-	}
-
+func TestAdminQuery(t *testing.T) {
 	if s, n, err := parseAdminQuery("", ""); err != nil || s != "" || n != AdminDefaultLimit {
 		t.Fatalf("defaults: %q %d %v", s, n, err)
 	}

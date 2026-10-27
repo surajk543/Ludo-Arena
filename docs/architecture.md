@@ -226,10 +226,12 @@ concurrency and with a remote database.
 - **Validation**: strict JSON (unknown fields rejected); WebSocket text frames
   only, ≤ 4096 bytes after decompression, known message types, seat / phase /
   `turnSeq` checks, de-duplicated message ids.
-- **Operator API**: `/api/v1/admin/*` (player-report review) is disabled
-  (404) unless `ADMIN_API_KEY_SHA256` is set; requests need `X-Admin-Key`
-  (constant-time sha256 comparison, 401 otherwise). Expose it only on the
-  private network — block `/api/v1/admin/` at the public load balancer.
+- **Operator API**: `/api/v1/admin/*` (player-report review, and the ops
+  bot's online list and playtime statistics, which return account ids) is
+  disabled (404) unless `ADMIN_API_KEY_SHA256` is set; requests need
+  `X-Admin-Key` (constant-time sha256 comparison, 401 otherwise; one shared
+  guard, `httpapi.HandleAdmin`). Expose it only on the private network —
+  block `/api/v1/admin/` at the public load balancer.
 - **Private assets**: the profile-picture bucket (R2) is private; the app
   never holds storage credentials. `POST /api/v1/assets/sign` presigns GETs
   (SigV4 query auth, `ASSET_URL_TTL`, default 10 min) only for paths named by
@@ -283,6 +285,19 @@ written by an instance without the index (only during the rolling deploy
 that introduces it) are counted from their next commit. A recount of 20,000
 live rooms takes ≈ 48 ms (≈ 2 µs of Redis time per room).
 
+PostgreSQL connection pool, **per instance** (`sum` across instances),
+read from `pgxpool` at scrape time:
+
+| Metric | Labels | Meaning |
+|---|---|---|
+| `postgres_pool_connections` | `state` = `acquired` \| `idle` \| `constructing` | Connections of this instance's pool: in use by a query or transaction, open and idle, being opened |
+| `postgres_pool_max_connections` | — | The pool's maximum size (`DB_MAX_CONNS`, default 20) |
+
+Who is online and what they play (per person, with account ids) is not a
+metric: the ops bot reads it from the operator API
+(`GET /api/v1/admin/ops/online`, `GET /api/v1/admin/ops/playtime`;
+[rest-api.md](rest-api.md#operator-statistics-ops-bot)).
+
 Bot wallets (`backend/docs/game-rules.md` "Coins with bots") are watched with
 four counters (per instance: `sum` them): `bot_wallet_recharges_total`,
 `bot_wallet_resets_total`, `bot_coins_minted_total{reason="start|recharge"}`
@@ -294,6 +309,8 @@ max by (actor) (players_in_game)                    # playing now, humans vs bot
 max by (game, mode) (rooms_in_game)
 max by (actor) (players_in_lobby)
 sum by (actor) (ws_connections_active)              # connected now
+sum by (state) (postgres_pool_connections)          # PostgreSQL connections in use / idle
+sum(postgres_pool_connections{state="acquired"}) / sum(postgres_pool_max_connections)  # pool saturation
 time() - max(game_stats_refreshed_timestamp_seconds) > 120   # alert: recount stuck
 sum(increase(bot_coins_minted_total[1d])) - sum(increase(bot_coins_removed_total[1d]))  # coins bots injected per day
 ```

@@ -1,7 +1,8 @@
 // Package config loads the ops bot's configuration from environment
-// variables. Secrets (the Telegram bot token, the webhook bearer token and
-// Google credentials) come only from the environment or files referenced by
-// it, and are never printed: String() and validation errors redact them.
+// variables. Secrets (the Telegram bot token, the webhook bearer token, the
+// backend operator key and Google credentials) come only from the
+// environment or files referenced by it, and are never printed: String() and
+// validation errors redact them.
 package config
 
 import (
@@ -39,7 +40,7 @@ type Config struct {
 	TelegramToken    string        // TELEGRAM_BOT_TOKEN (secret)
 	TelegramChatIDs  []string      // TELEGRAM_CHAT_IDS
 	TelegramAPIURL   string        // TELEGRAM_API_URL
-	TelegramCommands bool          // TELEGRAM_COMMANDS: answer /status, /digest, /help
+	TelegramCommands bool          // TELEGRAM_COMMANDS: answer /status, /digest, /live, /playtime, /metrics, /help
 	TelegramMinGap   time.Duration // TELEGRAM_MIN_GAP between messages to one chat
 	DryRun           bool          // TELEGRAM_DRY_RUN: log messages instead of sending
 	DryRunDir        string        // DRY_RUN_DIR: where dry-run documents are written
@@ -58,6 +59,11 @@ type Config struct {
 	AlertDedupeWindow  time.Duration // ALERT_DEDUPE_WINDOW
 	WebhookBearerToken string        // WEBHOOK_BEARER_TOKEN (secret, optional)
 
+	BackendAPIURL   string        // BACKEND_API_URL: backend REST base for the operator API (empty: per-user lists off)
+	BackendAdminKey string        // BACKEND_ADMIN_KEY (secret): X-Admin-Key of /api/v1/admin/*
+	CommandTimeout  time.Duration // COMMAND_REPORT_TIMEOUT: a command's report is cancelled after this
+	CommandDedupe   time.Duration // COMMAND_DEDUPE_WINDOW: the same command from the same chat is dropped within this
+
 	PlayBucket       string // PLAY_REPORTS_BUCKET (optional)
 	PlayPackage      string // PLAY_PACKAGE_NAME
 	GA4Property      string // GA4_PROPERTY_ID (optional)
@@ -71,28 +77,30 @@ type Config struct {
 
 // Defaults for every variable (documented in monitoring/README.md).
 var Defaults = map[string]string{
-	"ENV_NAME":            "development",
-	"TZ_NAME":             "Asia/Kolkata",
-	"HTTP_ADDR":           "127.0.0.1:9097",
-	"LOG_LEVEL":           "info",
-	"PROM_URL":            "http://127.0.0.1:9095",
-	"PROM_TIMEOUT":        "20s",
-	"BACKEND_JOB":         "backend",
-	"BOTPLAY_JOB":         "bot-play",
-	"NODE_JOB":            "node",
-	"TELEGRAM_API_URL":    "https://api.telegram.org",
-	"TELEGRAM_COMMANDS":   "true",
-	"TELEGRAM_MIN_GAP":    "3s",
-	"TELEGRAM_DRY_RUN":    "false",
-	"STATUS_INTERVAL":     "1h",
-	"STATUS_ALIGN":        "true",
-	"STATUS_ON_START":     "false",
-	"DAILY_REPORT_AT":     "09:00",
-	"TREND_DAYS":          "30",
-	"REPORT_FORMAT":       "pdf",
-	"ALERT_FORMAT":        "text",
-	"ALERT_DEDUPE_WINDOW": "30m",
-	"PLAY_PACKAGE_NAME":   "com.sungamestudio.ludoarena",
+	"ENV_NAME":               "development",
+	"TZ_NAME":                "Asia/Kolkata",
+	"HTTP_ADDR":              "127.0.0.1:9097",
+	"LOG_LEVEL":              "info",
+	"PROM_URL":               "http://127.0.0.1:9095",
+	"PROM_TIMEOUT":           "20s",
+	"BACKEND_JOB":            "backend",
+	"BOTPLAY_JOB":            "bot-play",
+	"NODE_JOB":               "node",
+	"TELEGRAM_API_URL":       "https://api.telegram.org",
+	"TELEGRAM_COMMANDS":      "true",
+	"TELEGRAM_MIN_GAP":       "3s",
+	"TELEGRAM_DRY_RUN":       "false",
+	"STATUS_INTERVAL":        "1h",
+	"STATUS_ALIGN":           "true",
+	"STATUS_ON_START":        "false",
+	"DAILY_REPORT_AT":        "09:00",
+	"TREND_DAYS":             "30",
+	"REPORT_FORMAT":          "pdf",
+	"ALERT_FORMAT":           "text",
+	"ALERT_DEDUPE_WINDOW":    "30m",
+	"COMMAND_REPORT_TIMEOUT": "30s",
+	"COMMAND_DEDUPE_WINDOW":  "30s",
+	"PLAY_PACKAGE_NAME":      "com.sungamestudio.ludoarena",
 }
 
 // Load reads the configuration through getenv (os.Getenv in production).
@@ -141,6 +149,8 @@ func Load(getenv func(string) string) (*Config, error) {
 		DryRunDir:          get("DRY_RUN_DIR"),
 		DailyReportAt:      get("DAILY_REPORT_AT"),
 		WebhookBearerToken: strings.TrimSpace(getenv("WEBHOOK_BEARER_TOKEN")),
+		BackendAPIURL:      strings.TrimRight(get("BACKEND_API_URL"), "/"),
+		BackendAdminKey:    strings.TrimSpace(getenv("BACKEND_ADMIN_KEY")),
 		PlayBucket:         get("PLAY_REPORTS_BUCKET"),
 		PlayPackage:        get("PLAY_PACKAGE_NAME"),
 		GA4Property:        get("GA4_PROPERTY_ID"),
@@ -153,6 +163,8 @@ func Load(getenv func(string) string) (*Config, error) {
 	c.TelegramMinGap = dur("TELEGRAM_MIN_GAP", 0, true)
 	c.StatusInterval = dur("STATUS_INTERVAL", time.Minute, true)
 	c.AlertDedupeWindow = dur("ALERT_DEDUPE_WINDOW", 0, true)
+	c.CommandTimeout = dur("COMMAND_REPORT_TIMEOUT", 5*time.Second, false)
+	c.CommandDedupe = dur("COMMAND_DEDUPE_WINDOW", 0, true)
 	c.TelegramCommands = boolean("TELEGRAM_COMMANDS")
 	c.DryRun = boolean("TELEGRAM_DRY_RUN")
 	c.StatusAlign = boolean("STATUS_ALIGN")
@@ -195,6 +207,14 @@ func Load(getenv func(string) string) (*Config, error) {
 	}
 	if u, err := url.Parse(c.TelegramAPIURL); err != nil || u.Scheme == "" || u.Host == "" {
 		fail("TELEGRAM_API_URL: want an absolute http(s) URL")
+	}
+	if c.BackendAPIURL != "" {
+		if u, err := url.Parse(c.BackendAPIURL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			fail("BACKEND_API_URL: want an absolute http(s) URL")
+		}
+		if c.BackendAdminKey == "" {
+			fail("BACKEND_ADMIN_KEY is required when BACKEND_API_URL is set")
+		}
 	}
 	for _, id := range strings.Split(getenv("TELEGRAM_CHAT_IDS"), ",") {
 		id = strings.TrimSpace(id)
@@ -248,6 +268,13 @@ func validToken(t string) bool {
 	return err == nil
 }
 
+func orUnset(s string) string {
+	if s == "" {
+		return "unset"
+	}
+	return s
+}
+
 // String describes the configuration without secrets (for the startup log).
 func (c *Config) String() string {
 	set := func(s string) string {
@@ -261,8 +288,9 @@ func (c *Config) String() string {
 		daily = fmt.Sprintf("%02d:%02d", c.DailyHour, c.DailyMinute)
 	}
 	return fmt.Sprintf("env=%s tz=%s http=%s prom=%s status_interval=%s daily=%s report=%s alert=%s "+
-		"chats=%d token=%s dry_run=%t commands=%t play=%t ga4=%t webhook_auth=%s",
+		"chats=%d token=%s dry_run=%t commands=%t play=%t ga4=%t webhook_auth=%s backend_api=%s admin_key=%s "+
+		"command_timeout=%s command_dedupe=%s",
 		c.EnvName, c.TZName, c.HTTPAddr, c.PromURL, c.StatusInterval, daily, c.ReportFormat, c.AlertFormat,
 		len(c.TelegramChatIDs), set(c.TelegramToken), c.DryRun, c.TelegramCommands, c.PlayEnabled, c.GA4Enabled,
-		set(c.WebhookBearerToken))
+		set(c.WebhookBearerToken), orUnset(c.BackendAPIURL), set(c.BackendAdminKey), c.CommandTimeout, c.CommandDedupe)
 }

@@ -212,6 +212,10 @@ func TestDeleteAccountErasesEverything(t *testing.T) {
 	if keys, _ := e.rdb.Keys(ctx, "rl:*:"+a.UserID+":*").Result(); len(keys) == 0 {
 		t.Fatal("setup: no rate-limit counters for A")
 	}
+	// Operator statistics: A is online and played the finished match.
+	if online, played := e.opsMember(t, a.UserID); !online || !played {
+		t.Fatalf("setup: A online %v, in the hourly play %v", online, played)
+	}
 
 	// Delete.
 	r := e.deleteAccount(a.Token, confirmDelete)
@@ -287,6 +291,9 @@ func TestDeleteAccountErasesEverything(t *testing.T) {
 	}
 	if _, err := e.rdb.ZScore(ctx, week, a.UserID).Result(); err == nil {
 		t.Error("A is still on the weekly leaderboard")
+	}
+	if online, played := e.opsMember(t, a.UserID); online || played {
+		t.Errorf("A still in the operator statistics: online %v, in the hourly play %v", online, played)
 	}
 	keys, err := e.rdb.Keys(ctx, "*"+a.UserID+"*").Result()
 	if err != nil {

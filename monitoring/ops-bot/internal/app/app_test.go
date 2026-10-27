@@ -233,13 +233,15 @@ func TestCommands(t *testing.T) {
 	msg := func(chat int64, text string) telegram.Update {
 		return telegram.Update{UpdateID: 1, Message: &telegram.Message{Chat: telegram.Chat{ID: chat}, Text: text}}
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go a.RunReports(ctx)
 	a.HandleUpdate(ctx, msg(999, "/status"))            // not a configured chat
 	a.HandleUpdate(ctx, msg(222, "hello"))              // not a command
-	a.HandleUpdate(ctx, msg(222, "/status@LudoOpsBot")) // reply only to the asking chat
-	a.HandleUpdate(ctx, msg(111, "/help"))
-	out := rec.all()
-	if len(out) != 2 || out[0].chat != "222" || !strings.Contains(out[0].text, "hourly status") || out[1].chat != "111" || out[1].text != HelpText {
+	a.HandleUpdate(ctx, msg(111, "/help"))              // answered at once
+	a.HandleUpdate(ctx, msg(222, "/status@LudoOpsBot")) // reply only to the asking chat, asynchronously
+	out := waitFor(t, rec, 2)
+	if len(out) != 2 || out[0].chat != "111" || out[0].text != HelpText || out[1].chat != "222" || !strings.Contains(out[1].text, "hourly status") {
 		t.Fatalf("command replies = %+v", out)
 	}
 }

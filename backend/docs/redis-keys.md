@@ -37,12 +37,16 @@ network only, AUTH/TLS.
 | `seat:{userId}:lease` | string (token) | 5 s | progression | Fill lease taken atomically with a cache miss; deleted with the entry on invalidation, so a fill that read PostgreSQL before a concurrent commit never stores the old value |
 | `pt:{userId}:{dayKey}` | hash `{ms, fs, g:{milestoneId}}` | 48 h | progression | Daily playtime of a UTC day (`d2026-10-27`): milliseconds of qualifying play (`HINCRBY` by Lua), seconds last saved to PostgreSQL (`mission_progress` row `playtime`) and granted-milestone hints. Created only by seeding from PostgreSQL, so losing it costs at most `PLAYTIME_FLUSH_INTERVAL` of play and never re-grants (claims are in PostgreSQL). See `docs/progression.md` §5.1 |
 | `emotes:{userId}` | set | 1 h | progression | Owned non-starter emotes, catalogue and Store (`em_…`) emotes (chat hot path). Members are never stale (inventory is append-only); a missing member is confirmed in PostgreSQL and added. Grants add to an existing set |
-| `presence:{userId}` | string | 60 s (refreshed) | gateway | Online indicator (friends list) |
+| `presence:{userId}` | string (connection id) | 60 s (refreshed by heartbeats) | gateway | Online indicator (friends list, operator online list). Set with the connection's id when it registers (same round trip as the `online:humans` member of a person); deleted when that connection ends only if it still holds its id (Lua, atomic with the `online:humans` removal) |
+| `online:humans` | zset (member = account id, score = unix ms when the current connection registered) | — (members removed on disconnect, account deletion, or when stale) | gateway; read by opsstats | Operator online list (`GET /api/v1/admin/ops/online`). **People only**: bot connections never add a member. A member whose `presence:{userId}` is missing (its instance crashed) is stale: readers skip it and remove it (Lua, re-checking presence, so a reconnect is never removed). See [Operator statistics](#operator-statistics) |
+| `ptg:{game}:{YYYYMMDDHH}` | zset (member = account id, score = ms played) | 26 h, refreshed by every write | opsstats (fed by rooms) | Active play of people in one UTC hour per game (`ludo`, `snakes_ladders`): the intervals the room engine credits to daily playtime, split at hour boundaries (`ZINCRBY`) |
+| `ptg:tot:{YYYYMMDDHH}` | hash (game → ms played) | 26 h, refreshed by every write | opsstats | Every person's play in that UTC hour per game (`HINCRBY`, same pipeline as the zset). Aggregate, no account ids |
+| `ptg:tmp:{random}` | zset | 1 min (deleted by the reader at once) | opsstats | Weighted union of a window's hours while `GET /api/v1/admin/ops/playtime` ranks it |
 | `dedup:{userId}:{msgId}` | string | 2 min | gateway | WebSocket command de-duplication |
 | `iap:google:voided:lock` | string | half of `GOOGLE_PLAY_VOIDED_POLL_INTERVAL` (≥ 1 s) | iap | One instance polls Google Play's voided purchases per interval (`SET NX`). Losing it only means a duplicate poll, which is harmless (refunds are idempotent in PostgreSQL) |
 | `rl:{rule}:{key}:{window}` | counter | window | ratelimit | Fixed-window rate limits (e.g. `rl:profile_user:…`, 20 `PATCH /me` per minute per account) |
 | `ev:room:{roomId}` / `ev:user:{userId}` | pub/sub channels | — | rooms / notify / gateway | Cross-instance event fan-out. `ev:user:*` also carries gateway control messages (`{"ctl":"kick","conn":…}`, `{"ctl":"revoke","sid":…}`, `{"ctl":"deleted"}` — account deleted: close the human socket with `4401` `account deleted`) that are never forwarded to clients |
-| progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents (`recent:{userId}` members: account ids of people, `bot:{uid}` of bots met in public matches), weekly leaderboard, idempotency replays (`idem:{userId}:{key}`, also used by Store purchases), active-user sketches. The profile-picture Store adds no Redis keys (its catalogue is an in-memory snapshot per instance; ownership and the equipped picture are in PostgreSQL) apart from `rl:asset_sign_user:*` counters. Player reports (also against bots) and the friend cap keep no Redis state of their own (only `rl:report_user:*`, `rl:report_read_user:*`, `rl:admin_ip:*` rate-limit counters); reports are stored in PostgreSQL |
+| progression/social/analytics keys | see `docs/progression.md` | | | Recent opponents (`recent:{userId}` members: account ids of people, `bot:{uid}` of bots met in public matches), weekly leaderboard, idempotency replays (`idem:{userId}:{key}`, also used by Store purchases), active-user sketches. The profile-picture Store adds no Redis keys (its catalogue is an in-memory snapshot per instance; ownership and the equipped picture are in PostgreSQL) apart from `rl:asset_sign_user:*` counters. Player reports (also against bots) and the friend cap keep no Redis state of their own (only `rl:report_user:*`, `rl:report_read_user:*` rate-limit counters, and `rl:admin_ip:*`, shared by every operator route); reports are stored in PostgreSQL |
 
 ## Account deletion
 
@@ -52,13 +56,16 @@ PostgreSQL transaction: `sess:{sid}` + its current `rt:{hash}` and
 `seat:{userId}` (+ `:lease`), `emotes:{userId}`, today's and yesterday's
 `pt:{userId}:{dayKey}`, `presence:{userId}`,
 `botfr:{userId}`, `recent:{userId}` and the account's member in each opponent's
-`recent:{otherId}`, its member in the last five `lb:xp:{week}` keys, and the
+`recent:{otherId}`, its member in the last five `lb:xp:{week}` keys, its
+member in `online:humans` and in `ptg:{game}:{hour}` of both games for the
+last 28 UTC hours (every one that can still exist), and the
 current and previous window of every per-account `rl:{rule}:{userId}:{window}`
 counter; `user:{userId}:room` is cleared by leaving the room first. Left to
 expire (cannot be listed without a keyspace scan, readable only by the
 revoked account): `idem:{userId}:*` (24 h), `dedup:{userId}:*` (2 min),
 `invite:{from}:{to}:{roomId}` (≤ 30 min); rotated `rt:` and old `sessrep:`
-tombstones hold no account id. See `docs/authentication.md` → "Deleting an
+tombstones hold no account id; `ptg:tot:{hour}` are aggregates without
+account ids (26 h). See `docs/authentication.md` → "Deleting an
 account".
 
 ## Atomic commits
@@ -86,6 +93,35 @@ does the work once per interval. Measured on a local Redis 7.4: about 2 µs of
 Redis time per live room (≈ 0.5 ms per 256-room call); a full recount of
 20,000 live rooms takes ≈ 48 ms end to end. The index entry adds one small
 `HSET`/`HDEL` to each room commit.
+
+## Operator statistics
+
+`backend/internal/opsstats` serves the Telegram ops bot through
+`GET /api/v1/admin/ops/online` and `GET /api/v1/admin/ops/playtime`
+(`docs/rest-api.md` → Operator statistics). People only; no PostgreSQL table.
+
+- **Online list.** The gateway adds a person's member to `online:humans` in
+  the same pipeline as `presence:{userId}` (one round trip; bots write
+  presence only) and removes both in one Lua call when the connection ends,
+  only if presence still holds that connection's id. A report reads the
+  whole zset, checks presence of every member (pipelined `EXISTS`), removes
+  stale members with a Lua script that re-checks presence, then resolves what
+  each person is doing from `user:{userId}:room` (pipelined `GET`), the
+  rooms' `idx:rooms:live` entries (`HMGET`) and, for each playing room with a
+  non-forfeited person, the room state (`HGET room:{id} s`): a player who
+  forfeited by missed turns keeps the pointer until leaving and is reported
+  in the lobby. Cost per report: O(online people + their playing rooms), in
+  pipelines of 512.
+- **Playtime per game.** Every interval the room engine credits to daily
+  playtime (`rooms/playtime.go`, `gameevents.PlayStats`; recorded even when
+  the daily playtime feature is off) is split at UTC hour boundaries and
+  added, in one pipeline, to `ptg:{game}:{hour}` (per account) and
+  `ptg:tot:{hour}` (per game), each write refreshing the 26 h TTL. A report
+  of the last `hours` builds, per game, `ZUNIONSTORE ptg:tmp:{random}` of the
+  window's hour keys with `WEIGHTS` (the oldest, partial hour pro-rated by
+  the fraction inside the window), then `ZCOUNT` / `ZREVRANGE` /
+  `ZREVRANGEBYSCORE` and `DEL` (two round trips for both games). Losing
+  Redis loses these statistics (they are not durable).
 
 ## Redis restart / data loss
 

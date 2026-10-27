@@ -1,6 +1,7 @@
 // Package telegram is a small Telegram Bot API client for the ops bot:
-// sendMessage (HTML), sendDocument (multipart upload) and getUpdates
-// (long polling for commands).
+// sendMessage (HTML), sendDocument (multipart upload), sendChatAction,
+// setMyCommands and getUpdates (long polling for commands in chats, groups
+// and channels).
 //
 // The bot token is a secret. It only ever appears in request URLs and is
 // redacted from every error and log line this package produces (Go's
@@ -130,10 +131,20 @@ type transportError struct {
 
 func (e *transportError) Error() string { return "telegram " + e.method + ": " + e.msg }
 
-// Update is one getUpdates entry (only messages are requested).
+// Update is one getUpdates entry (only messages and channel posts are
+// requested).
 type Update struct {
-	UpdateID int64    `json:"update_id"`
-	Message  *Message `json:"message"`
+	UpdateID    int64    `json:"update_id"`
+	Message     *Message `json:"message"`
+	ChannelPost *Message `json:"channel_post"` // commands typed in a channel (the bot must be an admin)
+}
+
+// Msg returns the update's message or channel post (nil for neither).
+func (u Update) Msg() *Message {
+	if u.Message != nil {
+		return u.Message
+	}
+	return u.ChannelPost
 }
 
 // Message is the subset of a Telegram message the ops bot needs.
@@ -145,8 +156,9 @@ type Message struct {
 
 // Chat identifies where a message came from.
 type Chat struct {
-	ID   int64  `json:"id"`
-	Type string `json:"type"`
+	ID       int64  `json:"id"`
+	Type     string `json:"type"`
+	Username string `json:"username"` // public channels and groups, without "@"
 }
 
 // Redact replaces every occurrence of token (raw or URL-escaped, with or
@@ -278,19 +290,62 @@ func (c *Client) sendDocument(ctx context.Context, chatID, filename string, data
 	return err
 }
 
+// Chat actions (sendChatAction).
+const (
+	ActionUploadDocument = "upload_document"
+	ActionTyping         = "typing"
+)
+
+type chatActionReq struct {
+	ChatID any    `json:"chat_id"`
+	Action string `json:"action"`
+}
+
+// SendChatAction shows a status such as "sending a file…" in the chat for
+// about five seconds. It is best effort: one attempt, no rate-limit slot.
+func (c *Client) SendChatAction(ctx context.Context, chatID, action string) error {
+	body, err := json.Marshal(chatActionReq{ChatID: chatIDValue(chatID), Action: action})
+	if err != nil {
+		return err
+	}
+	_, err = c.once(ctx, "sendChatAction", func() (io.Reader, string) {
+		return bytes.NewReader(body), "application/json"
+	})
+	return err
+}
+
+// BotCommand is one entry of the bot's command menu.
+type BotCommand struct {
+	Command     string `json:"command"`
+	Description string `json:"description"`
+}
+
+// SetMyCommands replaces the bot's command menu (the "/" list in chats).
+func (c *Client) SetMyCommands(ctx context.Context, cmds []BotCommand) error {
+	body, err := json.Marshal(map[string]any{"commands": cmds})
+	if err != nil {
+		return err
+	}
+	_, err = c.do(ctx, "setMyCommands", func() (io.Reader, string) {
+		return bytes.NewReader(body), "application/json"
+	})
+	return err
+}
+
 type getUpdatesReq struct {
 	Offset         int64    `json:"offset,omitempty"`
 	Timeout        int      `json:"timeout"`
 	AllowedUpdates []string `json:"allowed_updates"`
 }
 
-// GetUpdates long-polls for new messages. It does not retry; callers loop.
+// GetUpdates long-polls for new messages and channel posts. It does not
+// retry; callers loop.
 func (c *Client) GetUpdates(ctx context.Context, offset int64, timeout time.Duration) ([]Update, error) {
 	secs := int(timeout / time.Second)
 	if secs < 0 {
 		secs = 0
 	}
-	body, err := json.Marshal(getUpdatesReq{Offset: offset, Timeout: secs, AllowedUpdates: []string{"message"}})
+	body, err := json.Marshal(getUpdatesReq{Offset: offset, Timeout: secs, AllowedUpdates: []string{"message", "channel_post"}})
 	if err != nil {
 		return nil, err
 	}

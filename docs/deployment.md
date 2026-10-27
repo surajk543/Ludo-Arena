@@ -78,8 +78,14 @@ unless `API_BASE_URL` overrides it.
   and identical on every instance — aggregate with `max`; `ws_connections_active`
   is per instance — aggregate with `sum`. Alert when
   `time() - max(game_stats_refreshed_timestamp_seconds) > 120` (recount every
-  `GAME_STATS_INTERVAL`, default 15 s). See
+  `GAME_STATS_INTERVAL`, default 15 s). PostgreSQL pool gauges
+  (`postgres_pool_connections{state}`, `postgres_pool_max_connections`) are
+  per instance — `sum`. See
   [architecture.md](architecture.md#observability-live-player-counts).
+- The Telegram ops bot's `/live` and `/playtime` read the operator API
+  (`/api/v1/admin/ops/*`): set `ADMIN_API_KEY_SHA256` on the backend and give
+  the bot the key over the private network only
+  ([rest-api.md](rest-api.md#operator-statistics-ops-bot)).
 - Monitoring and alerting: run the `monitoring/` stack (Prometheus,
   Alertmanager, node_exporter on every host, Telegram ops bot) on the same
   private network. List every backend instance's `METRICS_ADDR`, bot-play's
