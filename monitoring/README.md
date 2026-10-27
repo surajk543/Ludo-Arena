@@ -168,7 +168,7 @@ rate limits are respected (`TELEGRAM_MIN_GAP` per chat; HTTP 429 waits for
 | `HTTP_ADDR` | `127.0.0.1:9097` | `/healthz`, `/metrics`, `POST /alertmanager` |
 | `WEBHOOK_BEARER_TOKEN` | empty (**secret**, optional) | Require `Authorization: Bearer …` on the webhook |
 | `PLAY_REPORTS_BUCKET` | empty | `gs://pubsite_prod_…` bucket of the Play Console bulk reports |
-| `PLAY_PACKAGE_NAME` | `com.ludoarena.app` | Package in the report file names |
+| `PLAY_PACKAGE_NAME` | `com.sungamestudio.ludoarena` | Package in the report file names |
 | `GA4_PROPERTY_ID` | empty | GA4 property of the Firebase project (digits) |
 | `GOOGLE_APPLICATION_CREDENTIALS` | empty | Path to a service-account JSON key (or use workload identity / `gcloud auth application-default login`) |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |

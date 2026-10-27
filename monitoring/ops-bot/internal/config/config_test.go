@@ -31,7 +31,7 @@ func TestDefaults(t *testing.T) {
 		{"alert format", c.AlertFormat, FormatText},
 		{"chats", strings.Join(c.TelegramChatIDs, "|"), "-1001234567890|42"},
 		{"prom", c.PromURL, "http://127.0.0.1:9095"},
-		{"package", c.PlayPackage, "com.ludoarena.app"},
+		{"package", c.PlayPackage, "com.sungamestudio.ludoarena"},
 		{"play", c.PlayEnabled, false},
 		{"ga4", c.GA4Enabled, false},
 		{"dedupe", c.AlertDedupeWindow, 30 * time.Minute},

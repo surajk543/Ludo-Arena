@@ -209,7 +209,7 @@ Map<String, dynamic> policyJson({
   String minimumVersion = '1.0.0',
   int minimumBuild = 1,
   String storeUrl =
-      'https://play.google.com/store/apps/details?id=com.ludoarena.app',
+      'https://play.google.com/store/apps/details?id=com.sungamestudio.ludoarena',
   bool storeAvailable = true,
   String title = '',
   String message = '',

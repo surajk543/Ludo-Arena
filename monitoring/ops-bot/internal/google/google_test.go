@@ -17,7 +17,7 @@ import (
 	"unicode/utf16"
 )
 
-const pkg = "com.ludoarena.app"
+const pkg = "com.sungamestudio.ludoarena"
 
 const fullHeader = "Date,Package Name,Daily Device Installs,Daily Device Uninstalls,Daily Device Upgrades,Total User Installs,Daily User Installs,Daily User Uninstalls,Active Device Installs,Install events,Update events,Uninstall events"
 
@@ -59,8 +59,8 @@ func date(s string) time.Time {
 
 // fullRows is a realistic two-day overview with CRLF line endings.
 var fullRows = fullHeader + "\r\n" +
-	"2026-10-18,com.ludoarena.app,152,31,890,10450,140,29,8120,171,955,36\r\n" +
-	"2026-10-19,com.ludoarena.app,175,40,612,10585,161,37,8243,198,640,44\r\n"
+	"2026-10-18,com.sungamestudio.ludoarena,152,31,890,10450,140,29,8120,171,955,36\r\n" +
+	"2026-10-19,com.sungamestudio.ludoarena,175,40,612,10585,161,37,8243,198,640,44\r\n"
 
 var fullWant = []PlayDay{
 	{Date: date("2026-10-18"), Values: map[string]float64{
@@ -90,7 +90,7 @@ func TestParseInstallsCSV(t *testing.T) {
 		{name: "utf8 plain LF", data: []byte(strings.ReplaceAll(fullRows, "\r\n", "\n")), wantDays: fullWant, wantCols: allColumns},
 		{
 			name: "missing columns",
-			data: encUTF16("Date,Package Name,Daily Device Installs,Daily User Uninstalls\r\n2026-10-19,com.ludoarena.app,175,37\r\n", false, true),
+			data: encUTF16("Date,Package Name,Daily Device Installs,Daily User Uninstalls\r\n2026-10-19,com.sungamestudio.ludoarena,175,37\r\n", false, true),
 			wantDays: []PlayDay{{Date: date("2026-10-19"), Values: map[string]float64{
 				ColDailyDeviceInstalls: 175, ColDailyUserUninstalls: 37,
 			}}},
@@ -98,7 +98,7 @@ func TestParseInstallsCSV(t *testing.T) {
 		},
 		{
 			name: "unknown numeric column kept, text column dropped",
-			data: []byte("Date,Package Name,Country,Daily Device Installs,Daily Crashes\n2026-10-19,com.ludoarena.app,IN,175,3\n"),
+			data: []byte("Date,Package Name,Country,Daily Device Installs,Daily Crashes\n2026-10-19,com.sungamestudio.ludoarena,IN,175,3\n"),
 			wantDays: []PlayDay{{Date: date("2026-10-19"), Values: map[string]float64{
 				ColDailyDeviceInstalls: 175, "Daily Crashes": 3,
 			}}},
@@ -106,7 +106,7 @@ func TestParseInstallsCSV(t *testing.T) {
 		},
 		{
 			name: "thousands separators",
-			data: []byte("Date,Package Name,Total User Installs,Active Device Installs\n2026-10-19,com.ludoarena.app,\"1,234,567\",\"98,765\"\n"),
+			data: []byte("Date,Package Name,Total User Installs,Active Device Installs\n2026-10-19,com.sungamestudio.ludoarena,\"1,234,567\",\"98,765\"\n"),
 			wantDays: []PlayDay{{Date: date("2026-10-19"), Values: map[string]float64{
 				ColTotalUserInstalls: 1234567, ColActiveDeviceInstalls: 98765,
 			}}},
@@ -115,9 +115,9 @@ func TestParseInstallsCSV(t *testing.T) {
 		{
 			name: "duplicate dates summed (dimension report)",
 			data: encUTF16("Date,Package Name,Country,Daily Device Installs,Daily Device Uninstalls\r\n"+
-				"2026-10-19,com.ludoarena.app,IN,150,30\r\n"+
-				"2026-10-19,com.ludoarena.app,ID,20,8\r\n"+
-				"2026-10-18,com.ludoarena.app,IN,100,10\r\n", false, true),
+				"2026-10-19,com.sungamestudio.ludoarena,IN,150,30\r\n"+
+				"2026-10-19,com.sungamestudio.ludoarena,ID,20,8\r\n"+
+				"2026-10-18,com.sungamestudio.ludoarena,IN,100,10\r\n", false, true),
 			wantDays: []PlayDay{
 				{Date: date("2026-10-18"), Values: map[string]float64{ColDailyDeviceInstalls: 100, ColDailyDeviceUninstalls: 10}},
 				{Date: date("2026-10-19"), Values: map[string]float64{ColDailyDeviceInstalls: 170, ColDailyDeviceUninstalls: 38}},
@@ -126,7 +126,7 @@ func TestParseInstallsCSV(t *testing.T) {
 		},
 		{
 			name: "empty cells skipped and blank lines ignored",
-			data: []byte("Date,Package Name,Daily Device Installs,Daily Device Uninstalls\n2026-10-19,com.ludoarena.app,,40\n\n,,,\n"),
+			data: []byte("Date,Package Name,Daily Device Installs,Daily Device Uninstalls\n2026-10-19,com.sungamestudio.ludoarena,,40\n\n,,,\n"),
 			wantDays: []PlayDay{{Date: date("2026-10-19"), Values: map[string]float64{
 				ColDailyDeviceUninstalls: 40,
 			}}},
@@ -134,13 +134,13 @@ func TestParseInstallsCSV(t *testing.T) {
 		},
 		{
 			name: "quoted, differently cased headers",
-			data: []byte("\"date\",\"package name\",\" daily device installs \",\"UNINSTALL EVENTS\"\n\"2026/10/19\",\"com.ludoarena.app\",\"175\",\"44\"\n"),
+			data: []byte("\"date\",\"package name\",\" daily device installs \",\"UNINSTALL EVENTS\"\n\"2026/10/19\",\"com.sungamestudio.ludoarena\",\"175\",\"44\"\n"),
 			wantDays: []PlayDay{{Date: date("2026-10-19"), Values: map[string]float64{
 				ColDailyDeviceInstalls: 175, ColUninstallEvents: 44,
 			}}},
 			wantCols: []string{ColDailyDeviceInstalls, ColUninstallEvents},
 		},
-		{name: "no Date column", data: []byte("Day,Package Name,Daily Device Installs\n2026-10-19,com.ludoarena.app,1\n"), wantErr: "no Date column"},
+		{name: "no Date column", data: []byte("Day,Package Name,Daily Device Installs\n2026-10-19,com.sungamestudio.ludoarena,1\n"), wantErr: "no Date column"},
 		{name: "empty file", data: nil, wantErr: "empty"},
 	}
 	for _, tc := range tests {
@@ -182,7 +182,7 @@ func TestNormalizeBucket(t *testing.T) {
 
 func TestObjectName(t *testing.T) {
 	got := ObjectName(pkg, date("2026-10-21"))
-	if want := "stats/installs/installs_com.ludoarena.app_202610_overview.csv"; got != want {
+	if want := "stats/installs/installs_com.sungamestudio.ludoarena_202610_overview.csv"; got != want {
 		t.Fatalf("ObjectName = %q, want %q", got, want)
 	}
 }
@@ -271,8 +271,8 @@ func TestPlayInstalls(t *testing.T) {
 			t.Errorf("columns = %q", rep.Columns)
 		}
 		wantPaths := []string{
-			"/storage/v1/b/" + bucket + "/o/stats%2Finstalls%2Finstalls_com.ludoarena.app_202609_overview.csv",
-			"/storage/v1/b/" + bucket + "/o/stats%2Finstalls%2Finstalls_com.ludoarena.app_202610_overview.csv",
+			"/storage/v1/b/" + bucket + "/o/stats%2Finstalls%2Finstalls_com.sungamestudio.ludoarena_202609_overview.csv",
+			"/storage/v1/b/" + bucket + "/o/stats%2Finstalls%2Finstalls_com.sungamestudio.ludoarena_202610_overview.csv",
 		}
 		if !reflect.DeepEqual(f.paths, wantPaths) {
 			t.Errorf("paths = %q\nwant %q", f.paths, wantPaths)

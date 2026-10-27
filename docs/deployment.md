@@ -200,11 +200,24 @@ the simulator) to see a changed one.
 
 ## Release signing (Android)
 
-The project currently signs release builds with the debug key (Flutter
-default). Before publishing: create an upload keystore (kept outside Git,
-referenced from an untracked `android/key.properties`), enable Play App
-Signing, and add the **Play App Signing SHA-1** and upload-key SHA-1 as
-additional Android OAuth clients in Google Cloud (`docs/authentication.md`).
+The Android app ships on Google Play as **`com.sungamestudio.ludoarena`**
+(the iOS bundle id stays `com.ludoarena.app`). Play App Signing holds the
+app signing key; we only hold the **upload key**:
+
+- The upload keystore lives in `frontend/android/`, next to
+  `frontend/android/key.properties`. Both are gitignored and are **never
+  committed** (the repository is public); keep a backup in the team's
+  secret store.
+- `key.properties` keys: `storeFile` (relative to `frontend/android/`),
+  `storePassword`, `keyAlias`, `keyPassword`.
+- `android/app/build.gradle.kts` signs release builds with that key. Without
+  `key.properties` it falls back to the debug key (with a warning) so local
+  `flutter run --release` keeps working, and
+  `tool/build_android_release.sh appbundle` refuses to build: a Play upload
+  must be signed with the upload key.
+- Register the **upload-key SHA-1** and the **Play App Signing SHA-1** (Play
+  Console › App integrity) on the Android release OAuth client in Google
+  Cloud (`docs/authentication.md`), or Google Sign-In fails in Play builds.
 
 ## App policy operations
 

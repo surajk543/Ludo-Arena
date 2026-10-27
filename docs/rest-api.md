@@ -58,7 +58,7 @@ Public (rate limited per IP). Query: `platform`, `version`, `build`,
   "minimumSupportedBuild": 120,
   "latestVersion": "1.4.0",
   "latestBuild": 140,
-  "storeUrl": "https://play.google.com/store/apps/details?id=com.ludoarena.app",
+  "storeUrl": "https://play.google.com/store/apps/details?id=com.sungamestudio.ludoarena",
   "storeAvailable": true,
   "title": "Update available",
   "message": "New boards and smoother dice.",
@@ -145,7 +145,7 @@ part of `loadout`.
 | `POST /auth/google` | `{"idToken"}` | Google ID token; `aud` must be a configured Google client id. |
 | `POST /auth/facebook` | `{"accessToken"}` or `{"idToken","nonce"}` | Classic token (validated with Graph `debug_token`) or Limited Login OIDC token. |
 | `POST /auth/apple` | `{"identityToken","rawNonce","givenName"?,"familyName"?}` | Nonce: `sha256(rawNonce)` must equal the token's `nonce`. |
-| `POST /auth/apple/callback` | form post from Apple | Android web flow only: redirects to `intent://callback?…#Intent;package=com.ludoarena.app;scheme=signinwithapple;end`. Not version-gated. |
+| `POST /auth/apple/callback` | form post from Apple | Android web flow only: redirects to `intent://callback?…#Intent;package=com.sungamestudio.ludoarena;scheme=signinwithapple;end` (the Android package, `APPLE_ANDROID_PACKAGE`). Not version-gated. |
 | `POST /auth/refresh` | `{"refreshToken"}` | Rotates (same session). Re-use of an old refresh token revokes the whole session (`refresh_reused`). 401 `session_replaced` if the session was ended by a sign-in on another device; `invalid_credential` for other dead sessions. |
 | `POST /auth/logout` | `{"refreshToken"}` | Not version-gated; rate limited per IP (shares the refresh budget). `Authorization: Bearer` is **optional**: a valid access token identifies the session; otherwise (absent, expired, invalid) the body's refresh token does, and only the session's *current* refresh token revokes (a rotated one is ignored, not treated as reuse). Always 204 for a well-formed request, whether or not a session was found; 400 malformed body; 401 when neither credential is present. Never produces `session_replaced`. |
 

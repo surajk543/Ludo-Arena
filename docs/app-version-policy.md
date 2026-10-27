@@ -82,7 +82,7 @@ Maintenance **pauses** matches; it does not end them:
     "android": {
       "minimumSupportedVersion": "1.0.0", "minimumSupportedBuild": 1,
       "latestVersion": "1.0.0", "latestBuild": 1,
-      "storeUrl": "https://play.google.com/store/apps/details?id=com.ludoarena.app",
+      "storeUrl": "https://play.google.com/store/apps/details?id=com.sungamestudio.ludoarena",
       "forceUpdateTitle": "Update required",
       "forceUpdateMessage": "This version is no longer supported. Update to keep playing.",
       "optionalUpdateTitle": "A new version is available",

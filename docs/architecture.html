@@ -448,7 +448,7 @@ td code { font-size: 0.8rem; }
       <div class="fact"><div class="k">Realtime protocol</div><div class="v"><code>ludo-arena.v1</code> on <code>GET /api/v1/ws</code></div></div>
       <div class="fact"><div class="k">Authority</div><div class="v">Go backend: dice, rules, state, timers, wallets</div></div>
       <div class="fact"><div class="k">Data</div><div class="v">PostgreSQL 16 (3 schemas) · Redis 7</div></div>
-      <div class="fact"><div class="k">App id</div><div class="v"><code>com.ludoarena.app</code> (Android &amp; iOS)</div></div>
+      <div class="fact"><div class="k">App id</div><div class="v">Android <code>com.sungamestudio.ludoarena</code> · iOS <code>com.ludoarena.app</code></div></div>
     </div>
 
     <div class="legend" aria-label="Status legend">
@@ -488,7 +488,7 @@ td code { font-size: 0.8rem; }
   <div class="diagram-canvas" role="img" aria-label="Figure 1: System context"><span class="diagram-loading">Rendering diagram…</span></div>
   <p class="diagram-error" hidden>This diagram could not be rendered, so its Mermaid source is shown below.</p>
   <pre class="diagram-src" aria-label="Mermaid source of figure 1">flowchart TB
-  App["Flutter app, Android and iOS&lt;br/&gt;com.ludoarena.app"]
+  App["Flutter app, Android and iOS&lt;br/&gt;com.sungamestudio.ludoarena / com.ludoarena.app"]
   Bots["bot-play&lt;br/&gt;separate Go service, server-marked bots"]
   subgraph IdP["Identity providers: prove identity only"]
     Google["Google Sign-In&lt;br/&gt;project ludo-royale-63887&lt;br/&gt;ID token verified by Go via JWKS"]
@@ -758,12 +758,14 @@ td code { font-size: 0.8rem; }
         <tbody>
           <tr><td>Web application (server client id)</td><td><code>serverClientId</code> in the app (<code>GOOGLE_SERVER_CLIENT_ID</code> dart-define default) and the only <code>aud</code> the backend accepts (<code>GOOGLE_CLIENT_IDS</code>)</td><td><code>124893613050-93on2291jjunnk5u95lcpk15pk6vgr6c.apps.googleusercontent.com</code></td></tr>
           <tr><td>iOS</td><td>iOS sign-in (<code>GIDClientID</code>, reversed id as URL scheme; <code>GOOGLE_IOS_CLIENT_ID</code>)</td><td><code>124893613050-etb8okpenf0il17tmb33pr3cet8s9jba.apps.googleusercontent.com</code></td></tr>
-          <tr><td>Android (debug)</td><td>Package <code>com.ludoarena.app</code> + the <strong>debug</strong> keystore SHA-1</td><td><code>124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com</code></td></tr>
+          <tr><td>Android (debug)</td><td>Package <code>com.sungamestudio.ludoarena</code> + the <strong>debug</strong> keystore SHA-1</td><td><code>124893613050-nur1fbncr3muucgh0mccibgp6vo36bjr.apps.googleusercontent.com</code></td></tr>
+          <tr><td>Android (Play app signing)</td><td>Package <code>com.sungamestudio.ludoarena</code> + the Play app signing SHA-1 <code>B5:48:E8:65:81:D7:A2:9D:00:B8:50:A9:E9:4C:3A:32:82:5A:06:9B</code></td><td><code>124893613050-0tco9t36svsvu2c3g7deps61t4mmk2ei.apps.googleusercontent.com</code></td></tr>
+          <tr><td>Android (upload key)</td><td>Package <code>com.sungamestudio.ludoarena</code> + the upload key SHA-1 <code>6A:6E:F5:50:C9:CD:EF:D5:2F:3D:0E:11:07:AB:A1:D4:3A:A9:96:CA</code></td><td><code>124893613050-k3jfeen9m0dndl845nghno6jh6nk8aaa.apps.googleusercontent.com</code></td></tr>
         </tbody>
       </table>
     </div>
-    <div class="callout pending"><span class="callout-title">Pending for production</span>An Android OAuth client for the <strong>release / Play App Signing SHA-1</strong> (release builds currently use the debug key), moving the consent screen out of Testing (verification), and more test users as needed.</div>
-    <p>Other providers use the same backend flow: <strong>Apple</strong> (identity token + raw nonce, <code>nonce == sha256(rawNonce)</code>, audiences <code>APPLE_AUDIENCES</code>; Android web flow via <code>POST /api/v1/auth/apple/callback</code>) and <strong>Facebook</strong> (Limited Login OIDC token + nonce, or classic token via Graph <code>debug_token</code>). Both are implemented in code but <span class="badge b-pending">Pending</span> configuration: Apple needs an Apple Developer account (Sign in with Apple for <code>com.ludoarena.app</code>, a Services ID for Android); Facebook needs a Meta app (<code>FACEBOOK_APP_ID</code>, <code>FACEBOOK_APP_SECRET</code>). Until then the app hides the Facebook button (<code>FACEBOOK_ENABLED=false</code>) and the backend answers <code>503 provider_unavailable</code>.</p>
+    <div class="callout pending"><span class="callout-title">Pending for production</span>The Android release OAuth client for the <strong>upload key and Play App Signing SHA-1s</strong> (release builds are signed with the upload key from the gitignored <code>frontend/android/key.properties</code>), moving the consent screen out of Testing (verification), and more test users as needed.</div>
+    <p>Other providers use the same backend flow: <strong>Apple</strong> (identity token + raw nonce, <code>nonce == sha256(rawNonce)</code>, audiences <code>APPLE_AUDIENCES</code>; Android web flow via <code>POST /api/v1/auth/apple/callback</code>) and <strong>Facebook</strong> (Limited Login OIDC token + nonce, or classic token via Graph <code>debug_token</code>). Both are implemented in code but <span class="badge b-pending">Pending</span> configuration: Apple needs an Apple Developer account (Sign in with Apple for the iOS bundle id <code>com.ludoarena.app</code>, a Services ID for Android; the callback redirects to the Android package <code>APPLE_ANDROID_PACKAGE</code>, <code>com.sungamestudio.ludoarena</code>); Facebook needs a Meta app (<code>FACEBOOK_APP_ID</code>, <code>FACEBOOK_APP_SECRET</code>). Until then the app hides the Facebook button (<code>FACEBOOK_ENABLED=false</code>) and the backend answers <code>503 provider_unavailable</code>.</p>
   </section>
 
   <!-- ============================================================ 3 -->
@@ -1310,10 +1312,11 @@ td code { font-size: 0.8rem; }
       <table>
         <thead><tr><th>Identifier</th><th>Value</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td>Android package / iOS bundle id</td><td><code>com.ludoarena.app</code></td><td><span class="badge b-impl">Configured</span></td></tr>
+          <tr><td>Android package (Google Play)</td><td><code>com.sungamestudio.ludoarena</code></td><td><span class="badge b-impl">Configured</span></td></tr>
+          <tr><td>iOS bundle id</td><td><code>com.ludoarena.app</code></td><td><span class="badge b-impl">Configured</span></td></tr>
           <tr><td>Google Cloud project</td><td><code>ludo-royale-63887</code> (OAuth clients in <a href="#google-oauth-clients">§2</a>)</td><td><span class="badge b-impl">Configured</span> (Testing mode)</td></tr>
           <tr><td>Apple Sign in return URL (Android)</td><td><code>{PUBLIC_URL}/api/v1/auth/apple/callback</code></td><td><span class="badge b-pending">Pending</span> Apple Developer</td></tr>
-          <tr><td>Release signing SHA-1 / Play App Signing</td><td>—</td><td><span class="badge b-pending">Pending</span></td></tr>
+          <tr><td>Release signing SHA-1 / Play App Signing</td><td>Upload key via gitignored <code>frontend/android/key.properties</code>; Play App Signing holds the app signing key</td><td><span class="badge b-pending">Pending</span></td></tr>
           <tr><td>Store URLs (<code>storeUrl</code>)</td><td>empty in all policy files → “not yet available in the store”</td><td><span class="badge b-pending">Pending</span> store listings</td></tr>
         </tbody>
       </table>
@@ -2063,7 +2066,7 @@ td code { font-size: 0.8rem; }
           <tr><td>Flutter missions, events, collection, friends, leaderboard and level-road screens</td><td><span class="badge b-impl">Implemented</span></td><td>Routed via <code>meta_routes.dart</code>; covered by widget tests (light/dark, all locales, small screens); hands-on device play-through pending</td></tr>
           <tr><td>Facebook Login</td><td><span class="badge b-pending">Pending</span></td><td>Needs a Meta app, <code>FACEBOOK_APP_ID</code> and <code>FACEBOOK_APP_SECRET</code>; button hidden, backend returns 503 <code>provider_unavailable</code></td></tr>
           <tr><td>Sign in with Apple</td><td><span class="badge b-pending">Pending</span></td><td>Needs an Apple Developer account, App ID capability, Services ID and <code>APPLE_AUDIENCES</code></td></tr>
-          <tr><td>Release signing SHA-1 / Play App Signing OAuth client</td><td><span class="badge b-pending">Pending</span></td><td>Release builds currently use the debug key</td></tr>
+          <tr><td>Release signing SHA-1 / Play App Signing OAuth client</td><td><span class="badge b-pending">Pending</span></td><td>Release builds are signed with the upload key (gitignored <code>frontend/android/key.properties</code>); the Android release OAuth client for <code>com.sungamestudio.ludoarena</code> still needs the upload-key and Play App Signing SHA-1s</td></tr>
           <tr><td>App Store / Google Play listings</td><td><span class="badge b-pending">Pending</span></td><td><code>storeUrl</code> empty in every policy file → “not yet available in the store”</td></tr>
           <tr><td>Firebase Analytics DebugView verification on a device</td><td><span class="badge b-pending">Pending</span></td><td>Gate and catalog are unit-tested; live delivery not yet verified</td></tr>
           <tr><td>Production server (one VPS at <code>ludo.sungamestudio.com</code>: nginx, backend, bot-play, PostgreSQL, Redis)</td><td><span class="badge b-impl">Configured</span></td><td><a href="../deploy/read.html">Production runbook</a></td></tr>
