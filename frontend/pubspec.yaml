@@ -1,7 +1,7 @@
 name: ludo_arena
 description: "Ludo Arena - multiplayer Ludo and Snakes & Ladders"
 publish_to: 'none'
-version: 1.0.0+3
+version: 1.1.0+4
 
 environment:
   sdk: ^3.12.2
