@@ -1,0 +1,23 @@
+[Unit]
+Description=Ludo Arena node_exporter (127.0.0.1:9100)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+ExecStart=/opt/ludo-monitoring/bin/node_exporter --web.listen-address=127.0.0.1:9100
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+ProtectSystem=strict
+# Read-only, not hidden, so the filesystem collector sees every mount.
+ProtectHome=read-only
+PrivateTmp=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

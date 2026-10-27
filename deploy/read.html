@@ -360,7 +360,11 @@ td code { font-size: 0.8rem; }
     <div class="section-head"><span class="section-num">1</span><h2 id="layout-h">What runs where</h2></div>
 <pre class="topology"><code>app ──HTTPS/WSS──▶ nginx :443 ──▶ backend 127.0.0.1:8080 ──▶ PostgreSQL 16 127.0.0.1:5432
                        ▲                │                 └─▶ Redis 7      127.0.0.1:6379
-bot-play ──────────────┘ (loopback)     metrics 127.0.0.1:9090 (bot-play: 127.0.0.1:9091)</code></pre>
+bot-play ──────────────┘ (loopback)     metrics 127.0.0.1:9090 (bot-play: 127.0.0.1:9091)
+                                                 ▲ scrape
+node_exporter :9100 ──▶ Prometheus :9095 ──▶ Alertmanager :9093 ──▶ ops bot :9097 ──HTTPS──▶ Telegram
+                                  ▲ PromQL                              │ operator API (/api/v1/admin/ops/*)
+                                  └──────────────────────────────────────┘ ──▶ backend :8080</code></pre>
     <div class="table-wrap"><table>
       <thead><tr><th>Service</th><th>systemd unit</th><th>Runs as</th><th>Listens</th><th>Notes</th></tr></thead>
       <tbody>
@@ -369,6 +373,10 @@ bot-play ──────────────┘ (loopback)     metrics 12
         <tr><td>bot-play</td><td><code>ludo-bot-play</code></td><td>ludo</td><td>metrics <code>127.0.0.1:9091</code></td><td>Practice-game bots; reaches <code>https://ludo.sungamestudio.com</code> via <code>/etc/hosts</code> → 127.0.0.1</td></tr>
         <tr><td>PostgreSQL 16</td><td><code>postgresql@16-main</code></td><td>postgres</td><td><code>127.0.0.1:5432</code></td><td>Database <code>ludo_arena</code>, role <code>ludo</code></td></tr>
         <tr><td>Redis 7</td><td><code>redis-server</code></td><td>redis</td><td><code>127.0.0.1:6379</code></td><td>Password; AOF every second + RDB; <code>noeviction</code></td></tr>
+        <tr><td>Prometheus</td><td><code>ludo-prometheus</code></td><td>dynamic</td><td><code>127.0.0.1:9095</code></td><td>45 days in <code>/var/lib/ludo-prometheus</code>; §6.7</td></tr>
+        <tr><td>Alertmanager</td><td><code>ludo-alertmanager</code></td><td>dynamic</td><td><code>127.0.0.1:9093</code></td><td>Sends alerts to the ops bot</td></tr>
+        <tr><td>node_exporter</td><td><code>ludo-node-exporter</code></td><td>dynamic</td><td><code>127.0.0.1:9100</code></td><td>CPU, RAM, disk of this host</td></tr>
+        <tr><td>Telegram ops bot</td><td><code>ludo-ops-bot</code></td><td>dynamic</td><td><code>127.0.0.1:9097</code></td><td>Reports, alerts, <code>/live</code> <code>/playtime</code> <code>/metrics</code></td></tr>
       </tbody>
     </table></div>
     <p>The firewall (ufw) allows only ports 22, 80 and 443.</p>
@@ -380,7 +388,9 @@ bot-play ──────────────┘ (loopback)     metrics 12
         <tr><td><code>/opt/ludo-arena/current</code></td><td>Symlink to the live release (the units run from it)</td></tr>
         <tr><td><code>/etc/ludo-arena/backend.env</code></td><td>Backend settings and secrets (0640 root:ludo)</td></tr>
         <tr><td><code>/etc/ludo-arena/bot-play.env</code></td><td><code>BOT_SERVICE_KEY</code> (its SHA-256 is in <code>backend.env</code>)</td></tr>
-        <tr><td><code>/etc/ludo-arena/secrets/</code></td><td>Database password, Google Play service-account key</td></tr>
+        <tr><td><code>/etc/ludo-arena/secrets/</code></td><td>Database password, Google Play service-account key, operator key (<code>ops-admin.key</code>)</td></tr>
+        <tr><td><code>/etc/ludo-arena/ops-bot.env</code></td><td>Ops bot settings: Telegram token and chat ids, <code>BACKEND_ADMIN_KEY</code> (mode 0600 root)</td></tr>
+        <tr><td><code>/opt/ludo-monitoring/bin/</code>, <code>/etc/ludo-monitoring/</code></td><td>Monitoring binaries; Prometheus/Alertmanager config and alert rules</td></tr>
         <tr><td><code>/etc/redis/ludo-arena-secret.conf</code></td><td>Redis password</td></tr>
         <tr><td><code>/var/backups/ludo-arena/</code></td><td>Database dumps (nightly + before migrations)</td></tr>
         <tr><td><code>/root/.ssh/ludo_arena_deploy</code></td><td>Deploy key (GitHub → Ludo-Arena → Settings → Deploy keys, read-only)</td></tr>
@@ -536,6 +546,18 @@ ssh root@ludo.sungamestudio.com bash /root/deploy/scripts/provision.sh</code></p
 
     <h3>6.6 Operating system</h3>
     <p><code>unattended-upgrades</code> installs Ubuntu security updates automatically. All services start on boot, so a reboot (<code>reboot</code>, or Bluehost → Reboot Server) only interrupts play briefly.</p>
+
+    <h3>6.7 Monitoring and the Telegram ops bot</h3>
+    <p>Prometheus, Alertmanager, node_exporter and the ops bot run on this host (no Docker), all on loopback. Install or update them, then check:</p>
+<pre><code>scp -r deploy root@ludo.sungamestudio.com:/root/
+ssh root@ludo.sungamestudio.com bash /root/deploy/scripts/monitoring-setup.sh v1.1.2   # ref of the ops bot and rules
+systemctl status ludo-prometheus ludo-alertmanager ludo-node-exporter ludo-ops-bot</code></pre>
+    <p>The script downloads the pinned Prometheus, Alertmanager and node_exporter releases (checked against their <code>sha256sums.txt</code>), builds the ops bot and copies the alert rules from the source checkout at the ref, runs the rule unit tests, and installs <code>deploy/monitoring/prometheus.yml</code>. It keeps the Prometheus data. <code>ludo-deploy deploy</code> does not touch monitoring: re-run the script with the new tag when the ops bot or the rules change.</p>
+    <ul>
+      <li><strong>Operator key</strong> <code>/etc/ludo-arena/secrets/ops-admin.key</code> (generated once). The first run sets the backend's <code>ADMIN_API_KEY_SHA256</code> to its sha256 and restarts the backend; the ops bot gets the key as <code>BACKEND_ADMIN_KEY</code>.</li>
+      <li><strong>Telegram</strong> <code>TELEGRAM_BOT_TOKEN</code> and <code>TELEGRAM_CHAT_IDS</code> in <code>/etc/ludo-arena/ops-bot.env</code>: edit the file, or pass a file of <code>KEY=value</code> lines once with <code>OPS_BOT_SET=/root/ops.env bash …/monitoring-setup.sh</code> (merged, then deleted). The bot starts only once the file validates. One process per bot token polls for commands: do not run the same bot elsewhere (HTTP 409).</li>
+    </ul>
+    <p>Other settings (report times, formats) are the variables of <code>monitoring/README.md</code> in the same file; apply with <code>systemctl restart ludo-ops-bot</code>. Thresholds: <code>/etc/ludo-monitoring/rules/thresholds.yml</code> (replaced by the next run of the script; change them in the repo), reload with <code>curl -X POST 127.0.0.1:9095/-/reload</code>. Prometheus UI over SSH: <code>ssh -L 9095:127.0.0.1:9095 root@ludo.sungamestudio.com</code>, then <code>http://127.0.0.1:9095</code>.</p>
   </section>
 
   <!-- ============================================================ 7 -->
@@ -631,6 +653,9 @@ curl -s 127.0.0.1:9090/metrics | grep -E '^(ws_connections_active|players_in_gam
         <tr><td><code>nginx/ludo.sungamestudio.com.conf</code></td><td><code>/etc/nginx/sites-available/ludo.sungamestudio.com</code></td></tr>
         <tr><td><code>sysctl/99-ludo-arena.conf</code></td><td><code>/etc/sysctl.d/99-ludo-arena.conf</code></td></tr>
         <tr><td><code>systemd/ludo-backend.service</code>, <code>ludo-bot-play.service</code></td><td><code>/etc/systemd/system/</code></td></tr>
+        <tr><td><code>scripts/monitoring-setup.sh</code></td><td>run to install or update monitoring (§6.7)</td></tr>
+        <tr><td><code>monitoring/prometheus.yml</code></td><td><code>/etc/ludo-monitoring/prometheus.yml</code></td></tr>
+        <tr><td><code>systemd/ludo-prometheus.service</code>, <code>ludo-alertmanager.service</code>, <code>ludo-node-exporter.service</code>, <code>ludo-ops-bot.service</code></td><td><code>/etc/systemd/system/</code></td></tr>
         <tr><td><code>systemd/nginx-limits.conf</code></td><td><code>/etc/systemd/system/nginx.service.d/limits.conf</code></td></tr>
         <tr><td><code>redis/ludo-arena.conf</code></td><td><code>/etc/redis/ludo-arena.conf</code> (included from <code>redis.conf</code>)</td></tr>
         <tr><td><code>postgresql/ludo-arena.conf</code></td><td><code>/etc/postgresql/16/main/conf.d/ludo-arena.conf</code></td></tr>

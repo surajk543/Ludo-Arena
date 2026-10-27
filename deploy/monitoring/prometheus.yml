@@ -1,0 +1,47 @@
+# Prometheus on the production VPS (installed by deploy/scripts/monitoring-setup.sh
+# as /etc/ludo-monitoring/prometheus.yml). Everything runs on this host and
+# listens on 127.0.0.1 only; the rules are monitoring/prometheus/rules/*.yml
+# of the deployed ref. The Docker variant is monitoring/prometheus/prometheus.yml.
+#
+# Reload after editing: curl -X POST http://127.0.0.1:9095/-/reload
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: ludo-arena
+
+rule_files:
+  - /etc/ludo-monitoring/rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [127.0.0.1:9093]
+
+scrape_configs:
+  # Backend METRICS_ADDR (deploy/backend.env.example).
+  - job_name: backend
+    static_configs:
+      - targets: [127.0.0.1:9090]
+        labels: {env: production}
+
+  # bot-play metrics.listen_addr (bot-play/configs/environments/production.yaml).
+  - job_name: bot-play
+    static_configs:
+      - targets: [127.0.0.1:9091]
+        labels: {env: production}
+
+  # node_exporter: CPU, RAM and disk of this host.
+  - job_name: node
+    static_configs:
+      - targets: [127.0.0.1:9100]
+        labels: {env: production}
+
+  # The ops bot's own metrics (deliveries, commands).
+  - job_name: ops-bot
+    static_configs:
+      - targets: [127.0.0.1:9097]
+
+  - job_name: prometheus
+    static_configs:
+      - targets: [127.0.0.1:9095]

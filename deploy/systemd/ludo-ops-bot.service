@@ -1,0 +1,28 @@
+[Unit]
+Description=Ludo Arena Telegram ops bot (127.0.0.1:9097)
+After=network-online.target ludo-prometheus.service ludo-backend.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+# All settings, with the Telegram token, chat ids and BACKEND_ADMIN_KEY
+# (0600 root; systemd reads it before dropping privileges). Created by
+# deploy/scripts/monitoring-setup.sh from monitoring/.env.example.
+EnvironmentFile=/etc/ludo-arena/ops-bot.env
+ExecStart=/opt/ludo-monitoring/bin/ops-bot
+Restart=always
+RestartSec=10
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

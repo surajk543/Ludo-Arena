@@ -1,0 +1,31 @@
+[Unit]
+Description=Ludo Arena Alertmanager (127.0.0.1:9093)
+After=network-online.target ludo-ops-bot.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+StateDirectory=ludo-alertmanager
+# --cluster.listen-address= turns off gossip (otherwise :9094 on every interface).
+ExecStart=/opt/ludo-monitoring/bin/alertmanager \
+    --config.file=/etc/ludo-monitoring/alertmanager.yml \
+    --storage.path=/var/lib/ludo-alertmanager \
+    --web.listen-address=127.0.0.1:9093 \
+    --cluster.listen-address=
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

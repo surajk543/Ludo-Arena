@@ -299,6 +299,9 @@ processing a day.
 
 ## Production notes
 
+- On the production VPS the stack runs without Docker, as systemd services
+  next to the backend: `deploy/scripts/monitoring-setup.sh` installs and
+  updates it (`deploy/README.md` §6.7).
 - Run the stack next to the backend on the **private network**; scrape
   targets are private addresses (`prometheus/targets/*.yml`, or mount another
   directory with `PROM_TARGETS_DIR`). Metrics ports (9090, 9091, 9100),
