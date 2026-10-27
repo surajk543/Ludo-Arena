@@ -16,10 +16,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ludo_arena/core/protocol/envelope.dart';
 import 'package:ludo_arena/core/protocol/events.dart';
 import 'package:ludo_arena/core/protocol/message_types.dart';
+import 'package:ludo_arena/core/protocol/playtime.dart';
 import 'package:ludo_arena/core/protocol/room_state_reducer.dart';
 import 'package:ludo_arena/core/realtime/realtime_socket.dart';
 import 'package:ludo_arena/features/authentication/data/auth_api.dart'
     show deleteAccountConfirmation;
+import 'package:ludo_arena/features/missions/domain/mission_models.dart';
 import 'package:ludo_arena/features/profile/domain/display_name.dart';
 
 final String? _backend = Platform.environment['BACKEND_URL'];
@@ -312,6 +314,85 @@ void main() {
       expect(again, 401);
       final (me, _, _) = await _send('GET', '/api/v1/me', token);
       expect(me, 401);
+    },
+    skip: _backend == null
+        ? 'set BACKEND_URL to run against a live backend'
+        : false,
+  );
+
+  test(
+    'daily playtime: GET /playtime and GET /missions decode with the app '
+    'models; app.focus is acknowledged on the live socket',
+    () async {
+      final token = (await _guest('playtime'))['accessToken'] as String;
+      final (status, body, _) = await _send('GET', '/api/v1/playtime', token);
+      if (status == 404) {
+        // Daily playtime switched off on this server.
+        expect((body['error'] as Map)['code'], 'not_found');
+      } else {
+        expect(status, 200, reason: '$body');
+        final p = Playtime.fromJson(body);
+        expect(p.periodKey, matches(RegExp(r'^d\d{4}-\d{2}-\d{2}$')));
+        expect(p.resetsAtUtc, isNotNull);
+        expect(p.seconds, greaterThanOrEqualTo(0));
+        expect(p.milestones, isNotEmpty);
+        for (var i = 1; i < p.milestones.length; i++) {
+          expect(
+            p.milestones[i].minutes,
+            greaterThan(p.milestones[i - 1].minutes),
+          );
+        }
+        // Statuses: completed…, then one in_progress, then locked.
+        final statuses = p.milestones.map((m) => m.status).toList();
+        final firstOpen = statuses.indexWhere(
+          (s) => s != PlaytimeMilestoneStatus.completed,
+        );
+        if (firstOpen >= 0) {
+          expect(statuses[firstOpen], PlaytimeMilestoneStatus.inProgress);
+          expect(
+            statuses.skip(firstOpen + 1),
+            everyElement(PlaytimeMilestoneStatus.locked),
+          );
+        }
+        final (ms, missions, _) = await _send('GET', '/api/v1/missions', token);
+        expect(ms, 200, reason: '$missions');
+        final board = MissionsBoard.fromJson(missions);
+        expect(board.playtime?.periodKey, p.periodKey);
+        expect(board.playtime?.periodKey, board.daily.periodKey);
+      }
+
+      final base = Uri.parse(_backend!);
+      final socket = await ioWebSocketConnector(
+        base.replace(
+          scheme: base.scheme == 'https' ? 'wss' : 'ws',
+          path: '/api/v1/ws',
+        ),
+        {'Authorization': 'Bearer $token', ..._appHeaders},
+      );
+      final replies = StreamController<ServerMessage>.broadcast();
+      socket.stream.listen(
+        (frame) => replies.add(decodeServerMessage(frame as String)),
+      );
+      await replies.stream
+          .firstWhere((m) => m.event is ConnectionReadyEvent)
+          .timeout(const Duration(seconds: 5));
+      final run = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+      for (final (i, fg) in [false, true].indexed) {
+        final id = 'pt.$run.$i';
+        final reply = replies.stream
+            .firstWhere((m) => m.replyTo == id)
+            .timeout(const Duration(seconds: 5));
+        socket.add(
+          ClientMessage(
+            type: ClientMessageTypes.appFocus,
+            id: id,
+            payload: {'foreground': fg},
+          ).encode(),
+        );
+        expect((await reply).event, isA<AckEvent>());
+      }
+      await socket.close(WsCloseCodes.normal);
+      await replies.close();
     },
     skip: _backend == null
         ? 'set BACKEND_URL to run against a live backend'

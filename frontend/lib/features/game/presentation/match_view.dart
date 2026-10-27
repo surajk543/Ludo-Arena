@@ -891,6 +891,8 @@ class _MatchViewState extends ConsumerState<MatchView> {
                           onPlayAgain: _playAgain,
                           onHome: () => _leaveTo(AppRoutes.home),
                           onPlayerTap: _openPlayer,
+                          onNextGoal: (location) =>
+                              unawaited(_leaveTo(location)),
                         ),
                       ),
                     ),

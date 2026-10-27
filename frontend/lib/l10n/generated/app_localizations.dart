@@ -2197,6 +2197,184 @@ abstract class AppLocalizations {
   /// **'No Ads'**
   String get homeNoAdsRibbon;
 
+  /// Lobby card title: today's playtime milestones and daily missions.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Play Journey'**
+  String get journeyCardTitle;
+
+  /// Label: qualifying minutes played in matches today (not time the app was open).
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s playtime'**
+  String get journeyTodayPlaytime;
+
+  /// Today's playtime toward the last milestone, e.g. "18 / 60 min".
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} / {goal} min'**
+  String journeyMinutesOfGoal(String minutes, String goal);
+
+  /// A milestone threshold or a duration in minutes, e.g. "30 min".
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String journeyMinutes(String minutes);
+
+  /// Unit under the minutes number inside the playtime ring.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get journeyMinutesUnit;
+
+  /// Next playtime milestone, e.g. "12 more minutes to unlock 40 XP + 10,000 coins".
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{minutes} more minute to unlock {reward}} other{{minutes} more minutes to unlock {reward}}}'**
+  String journeyNextReward(int count, String minutes, String reward);
+
+  /// Part of a reward sentence, e.g. "40 XP".
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} XP'**
+  String journeyRewardXp(String amount);
+
+  /// Part of a reward sentence, e.g. "10,000 coins".
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} coins'**
+  String journeyRewardCoins(String amount);
+
+  /// Part of a reward sentence, e.g. "5 diamonds".
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} diamonds'**
+  String journeyRewardDiamonds(String amount);
+
+  /// Joins two reward parts, e.g. "40 XP + 10,000 coins".
+  ///
+  /// In en, this message translates to:
+  /// **'{first} + {second}'**
+  String journeyRewardJoin(String first, String second);
+
+  /// The milestone time was reached; the server is granting the reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocking your reward…'**
+  String get journeyUnlocking;
+
+  /// Every playtime milestone of the day is completed (calm, no pressure to keep playing).
+  ///
+  /// In en, this message translates to:
+  /// **'All of today\'s playtime rewards are yours. Nice playing!'**
+  String get journeyAllDone;
+
+  /// Daily missions completed today, e.g. "Daily missions: 1 / 3 completed".
+  ///
+  /// In en, this message translates to:
+  /// **'Daily missions: {done} / {total} completed'**
+  String journeyMissionsCount(String done, String total);
+
+  /// Milestone state: completed, reward already credited.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward received'**
+  String get journeyStatusCompleted;
+
+  /// Milestone state: the next one, with the minutes still needed.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min to go'**
+  String journeyStatusNext(String minutes);
+
+  /// Milestone state: a later one, with the minutes still needed.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked · {minutes} min to go'**
+  String journeyStatusLocked(String minutes);
+
+  /// Explains what counts as playtime.
+  ///
+  /// In en, this message translates to:
+  /// **'Only active time in a match counts — not the lobby, matchmaking or time with the app in the background.'**
+  String get journeyRulesNote;
+
+  /// Today's playtime could not be refreshed; the shown value may be old.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress may be out of date'**
+  String get journeyStale;
+
+  /// Lobby card: today's playtime failed to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load today\'s playtime. Tap to retry.'**
+  String get journeyLoadFailed;
+
+  /// Screen reader: today's playtime.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s playtime: {minutes} of {goal} minutes.'**
+  String journeySemantics(String minutes, String goal);
+
+  /// Screen reader: one playtime milestone.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minute milestone, {status}. Reward: {reward}.'**
+  String journeyMilestoneSemantics(
+    String minutes,
+    String status,
+    String reward,
+  );
+
+  /// Toast title when one or more playtime milestones were completed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Daily milestone completed!} other{Daily milestones completed!}}'**
+  String journeyToastTitle(int count);
+
+  /// Toast text, e.g. "You played for 30 minutes today."
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You played for {minutes} minute today.} other{You played for {minutes} minutes today.}}'**
+  String journeyToastBody(int count, String minutes);
+
+  /// Toast action: open today's playtime progress.
+  ///
+  /// In en, this message translates to:
+  /// **'View progress'**
+  String get journeyToastView;
+
+  /// Match results: one achievable next objective.
+  ///
+  /// In en, this message translates to:
+  /// **'Next goal'**
+  String get journeyNextGoalTitle;
+
+  /// Next goal: a playtime milestone within reach.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Play {minutes} more minute to unlock {reward}.} other{Play {minutes} more minutes to unlock {reward}.}}'**
+  String journeyGoalPlaytime(int count, String minutes, String reward);
+
+  /// Next goal: the daily mission closest to completion, e.g. "1 more to finish “Warm-Up”."
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} more to finish “{title}”.'**
+  String journeyGoalMission(String amount, String title);
+
+  /// Next goal: a completed mission whose reward is not claimed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” is complete — your reward is ready to claim.'**
+  String journeyGoalClaim(String title);
+
+  /// Next goal: XP to the next level.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn {xp} more XP to reach level {level}.'**
+  String journeyGoalLevel(String xp, String level);
+
   /// Missions screen title.
   ///
   /// In en, this message translates to:

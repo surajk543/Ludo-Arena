@@ -120,4 +120,26 @@ class NoopAnalyticsService implements AnalyticsService {
     required double value,
     required String currency,
   }) {}
+
+  @override
+  void playtimeProgressViewed(String surface) {}
+
+  @override
+  void playtimeMilestoneCompleted(int minutes) {}
+
+  @override
+  void playtimeRewardGranted({
+    required int minutes,
+    required int xp,
+    required int coins,
+  }) {}
+
+  @override
+  void playtimeToastDismissed(String method) {}
+
+  @override
+  void nextGoalShown(String kind) {}
+
+  @override
+  void nextGoalTapped(String kind) {}
 }

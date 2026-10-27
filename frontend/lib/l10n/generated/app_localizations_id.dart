@@ -1215,6 +1215,160 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeNoAdsRibbon => 'Tanpa Iklan';
 
   @override
+  String get journeyCardTitle => 'Perjalanan Main Harian';
+
+  @override
+  String get journeyTodayPlaytime => 'Waktu bermain hari ini';
+
+  @override
+  String journeyMinutesOfGoal(String minutes, String goal) {
+    return '$minutes / $goal mnt';
+  }
+
+  @override
+  String journeyMinutes(String minutes) {
+    return '$minutes mnt';
+  }
+
+  @override
+  String get journeyMinutesUnit => 'mnt';
+
+  @override
+  String journeyNextReward(int count, String minutes, String reward) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$minutes menit lagi untuk membuka $reward',
+      one: '$minutes menit lagi untuk membuka $reward',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyRewardXp(String amount) {
+    return '$amount XP';
+  }
+
+  @override
+  String journeyRewardCoins(String amount) {
+    return '$amount koin';
+  }
+
+  @override
+  String journeyRewardDiamonds(String amount) {
+    return '$amount berlian';
+  }
+
+  @override
+  String journeyRewardJoin(String first, String second) {
+    return '$first + $second';
+  }
+
+  @override
+  String get journeyUnlocking => 'Membuka hadiahmu…';
+
+  @override
+  String get journeyAllDone =>
+      'Semua hadiah waktu bermain hari ini sudah jadi milikmu. Permainan yang bagus!';
+
+  @override
+  String journeyMissionsCount(String done, String total) {
+    return 'Misi harian: $done / $total selesai';
+  }
+
+  @override
+  String get journeyStatusCompleted => 'Hadiah diterima';
+
+  @override
+  String journeyStatusNext(String minutes) {
+    return '$minutes mnt lagi';
+  }
+
+  @override
+  String journeyStatusLocked(String minutes) {
+    return 'Terkunci · $minutes mnt lagi';
+  }
+
+  @override
+  String get journeyRulesNote =>
+      'Hanya waktu aktif dalam pertandingan yang dihitung — bukan lobi, pencarian lawan, atau saat aplikasi di latar belakang.';
+
+  @override
+  String get journeyStale => 'Progres mungkin belum terbaru';
+
+  @override
+  String get journeyLoadFailed =>
+      'Gagal memuat waktu bermain hari ini. Ketuk untuk mencoba lagi.';
+
+  @override
+  String journeySemantics(String minutes, String goal) {
+    return 'Waktu bermain hari ini: $minutes dari $goal menit.';
+  }
+
+  @override
+  String journeyMilestoneSemantics(
+    String minutes,
+    String status,
+    String reward,
+  ) {
+    return 'Pencapaian $minutes menit, $status. Hadiah: $reward.';
+  }
+
+  @override
+  String journeyToastTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Pencapaian harian selesai!',
+      one: 'Pencapaian harian selesai!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyToastBody(int count, String minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kamu bermain selama $minutes menit hari ini.',
+      one: 'Kamu bermain selama $minutes menit hari ini.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyToastView => 'Lihat progres';
+
+  @override
+  String get journeyNextGoalTitle => 'Target berikutnya';
+
+  @override
+  String journeyGoalPlaytime(int count, String minutes, String reward) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Main $minutes menit lagi untuk membuka $reward.',
+      one: 'Main $minutes menit lagi untuk membuka $reward.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyGoalMission(String amount, String title) {
+    return '$amount lagi untuk menyelesaikan “$title”.';
+  }
+
+  @override
+  String journeyGoalClaim(String title) {
+    return '“$title” selesai — hadiahmu siap diklaim.';
+  }
+
+  @override
+  String journeyGoalLevel(String xp, String level) {
+    return 'Dapatkan $xp XP lagi untuk mencapai level $level.';
+  }
+
+  @override
   String get metaMissionsTitle => 'Misi';
 
   @override

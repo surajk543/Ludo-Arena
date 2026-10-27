@@ -70,6 +70,11 @@ final progressionUpdatesProvider = StreamProvider<ProgressionUpdatedEvent>(
   (ref) => ref.watch(realtimeConnectionProvider).progressionUpdates,
 );
 
+/// `playtime.updated` events (for `ref.listen`).
+final playtimeUpdatesProvider = StreamProvider<PlaytimeUpdatedEvent>(
+  (ref) => ref.watch(realtimeConnectionProvider).playtimeUpdates,
+);
+
 /// `social.invite` / `social.friend_request` events (for `ref.listen`).
 final socialEventsProvider = StreamProvider<ServerEvent>(
   (ref) => ref.watch(realtimeConnectionProvider).socialEvents,

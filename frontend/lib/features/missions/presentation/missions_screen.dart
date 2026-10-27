@@ -9,6 +9,7 @@ import '../../../core/analytics/analytics_providers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../daily_journey/presentation/playtime_section.dart';
 import '../../meta_routes.dart';
 import '../../profile/progression.dart';
 import '../../progression/application/meta_support.dart';
@@ -85,6 +86,14 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
         ),
       );
     }
+
+    // Today's playtime (renders nothing while disabled or loading).
+    slivers.add(
+      const SliverPadding(
+        padding: kMetaPagePadding,
+        sliver: SliverToBoxAdapter(child: PlaytimeSection()),
+      ),
+    );
 
     switch (async) {
       case AsyncValue(:final value?):

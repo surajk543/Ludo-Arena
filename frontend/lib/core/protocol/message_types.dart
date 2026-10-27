@@ -29,6 +29,10 @@ abstract final class ClientMessageTypes {
   static const chatQuick = 'chat.quick';
   static const chatEmote = 'chat.emote';
 
+  /// `{"foreground": bool}`: pauses / resumes daily playtime accrual while
+  /// the app is in the background (people only).
+  static const appFocus = 'app.focus';
+
   static const all = <String>{
     ping,
     matchmakingJoin,
@@ -48,6 +52,7 @@ abstract final class ClientMessageTypes {
     gameRematch,
     chatQuick,
     chatEmote,
+    appFocus,
   };
 }
 
@@ -75,6 +80,7 @@ abstract final class ServerMessageTypes {
   static const chatEmote = 'chat.emote';
   static const socialInvite = 'social.invite';
   static const socialFriendRequest = 'social.friend_request';
+  static const playtimeUpdated = 'playtime.updated';
 
   /// Synthetic, client-local: emitted by `RealtimeConnection` when its
   /// bounded inbound buffer overflowed and versioned deltas were dropped.

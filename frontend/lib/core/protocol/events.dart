@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'json_read.dart';
 import 'message_types.dart';
 import 'models.dart';
+import 'playtime.dart';
 
 /// Typed payload of a server → client message (websocket-protocol.md §6).
 ///
@@ -57,6 +58,7 @@ sealed class ServerEvent {
       ServerMessageTypes.chatEmote => EmoteEvent.fromJson(p),
       ServerMessageTypes.socialInvite => SocialInviteEvent.fromJson(p),
       ServerMessageTypes.socialFriendRequest => FriendRequestEvent.fromJson(p),
+      ServerMessageTypes.playtimeUpdated => PlaytimeUpdatedEvent.fromJson(p),
       ServerMessageTypes.localResyncRequired => const LocalResyncRequired(),
       _ => UnknownEvent(type),
     };
@@ -572,9 +574,10 @@ final class WalletUpdatedEvent extends ServerEvent {
   final int deltaCoins;
   final int deltaDiamonds;
 
-  /// `entry_fee` | `payout` | `mission` | `purchase` (also a coin pack:
-  /// positive deltas) | `level` | `refund` (a refunded coin pack taken back:
-  /// negative deltas). Unknown reasons are applied like any other.
+  /// `entry_fee` | `payout` | `mission` | `playtime` (a daily playtime
+  /// milestone) | `purchase` (also a coin pack: positive deltas) | `level` |
+  /// `refund` (a refunded coin pack taken back: negative deltas). Unknown
+  /// reasons are applied like any other.
   final String reason;
 
   factory WalletUpdatedEvent.fromJson(Map<String, dynamic> j) {
@@ -651,6 +654,27 @@ final class ProgressionUpdatedEvent extends ServerEvent {
 
   @override
   String get type => ServerMessageTypes.progressionUpdated;
+}
+
+/// `playtime.updated`: today's server-counted playtime, plus the milestones
+/// whose rewards this update granted ([granted], usually empty).
+final class PlaytimeUpdatedEvent extends ServerEvent {
+  const PlaytimeUpdatedEvent({required this.playtime, this.granted = const []});
+
+  final Playtime playtime;
+
+  /// Milestones granted by this update, in threshold order. Their coins and
+  /// XP are already credited (`wallet.updated` / `progression.updated`).
+  final List<PlaytimeMilestone> granted;
+
+  factory PlaytimeUpdatedEvent.fromJson(Map<String, dynamic> j) =>
+      PlaytimeUpdatedEvent(
+        playtime: Playtime.fromJson(j),
+        granted: PlaytimeMilestone.listFrom(j['granted']),
+      );
+
+  @override
+  String get type => ServerMessageTypes.playtimeUpdated;
 }
 
 // ---------------------------------------------------------- chat / social

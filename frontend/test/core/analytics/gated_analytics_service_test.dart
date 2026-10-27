@@ -332,6 +332,43 @@ void main() {
       expect(backend.events[3].$2, isEmpty);
     });
 
+    test('daily play journey events carry only enums and amounts', () async {
+      a.playtimeProgressViewed('home');
+      a.playtimeProgressViewed('u_3f9a1c2b7d4e'); // never an id
+      a.playtimeMilestoneCompleted(30);
+      a.playtimeMilestoneCompleted(30); // once per launch
+      a.playtimeRewardGranted(minutes: 30, xp: 40, coins: 10000);
+      a.playtimeRewardGranted(minutes: 0, xp: -1, coins: 99999999);
+      a.playtimeToastDismissed('auto');
+      a.playtimeToastDismissed('swipe');
+      a.nextGoalShown('playtime');
+      a.nextGoalTapped('mission');
+      a.nextGoalShown('d2026-10-27');
+      await flush();
+      expect(backend.names, [
+        'playtime_progress_viewed',
+        'playtime_progress_viewed',
+        'playtime_milestone_completed',
+        'playtime_reward_granted',
+        'playtime_reward_granted',
+        'playtime_toast_dismissed',
+        'playtime_toast_dismissed',
+        'next_goal_shown',
+        'next_goal_tapped',
+        'next_goal_shown',
+      ]);
+      expect(backend.events[0].$2, {'surface': 'home'});
+      expect(backend.events[1].$2, isEmpty);
+      expect(backend.events[2].$2, {'minutes': 30});
+      expect(backend.events[3].$2, {'minutes': 30, 'xp': 40, 'coins': 10000});
+      expect(backend.events[4].$2, isEmpty);
+      expect(backend.events[5].$2, {'method': 'auto'});
+      expect(backend.events[6].$2, isEmpty);
+      expect(backend.events[7].$2, {'kind': 'playtime'});
+      expect(backend.events[8].$2, {'kind': 'mission'});
+      expect(backend.events[9].$2, isEmpty);
+    });
+
     test(
       'coin_pack_purchased carries only the pack slug and the price',
       () async {

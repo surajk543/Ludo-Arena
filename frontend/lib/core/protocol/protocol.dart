@@ -6,5 +6,6 @@ export 'envelope.dart';
 export 'events.dart';
 export 'message_types.dart';
 export 'models.dart';
+export 'playtime.dart';
 export 'room_state_reducer.dart';
 export 'state_hash.dart';

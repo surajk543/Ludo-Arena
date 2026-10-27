@@ -1221,6 +1221,160 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNoAdsRibbon => 'No Ads';
 
   @override
+  String get journeyCardTitle => 'Daily Play Journey';
+
+  @override
+  String get journeyTodayPlaytime => 'Today\'s playtime';
+
+  @override
+  String journeyMinutesOfGoal(String minutes, String goal) {
+    return '$minutes / $goal min';
+  }
+
+  @override
+  String journeyMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get journeyMinutesUnit => 'min';
+
+  @override
+  String journeyNextReward(int count, String minutes, String reward) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$minutes more minutes to unlock $reward',
+      one: '$minutes more minute to unlock $reward',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyRewardXp(String amount) {
+    return '$amount XP';
+  }
+
+  @override
+  String journeyRewardCoins(String amount) {
+    return '$amount coins';
+  }
+
+  @override
+  String journeyRewardDiamonds(String amount) {
+    return '$amount diamonds';
+  }
+
+  @override
+  String journeyRewardJoin(String first, String second) {
+    return '$first + $second';
+  }
+
+  @override
+  String get journeyUnlocking => 'Unlocking your reward…';
+
+  @override
+  String get journeyAllDone =>
+      'All of today\'s playtime rewards are yours. Nice playing!';
+
+  @override
+  String journeyMissionsCount(String done, String total) {
+    return 'Daily missions: $done / $total completed';
+  }
+
+  @override
+  String get journeyStatusCompleted => 'Reward received';
+
+  @override
+  String journeyStatusNext(String minutes) {
+    return '$minutes min to go';
+  }
+
+  @override
+  String journeyStatusLocked(String minutes) {
+    return 'Locked · $minutes min to go';
+  }
+
+  @override
+  String get journeyRulesNote =>
+      'Only active time in a match counts — not the lobby, matchmaking or time with the app in the background.';
+
+  @override
+  String get journeyStale => 'Progress may be out of date';
+
+  @override
+  String get journeyLoadFailed =>
+      'Couldn\'t load today\'s playtime. Tap to retry.';
+
+  @override
+  String journeySemantics(String minutes, String goal) {
+    return 'Today\'s playtime: $minutes of $goal minutes.';
+  }
+
+  @override
+  String journeyMilestoneSemantics(
+    String minutes,
+    String status,
+    String reward,
+  ) {
+    return '$minutes minute milestone, $status. Reward: $reward.';
+  }
+
+  @override
+  String journeyToastTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Daily milestones completed!',
+      one: 'Daily milestone completed!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyToastBody(int count, String minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You played for $minutes minutes today.',
+      one: 'You played for $minutes minute today.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyToastView => 'View progress';
+
+  @override
+  String get journeyNextGoalTitle => 'Next goal';
+
+  @override
+  String journeyGoalPlaytime(int count, String minutes, String reward) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Play $minutes more minutes to unlock $reward.',
+      one: 'Play $minutes more minute to unlock $reward.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String journeyGoalMission(String amount, String title) {
+    return '$amount more to finish “$title”.';
+  }
+
+  @override
+  String journeyGoalClaim(String title) {
+    return '“$title” is complete — your reward is ready to claim.';
+  }
+
+  @override
+  String journeyGoalLevel(String xp, String level) {
+    return 'Earn $xp more XP to reach level $level.';
+  }
+
+  @override
   String get metaMissionsTitle => 'Missions';
 
   @override
