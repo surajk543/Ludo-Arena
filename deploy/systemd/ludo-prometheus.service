@@ -1,0 +1,33 @@
+[Unit]
+Description=Ludo Arena Prometheus (127.0.0.1:9095)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+StateDirectory=ludo-prometheus
+ExecStart=/opt/ludo-monitoring/bin/prometheus \
+    --config.file=/etc/ludo-monitoring/prometheus.yml \
+    --storage.tsdb.path=/var/lib/ludo-prometheus \
+    --storage.tsdb.retention.time=45d \
+    --web.listen-address=127.0.0.1:9095 \
+    --web.enable-lifecycle
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+TimeoutStopSec=120
+LimitNOFILE=65536
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

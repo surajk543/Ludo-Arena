@@ -19,6 +19,10 @@ say otherwise. A formatted copy of this page is [`read.html`](read.html).
 app ──HTTPS/WSS──▶ nginx :443 ──▶ backend 127.0.0.1:8080 ──▶ PostgreSQL 16 127.0.0.1:5432
                        ▲                │                 └─▶ Redis 7      127.0.0.1:6379
 bot-play ──────────────┘ (loopback)     metrics 127.0.0.1:9090 (bot-play: 127.0.0.1:9091)
+                                                 ▲ scrape
+node_exporter :9100 ──▶ Prometheus :9095 ──▶ Alertmanager :9093 ──▶ ops bot :9097 ──HTTPS──▶ Telegram
+                                  ▲ PromQL                              │ operator API (/api/v1/admin/ops/*)
+                                  └──────────────────────────────────────┘ ──▶ backend :8080
 ```
 
 | Service | systemd unit | Runs as | Listens | Notes |
@@ -28,6 +32,10 @@ bot-play ──────────────┘ (loopback)     metrics 12
 | bot-play | `ludo-bot-play` | ludo | metrics `127.0.0.1:9091` | Practice-game bots; connects to `https://ludo.sungamestudio.com` via `/etc/hosts` → 127.0.0.1 |
 | PostgreSQL 16 | `postgresql@16-main` | postgres | `127.0.0.1:5432` | Database `ludo_arena`, role `ludo` |
 | Redis 7 | `redis-server` | redis | `127.0.0.1:6379` | Password; AOF every second + RDB; `noeviction` |
+| Prometheus | `ludo-prometheus` | dynamic | `127.0.0.1:9095` | 45 days in `/var/lib/ludo-prometheus`; §6.7 |
+| Alertmanager | `ludo-alertmanager` | dynamic | `127.0.0.1:9093` | Sends alerts to the ops bot |
+| node_exporter | `ludo-node-exporter` | dynamic | `127.0.0.1:9100` | CPU, RAM, disk of this host |
+| Telegram ops bot | `ludo-ops-bot` | dynamic | `127.0.0.1:9097` | Reports, alerts, `/live` `/playtime` `/metrics` |
 
 The firewall (ufw) allows only 22, 80 and 443. Nothing else is reachable from
 the internet.
@@ -39,7 +47,9 @@ the internet.
 | `/opt/ludo-arena/current` | Symlink to the live release (the units run from it) |
 | `/etc/ludo-arena/backend.env` | Backend settings and secrets (mode 0640 root:ludo) |
 | `/etc/ludo-arena/bot-play.env` | `BOT_SERVICE_KEY` (its SHA-256 is in `backend.env`) |
-| `/etc/ludo-arena/secrets/` | Database password, Google Play service-account key |
+| `/etc/ludo-arena/secrets/` | Database password, Google Play service-account key, operator key (`ops-admin.key`) |
+| `/etc/ludo-arena/ops-bot.env` | Ops bot settings: Telegram token and chat ids, `BACKEND_ADMIN_KEY` (mode 0600 root) |
+| `/opt/ludo-monitoring/bin/`, `/etc/ludo-monitoring/` | Monitoring binaries; Prometheus/Alertmanager config and alert rules |
 | `/etc/redis/ludo-arena-secret.conf` | Redis password |
 | `/var/backups/ludo-arena/` | Database dumps (nightly + before migrations) |
 | `/root/.ssh/ludo_arena_deploy` | Deploy key (GitHub → Ludo-Arena → Settings → Deploy keys, read-only) |
@@ -320,6 +330,45 @@ deploy replaces it). `BOT_PUBLIC_FILL_ENABLED=false` plus
 services start on boot, so a reboot (`reboot`, or Bluehost → Reboot Server)
 only interrupts play briefly.
 
+### 6.7 Monitoring and the Telegram ops bot
+
+Prometheus, Alertmanager, node_exporter and the ops bot run on this host
+(no Docker), all on loopback. Install or update them, then check:
+
+```bash
+scp -r deploy root@ludo.sungamestudio.com:/root/
+ssh root@ludo.sungamestudio.com bash /root/deploy/scripts/monitoring-setup.sh v1.1.2   # ref of the ops bot and rules
+systemctl status ludo-prometheus ludo-alertmanager ludo-node-exporter ludo-ops-bot
+```
+
+The script downloads the pinned Prometheus, Alertmanager and node_exporter
+releases (checked against their `sha256sums.txt`), builds the ops bot and
+copies the alert rules from the source checkout at the ref, runs the rule
+unit tests, and installs `deploy/monitoring/prometheus.yml`. It keeps the
+Prometheus data. `ludo-deploy deploy` does not touch monitoring: re-run the
+script with the new tag when the ops bot or the rules change.
+
+Secrets:
+
+- **Operator key** `/etc/ludo-arena/secrets/ops-admin.key` (generated once).
+  The first run sets the backend's `ADMIN_API_KEY_SHA256` to its sha256 and
+  restarts the backend; the ops bot gets the key as `BACKEND_ADMIN_KEY`.
+- **Telegram** `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_IDS` in
+  `/etc/ludo-arena/ops-bot.env`: edit the file (`nano`), or pass a file of
+  `KEY=value` lines once with `OPS_BOT_SET=/root/ops.env bash …/monitoring-setup.sh`
+  (it is merged and deleted). The bot starts only once the file validates.
+  One process per bot token polls for commands: do not run the same bot
+  elsewhere (HTTP 409).
+
+Other settings (report times, formats) are the variables of
+`monitoring/README.md` in the same file; apply with
+`systemctl restart ludo-ops-bot`. Thresholds:
+`/etc/ludo-monitoring/rules/thresholds.yml` (replaced by the next run of the
+script; change them in the repo), reload with
+`curl -X POST 127.0.0.1:9095/-/reload`. Prometheus UI over SSH:
+`ssh -L 9095:127.0.0.1:9095 root@ludo.sungamestudio.com`, then
+<http://127.0.0.1:9095>.
+
 ## 7. TLS certificate and DNS
 
 - The certificate renews itself (`systemctl list-timers certbot.timer`); a
@@ -427,6 +476,9 @@ players signed in and their device bindings, copy
 | `nginx/ludo.sungamestudio.com.conf` | `/etc/nginx/sites-available/ludo.sungamestudio.com` |
 | `sysctl/99-ludo-arena.conf` | `/etc/sysctl.d/99-ludo-arena.conf` |
 | `systemd/ludo-backend.service`, `ludo-bot-play.service` | `/etc/systemd/system/` |
+| `scripts/monitoring-setup.sh` | run to install or update monitoring (§6.7) |
+| `monitoring/prometheus.yml` | `/etc/ludo-monitoring/prometheus.yml` |
+| `systemd/ludo-prometheus.service`, `ludo-alertmanager.service`, `ludo-node-exporter.service`, `ludo-ops-bot.service` | `/etc/systemd/system/` |
 | `systemd/nginx-limits.conf` | `/etc/systemd/system/nginx.service.d/limits.conf` |
 | `redis/ludo-arena.conf` | `/etc/redis/ludo-arena.conf` (included from `redis.conf`) |
 | `postgresql/ludo-arena.conf` | `/etc/postgresql/16/main/conf.d/ludo-arena.conf` |
